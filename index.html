@@ -56,6 +56,8 @@ dl div{display:contents}
 dt{font:600 11px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 
+.actions .grp{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.actions .grp:not(:has(button:not([hidden]))){display:none}
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
@@ -180,13 +182,10 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="bMode" type="button">Take the helm</button>
     <button id="bJoin" type="button">First person</button>
     <button id="bBoat" type="button">Next boat</button>
-    <button id="bStop" type="button" hidden>Anchor</button>
-    <button id="bDel" type="button" hidden>Remove boat</button>
-    <button id="bTopple" type="button" hidden>Topple</button>
-    <button id="bDelP" type="button" hidden>Remove person</button>
-    <button id="bDrop" type="button" hidden>Drop</button>
-    <button id="bQual" type="button">Quality: High</button>
-    <button id="bHelp" type="button">Help</button>
+    <button id="bZoom" type="button" hidden>Zoom to selection</button>
+    <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
+    <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
+    <div class="grp"><button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button></div>
     <button id="bRight" type="button" hidden>Right the boat</button>
   </nav>
   <div class="bottom">
@@ -2811,7 +2810,7 @@ function refreshPanel() {
   $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length);
   if (ps.length) { $('bTopple').textContent = ps.every(q => q.state === 'rag') ? 'Stand up' : 'Topple'; $('bDelP').textContent = ps.length > 1 ? 'Remove people' : 'Remove person'; }
   $('bDrop').hidden = !(god_ && ps.some(q => q.carry));
-  $('bJoin').hidden = !god_;
+  $('bJoin').hidden = !god_; $('bZoom').hidden = !(god_ && sel.length);
   if (tool === 'select' && god_) renderTray();
 }
 tabs.querySelector('[data-t="select"]').setAttribute('aria-pressed', 'true');
@@ -2826,6 +2825,12 @@ $('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(
 $('bRight').addEventListener('click', rightBoat);
 $('sAuto').addEventListener('click', toggleAuto);
 $('sAuto').addEventListener('pointerdown', () => { const b = boats[activeIdx]; if (b && b.sp.kind === 'motor') b.throttle = 0; });
+$('bZoom').addEventListener('click', () => {
+  if (!sel.length) return; let x = 0, z = 0, x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  for (const u of sel) { const px = u.kind === 'boat' ? u.body.position.x : u.x, pz = u.kind === 'boat' ? u.body.position.z : u.z; x += px; z += pz; x0 = Math.min(x0, px); x1 = Math.max(x1, px); z0 = Math.min(z0, pz); z1 = Math.max(z1, pz); }
+  god.tgt.set(x / sel.length, 0, z / sel.length); god.follow = null;
+  god.dist = clamp(Math.max(sel.some(u => u.kind === 'boat') ? 45 : 22, 1.8 * Math.max(x1 - x0, z1 - z0)), god.minD, god.maxD);
+});
 $('bDrop').addEventListener('click', () => { selPeople().forEach(p => { if (p.carry) dropCarry(p); }); refreshPanel(); });
 $('bJoin').addEventListener('click', () => enterFP(selPerson || null));
 function setQuality(q) {
