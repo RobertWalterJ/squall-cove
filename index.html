@@ -141,6 +141,7 @@ button:disabled{opacity:.45;cursor:default}
 #fp .xh::after{left:0;top:6px;width:14px;height:2px}
 .fpPrompt{position:absolute;left:50%;bottom:calc(128px + var(--safe-b));transform:translateX(-50%);max-width:min(90vw,540px);text-align:center;font:600 17px/1.25 var(--f-display);letter-spacing:.05em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;pointer-events:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .fpPrompt:empty{display:none}
+body.touch .fpPrompt{bottom:calc(172px + var(--safe-b));max-width:84vw;pointer-events:none}
 .fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
 .fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px}
 #fpLook{position:absolute;right:0;top:0;bottom:0;width:62%;touch-action:none;background:transparent}
@@ -267,7 +268,7 @@ const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = 110;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-const isTouch = matchMedia('(pointer: coarse)').matches;
+const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch);
 let quality = isTouch ? 'low' : 'high';
 try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch (e) {}
 
@@ -2819,6 +2820,12 @@ $('bStop').addEventListener('click', () => { const bs = selBoats(); bs.forEach(b
 $('bDel').addEventListener('click', () => { const bs = selBoats().filter(() => boats.length > 1); let n = 0; for (const b of bs) if (boats.length > 1) { removeBoat(b); n++; } refreshPanel(); toast(n + ' removed'); });
 $('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.length) return; if (ps.every(q => q.state === 'rag')) ps.forEach(standUp); else ps.forEach(q => { if (q.state !== 'rag') topple(q, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); }); refreshPanel(); });
 $('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
+$('bBoat').addEventListener('click', nextBoat);
+$('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
+$('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
+$('bRight').addEventListener('click', rightBoat);
+$('sAuto').addEventListener('click', toggleAuto);
+$('sAuto').addEventListener('pointerdown', () => { const b = boats[activeIdx]; if (b && b.sp.kind === 'motor') b.throttle = 0; });
 $('bDrop').addEventListener('click', () => { selPeople().forEach(p => { if (p.carry) dropCarry(p); }); refreshPanel(); });
 $('bJoin').addEventListener('click', () => enterFP(selPerson || null));
 function setQuality(q) {
