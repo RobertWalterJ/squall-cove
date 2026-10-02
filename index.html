@@ -131,6 +131,25 @@ button:disabled{opacity:.45;cursor:default}
   .chip{padding:5px 9px}
   .toast{top:calc(8px + var(--safe-t))}
 }
+#marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:4}
+#bJoin,#bDrop{background:var(--panel)}
+#fp{position:absolute;inset:0;pointer-events:none}
+#fp > *{pointer-events:auto}
+#fp .xh{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;pointer-events:none}
+#fp .xh::before,#fp .xh::after{content:"";position:absolute;background:rgba(241,236,226,.9);box-shadow:0 0 3px rgba(0,0,0,.7)}
+#fp .xh::before{left:6px;top:0;width:2px;height:14px}
+#fp .xh::after{left:0;top:6px;width:14px;height:2px}
+.fpPrompt{position:absolute;left:50%;bottom:calc(128px + var(--safe-b));transform:translateX(-50%);max-width:min(90vw,540px);text-align:center;font:600 17px/1.25 var(--f-display);letter-spacing:.05em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;pointer-events:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.fpPrompt:empty{display:none}
+.fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
+.fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px}
+#fpLook{position:absolute;right:0;top:0;bottom:0;width:62%;touch-action:none;background:transparent}
+#fpStick{position:absolute;left:18px;bottom:calc(24px + var(--safe-b));width:132px;height:132px;border-radius:50%;background:rgba(12,26,32,.45);border:1px solid var(--line);touch-action:none}
+#fpKnob{position:absolute;left:46px;top:46px;width:40px;height:40px;border-radius:50%;background:rgba(227,169,72,.75);pointer-events:none}
+.fpBtns{position:absolute;right:14px;bottom:calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.fpBtns button{min-width:84px;min-height:46px}
+body:not(.touch) #fpStick,body:not(.touch) #fpLook,body:not(.touch) .fpBtns{display:none}
+body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] .inst{display:none}
 [hidden]{display:none!important}
 .loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--ink);z-index:5;transition:opacity .6s}
 .loading.done{opacity:0;pointer-events:none}
@@ -140,6 +159,7 @@ button:disabled{opacity:.45;cursor:default}
 @media (prefers-reduced-motion:reduce){ .toast{transition:none} }
 </style>
 
+<div id="marquee" hidden></div>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
 <div class="hud">
   <section class="inst" aria-label="Instruments">
@@ -157,11 +177,13 @@ button:disabled{opacity:.45;cursor:default}
   </section>
   <nav class="actions" aria-label="Game actions">
     <button id="bMode" type="button">Take the helm</button>
+    <button id="bJoin" type="button">First person</button>
     <button id="bBoat" type="button">Next boat</button>
     <button id="bStop" type="button" hidden>Anchor</button>
     <button id="bDel" type="button" hidden>Remove boat</button>
     <button id="bTopple" type="button" hidden>Topple</button>
     <button id="bDelP" type="button" hidden>Remove person</button>
+    <button id="bDrop" type="button" hidden>Drop</button>
     <button id="bQual" type="button">Quality: High</button>
     <button id="bHelp" type="button">Help</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
@@ -181,6 +203,15 @@ button:disabled{opacity:.45;cursor:default}
       </div>
     </div>
   </div>
+  <div id="fp" hidden>
+    <div class="xh"></div>
+    <div class="fpPrompt" id="fpPrompt"></div>
+    <div class="fpHint" id="fpHint"></div>
+    <div class="fpTop"><button id="fpExit" type="button">Overview</button></div>
+    <div id="fpLook"></div>
+    <div id="fpStick"><div id="fpKnob"></div></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
+  </div>
   <div class="toast" id="toast" role="status"></div>
   <div class="loading" id="loading"><div class="lcard"><div class="brand">Squall Cove</div><div id="loadMsg">Loading the cove</div><div class="bar"><span id="loadBar"></span></div></div></div>
   <div class="help" id="help">
@@ -196,6 +227,9 @@ button:disabled{opacity:.45;cursor:default}
         <b>Weather</b><span>Wind strength and direction, sky, rain, fog</span>
         <b>H</b><span>Take the helm of the selected boat, or back to the overview</span>
         <b>Delete</b><span>Remove the selected boat or person, or whatever is under the pointer</span>
+        <b>Shift + drag</b><span>Box-select people or boats. Double-click picks every one on screen. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it</span>
+        <b>People</b><span>Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves</span>
+        <b>First person</b><span>Select a person and press First person. WASD, mouse, Space jump, E use, G drop, Q jump overboard, H helm</span>
         <b>1 to 4 · Tab</b><span>Switch tools · next boat</span>
       </div>
       <div class="keys touch-only">
@@ -205,6 +239,9 @@ button:disabled{opacity:.45;cursor:default}
         <b>Build</b><span>Tap to place</span>
         <b>Land</b><span>Tap to dab the island. Switch Drag to Paints land to shape it with a finger</span>
         <b>Take the helm</b><span>Sail the selected boat yourself</span>
+        <b>Box</b><span>In Command, turn on Box in the tray and drag to select several at once</span>
+        <b>People</b><span>Select, then tap a boat to board, a crate to carry, land to walk</span>
+        <b>First person</b><span>Left stick walks, drag the right side to look, Use and Drop on the buttons</span>
       </div>
       <button class="go" id="go" type="button">Open the cove</button>
     </div>
@@ -861,7 +898,8 @@ function applyBuoyancy(f, t, dt) {
     fsum += fr;
     b.angularVelocity.cross(tR, tV); tV.vadd(b.velocity, tV);
     waveVel(wx, wz, t, tWv);                                     // drag relative to the moving water, so things ride the swell
-    tF.set(-f.kH * f.mi * fr * (tV.x - tWv.x), RHO_W * G * f.Vi * fr - f.cv * fr * (tV.y - tWv.y), -f.kH * f.mi * fr * (tV.z - tWv.z));
+    const kk = (f.k ?? 1) * (1 - (f.list || 0) * Math.sign(lp.z) - (f.trim || 0) * Math.sign(lp.x));      // flooding, a list and a trim by the head weaken the lift
+    tF.set(-f.kH * f.mi * fr * (tV.x - tWv.x), RHO_W * G * f.Vi * fr * kk - f.cv * fr * (tV.y - tWv.y), -f.kH * f.mi * fr * (tV.z - tWv.z));
     b.applyForce(tF, tR);
   }
   f.wet = fsum / f.pts.length;
@@ -876,20 +914,20 @@ function applyBuoyancy(f, t, dt) {
 
 /* ================================================================ boats */
 const SPECS = {
-  petrel: { name: 'Petrel', note: '4.2 m dinghy', kind: 'sail', mass: 180, area: 7.5, cx: 22, cz: 950, comd: 0.12, dist: 14 },
-  kestrel: { name: 'Kestrel', note: '7.9 m keelboat', kind: 'sail', mass: 1500, area: 24, cx: 70, cz: 3600, comd: 0.45, dist: 22, jib: true },
-  bollard: { name: 'Bollard', note: '9.4 m harbour tug', kind: 'motor', mass: 3200, thrust: 7600, cx: 360, cz: 5200, comd: 0.35, dist: 22 },
-  bay: { name: 'Bay class', note: '19 m Coast Guard lifeboat', kind: 'motor', mass: 32000, thrust: 52000, cx: 520, cz: 52000, comd: 0.5, dist: 40, glb: 'ccg' },
-  hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34 },
-  hover: { name: 'Hovercraft', note: '28.5 m Coast Guard ACV', kind: 'motor', mass: 40000, thrust: 46000, cx: 180, cz: 9000, comd: 0.2, dist: 55, glb: 'ccg', hover: true },
-  louis: { name: 'Louis S. St-Laurent', note: '120 m heavy icebreaker', kind: 'motor', mass: 8240000, thrust: 4120000, cx: 73571, cz: 13184000, comd: 2.12, dist: 108, glb: 'ccgfleet', turn: 0.1, crewX: 0.36 },
-  arpatuuq: { name: 'Arpatuuq', note: '138 m polar icebreaker', kind: 'motor', mass: 11480000, thrust: 5740000, cx: 102500, cz: 18368000, comd: 2.3, dist: 125, glb: 'ccgfleet', turn: 0.087, crewX: 0.36 },
-  terry: { name: 'Terry Fox', note: '88 m icebreaker', kind: 'motor', mass: 4420000, thrust: 2210000, cx: 39464, cz: 7072000, comd: 1.72, dist: 79, glb: 'ccgfleet', turn: 0.136, crewX: 0.36 },
-  radisson: { name: 'Pierre Radisson', note: '98 m icebreaker', kind: 'motor', mass: 5400000, thrust: 2700000, cx: 48214, cz: 8640000, comd: 1.85, dist: 88, glb: 'ccgfleet', turn: 0.122, crewX: 0.36 },
-  molly: { name: 'Capt. Molly Kool', note: '84 m icebreaker', kind: 'motor', mass: 4250000, thrust: 2125000, cx: 37946, cz: 6800000, comd: 1.68, dist: 75, glb: 'ccgfleet', turn: 0.143, crewX: 0.36 },
-  martha: { name: 'Martha L. Black', note: '83 m light icebreaker', kind: 'motor', mass: 3450000, thrust: 1725000, cx: 30804, cz: 5520000, comd: 1.56, dist: 75, glb: 'ccgfleet', turn: 0.145, crewX: 0.36 },
-  donjek: { name: 'Donjek', note: '104 m Arctic patrol ship', kind: 'motor', mass: 5040000, thrust: 2520000, cx: 45000, cz: 8064000, comd: 1.79, dist: 93, glb: 'ccgfleet', turn: 0.116, crewX: 0.36 },
-  franklin: { name: 'Sir John Franklin', note: '63 m fisheries science', kind: 'motor', mass: 2600000, thrust: 1300000, cx: 23214, cz: 4160000, comd: 1.62, dist: 57, glb: 'ccgfleet', turn: 0.189, crewX: 0.36 },
+  petrel: { name: 'Petrel', note: '4.2 m dinghy', kind: 'sail', mass: 180, area: 7.5, cx: 22, cz: 950, comd: 0.12, dist: 14, capacity: 2, seat: true, zones: [[-0.16, 0.12, -0.3, 0.3, 0]] },
+  kestrel: { name: 'Kestrel', note: '7.9 m keelboat', kind: 'sail', mass: 1500, area: 24, cx: 70, cz: 3600, comd: 0.45, dist: 22, jib: true, capacity: 4, seat: true, zones: [[-0.36, -0.1, -0.75, 0.75, 0]] },
+  bollard: { name: 'Bollard', note: '9.4 m harbour tug', kind: 'motor', mass: 3200, thrust: 7600, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
+  bay: { name: 'Bay class', note: '19 m Coast Guard lifeboat', kind: 'motor', mass: 32000, thrust: 52000, cx: 520, cz: 52000, comd: 0.5, dist: 40, glb: 'ccg', capacity: 6, armor: 0.1, guns: [{ x: 0.22, h: 2.4, k: 'mg' }], zones: [[-0.46, -0.12, -1.8, 1.8, 0]] },
+  hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34, capacity: 10, armor: 0.15, guns: [{ x: 0.3, h: 1.6, k: 'gun' }, { x: -0.18, z: 2.4, h: 2.4, k: 'mg' }, { x: -0.18, z: -2.4, h: 2.4, k: 'mg' }], zones: mkZones(42.8, 7.0, { fore: [0.08, 0.28], aft: [0.62, 0.96], side: [0.08, 0.96, 0.8] }) },
+  hover: { name: 'Hovercraft', note: '28.5 m Coast Guard ACV', kind: 'motor', mass: 40000, thrust: 46000, cx: 180, cz: 9000, comd: 0.2, dist: 55, glb: 'ccg', hover: true, capacity: 8, zones: [[-0.45, -0.12, -3.4, 3.4, 0]] },
+  louis: { name: 'Louis S. St-Laurent', note: '120 m heavy icebreaker', kind: 'motor', mass: 8240000, thrust: 4120000, cx: 73571, cz: 13184000, comd: 2.12, dist: 108, glb: 'ccgfleet', turn: 0.1, crewX: 0.36, capacity: 24, armor: 0.45, guns: [{ x: 0.34, h: 2.4, k: 'gun' }, { x: -0.12, z: 8, h: 4.5, k: 'mg' }, { x: -0.12, z: -8, h: 4.5, k: 'mg' }], zones: mkZones(119.8, 24.4, { fore: [0.07, 0.27], aft: [0.55, 0.69], heli: [0.85, 0.96, 1.4], side: [0.07, 0.97, 0.68] }) },
+  arpatuuq: { name: 'Arpatuuq', note: '138 m polar icebreaker', kind: 'motor', mass: 11480000, thrust: 5740000, cx: 102500, cz: 18368000, comd: 2.3, dist: 125, glb: 'ccgfleet', turn: 0.087, crewX: 0.36, capacity: 30, armor: 0.5, guns: [{ x: 0.36, h: 2.4, k: 'gun' }, { x: -0.08, z: 10, h: 4.5, k: 'mg' }, { x: -0.08, z: -10, h: 4.5, k: 'mg' }], zones: mkZones(138.5, 29.4, { fore: [0.07, 0.23], aft: [0.51, 0.61], heli: [0.81, 0.96, 2.0], side: [0.07, 0.96, 0.7] }) },
+  terry: { name: 'Terry Fox', note: '88 m icebreaker', kind: 'motor', mass: 4420000, thrust: 2210000, cx: 39464, cz: 7072000, comd: 1.72, dist: 79, glb: 'ccgfleet', turn: 0.136, crewX: 0.36, capacity: 14, armor: 0.35, guns: [{ x: 0.34, h: 2.2, k: 'gun' }], zones: mkZones(88, 17.8, { fore: [0.07, 0.18], aft: [0.48, 0.96], side: [0.07, 0.96, 0.72] }) },
+  radisson: { name: 'Pierre Radisson', note: '98 m icebreaker', kind: 'motor', mass: 5400000, thrust: 2700000, cx: 48214, cz: 8640000, comd: 1.85, dist: 88, glb: 'ccgfleet', turn: 0.122, crewX: 0.36, capacity: 16, armor: 0.4, guns: [{ x: 0.34, h: 2.4, k: 'gun' }, { x: -0.15, z: 6.5, h: 4.5, k: 'mg' }], zones: mkZones(98.3, 19.5, { fore: [0.07, 0.23], heli: [0.87, 0.99, 1.8], side: [0.07, 0.99, 0.72] }) },
+  molly: { name: 'Capt. Molly Kool', note: '84 m icebreaker', kind: 'motor', mass: 4250000, thrust: 2125000, cx: 37946, cz: 6800000, comd: 1.68, dist: 75, glb: 'ccgfleet', turn: 0.143, crewX: 0.36, capacity: 14, armor: 0.35, guns: [{ x: 0.3, h: 2.2, k: 'gun' }], zones: mkZones(83.7, 18, { fore: [0.07, 0.33], aft: [0.76, 0.98], side: [0.07, 0.98, 0.8] }) },
+  martha: { name: 'Martha L. Black', note: '83 m light icebreaker', kind: 'motor', mass: 3450000, thrust: 1725000, cx: 30804, cz: 5520000, comd: 1.56, dist: 75, glb: 'ccgfleet', turn: 0.145, crewX: 0.36, capacity: 12, armor: 0.3, guns: [{ x: 0.28, h: 2.2, k: 'gun' }], zones: mkZones(83, 16.2, { fore: [0.07, 0.41], heli: [0.9, 0.99, 0.8], side: [0.07, 0.99, 0.8] }) },
+  donjek: { name: 'Donjek', note: '104 m Arctic patrol ship', kind: 'motor', mass: 5040000, thrust: 2520000, cx: 45000, cz: 8064000, comd: 1.79, dist: 93, glb: 'ccgfleet', turn: 0.116, crewX: 0.36, capacity: 20, armor: 0.3, guns: [{ x: 0.36, h: 2.4, k: 'gun' }, { x: 0.02, z: 7.5, h: 4.5, k: 'mg' }, { x: 0.02, z: -7.5, h: 4.5, k: 'mg' }], zones: mkZones(103.6, 19, { fore: [0.07, 0.22], heli: [0.8, 0.98, 2.2], side: [0.07, 0.98, 0.84] }) },
+  franklin: { name: 'Sir John Franklin', note: '63 m fisheries science', kind: 'motor', mass: 2600000, thrust: 1300000, cx: 23214, cz: 4160000, comd: 1.62, dist: 57, glb: 'ccgfleet', turn: 0.189, crewX: 0.36, capacity: 10, armor: 0.25, zones: mkZones(63.4, 16, { fore: [0.04, 0.12], aft: [0.64, 0.98], side: [0.04, 0.98, 0.86] }) },
 };
 const boats = []; let boatSeq = 0;
 const qInv = new CANNON.Quaternion(), vL = new CANNON.Vec3(), wL = new CANNON.Vec3(), aW = new CANNON.Vec3(), aL = new CANNON.Vec3();
@@ -917,9 +955,10 @@ function makeBoat(key, glb, meta, x, z, heading) {
   const ny = sp.kind === 'motor' && !sp.hover ? 6 : 2;       // powered hulls: six layers, so they float at their true draught
   const fl = makeFloater(body, { pts: boxPoints(sp.L * 0.4, sp.D, sp.B * 0.8, sp.comd, 3, 2, ny), slab: sp.D / (ny - 1), volume, kH: 0, kA: 0.6, rad: sp.L * 0.45 });
   const I = sp.mass / 12 * (sp.L * sp.L + sp.B * sp.B);
-  const bt = { key, sp, group: g, model, rig, jib, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
+  const bt = { kind: 'boat', docked: null, key, sp, group: g, model, rig, jib, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
     cyaw: I / 0.9, kr: I / 0.9 * 0.55 / 3 * (sp.turn ?? 1), hCE: sp.kind === 'sail' ? (sp.boom_z + sp.mast_h * 0.3 - (sp.keel_z ?? -0.5) * 0.5) : 0 };
-  boats.push(bt); return bt;
+  boats.push(bt); if (typeof combatReady !== 'undefined' && combatReady) setupBoatCombat(bt);
+  return bt;
 }
 function boatForces(bt, active, dt) {
   const b = bt.body, sp = bt.sp, wet = Math.min(1, bt.fl.wet * 2.5);
@@ -950,6 +989,10 @@ function boatForces(bt, active, dt) {
       b.applyLocalForce(F.set(nx * q, 0, nz * q), P.set(0, 0, 0));
       b.quaternion.vmult(F.set(bt.hCE * nz * q * wet, 0, 0), Tw); b.torque.vadd(Tw, b.torque);
     }
+  }
+  if (!active && bt.dockH !== undefined && !bt.order) {          // lie alongside: hold the berth heading
+    b.quaternion.vmult(fwdA.set(1, 0, 0), fwdA); const yawH = Math.atan2(-fwdA.z, fwdA.x), eH = wrap(bt.dockH - yawH), I = bt.cyaw * 0.9;
+    b.torque.y += clamp(I * (1.6 * eH - 2.4 * b.angularVelocity.y), -I * 2, I * 2);
   }
   if (!active && bt.anchor) {
     const dx = b.position.x - bt.anchor.x, dz = b.position.z - bt.anchor.z;
@@ -1050,7 +1093,7 @@ function spawn(c, x, y, z) {
   world.addBody(body);
   const mesh = pr.obj.clone(); scene.add(mesh);
   const fl = makeFloater(body, { pts, slab, volume, kH: 0.6, area, rad });
-  objects.push({ body, mesh, fl, c });
+  objects.push({ body, mesh, fl, c, pr });
   while (objects.length > MAX_OBJ) removeObj(objects[0]);
   updateCount();
 }
@@ -1114,11 +1157,16 @@ function autopilot(bt, dt) {
   const o = bt.order; if (!o) return;
   const b = bt.body, sp = bt.sp;
   const dx = o.x - b.position.x, dz = o.z - b.position.z, dist = Math.hypot(dx, dz);
-  if (dist < Math.max(6, sp.L * 0.6)) { arrive(bt); return; }
+  const settled = o.dock && dist < Math.max(5, sp.B * 1.2) && Math.hypot(b.velocity.x, b.velocity.z) < 0.4 && (o.t || 0) > 3;   // close, nearly stopped and lined up: that is alongside
+  if (dist < (o.r ?? Math.max(6, sp.L * 0.6)) || settled) {
+    if (o.next) { bt.order = o.next; if (bt.marker) bt.marker.position.set(o.next.x, 0, o.next.z); return; }      // first leg done: now the berth
+    arrive(bt); if (o.dock) { bt.docked = o.berth; bt.dockH = o.h; bt.dockPending = null; bt.status = 'Docked'; } return;
+  }
   b.quaternion.vmult(fwdA.set(1, 0, 0), fwdA);
   const yawF = Math.atan2(-fwdA.z, fwdA.x);
   let want = Math.atan2(-dz, dx);
-  bt.status = 'Under way';
+  bt.status = o.dock ? 'Docking' : 'Under way';
+  if (o.dock) want = wrap(want + wrap(o.h - want) * smooth(sp.L * 1.0, sp.L * 0.15, dist) * 0.9);   // swing round to lie along the berth
   if (sp.kind === 'sail') {
     const from = Math.atan2(wind.v.z, -wind.v.x);              // yaw of the direction the wind blows from
     if (Math.abs(wrap(want - from)) < 0.8) {                    // inside the no-go zone: beat to windward
@@ -1133,7 +1181,14 @@ function autopilot(bt, dt) {
   const err = wrap(want - yawF);
   b.quaternion.conjugate(qA); qA.vmult(b.angularVelocity, wA);
   bt.rudder = clamp(err * 1.5 - wA.y * 0.9, -0.7, 0.7);
-  if (sp.kind === 'motor') bt.throttle = clamp((Math.abs(err) > 1.3 ? 0.35 : 1) * clamp(dist / Math.min(sp.L * 2.5, 90), 0.3, 1), 0, 1);   // full ahead beyond 90 m, easing in
+  if (sp.kind === 'motor') {
+    let th = clamp((Math.abs(err) > 1.3 ? 0.35 : 1) * clamp(dist / Math.min(sp.L * 2.5, 90), 0.3, 1), 0, 1);   // full ahead beyond 90 m, easing in
+    if (o.dock) {                                                // alongside: creep in, and back down if she is carrying too much way
+      const closing = (b.velocity.x * dx + b.velocity.z * dz) / Math.max(dist, 0.1), vmax = Math.max(0.4, dist * 0.3);
+      th = closing > vmax ? -0.35 : clamp(dist / (sp.L * 0.9), 0.1, 0.55) * (Math.abs(err) > 0.8 ? 0.4 : 1);
+    }
+    bt.throttle = th;
+  }
   o.t = (o.t || 0) + dt;
 }
 function arrive(bt) {
@@ -1141,7 +1196,8 @@ function arrive(bt) {
   if (bt.marker) bt.marker.visible = false;
 }
 function orderTo(bt, x, z) {
-  bt.order = { x, z }; bt.anchor = null; bt.tack = 0; bt.status = 'Under way';
+  if (bt.sunk) return;
+  bt.order = { x, z }; bt.anchor = null; bt.tack = 0; bt.status = 'Under way'; bt.docked = null; bt.dockH = undefined; bt.dockPending = null;
   if (!bt.marker) { bt.marker = waypointMarker(); scene.add(bt.marker); }
   bt.marker.position.set(x, 0, z); bt.marker.visible = true;
 }
@@ -1276,7 +1332,7 @@ function removeBoat(bt) {
   for (const pe of people.slice()) if (pe.ride && pe.ride.boat === bt) topple(pe, new CANNON.Vec3(bt.body.velocity.x, 1, bt.body.velocity.z));   // the crew goes overboard
   world.removeBody(bt.body); scene.remove(bt.group); if (bt.marker) scene.remove(bt.marker);
   floaters.splice(floaters.indexOf(bt.fl), 1); const i = boats.indexOf(bt); boats.splice(i, 1);
-  if (activeIdx >= boats.length) activeIdx = 0; if (selBoat === bt) selectBoat(null);
+  if (activeIdx >= boats.length) activeIdx = 0; unselect(bt); for (const q of people) if (q.job && q.job.boat === bt) q.job = null;
 }
 function erase(p) {
   let best = null, bd = 1e9;
@@ -1298,7 +1354,7 @@ const MAX_PEOPLE = 14, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
 const GR_PERSON = 2, GR_RAG = 16;
 /* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
    Each frame: put the bones I touch back to the clean animated pose, let the mixer run, snapshot, then layer on top. */
-const POSED = ['thigh.L', 'thigh.R', 'shin.L', 'shin.R', 'upper_arm.L', 'upper_arm.R', 'forearm.L', 'forearm.R'];
+const POSED = ['thigh.L', 'thigh.R', 'shin.L', 'shin.R', 'upper_arm.L', 'upper_arm.R', 'forearm.L', 'forearm.R', 'spine', 'chest'];
 function animStep(p, dt) {
   for (const n of POSED) p.bones[n].quaternion.copy(p.snap[n]); p.bones.hips.position.copy(p.snapHip);
   p.mixer.update(dt);
@@ -1314,12 +1370,12 @@ function pierY(x, z) {
   return along > -2.5 && along < 24.5 && Math.abs(across) < 1.3 ? 1.35 : -99;
 }
 const standY = (x, z) => Math.max(heightAt(x, z), pierY(x, z));
-const personStatus = (p) => p.state === 'rag' ? (p.floating ? 'Floating' : 'Fallen') : p.ride ? 'Aboard ' + p.ride.boat.sp.name : p.order ? 'Walking' : p.wk > 0.5 ? 'Waving' : 'Standing';
+const personStatus = (p) => p.state === 'rag' ? (p.floating ? 'Floating' : 'Fallen') : p.hop ? 'Climbing' : p.job ? ({ board: 'Boarding', unload: 'Landing', pickup: 'Picking up' }[p.job.type] || 'Busy') + (p.job.phase === 'wait' ? ' (waiting)' : '') : p.fp ? 'You' : p.carry ? 'Carrying ' + p.carry.c.name : p.swim ? 'Swimming' : p.ride ? (p.aim > 0.3 ? 'Firing' : 'Aboard ' + p.ride.boat.sp.name) : p.order ? 'Walking' : p.wk > 0.5 ? 'Waving' : 'Standing';
 
 function updatePersonPanel(pe) { $('boatName').innerHTML = `${pe.role}<small>${personStatus(pe)}</small>`; $('bTopple').textContent = pe.state === 'rag' ? 'Stand up' : 'Topple'; }
 function makePerson(variant, x, z, ride) {
   const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
-  const p = { id: ++personSeq, variant, role: ROLES[variant % 4], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
+  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, fp: false, fpMoving: false, id: ++personSeq, variant, role: ROLES[variant % 4], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
   obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
   const B = (n) => p.bones[bnName(n)];
   obj.updateMatrixWorld(true);
@@ -1376,16 +1432,11 @@ function placePeople(n, pt) {
   if (people.length >= MAX_PEOPLE) { toast('That is a full cove: ' + MAX_PEOPLE + ' people'); return; }
   // on a boat deck?
   for (const bt of boats) {
-    bt.group.updateMatrixWorld(true); const l = bt.group.worldToLocal(new THREE.Vector3(pt.x, bt.group.position.y, pt.z));
-    if (Math.abs(l.x) < bt.sp.L * 0.4 && Math.abs(l.z) < bt.sp.B * 0.45) {
-      const count = people.filter(q => q.ride && q.ride.boat === bt).length;
-      if (count >= 4) { toast('The ' + bt.sp.name + ' is crewed'); return; }
-      // powered boats keep their superstructure amidships, so crew go on the aft deck; sailboats take the spot you tapped
-      const aft = bt.sp.kind === 'motor', lx = aft ? (bt.sp.crewX !== undefined ? bt.sp.crewX * bt.sp.L - Math.sign(bt.sp.crewX) * 1.2 * count : -bt.sp.L * (0.3 - 0.04 * count)) : clamp(l.x, -bt.sp.L * 0.3, bt.sp.L * 0.3);
-      const lz = aft ? (count % 2 ? 1 : -1) * bt.sp.B * 0.12 * Math.ceil(count / 2) : clamp(l.z, -bt.sp.B * 0.25, bt.sp.B * 0.25);
-      const q = makePerson(Math.floor(Math.random() * 16), pt.x, pt.z, { boat: bt, lx, lz, ly: bt.sp.D / 2 + bt.sp.comd + (bt.sp.rise || 0) * Math.pow(lx / bt.sp.L + 0.5, 2), rel: 1.57 + (Math.random() - 0.5) });
-      toast('Crew aboard the ' + bt.sp.name); refreshPanel(); return;
-    }
+    if (bt.sunk || !insideHull(bt, pt.x, pt.z, 0.4)) continue;
+    if (crewCount(bt) >= (bt.sp.capacity || 4)) { toast('The ' + bt.sp.name + ' is crewed'); return; }
+    const l = toBoatLocal(bt, pt.x, pt.z), spot = freeSpot(bt, { x: l.x, z: l.z }); if (!spot) { toast('No room on the ' + bt.sp.name); return; }
+    makePerson(Math.floor(Math.random() * 16), pt.x, pt.z, { boat: bt, lx: spot[0], lz: spot[1], ly: deckLy(bt, spot[0], spot[1]), rel: 1.57 + (Math.random() - 0.5) });
+    toast('Crew aboard the ' + bt.sp.name); refreshPanel(); return;
   }
   const placed = [];
   for (let k = 0; k < n && people.length < MAX_PEOPLE; k++) {
@@ -1397,16 +1448,12 @@ function placePeople(n, pt) {
   toast(placed.length > 1 ? placed.length + ' people' : 'Person arrived'); selectPerson(placed[0]); updateCount();
 }
 function removePerson(p) {
+  if (fp.on && fp.p === p) exitFP();
+  if (p.carry) dropCarry(p); cancelJob(p);
   if (p.body) world.removeBody(p.body); if (p.rag) freeRag(p);
-  scene.remove(p.obj); p.mixer.stopAllAction(); people.splice(people.indexOf(p), 1); if (selPerson === p) selectPerson(null); updateCount();
+  scene.remove(p.obj); p.mixer.stopAllAction(); people.splice(people.indexOf(p), 1); unselect(p); updateCount();
 }
-function selectPerson(p) { selPerson = p; if (p) { selBoat = null; selRing.scale.setScalar(0.9); } refreshPanel(); renderTray(); }
-function walkTo(p, x, z) {
-  if (p.state === 'rag') { toast('Stand them up first'); return; }
-  if (p.ride) { toast('Aboard: stay with the boat'); return; }
-  if (standY(x, z) < 0.15) { toast('Pick dry land'); return; }
-  p.order = { x, z }; toast(p.role + ': walking');
-}
+function walkTo(p, x, z) { commandWalk([p], x, z); }
 
 /* ---- pose from code: rotate a bone about an axis of the person's own frame, whatever the rig's rest orientation */
 function swingQ(p, name, axis, theta, out = new THREE.Quaternion()) {
@@ -1485,6 +1532,7 @@ function freeRag(p) {
 }
 function topple(p, vel) {
   if (p.state === 'rag') return;
+  if (p.carry) dropCarry(p); cancelJob(p); p.hop = null; p.swim = false;
   if (p.body) { world.removeBody(p.body); p.body = null; }
   p.order = null; p.ride = null; p.walkK = 0; p.wk = 0;
   p.obj.updateMatrixWorld(true); makeRagdoll(p, vel); p.state = 'rag';
@@ -1497,7 +1545,7 @@ function standUp(p) {
   freeRag(p);
   for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); i.b.scale.set(1, 1, 1); }
   for (const n of POSED) p.snap[n].copy(p.info[n].restQ); p.snapHip.copy(p.info.hips.restP);
-  p.x = hp.x; p.z = hp.z; p.y = gy; p.state = 'idle'; p.floating = false;
+  p.x = hp.x; p.z = hp.z; p.y = gy; p.state = 'idle'; p.floating = false; p.swim = false; p.sitK = 0;
   p.obj.quaternion.identity(); p.obj.updateMatrixWorld(true); giveBody(p);
   if (selPerson === p) refreshPanel();
 }
@@ -1521,51 +1569,830 @@ function updateRag(p, dt) {
   if (pb.position.y < -30 || Math.abs(pb.position.x) > 400 || Math.abs(pb.position.z) > 400) removePerson(p);
 }
 
-/* ---- per frame */
+/* ---- more poses: sitting, carrying, bending to lift, aiming */
+function poseSit(p, k) {
+  const R = p.ax.right;
+  blendPose(p, 'thigh.L', R, 1.45, k); blendPose(p, 'thigh.R', R, 1.45, k);
+  blendPose(p, 'shin.L', R, -1.5, k); blendPose(p, 'shin.R', R, -1.5, k);
+  blendPose(p, 'upper_arm.L', R, 0.45, k); blendPose(p, 'upper_arm.R', R, 0.45, k);
+  blendPose(p, 'forearm.L', R, 0.9, k); blendPose(p, 'forearm.R', R, 0.9, k);
+  const hi = p.info.hips; tv.copy(p.ax.up).multiplyScalar(-0.40 * k).addScaledVector(p.ax.fwd, -0.06 * k).applyQuaternion(hi.WpInv); hi.b.position.add(tv);
+}
+function poseCarry(p, k) {                       // arms forward and up round a load
+  const R = p.ax.right;
+  blendPose(p, 'upper_arm.L', R, 1.0, k); blendPose(p, 'upper_arm.R', R, 1.0, k);
+  blendPose(p, 'forearm.L', R, 1.25, k); blendPose(p, 'forearm.R', R, 1.25, k);
+}
+function poseBend(p, k) {                        // bend at the hips and knees to pick something up
+  const R = p.ax.right;
+  blendPose(p, 'spine', R, -0.75, k); blendPose(p, 'chest', R, -0.45, k);
+  blendPose(p, 'thigh.L', R, 0.55, k); blendPose(p, 'thigh.R', R, 0.55, k);
+  blendPose(p, 'shin.L', R, -0.7, k); blendPose(p, 'shin.R', R, -0.7, k);
+  blendPose(p, 'upper_arm.L', R, 0.9, k); blendPose(p, 'upper_arm.R', R, 0.9, k);
+}
+function poseAim(p, k, recoil) {                  // both arms out at a target, a little kick when it fires
+  const R = p.ax.right;
+  blendPose(p, 'upper_arm.L', R, 1.45 - recoil * 0.25, k); blendPose(p, 'upper_arm.R', R, 1.45 - recoil * 0.25, k);
+  blendPose(p, 'forearm.L', R, 0.2, k); blendPose(p, 'forearm.R', R, 0.2, k);
+}
+
+/* ---- helpers shared by boats and people */
+const boatYaw = (bt) => { const q = bt.body.interpolatedQuaternion; const v = tv.set(1, 0, 0).applyQuaternion(tq.set(q.x, q.y, q.z, q.w)); return Math.atan2(-v.z, v.x); };
+const boatFwd = (bt) => { const y = boatYaw(bt); return { x: Math.cos(y), z: -Math.sin(y) }; };
+function toBoatLocal(bt, wx, wz) {                // world x,z -> the boat's own x (bow) and z
+  const b = boatYaw(bt), dx = wx - bt.body.position.x, dz = wz - bt.body.position.z, c = Math.cos(b), s = Math.sin(b);
+  return { x: dx * c - dz * s, z: dx * s + dz * c };
+}
+function insideHull(bt, wx, wz, pad = 0) { const l = toBoatLocal(bt, wx, wz); return Math.abs(l.x) < bt.sp.L / 2 + pad && Math.abs(l.z) < bt.sp.B / 2 + pad; }
+function distToHull(bt, wx, wz) { const l = toBoatLocal(bt, wx, wz); return Math.hypot(Math.max(0, Math.abs(l.x) - bt.sp.L / 2), Math.max(0, Math.abs(l.z) - bt.sp.B / 2)); }
+const worldOfDeck = (bt, lx, ly, lz, out) => { bt.group.updateMatrixWorld(true); return out.set(lx, ly, lz).applyMatrix4(bt.group.matrixWorld); };
+function personWorldYaw(p) {
+  if (!p.ride) return p.heading;
+  const g = p.ride.boat.group; return boatYaw(p.ride.boat) + (p.ride.rel || 0);
+}
+
+/* ---- decks: where people may walk. A zone is [x0, x1, z0, z1, raise]: x as a fraction of length (+ toward the bow), z and raise in metres */
+function mkZones(L, B, o) {
+  const X = (b) => (0.5 - b), out = [];
+  const z = (zs) => zs;
+  if (o.fore) out.push([X(o.fore[1]), X(o.fore[0]), -0.34 * B, 0.34 * B, 0]);
+  if (o.aft) out.push([X(o.aft[1]), X(o.aft[0]), -0.34 * B, 0.34 * B, 0]);
+  if (o.heli) out.push([X(o.heli[1]), X(o.heli[0]), -0.32 * B, 0.32 * B, o.heli[2]]);
+  if (o.side) { const [b0, b1, wf] = o.side, w0 = (wf / 2 + 0.012) * B, w1 = 0.485 * B; if (w1 > w0 + 0.3) { out.push([X(b1), X(b0), w0, w1, 0]); out.push([X(b1), X(b0), -w1, -w0, 0]); } }
+  return out;
+}
+const deckZones = (bt) => bt.sp.zones || (bt.sp.zones = [[-0.3, 0.3, -bt.sp.B * 0.28, bt.sp.B * 0.28, 0]]);
+function deckClamp(bt, lx, lz) {
+  const L = bt.sp.L; let best = [lx, lz], bd = 1e9;
+  for (const [a, b, z0, z1] of deckZones(bt)) { const x = clamp(lx, a * L, b * L), zz = clamp(lz, z0, z1), d = Math.hypot(x - lx, zz - lz); if (d < bd) { bd = d; best = [x, zz]; } }
+  return best;
+}
+function deckLy(bt, lx, lz) {
+  const sp = bt.sp; let raise = 0;
+  for (const [a, b, z0, z1, r] of deckZones(bt)) if (r && lx >= a * sp.L - 0.1 && lx <= b * sp.L + 0.1 && lz >= z0 - 0.1 && lz <= z1 + 0.1) raise = r;
+  return sp.D / 2 + sp.comd + (sp.rise || 0) * Math.pow(lx / sp.L + 0.5, 2) + raise;
+}
+function freeSpot(bt, pref, ignore) {
+  const L = bt.sp.L, taken = [];
+  for (const q of people) { if (q === ignore) continue; if (q.ride && q.ride.boat === bt) taken.push([q.ride.lx, q.ride.lz]); if (q.hop && q.hop.boat === bt) taken.push([q.hop.lx, q.hop.lz]); }
+  let best = null, bd = 1e9;
+  for (const [a, b, z0, z1] of deckZones(bt)) {
+    const nx = Math.max(1, Math.floor((b - a) * L / 0.9)), nz = Math.max(1, Math.floor((z1 - z0) / 0.9));
+    for (let i = 0; i <= nx; i++) for (let j = 0; j <= nz; j++) {
+      const x = a * L + (b - a) * L * (nx ? i / nx : 0.5), zz = z0 + (z1 - z0) * (nz ? j / nz : 0.5);
+      if (taken.some(t => Math.hypot(t[0] - x, t[1] - zz) < 0.85)) continue;
+      const d = Math.hypot(x - pref.x, zz - pref.z); if (d < bd) { bd = d; best = [x, zz]; }
+    }
+  }
+  return best;
+}
+const crewCount = (bt) => people.filter(q => (q.ride && q.ride.boat === bt) || (q.job && q.job.boat === bt && q.job.type === 'board') || (q.hop && q.hop.boat === bt)).length;
+
+/* ================================================================ selection (several people and boats at once) */
+const sel = []; let boxMode = false, marq = null, lastTap = { t: 0, u: null }; const groups = {};
+const selPeople = () => sel.filter(u => u.kind === 'person'), selBoats = () => sel.filter(u => u.kind === 'boat');
+function syncSel() {
+  for (let i = sel.length - 1; i >= 0; i--) { const u = sel[i]; if (u.kind === 'person' ? !people.includes(u) : !boats.includes(u)) sel.splice(i, 1); }
+  selPerson = sel.find(u => u.kind === 'person') || null; selBoat = sel.find(u => u.kind === 'boat') || null;
+  if (selBoat && !selPerson) activeIdx = Math.max(0, boats.indexOf(selBoat));
+}
+function setSel(list, add = false) { if (!add) sel.length = 0; for (const u of list) if (u && !sel.includes(u)) sel.push(u); syncSel(); refreshPanel(); renderTray(); }
+function toggleSel(u) { const i = sel.indexOf(u); if (i >= 0) sel.splice(i, 1); else sel.push(u); syncSel(); refreshPanel(); renderTray(); }
+function unselect(u) { const i = sel.indexOf(u); if (i >= 0) { sel.splice(i, 1); syncSel(); refreshPanel(); } }
+function selectBoat(bt) { setSel(bt ? [bt] : []); }
+function selectPerson(p) { setSel(p ? [p] : []); }
+const ringPool = [];
+function updateRings(t) {
+  const show = mode === 'god' ? sel : [];
+  while (ringPool.length < show.length) { const m = selRing.clone(); scene.add(m); ringPool.push(m); }
+  ringPool.forEach((m, i) => {
+    const u = show[i]; if (!u) { m.visible = false; return; }
+    m.visible = true;
+    if (u.kind === 'boat') { const p = u.body.interpolatedPosition; m.position.set(p.x, waveH(p.x, p.z, t) + 0.3, p.z); m.scale.setScalar(u.sp.L * 0.62); }
+    else { m.position.set(u.x, Math.max(u.y, waveH(u.x, u.z, t)) + 0.15, u.z); m.scale.setScalar(u.state === 'rag' ? 1.4 : 0.9); }
+  });
+}
+const screenOf = (x, y, z, out = { x: 0, y: 0, ok: false }) => { tv2.set(x, y, z).project(camera); out.x = (tv2.x + 1) / 2 * innerWidth; out.y = (1 - tv2.y) / 2 * innerHeight; out.ok = tv2.z < 1; return out; };
+function selectInRect(x0, y0, x1, y1, add) {
+  const a = Math.min(x0, x1), b = Math.max(x0, x1), c = Math.min(y0, y1), d = Math.max(y0, y1), s = { x: 0, y: 0, ok: false };
+  const inside = (x, y, z) => { screenOf(x, y, z, s); return s.ok && s.x >= a && s.x <= b && s.y >= c && s.y <= d; };
+  const ps = people.filter(p => inside(p.x, p.y + p.height * 0.5, p.z));
+  const list = ps.length ? ps : boats.filter(bt => inside(bt.group.position.x, bt.group.position.y, bt.group.position.z));
+  setSel(list, add);
+  if (list.length) toast(list.length + (list === ps ? ' people' : ' boats') + ' selected');
+}
+function selectAllVisible(kind, key) {
+  const s = { x: 0, y: 0, ok: false }, vis = (x, y, z) => { screenOf(x, y, z, s); return s.ok && s.x > 0 && s.x < innerWidth && s.y > 0 && s.y < innerHeight; };
+  const list = kind === 'person' ? people.filter(p => vis(p.x, p.y + 1, p.z)) : boats.filter(bt => bt.key === key && vis(bt.group.position.x, bt.group.position.y, bt.group.position.z));
+  setSel(list); toast(list.length + (kind === 'person' ? ' people' : ' ' + (list[0] ? list[0].sp.name : 'boats')));
+}
+function objectAtScreen(cx, cy) {
+  let best = null, bd = 34 * (isTouch ? 1.3 : 1); const s = { x: 0, y: 0, ok: false };
+  for (const o of objects) { const p = o.body.position; screenOf(p.x, p.y, p.z, s); if (!s.ok) continue; const d = Math.hypot(s.x - cx, s.y - cy); if (d < bd) { bd = d; best = o; } }
+  objectAtScreen.d = best ? bd : 1e9; return best;
+}
+function boatUnderTap(cx, cy) {                    // inside the hull on the water plane, else the nearest centre
+  const p = pick(cx, cy);
+  if (p) for (const bt of boats) if (insideHull(bt, p.x, p.z, 1.0)) { boatAtScreen.d = 0; return bt; }
+  return boatAtScreen(cx, cy);
+}
+function pickAtY(cx, cy, y) {                      // the point where the pointer ray crosses a horizontal plane
+  const r = canvas.getBoundingClientRect(); ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
+  const pl = new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), o = new THREE.Vector3(); return ray.ray.intersectPlane(pl, o) ? o : null;
+}
+
+/* ================================================================ docking: a boat finds a berth, comes alongside and holds there */
+let berthSeq = 0;
+function shoreNormal(x, z) {                        // unit vector pointing from land out over the water, or null
+  let best = null, bh = 1e9;
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, nx = Math.cos(a), nz = Math.sin(a), h = heightAt(x + nx * 3, z + nz * 3); if (h < bh) { bh = h; best = [nx, nz]; } }
+  return bh < -1.0 ? best : null;
+}
+function findBerth(bt, near) {
+  const sp = bt.sp, L = sp.L, B = sp.B, T = sp.D - sp.fb, need = -(T + 0.5), fwd = boatFwd(bt);
+  let best = null, bs = 1e9;
+  const consider = (qx, qz, qy, nx, nz, bonus) => {
+    const cx = qx + nx * (B / 2 + 1.4), cz = qz + nz * (B / 2 + 1.4);
+    for (const sgn of [1, -1]) {
+      const tx = -nz * sgn, tz = nx * sgn; let ok = true;
+      for (const f of [-0.52, -0.26, 0, 0.26, 0.52]) { for (const s of [-0.5, 0, 0.5]) {
+        const px = cx + tx * L * f + nx * s * B, pz = cz + tz * L * f + nz * s * B;
+        if (Math.abs(px) > 122 || Math.abs(pz) > 122 || heightAt(px, pz) > need) { ok = false; break; }
+      } if (!ok) break; }
+      if (!ok) continue;
+      if (boats.some(o => o !== bt && !o.sunk && Math.hypot(o.body.position.x - cx, o.body.position.z - cz) < (o.sp.L + L) * 0.42)) continue;
+      const ax = cx - tx * (L * 0.9 + 8) + nx * B * 0.4, az = cz - tz * (L * 0.9 + 8) + nz * B * 0.4;
+      const apDeep = Math.abs(ax) < 124 && Math.abs(az) < 124 && heightAt(ax, az) < need;
+      const score = Math.hypot(qx - near.x, qz - near.z) + 0.12 * Math.hypot(bt.body.position.x - cx, bt.body.position.z - cz) + (apDeep ? 0 : 25) + bonus + (tx * fwd.x + tz * fwd.z < 0 ? 4 : 0);
+      if (score < bs) { bs = score; best = { id: ++berthSeq, C: { x: cx, z: cz }, h: Math.atan2(-tz, tx), n: { x: nx, z: nz }, step: { x: qx, z: qz, y: qy }, apDeep }; }
+    }
+  };
+  for (let r = 0; r <= 95; r += 3) for (let k = 0, n = r === 0 ? 1 : Math.max(8, Math.round(r / 2.2)); k < n; k++) {
+    const a = k / n * Math.PI * 2, qx = near.x + Math.cos(a) * r, qz = near.z + Math.sin(a) * r;
+    if (Math.abs(qx) > 124 || Math.abs(qz) > 124) continue;
+    const gy = standY(qx, qz); if (gy < 0.15 || gy > 6) continue;
+    const nrm = shoreNormal(qx, qz); if (!nrm) continue;
+    if (heightAt(qx + nrm[0] * 1.6, qz + nrm[1] * 1.6) > 0.0) continue;       // the step has to be right at the water
+    consider(qx, qz, gy, nrm[0], nrm[1], 0);
+  }
+  if (pierInfo) for (let a = 2; a <= 24; a += 2.5) for (const s of [1, -1]) {
+    const d = pierInfo.dir, sx = -d.z * s, sz = d.x * s;
+    consider(pierInfo.c.x + d.x * a + sx * 1.0, pierInfo.c.z + d.z * a + sz * 1.0, 1.35, sx, sz, -6);
+  }
+  return best;
+}
+function dockBoat(bt, br) {
+  const sp = bt.sp, L = sp.L, B = sp.B, T = sp.D - sp.fb, tx = Math.cos(br.h), tz = -Math.sin(br.h);
+  let ax = br.C.x - tx * (L * 0.9 + 8) + br.n.x * B * 0.4, az = br.C.z - tz * (L * 0.9 + 8) + br.n.z * B * 0.4;
+  if (!br.apDeep) { ax = br.C.x + br.n.x * (L * 0.6 + B); az = br.C.z + br.n.z * (L * 0.6 + B); }
+  orderTo(bt, ax, az);
+  bt.order.r = Math.max(7, L * 0.3);
+  bt.order.next = { x: br.C.x, z: br.C.z, r: sp.kind === 'sail' ? 4.5 : Math.max(3, B * 0.2), dock: true, h: br.h, berth: br };
+  bt.dockPending = br;
+}
+const boatSettled = (bt, br) => Math.hypot(bt.body.velocity.x, bt.body.velocity.z) < 0.6 && Math.hypot(bt.body.position.x - br.C.x, bt.body.position.z - br.C.z) < Math.max(6, bt.sp.L * 0.25);
+
+/* ================================================================ people jobs: boarding, landing, picking up, carrying */
+const LIFT = { ball: 1, drum: 1, barrel: 2, crate: 4, ice: 4 };           // people needed; granite, ingots and containers are beyond what hands can do
+const liftNeed = (o) => LIFT[o.c.id] ?? 99;
+function jitterNear(pt, i) { const a = i * 2.4, r = i ? 0.8 + 0.5 * Math.sqrt(i) : 0; return { x: pt.x + Math.cos(a) * r, z: pt.z + Math.sin(a) * r }; }
+function setFootOrder(p, x, z) {
+  p.order = { x, z };
+  const a = pierY(p.x, p.z) > 0, b = pierY(x, z) > 0;
+  p.via = (a !== b && pierInfo) ? { x: pierInfo.c.x, z: pierInfo.c.z } : null;     // no wading: use the pier's shore end
+}
+function setOrder(p, x, z) {                       // walk on land, or along the deck when aboard
+  if (p.ride) { const bt = p.ride.boat, l = toBoatLocal(bt, x, z), c = deckClamp(bt, l.x, l.z); p.ride.order = { lx: c[0], lz: c[1] }; }
+  else setFootOrder(p, x, z);
+}
+function cancelJob(p) { if (p.job && p.job.type === 'pickup' && p.job.team) p.job.team.forEach(q => { if (q !== p && q.job && q.job.obj === p.job.obj) q.job = null; }); p.job = null; }
+function formationPt(x, z, i) { const a = i * 2.4, r = i ? 1.2 * Math.sqrt(i) : 0; return { x: x + Math.cos(a) * r, z: z + Math.sin(a) * r }; }
+function breakTeam(p, plist) { if (p.carry && p.carry.team.length > 1 && !p.carry.team.every(q => plist.includes(q))) dropCarry(p); }
+
+function commandWalk(plist, x, z) {
+  const foot = plist.filter(p => !p.ride && p.state !== 'rag' && !p.hop), riders = plist.filter(p => p.ride && !p.hop);
+  if (!foot.length && !riders.length) { if (plist.some(p => p.state === 'rag')) toast('Stand them up first'); return; }
+  let n = 0;
+  if (foot.length) {
+    if (standY(x, z) < 0.15) { toast('Pick dry land'); return; }
+    foot.forEach((p, i) => { breakTeam(p, plist); cancelJob(p); const t = formationPt(x, z, i); const tt = standY(t.x, t.z) >= 0.15 ? t : { x, z }; setFootOrder(p, tt.x, tt.z); n++; });
+  }
+  if (riders.length) {
+    const byBoat = new Map(); riders.forEach(p => { const k = p.ride.boat; (byBoat.get(k) || byBoat.set(k, []).get(k)).push(p); });
+    for (const [bt, rs] of byBoat) {
+      if (insideHull(bt, x, z, 0.5)) { rs.forEach((p, i) => { cancelJob(p); const t = formationPt(x, z, i); setOrder(p, t.x, t.z); n++; }); }
+      else if (standY(x, z) >= 0.15) orderLand(rs, x, z);
+      else toast('Pick the deck, or dry land to go ashore');
+    }
+  }
+  if (n) toast(n > 1 ? n + ' people: walking' : (plist[0].role + ': walking'));
+}
+function orderBoard(plist, bt) {
+  if (bt.sunk) { toast('She is going down'); return; }
+  const land = plist.filter(p => !p.ride && p.state !== 'rag' && !p.hop), here = plist.filter(p => p.ride && p.ride.boat === bt);
+  if (!land.length) { toast(here.length ? 'Already aboard' : plist.some(p => p.ride) ? 'Step ashore first' : 'Stand them up first'); return; }
+  if (mode === 'helm' && boats[activeIdx] === bt) { toast('Leave the helm first'); return; }
+  const room = (bt.sp.capacity || 4) - crewCount(bt);
+  if (room <= 0) { toast('The ' + bt.sp.name + ' is full'); return; }
+  const go = land.slice(0, room); if (go.length < land.length) toast(`Room for ${room} on the ${bt.sp.name}`);
+  const cx = go.reduce((s, p) => s + p.x, 0) / go.length, cz = go.reduce((s, p) => s + p.z, 0) / go.length;
+  let br = (bt.docked && !bt.order && Math.hypot(bt.docked.step.x - cx, bt.docked.step.z - cz) < 45) ? bt.docked : null;
+  if (!br) { br = findBerth(bt, { x: cx, z: cz }); if (!br) { toast('No safe berth for the ' + bt.sp.name + ' near here'); return; } dockBoat(bt, br); }
+  go.forEach((p, i) => { breakTeam(p, plist); cancelJob(p); p.job = { type: 'board', boat: bt, berth: br, phase: 'walk', step: br.step, age: 0 }; const t = jitterNear(br.step, i), tt = standY(t.x, t.z) >= 0.15 ? t : { x: br.step.x, z: br.step.z }; setFootOrder(p, tt.x, tt.z); });
+  toast(`${go.length > 1 ? go.length + ' people' : go[0].role}: boarding the ${bt.sp.name}`);
+}
+function orderLand(plist, x, z) {
+  const bt = plist[0].ride.boat, rs = plist.filter(p => p.ride && p.ride.boat === bt && !p.hop);
+  let br = (bt.docked && !bt.order && Math.hypot(bt.docked.step.x - x, bt.docked.step.z - z) < 40) ? bt.docked : null;
+  if (!br) { br = findBerth(bt, { x, z }); if (!br) { toast('No safe place to land the crew'); return; } dockBoat(bt, br); }
+  rs.forEach((p, i) => { cancelJob(p); p.ride.order = null; const t = formationPt(x, z, i); p.job = { type: 'unload', boat: bt, berth: br, phase: 'wait', target: standY(t.x, t.z) >= 0.15 ? t : { x, z }, age: 0 }; });
+  toast(`${rs.length > 1 ? rs.length + ' crew' : 'Crew'}: landing from the ${bt.sp.name}`);
+}
+function startHop(p, from, toFn, dur, arc, boat, lx, lz, done) { p.order = null; p.hop = { t: 0, dur, from, toFn, arc, boat, lx, lz, done, ph: 0 }; }
+function boardHop(p, bt) {
+  const l = toBoatLocal(bt, p.x, p.z), spot = freeSpot(bt, { x: l.x, z: l.z }, p);
+  if (!spot) { toast('The ' + bt.sp.name + ' is full'); p.job = null; return; }
+  const lx = spot[0], lz = spot[1], ly = deckLy(bt, lx, lz), from = new THREE.Vector3(p.x, p.y, p.z), dy = ly + bt.group.position.y - p.y;
+  startHop(p, from, (o) => worldOfDeck(bt, lx, ly, lz, o), clamp(0.9 + 0.1 * Math.abs(dy), 0.9, 2.4), dy > 3 ? 0.3 : 0.7, bt, lx, lz, () => {
+    if (p.body) { world.removeBody(p.body); p.body = null; }
+    p.ride = { boat: bt, lx, lz, ly, rel: Math.PI / 2 + (Math.random() - 0.5) * 0.8 }; p.job = null; p.hop = null; p.order = null; p.swim = false;
+    if (p.fp) fp.betaPrev = boatYaw(bt);
+  });
+}
+function unloadHop(p, j) {
+  const bt = j.boat, st = j.berth.step, from = new THREE.Vector3(p.x, p.y, p.z), to = new THREE.Vector3(st.x, st.y, st.z), dy = Math.abs(from.y - st.y);
+  startHop(p, from, (o) => o.copy(to), clamp(0.9 + 0.1 * dy, 0.9, 2.4), dy > 3 ? 0.3 : 0.7, null, 0, 0, () => {
+    p.ride = null; p.hop = null; p.x = st.x; p.z = st.z; p.y = st.y; p.swim = false; giveBody(p);
+    if (j.target) setFootOrder(p, j.target.x, j.target.z); p.job = null;
+  });
+}
+function reach(p, o) {                              // may this person lift that object from where they are?
+  const op = o.body.position;
+  for (const bt of boats) if (!bt.sunk && insideHull(bt, op.x, op.z, 0.6) && op.y > bt.group.position.y - 1.2) return !!(p.ride && p.ride.boat === bt);
+  if (standY(op.x, op.z) >= 0.15) return !p.ride;
+  return !!(p.ride && distToHull(p.ride.boat, op.x, op.z) < 3.5);   // afloat: from a boat alongside
+}
+function orderPickup(plist, o) {
+  const mass = o.body.mass, need = liftNeed(o), nm = o.c.name;
+  const cand = plist.filter(p => p.state !== 'rag' && !p.hop && !p.carry && reach(p, o));
+  if (!plist.some(p => reach(p, o))) { toast(nm + ': out of reach'); return; }
+  if (need > 4) { toast(`${nm}: ${Math.round(mass)} kg, too heavy to carry`); return; }
+  if (cand.length < need) { toast(`${nm}: ${Math.round(mass)} kg, needs ${need} ${need > 1 ? 'people' : 'person'}${plist.some(p => p.carry) ? ' with free hands' : ''}`); return; }
+  const op = o.body.position; cand.sort((a, b) => Math.hypot(a.x - op.x, a.z - op.z) - Math.hypot(b.x - op.x, b.z - op.z));
+  const team = cand.slice(0, need);
+  team.forEach((p, i) => { breakTeam(p, plist); cancelJob(p); const a = i / need * Math.PI * 2 + 0.6; p.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; });
+  toast(`${nm}: ${Math.round(mass)} kg${need > 1 ? ', ' + need + ' lifting' : ''}`);
+}
+function attachCarry(p) {
+  const cr = p.carry; if (!cr || !cr.lead || cr.lead !== p) return;
+  if (p.carryMesh) { p.carryMesh.parent && p.carryMesh.parent.remove(p.carryMesh); }
+  const m = cr.pr.obj.clone(); shadowAll(m); p.carryMesh = m;
+  if (p.fp) { camera.add(m); m.scale.setScalar(0.8); m.position.set(0.3, -0.72, -1.35); m.rotation.set(0.15, 0.4, 0); }
+  else { p.obj.add(m); m.position.copy(p.ax.fwd).multiplyScalar(0.34 + cr.pr.size.z * 0.35).addScaledVector(p.ax.up, 0.92); m.rotation.set(0, 0, 0); }
+}
+function dropCarry(p) {
+  const cr = p.carry; if (!cr) return;
+  const team = cr.team || [p], lead = cr.lead || p, yw = personWorldYaw(lead);
+  const x = lead.x + Math.sin(yw) * 0.9, z = lead.z + Math.cos(yw) * 0.9, y = lead.y + 1.15;
+  spawn(cr.c, x, y, z);
+  for (const q of team) { q.carry = null; if (q.carryMesh) { q.carryMesh.parent && q.carryMesh.parent.remove(q.carryMesh); q.carryMesh = null; } q.carryK = 0; }
+  updateCount();
+}
+function liftObject(j) {
+  const o = j.obj; if (!objects.includes(o)) return; const team = j.team, lead = team[0];
+  const info = { c: o.c, pr: o.pr, mass: o.body.mass };
+  removeObj(o); updateCount();
+  for (const q of team) q.carry = { ...info, team, lead };
+  attachCarry(lead);
+}
+
+function stepJob(p, dt, t) {
+  const j = p.job; if (!j) return; j.age = (j.age || 0) + dt;
+  if (j.type === 'board' || j.type === 'unload') {
+    const bt = j.boat; if (!boats.includes(bt) || bt.sunk) { p.job = null; p.order = null; return; }
+    if (j.phase === 'walk') {
+      if (!p.order || Math.hypot(p.x - j.step.x, p.z - j.step.z) < 2.0) { j.phase = 'wait'; p.order = null; j.waitT = 0; }
+      else if (j.age > 90) { toast('Could not reach the boat'); p.job = null; p.order = null; }
+    }
+    if (j.phase === 'wait') {
+      j.waitT = (j.waitT || 0) + dt;
+      const there = bt.docked && bt.docked.id === j.berth.id && !bt.order;
+      if (there && boatSettled(bt, j.berth)) {
+        const st = j.berth.step;
+        if (j.type === 'board') {
+          if (Math.hypot(p.x - st.x, p.z - st.z) > 3.2) { setFootOrder(p, st.x, st.z); }
+          else if (distToHull(bt, st.x, st.z) > 6.5) { toast('The ' + bt.sp.name + ' could not get alongside'); p.job = null; }
+          else boardHop(p, bt);
+        } else unloadHop(p, j);
+      } else if (j.waitT > 6 && !bt.order && !bt.dockPending && !(bt.docked && bt.docked.id === j.berth.id)) { toast('The ' + bt.sp.name + ' went elsewhere'); p.job = null; }
+      else if (j.waitT > 150) { toast('Gave up waiting for the ' + bt.sp.name); p.job = null; }
+    }
+  } else if (j.type === 'pickup') {
+    const o = j.obj;
+    if (j.phase === 'walk') {
+      if (!objects.includes(o) || j.age > 45) { p.job = null; p.order = null; if (p.ride) p.ride.order = null; return; }
+      const op = o.body.position, d = Math.hypot(p.x - op.x, p.z - op.z);
+      if (d > 1.9) { const tx = op.x + j.off.x, tz = op.z + j.off.z; if (!p.order && !(p.ride && p.ride.order)) setOrder(p, tx, tz); j.ready = false; }
+      else { p.order = null; if (p.ride) p.ride.order = null; j.ready = true; }
+      if (j.ready && j.team.every(q => q.job && q.job.obj === o && (q.job.ready || q.job.phase === 'lift'))) j.team.forEach(q => { q.job.phase = 'lift'; q.job.t = 0; });
+    } else if (j.phase === 'lift') {
+      j.t += dt;
+      const op = o.body.position; if (objects.includes(o)) { p.heading = Math.atan2(op.x - p.x, op.z - p.z); if (p.ride) p.ride.rel = p.heading - boatYaw(p.ride.boat); }
+      if (j.t >= 0.45 && p === j.team[0] && objects.includes(o)) liftObject(j);
+      if (j.t >= 0.95) p.job = null;
+    }
+  }
+}
+function stepHop(p, dt, t) {
+  const h = p.hop; h.t += dt; const u = clamp(h.t / h.dur, 0, 1), e = u * u * (3 - 2 * u), to = h.toFn(tv2), f = h.from;
+  const nx = f.x + (to.x - f.x) * e, nz = f.z + (to.z - f.z) * e, ny = f.y + (to.y - f.y) * e + Math.sin(Math.PI * u) * h.arc;
+  if (Math.hypot(to.x - f.x, to.z - f.z) > 0.2) p.heading = Math.atan2(to.x - f.x, to.z - f.z);
+  p.x = nx; p.z = nz; p.y = ny; h.ph += dt * 9;
+  animStep(p, dt); p.ph = h.ph; poseGait(p, 1);
+  p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.set(0, p.heading - p.yawOff, 0);
+  if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.interpolatedPosition.copy(p.body.position); }
+  if (u >= 1) { const d = h.done; p.hop = null; d(); }
+}
+function stepRide(p, dt, t) {
+  const R = p.ride, bt = R.boat;
+  if (!boats.includes(bt)) { topple(p, null); return; }
+  const g = bt.group; g.updateMatrixWorld(true);
+  if (UPV.clone().applyQuaternion(g.quaternion).y < 0.55) { const v = bt.body.velocity; topple(p, new CANNON.Vec3(v.x, 1.5, v.z)); return; }   // the boat is over: so is the crew
+  let moving = false;
+  if (R.order && !p.fp) {
+    const dx = R.order.lx - R.lx, dz = R.order.lz - R.lz, d = Math.hypot(dx, dz);
+    if (d < 0.15) R.order = null;
+    else {
+      const want = Math.atan2(dx, dz), err = wrap(want - R.rel); R.rel += clamp(err, -6 * dt, 6 * dt);
+      if (Math.abs(err) < 0.8) { const s = Math.min(d, (p.carry ? 1.0 : 1.3) * dt), c = deckClamp(bt, R.lx + Math.sin(R.rel) * s, R.lz + Math.cos(R.rel) * s); R.lx = c[0]; R.lz = c[1]; moving = true; }
+    }
+  }
+  R.ly += (deckLy(bt, R.lx, R.lz) - R.ly) * Math.min(1, 10 * dt);
+  p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt); if (moving) p.ph += dt * 6.4;
+  const seat = !!bt.sp.seat && !moving && !R.order && !p.carry && !p.job && !(p.aim > 0.1);
+  p.sitK += ((seat ? 1 : 0) - p.sitK) * Math.min(1, 5 * dt);
+  p.carryK += ((p.carry ? 1 : 0) - p.carryK) * Math.min(1, 6 * dt);
+  pTmp.set(R.lx, R.ly, R.lz).applyMatrix4(g.matrixWorld);
+  tq.setFromAxisAngle(UPV, (R.rel || 0) - p.yawOff);        // rel is the heading in the boat's frame: pi/2 faces the bow (+X)
+  p.obj.quaternion.copy(g.quaternion).multiply(tq);
+  p.obj.position.copy(pTmp).addScaledVector(UPV.clone().applyQuaternion(g.quaternion), -p.footOff);
+  p.x = pTmp.x; p.z = pTmp.z; p.y = pTmp.y; p.heading = (R.rel || 0) + boatYaw(bt);
+  animStep(p, dt);
+  if (p.walkK > 0.02) poseGait(p, p.walkK);
+  if (p.sitK > 0.02) poseSit(p, p.sitK);
+  poseCrewExtras(p, t);
+}
+function poseCrewExtras(p, t) {
+  if (p.carryK > 0.02) poseCarry(p, p.carryK);
+  if (p.job && p.job.type === 'pickup' && p.job.phase === 'lift') poseBend(p, Math.sin(clamp(p.job.t / 0.95, 0, 1) * Math.PI));
+  if (p.aim > 0.02) poseAim(p, clamp(p.aim, 0, 1), p.recoil || 0);
+}
+function stepFoot(p, dt, t) {
+  let moving = false;
+  const spd = p.carry ? 1.15 : 1.45;
+  if (!p.order) p.via = null;
+  if (p.order && !p.fp) {
+    const goal = p.via || p.order, dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz);
+    if (d < (p.via ? 1.0 : 0.3)) { if (p.via) p.via = null; else p.order = null; }
+    else {
+      const want = Math.atan2(dx, dz), err = wrap(want - p.heading); p.heading += clamp(err, -6 * dt, 6 * dt);
+      if (Math.abs(err) < 0.8) {
+        const step = Math.min(d, spd * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standY(nx, nz);
+        if (gy < 0.0) { p.order = null; p.via = null; if (!p.job) toast('Stops at the water'); else cancelJob(p); }
+        else if (Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; p.via = null; if (!p.job) toast('Too steep to walk'); else cancelJob(p); }
+        else { p.x = nx; p.z = nz; moving = true; }
+      }
+    }
+  }
+  p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
+  if (moving || p.fpMoving) p.ph += dt * (p.carry ? 5.2 : 6.4);
+  if (!p.swim) {
+    const gy = standY(p.x, p.z);
+    if (!p.fp) p.y += (gy - p.y) * Math.min(1, 14 * dt);
+    if (gy < -0.35 && !(p.fp && fp.air)) { topple(p, new CANNON.Vec3(Math.sin(p.heading) * 1.2, 1, Math.cos(p.heading) * 1.2)); return; }   // the ground went out from under them
+  }
+  // a moving hull runs people down
+  for (const bt of boats) {
+    const v = bt.body.velocity; if (v.x * v.x + v.z * v.z < 1.4 || bt.sunk) continue;
+    if (insideHull(bt, p.x, p.z, 0.35) && p.y < bt.group.position.y + 3) { topple(p, new CANNON.Vec3(v.x * 0.7, 2.2, v.z * 0.7)); return; }
+  }
+  p.nearT -= dt;
+  if (p.nearT <= 0) { p.nearT = 0.5; p.near = !p.order && !p.job && !p.carry && boats.some(bt => Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) < 30 && (bt.body.velocity.x ** 2 + bt.body.velocity.z ** 2) > 0.5); }
+  p.wk += ((p.near ? 1 : 0) - p.wk) * Math.min(1, 4 * dt);
+  p.carryK += ((p.carry ? 1 : 0) - p.carryK) * Math.min(1, 6 * dt);
+  animStep(p, dt);
+  if (p.swim) { p.ph += dt * 4; poseGait(p, 0.7); }
+  else if (p.walkK > 0.02) poseGait(p, p.walkK);
+  if (p.wk > 0.02 && !p.carry) poseWave(p, p.wk, t);
+  poseCrewExtras(p, t);
+  p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.set(0, p.heading - p.yawOff, 0);
+  if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
+}
 const pTmp = new THREE.Vector3();
 function updatePeople(dt, t) {
   for (const p of people.slice()) {
     if (p.state === 'rag') { updateRag(p, dt); continue; }
-    if (p.ride) {
-      const bt = p.ride.boat; if (!boats.includes(bt)) { topple(p, null); continue; }
-      const g = bt.group; g.updateMatrixWorld(true);
-      if (UPV.clone().applyQuaternion(g.quaternion).y < 0.55) { const v = bt.body.velocity; topple(p, new CANNON.Vec3(v.x, 1.5, v.z)); continue; }   // the boat is over: so is the crew
-      pTmp.set(p.ride.lx, p.ride.ly, p.ride.lz).applyMatrix4(g.matrixWorld);
-      tq.setFromAxisAngle(UPV, (p.ride.rel || 0) - p.yawOff);        // rel is the heading in the boat's frame: pi/2 faces the bow (+X)
-      p.obj.quaternion.copy(g.quaternion).multiply(tq);
-      p.obj.position.copy(pTmp).addScaledVector(UPV.clone().applyQuaternion(g.quaternion), -p.footOff);
-      p.x = pTmp.x; p.z = pTmp.z; p.y = pTmp.y; p.mixer.update(dt);
-      continue;
-    }
-    // on foot
-    let moving = false;
-    if (p.order) {
-      const dx = p.order.x - p.x, dz = p.order.z - p.z, d = Math.hypot(dx, dz);
-      if (d < 0.3) p.order = null;
-      else {
-        const want = Math.atan2(dx, dz), err = wrap(want - p.heading); p.heading += clamp(err, -6 * dt, 6 * dt);
-        if (Math.abs(err) < 0.8) {
-          const step = Math.min(d, 1.45 * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standY(nx, nz);
-          if (gy < 0.0) { p.order = null; toast('Stops at the water'); }
-          else if (Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; toast('Too steep to walk'); }
-          else { p.x = nx; p.z = nz; moving = true; }
-        }
-      }
-    }
-    p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
-    if (moving) p.ph += dt * 6.4;
-    const gy = standY(p.x, p.z); p.y += (gy - p.y) * Math.min(1, 14 * dt);
-    if (gy < -0.35) { topple(p, new CANNON.Vec3(Math.sin(p.heading) * 1.2, 1, Math.cos(p.heading) * 1.2)); continue; }   // the ground went out from under them
-    p.nearT -= dt;
-    if (p.nearT <= 0) { p.nearT = 0.5; p.near = !p.order && boats.some(bt => Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) < 30 && (bt.body.velocity.x ** 2 + bt.body.velocity.z ** 2) > 0.5); }
-    p.wk += ((p.near ? 1 : 0) - p.wk) * Math.min(1, 4 * dt);
-    animStep(p, dt);
-    if (p.walkK > 0.02) poseGait(p, p.walkK);
-    if (p.wk > 0.02) poseWave(p, p.wk, t);
-    p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.set(0, p.heading - p.yawOff, 0);
-    if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
+    if (p.hop) { stepHop(p, dt, t); continue; }
+    stepJob(p, dt, t);
+    if (!people.includes(p) || p.state === 'rag') continue;
+    if (p.hop) { stepHop(p, dt, t); continue; }
+    if (p.ride) stepRide(p, dt, t); else stepFoot(p, dt, t);
   }
 }
+
+var combatReady = false;
+let fireMode = false;
+/* ================================================================ effects: one pooled particle system for flames, smoke, sparks, splashes, bubbles */
+function makeFx(additive, N) {
+  const pos = new Float32Array(N * 3), col = new Float32Array(N * 4), size = new Float32Array(N);
+  const vel = new Float32Array(N * 3), life = new Float32Array(N), max = new Float32Array(N), grow = new Float32Array(N), grav = new Float32Array(N), drag = new Float32Array(N), c0 = new Float32Array(N * 4), s0 = new Float32Array(N);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 4)); g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { uScale: { value: 800 } }, transparent: true, depthWrite: false, fog: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+    vertexShader: 'uniform float uScale; attribute float aSize; attribute vec4 aCol; varying vec4 vCol; void main(){ vCol = aCol; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = clamp(aSize * uScale / max(-mv.z, 0.5), 0.0, 220.0); }',
+    fragmentShader: 'varying vec4 vCol; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = smoothstep(1.0, 0.15, d); if (a < 0.01) discard; gl_FragColor = vec4(vCol.rgb, vCol.a * a); }',
+  });
+  const pts = new THREE.Points(g, m); pts.frustumCulled = false; pts.renderOrder = additive ? 7 : 6; scene.add(pts);
+  let head = 0;
+  for (let i = 0; i < N; i++) { life[i] = 0; size[i] = 0; pos[i * 3 + 1] = -1000; }
+  return {
+    emit(x, y, z, vx, vy, vz, lf, sz, gr, rgba, gv = 0, dg = 0) {
+      const i = head; head = (head + 1) % N; const i3 = i * 3, i4 = i * 4;
+      pos[i3] = x; pos[i3 + 1] = y; pos[i3 + 2] = z; vel[i3] = vx; vel[i3 + 1] = vy; vel[i3 + 2] = vz;
+      life[i] = lf; max[i] = lf; s0[i] = sz; grow[i] = gr; grav[i] = gv; drag[i] = dg;
+      c0[i4] = rgba[0]; c0[i4 + 1] = rgba[1]; c0[i4 + 2] = rgba[2]; c0[i4 + 3] = rgba[3]; size[i] = sz;
+    },
+    update(dt) {
+      for (let i = 0; i < N; i++) {
+        if (life[i] <= 0) { if (size[i] !== 0) { size[i] = 0; col[i * 4 + 3] = 0; } continue; }
+        life[i] -= dt; const u = 1 - life[i] / max[i], i3 = i * 3, i4 = i * 4;
+        if (life[i] <= 0) { size[i] = 0; col[i4 + 3] = 0; pos[i3 + 1] = -1000; continue; }
+        const dg = Math.max(0, 1 - drag[i] * dt); vel[i3] *= dg; vel[i3 + 1] = vel[i3 + 1] * dg - grav[i] * dt; vel[i3 + 2] *= dg;
+        pos[i3] += vel[i3] * dt; pos[i3 + 1] += vel[i3 + 1] * dt; pos[i3 + 2] += vel[i3 + 2] * dt;
+        size[i] = s0[i] * (1 + grow[i] * u);
+        col[i4] = c0[i4]; col[i4 + 1] = c0[i4 + 1]; col[i4 + 2] = c0[i4 + 2]; col[i4 + 3] = c0[i4 + 3] * (u < 0.12 ? u / 0.12 : 1 - (u - 0.12) / 0.88);
+      }
+      g.attributes.position.needsUpdate = true; g.attributes.aCol.needsUpdate = true; g.attributes.aSize.needsUpdate = true;
+      m.uniforms.uScale.value = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    },
+  };
+}
+const fxS = makeFx(false, 1400), fxG = makeFx(true, 700);
+const rnd = (a, b) => a + Math.random() * (b - a);
+function puffSmoke(x, y, z, n, dark, big) { for (let i = 0; i < n; i++) fxS.emit(x + rnd(-0.4, 0.4), y, z + rnd(-0.4, 0.4), rnd(-0.6, 0.6) + wind.v.x * 0.25, rnd(1.2, 3.2), rnd(-0.6, 0.6) + wind.v.z * 0.25, rnd(2.5, 5.5), rnd(0.9, 1.6) * (big || 1), 4, dark ? [0.14, 0.14, 0.15, 0.42] : [0.7, 0.7, 0.72, 0.32], -0.25, 0.25); }
+function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(-4, 4), rnd(1, 6), rnd(-4, 4), rnd(0.25, 0.6), rnd(0.12, 0.28), -0.6, [1, rnd(0.55, 0.8), 0.25, 1], 9, 0.8); }
+function splash(x, z, big) {
+  const y = waveH(x, z, simT);
+  for (let i = 0; i < 10 * big; i++) fxS.emit(x + rnd(-0.3, 0.3), y, z + rnd(-0.3, 0.3), rnd(-1.8, 1.8) * big, rnd(3, 7) * Math.sqrt(big), rnd(-1.8, 1.8) * big, rnd(0.7, 1.4), rnd(0.25, 0.55) * big, 0.6, [0.85, 0.93, 0.97, 0.75], 9, 0.5);
+  fxS.emit(x, y + 0.1, z, 0, 1.0, 0, 1.2, 1.2 * big, 5, [0.9, 0.96, 1, 0.55], 0, 1);
+}
+
+/* ================================================================ weapons, hull damage, fire, flooding, sinking */
+const WEAPONS = {
+  gun: { name: 'Deck gun', v: 175, dmg: 22, reload: 2.1, spread: 0.010, range: 280, flash: 1.4, recoil: 2600 },
+  mg:  { name: 'Machine gun', v: 220, dmg: 3.2, reload: 0.14, spread: 0.016, range: 200, flash: 0.5, recoil: 120 },
+};
+const shots = [];
+const gunMat = new THREE.MeshStandardMaterial({ color: 0x3a3f43, roughness: 0.6, metalness: 0.5 });
+function makeGunMesh(kind) {
+  const g = new THREE.Group(), big = kind === 'gun';
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(big ? 0.7 : 0.3, big ? 0.85 : 0.38, big ? 0.7 : 0.45, 10), gunMat); base.position.y = big ? 0.35 : 0.22; g.add(base);
+  const turret = new THREE.Group(); turret.position.y = big ? 0.95 : 0.55; g.add(turret);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(big ? 1.5 : 0.5, big ? 0.7 : 0.3, big ? 1.1 : 0.4), gunMat); turret.add(head);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(big ? 0.12 : 0.05, big ? 0.14 : 0.06, big ? 2.6 : 1.1, 8), gunMat); barrel.rotation.z = Math.PI / 2; barrel.position.x = big ? 1.6 : 0.8; turret.add(barrel);
+  g.userData.turret = turret; g.traverse(m => { if (m.isMesh) { m.castShadow = true; } }); return g;
+}
+function setupBoatCombat(bt) {
+  const sp = bt.sp; bt.hpMax = Math.round(40 + sp.L * 2.6); bt.hp = bt.hpMax; bt.flood = 0; bt.fire = 0; bt.fireT = 0; bt.list = 0; bt.trim = 0; bt.sunk = false; bt.sinkT = 0; bt.subT = 0; bt.target = null; bt.lastHitBy = null; bt.lastHitT = -99; bt.hitFlash = 0;
+  bt.mounts = (sp.guns || []).map(g => { const w = WEAPONS[g.k], lx = g.x * sp.L, lz = g.z || 0, ly = deckLy(bt, lx, lz) + (g.h || 1.4); const mesh = makeGunMesh(g.k); mesh.position.set(lx, ly - (g.k === 'gun' ? 0.2 : 0.1), lz); bt.group.add(mesh); mesh.rotation.y = Math.PI / 2 * 0; return { ...g, w, lx, lz, ly, cd: Math.random() * 0.8, mesh, burst: 0 }; });
+  bt.ssH = sp.mast_h ? sp.mast_h : Math.min(15, sp.L * 0.14);
+}
+const boatCrew = (bt) => people.filter(q => q.ride && q.ride.boat === bt && q.state !== 'rag');
+const hullPct = (bt) => Math.round(100 * bt.hp / bt.hpMax);
+function mountWorld(bt, m, out) { return worldOfDeck(bt, m.lx, m.ly, m.lz, out); }
+
+function fireShot(bt, m, tgt) {
+  const w = m.w, from = mountWorld(bt, m, new THREE.Vector3()), tp = tgt.body.position, tv_ = tgt.body.velocity;
+  const dx0 = tp.x - from.x, dz0 = tp.z - from.z, d0 = Math.hypot(dx0, dz0), flight = d0 / (w.v * 0.97);
+  const ax = tp.x + tv_.x * flight, az = tp.z + tv_.z * flight, ay = tp.y + 1.6;                  // lead the target
+  const dx = ax - from.x, dz = az - from.z, d = Math.max(3, Math.hypot(dx, dz)), dy = ay - from.y;
+  const th = 0.5 * Math.asin(clamp(9.82 * d / (w.v * w.v), 0, 0.9)) + Math.atan2(dy, d);
+  const crew = boatCrew(bt).length, rock = Math.abs(UPV.clone().applyQuaternion(bt.group.quaternion).z) + Math.abs(UPV.clone().applyQuaternion(bt.group.quaternion).x);
+  const sp = w.spread + d * 0.00005 + sea.amp * 0.012 + rock * 0.05 + Math.max(0, 3 - crew) * 0.003;
+  const yaw = Math.atan2(dx, dz) + rnd(-sp, sp), pitch = th + rnd(-sp, sp), cp = Math.cos(pitch);
+  const vx = Math.sin(yaw) * cp * w.v, vz = Math.cos(yaw) * cp * w.v, vy = Math.sin(pitch) * w.v;
+  shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 });
+  // muzzle flash, smoke and a little kick
+  const fl = w.flash; fxG.emit(from.x, from.y, from.z, 0, 0, 0, 0.09, 1.1 * fl, 0.6, [1, 0.85, 0.5, 1]); puffSmoke(from.x, from.y, from.z, m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
+  bt.body.applyImpulse(new CANNON.Vec3(-Math.sin(yaw) * w.recoil, 0, -Math.cos(yaw) * w.recoil), new CANNON.Vec3(from.x - bt.body.position.x, 0, from.z - bt.body.position.z));
+  m.burst = 0.12; return yaw;
+}
+function damageBoat(bt, dmg, x, y, z, attacker, kind) {
+  if (bt.sunk && bt.hp <= 0) return;
+  const eff = dmg * (1 - (bt.sp.armor || 0)); bt.hp = Math.max(0, bt.hp - eff); bt.lastHitBy = attacker; bt.lastHitT = simT; bt.hitFlash = 1;
+  const isGun = kind === 'gun', rel = y - waveH(x, z, simT), loc = toBoatLocal(bt, x, z);
+  if (rel < 0.6) { bt.flood = Math.min(1, bt.flood + eff / bt.hpMax * (isGun ? 2.8 : 0.9)); bt.list = clamp(bt.list + Math.sign(loc.z || 1) * eff / bt.hpMax * 1.6, -0.6, 0.6); bt.trim = clamp(bt.trim + Math.sign(loc.x || 1) * eff / bt.hpMax * 1.0, -0.5, 0.5); }
+  else if (Math.random() < (isGun ? 0.32 : 0.035) && bt.fire < 0.2) { bt.fire = 0.25; bt.fireT = rnd(40, 75); }
+  sparks(x, y, z, isGun ? 14 : 5); puffSmoke(x, y, z, isGun ? 5 : 1, true, isGun ? 0.8 : 0.4);
+  if (isGun) { fxG.emit(x, y, z, 0, 1, 0, 0.18, 2.2, 1, [1, 0.8, 0.4, 1]); for (const q of boatCrew(bt)) if (Math.hypot(q.x - x, q.z - z) < 7 && Math.random() < 0.55) topple(q, new CANNON.Vec3(rnd(-3, 3), 3.5, rnd(-3, 3))); }   // a hit on deck knocks the crew about
+  if (attacker && attacker !== bt && !bt.target && bt.sp.guns && boatCrew(bt).length) bt.target = attacker;                                                                // the crew shoot back
+  checkSinking(bt);
+}
+function checkSinking(bt) {
+  if (bt.sunk) return;
+  if (bt.hp <= 0 || bt.flood >= 0.62) {
+    bt.sunk = true; bt.order = null; bt.docked = null; bt.dockH = undefined; bt.anchor = null; bt.throttle = 0; bt.rudder = 0; bt.target = null; bt.status = 'Sinking'; bt.sinkT = 0;
+    if (bt.marker) bt.marker.visible = false;
+    for (const q of people) if (q.job && q.job.boat === bt) q.job = null;
+    toast(bt.sp.name + ' is going down');
+    if (mode === 'helm' && boats[activeIdx] === bt) toggleMode();
+  }
+}
+function boatTop(bt) { return bt.group.position.y + deckLy(bt, 0, 0) + bt.ssH; }   // the highest point above the water, roughly
+function updateCombat(dt, t) {
+  // ---- boats: guns, flooding, fire, sinking
+  for (const bt of boats.slice()) {
+    if (!bt.mounts) continue;
+    const crew = boatCrew(bt), pos = bt.body.position;
+    bt.hitFlash = Math.max(0, bt.hitFlash - dt * 3);
+    // guns
+    const tgt = bt.target;
+    if (tgt && (tgt.sunk || !boats.includes(tgt))) bt.target = null;
+    if (!bt.target && bt.lastHitBy && t - bt.lastHitT < 15 && bt.lastHitBy !== bt && boats.includes(bt.lastHitBy) && !bt.lastHitBy.sunk && crew.length && bt.mounts.length) bt.target = bt.lastHitBy;
+    let engaged = false;
+    if (bt.target && !bt.sunk) {
+      const d = Math.hypot(bt.target.body.position.x - pos.x, bt.target.body.position.z - pos.z), manned = Math.min(bt.mounts.length, crew.length);
+      for (let i = 0; i < bt.mounts.length; i++) {
+        const m = bt.mounts[i]; m.cd -= dt; m.burst = Math.max(0, m.burst - dt);
+        if (i >= manned || d > m.w.range * 1.1) continue;
+        engaged = true;
+        if (m.cd <= 0) { fireShot(bt, m, bt.target); m.cd = m.w.reload * (0.85 + 0.3 * Math.random()) / (0.65 + 0.35 * Math.min(2, crew.length - i)); }
+        if (m.mesh) m.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(bt.target.body.position.z - pos.z), bt.target.body.position.x - pos.x) - boatYaw(bt));   // the mount tracks its target
+      }
+    }
+    for (const q of crew) { const want = engaged ? 1 : 0; q.aim = (q.aim || 0) + (want - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4); if (engaged) { const tp = bt.target.body.position; q.ride.rel = Math.atan2(tp.x - q.x, tp.z - q.z) - boatYaw(bt); if (bt.mounts.some(m => m.burst > 0)) q.recoil = 1; if (q.ride) q.ride.order = null; } }
+    // flooding grows as the hull gives way; the crew pump and fight fires
+    const wreck = bt.hp / bt.hpMax;
+    if (wreck < 0.4) bt.flood = Math.min(1, bt.flood + (0.4 - wreck) * (0.4 - wreck) * 0.06 * dt * 4 - Math.min(0.02, crew.length * 0.0015) * dt * (bt.sunk ? 0 : 1) * (bt.flood > 0 ? 1 : 0));
+    if (bt.flood > 0 && !bt.sunk && wreck >= 0.4) bt.flood = Math.max(0, bt.flood - crew.length * 0.0012 * dt);
+    if (bt.hp <= 0) bt.flood = Math.min(1, bt.flood + 0.012 * dt);
+    if (bt.fire > 0) {
+      bt.fireT -= dt * (1 + crew.length * 0.8);
+      bt.fire = bt.fireT > 0 ? Math.min(1, bt.fire + dt * 0.035) : Math.max(0, bt.fire - dt * 0.12);
+      bt.hp = Math.max(0, bt.hp - bt.fire * bt.hpMax * 0.0035 * dt);
+      if (bt.hp <= 0) checkSinking(bt);
+      if (bt.sunk && bt.body.position.y + deckLy(bt, 0, 0) < 0.2) bt.fire = 0;
+    }
+    bt.fl.k = 1 - 0.93 * bt.flood; bt.fl.list = bt.list * Math.min(1, bt.flood * 2.2); bt.fl.trim = bt.trim * Math.min(1, bt.flood * 2.2);
+    if (bt.flood >= 0.62 && !bt.sunk) checkSinking(bt);
+    // effects
+    const g = bt.group; g.updateMatrixWorld(true);
+    if (bt.fire > 0.05) {
+      const n = Math.round(bt.fire * 90 * dt) + (Math.random() < bt.fire * 90 * dt % 1 ? 1 : 0);
+      for (let i = 0; i < n; i++) {
+        const lx = rnd(-0.28, 0.28) * bt.sp.L * (bt.sp.L > 30 ? 1 : 0.6), lz = rnd(-0.25, 0.25) * bt.sp.B, ly = deckLy(bt, lx, lz) + rnd(0, bt.ssH * 0.7), w = tv.set(lx, ly, lz).applyMatrix4(g.matrixWorld);
+        fxG.emit(w.x, w.y, w.z, rnd(-0.4, 0.4), rnd(1.5, 3.5), rnd(-0.4, 0.4), rnd(0.5, 0.95), rnd(0.9, 1.7) * (0.6 + bt.sp.L / 90), -0.5, [1, rnd(0.35, 0.6), 0.1, 0.9], -0.5, 0.4);
+        if (Math.random() < 0.55) fxS.emit(w.x, w.y + 1, w.z, rnd(-0.5, 0.5) + wind.v.x * 0.35, rnd(2, 4.5), rnd(-0.5, 0.5) + wind.v.z * 0.35, rnd(3.5, 7), rnd(1.4, 2.4) * (0.6 + bt.sp.L / 80), 5, [0.07, 0.07, 0.08, 0.72], -0.3, 0.2);
+      }
+    } else if (wreck < 0.35 && !bt.sunk && Math.random() < dt * 8) {
+      const w = tv.set(rnd(-0.2, 0.2) * bt.sp.L, deckLy(bt, 0, 0) + bt.ssH * 0.5, 0).applyMatrix4(g.matrixWorld); fxS.emit(w.x, w.y, w.z, wind.v.x * 0.3, 2, wind.v.z * 0.3, 4, 1.2, 4, [0.5, 0.5, 0.52, 0.45], -0.3, 0.2);
+    }
+    if (bt.sunk) {
+      bt.sinkT += dt;
+      if (Math.random() < dt * 14) { const w = tv.set(rnd(-0.4, 0.4) * bt.sp.L, 0, rnd(-0.4, 0.4) * bt.sp.B).applyMatrix4(g.matrixWorld); fxS.emit(w.x, waveH(w.x, w.z, t) + 0.1, w.z, rnd(-0.6, 0.6), rnd(0.5, 1.6), rnd(-0.6, 0.6), rnd(1, 2), rnd(0.5, 1.1), 2.5, [0.9, 0.95, 1, 0.6], 0, 0.5); }
+      // abandon ship once the deck is awash, or after a while
+      const deckY = bt.body.position.y + deckLy(bt, 0, 0);
+      if (deckY < 0.35 || bt.sinkT > 14) for (const q of crew) topple(q, new CANNON.Vec3(rnd(-1.5, 1.5), 2.5, rnd(-1.5, 1.5)));
+      // gone for good once every part of it is under the waves
+      const under = boatTop(bt) < waveH(pos.x, pos.z, t) - 0.25;
+      bt.subT = under ? bt.subT + dt : 0;
+      if (bt.subT > 8 && boats.length > 1) { splash(pos.x, pos.z, 3); removeBoat(bt); continue; }
+    }
+    if (bt.sunk && mode === 'helm' && boats[activeIdx] === bt) toggleMode();
+  }
+  // ---- shots in flight
+  for (let i = shots.length - 1; i >= 0; i--) {
+    const s = shots[i]; s.age += dt; let alive = s.age < 5;
+    const steps = Math.max(1, Math.ceil(Math.hypot(s.vx, s.vz) * dt / 5)), h = dt / steps;
+    for (let k = 0; k < steps && alive; k++) {
+      s.vy -= 9.82 * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
+      if (k === 0 || Math.random() < 0.5) fxG.emit(s.x, s.y, s.z, 0, 0, 0, 0.1, s.k === 'gun' ? 0.55 : 0.3, -0.5, [1, 0.85, 0.45, 0.9]);
+      for (const bt of boats) {
+        if (bt === s.owner && s.age < 0.35) continue;
+        if (!insideHull(bt, s.x, s.z, 0)) continue;
+        const dy = s.y - (bt.group.position.y + deckLy(bt, 0, 0)), top = bt.ssH, bot = -bt.sp.D;
+        if (dy < top && dy > bot) { damageBoat(bt, s.dmg, s.x, s.y, s.z, s.owner, s.k); alive = false; break; }
+      }
+      if (!alive) break;
+      if (s.y < waveH(s.x, s.z, simT)) { splash(s.x, s.z, s.k === 'gun' ? 1.5 : 0.6); alive = false; }
+      else if (s.y < heightAt(s.x, s.z)) { sparks(s.x, s.y, s.z, 6); puffSmoke(s.x, s.y, s.z, 2, false, 0.6); alive = false; }
+    }
+    if (!alive) shots.splice(i, 1);
+  }
+  fxS.update(dt); fxG.update(dt);
+  updateHpBars();
+}
+/* ---- health bars over damaged or selected boats */
+const hpBars = new Map(); const hpHost = document.createElement('div'); hpHost.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden'; document.body.appendChild(hpHost);
+function updateHpBars() {
+  const s = { x: 0, y: 0, ok: false };
+  for (const bt of boats) {
+    const need = (mode === 'god') && bt.hpMax && (bt.hp < bt.hpMax || bt.flood > 0.02 || bt.fire > 0 || sel.includes(bt)) && !(bt.sunk && bt.subT > 0);
+    let el = hpBars.get(bt);
+    if (!need) { if (el) el.style.display = 'none'; continue; }
+    if (!el) { el = document.createElement('div'); el.style.cssText = 'position:absolute;transform:translate(-50%,-100%);font:600 11px var(--f-display);letter-spacing:.06em;color:#f1ece2;text-align:center;white-space:nowrap'; el.innerHTML = '<div class="t"></div><div style="width:84px;height:6px;border-radius:3px;background:rgba(12,26,32,.8);border:1px solid rgba(241,236,226,.3);margin-top:2px;overflow:hidden"><i style="display:block;height:100%;width:100%"></i></div>'; hpHost.appendChild(el); hpBars.set(bt, el); }
+    screenOf(bt.group.position.x, bt.group.position.y + bt.ssH + 6, bt.group.position.z, s);
+    if (!s.ok) { el.style.display = 'none'; continue; }
+    el.style.display = 'block'; el.style.left = s.x + 'px'; el.style.top = s.y + 'px';
+    const pct = bt.hp / bt.hpMax; el.querySelector('i').style.width = Math.round(pct * 100) + '%'; el.querySelector('i').style.background = pct > 0.6 ? '#6fbf73' : pct > 0.3 ? '#e3a948' : '#d64b2c';
+    el.querySelector('.t').textContent = bt.sunk ? 'SINKING' : (bt.fire > 0.05 ? 'FIRE  ' : '') + (bt.flood > 0.08 ? 'FLOODING  ' : '') + Math.round(pct * 100) + '%';
+  }
+  for (const [bt, el] of hpBars) if (!boats.includes(bt)) { el.remove(); hpBars.delete(bt); }
+}
+function orderFire(bts, tgt) {
+  const armed = bts.filter(b => b.mounts && b.mounts.length && !b.sunk);
+  if (!armed.length) { toast('Nothing armed selected'); return; }
+  let ok = 0; for (const b of armed) { if (b === tgt) continue; if (!boatCrew(b).length) { toast('The ' + b.sp.name + ' needs crew aboard to fire'); continue; } b.target = tgt; ok++; }
+  if (ok) toast(`${ok} ${ok > 1 ? 'ships' : armed[0].sp.name} engaging the ${tgt.sp.name}`);
+}
+function ceaseFire(bts) { bts.forEach(b => { b.target = null; if (b.mounts) b.mounts.forEach(m => m.burst = 0); }); toast('Cease fire'); }
+
+/* sunk cargo: gone for good once it is wholly under the waves and has stopped sinking (it cannot float back up) */
+function updateSunkObjects(dt, t) {
+  for (let i = objects.length - 1; i >= 0; i--) {
+    const o = objects[i], p = o.body.position, half = (o.pr ? o.pr.size.y : 0.6) * 0.5 + 0.1;
+    const under = p.y + half + 0.25 < waveH(p.x, p.z, t) && standY(p.x, p.z) < p.y - 0.05;
+    const heavy = o.fl.wet >= 0.97;
+    o.subT = under && heavy ? (o.subT || 0) + dt : 0;
+    if (o.subT > 10) { splash(p.x, p.z, 0.8); removeObj(o); updateCount(); }
+  }
+}
+
+/* ================================================================ first person: walk, jump, swim, ride, pick things up, board, take the helm */
+const fp = { on: false, p: null, yaw: 0, pitch: 0, vy: 0, air: false, locked: false, sx: 0, sy: 0, jump: false, betaPrev: 0, bob: 0, prompt: null, scanT: 0, drag: null, helm: null, lookId: null, lastX: 0, lastY: 0 };
+scene.add(camera);                                                // so a carried crate can ride on the camera
+const fpEye = (p) => p.height - 0.1;
+const lockPointer = () => { try { const r = canvas.requestPointerLock && canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} };   // some embedded views refuse it: drag-to-look still works
+function spawnPlayer() {
+  if (people.length >= MAX_PEOPLE) { toast('That is a full cove: ' + MAX_PEOPLE + ' people'); return null; }
+  let best = null, bd = 1e9;
+  for (let r = 0; r < 120 && !best; r += 4) for (let k = 0; k < 18; k++) { const a = k / 18 * 6.283, x = god.tgt.x + Math.cos(a) * r, z = god.tgt.z + Math.sin(a) * r; if (Math.abs(x) < 120 && Math.abs(z) < 120 && standY(x, z) > 0.8) { best = { x, z }; break; } }
+  if (!best) { toast('No dry land to stand on'); return null; }
+  const p = makePerson(Math.floor(Math.random() * 16), best.x, best.z); p.y = standY(best.x, best.z); p.role = 'You'; return p;
+}
+function enterFP(p) {
+  if (fp.on) return;
+  if (!p) p = spawnPlayer(); if (!p) return;
+  if (p.state === 'rag') { standUp(p); if (p.state === 'rag') { toast('Get them out of the water first'); return; } }
+  if (p.hop) { toast('Wait until they are aboard'); return; }
+  cancelJob(p); p.order = null; if (p.ride) p.ride.order = null; setSel([]);
+  fp.on = true; fp.p = p; p.fp = true; p.obj.visible = false; fp.yaw = personWorldYaw(p); fp.pitch = 0; fp.vy = 0; fp.air = false; fp.helm = null;
+  if (p.ride) fp.betaPrev = boatYaw(p.ride.boat);
+  mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
+  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm, Esc leaves.';
+  if (!isTouch) lockPointer();
+  toast('First person'); refreshPanel();
+}
+function exitFP() {
+  if (!fp.on) return; const p = fp.p;
+  fp.on = false; fp.p = null; fp.helm = null; $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
+  if (p && people.includes(p)) {
+    p.fp = false; p.obj.visible = true; p.fpMoving = false; if (p.swim) { p.swim = false; topple(p, null); }
+    if (p.carry && p.carry.lead === p && p.carryMesh) attachCarry(p);
+    god.tgt.set(p.x, p.y, p.z); god.follow = null; god.dist = Math.min(god.dist, 60);
+  }
+  camera.up.set(0, 1, 0); mode = 'god'; document.body.dataset.mode = 'god'; if (p && people.includes(p)) setSel([p]); else refreshPanel(); renderTray(); toast('Overview');
+}
+function fpClimbTarget(p) {                         // dry land within reach of a boat, for stepping ashore
+  let best = null, bd = 1e9;
+  for (let r = 1.5; r <= 7; r += 1.2) for (let k = 0; k < 20; k++) { const a = k / 20 * 6.283, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r, gy = standY(x, z); if (gy >= 0.15 && gy < 7 && r < bd) { bd = r; best = { x, z, y: gy }; } }
+  return best;
+}
+function fpScan() {
+  const p = fp.p, out = []; if (!p) return;
+  const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw);
+  // carryable things in front of the player
+  let bo = null, bd = 1e9;
+  for (const o of objects) { const op = o.body.position, dx = op.x - p.x, dz = op.z - p.z, d = Math.hypot(dx, dz); if (d > 3.2 || d < 0.01) continue; if ((dx * fx_ + dz * fz_) / d < 0.45) continue; if (Math.abs(op.y - p.y) > 2.6) continue; if (d < bd) { bd = d; bo = o; } }
+  if (bo && !p.carry && !p.swim && !p.hop) {
+    const mass = bo.body.mass, need = liftNeed(bo);
+    out.push({ act: 'pickup', obj: bo, text: need <= 1 ? `${isTouch ? 'Use' : 'E'}: pick up ${bo.c.name} (${Math.round(mass)} kg)` : need > 4 ? `${bo.c.name}: ${Math.round(mass)} kg, too heavy to lift` : `${bo.c.name}: ${Math.round(mass)} kg, needs ${need} people (select them in the overview)` });
+  }
+  if (p.carry) out.push({ act: 'drop', text: `${isTouch ? 'Drop' : 'G'}: drop the ${p.carry.c.name}` });
+  if (!p.ride) {
+    let bb = null, bdd = 1e9;
+    for (const bt of boats) { if (bt.sunk) continue; const d = distToHull(bt, p.x, p.z); if (d < (p.swim ? 3.8 : 4.4) && d < bdd) { bdd = d; bb = bt; } }
+    if (bb) { if (crewCount(bb) >= (bb.sp.capacity || 4)) out.push({ act: 'none', text: 'The ' + bb.sp.name + ' is full' }); else out.push({ act: 'board', boat: bb, text: `${isTouch ? 'Use' : 'E'}: ${p.swim ? 'climb aboard' : 'board'} the ${bb.sp.name}` }); }
+  } else {
+    const bt = p.ride.boat, st = fpClimbTarget(p);
+    if (st && distToHull(bt, st.x, st.z) < 7) out.push({ act: 'ashore', st, text: `${isTouch ? 'Use' : 'E'}: step ashore` });
+    out.push({ act: 'helm', boat: bt, text: `${isTouch ? 'Helm' : 'H'}: take the helm of the ${bt.sp.name}` });
+    if (!isTouch) out.push({ act: 'overboard', text: 'Q: jump overboard' });
+  }
+  fp.prompt = out; $('fpPrompt').textContent = out.length ? out.slice(0, 3).map(o => o.text).join('   |   ') : '';
+  $('fpDrop').hidden = !p.carry; $('fpHelm').hidden = !p.ride;
+}
+function fpUse() {
+  const p = fp.p; if (!p || p.hop || p.state === 'rag') return; const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
+  if (!a) return;
+  if (a.act === 'pickup') { if (liftNeed(a.obj) > 1) { toast('Too heavy for one'); return; } p.job = { type: 'pickup', obj: a.obj, team: [p], phase: 'lift', t: 0, age: 0 }; }
+  else if (a.act === 'board') { p.job = { type: 'board', boat: a.boat }; boardHop(p, a.boat); }
+  else if (a.act === 'ashore') {
+    const bt = p.ride.boat, from = new THREE.Vector3(p.x, p.y, p.z), st = a.st, dy = Math.abs(st.y - p.y);
+    startHop(p, from, (o) => o.set(st.x, st.y, st.z), clamp(0.8 + 0.08 * dy, 0.8, 2), dy > 3 ? 0.3 : 0.6, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = st.x; p.z = st.z; p.y = st.y; giveBody(p); });
+  }
+}
+function fpOverboard() {
+  const p = fp.p; if (!p || !p.ride || p.hop) return; const bt = p.ride.boat, l = toBoatLocal(bt, p.x, p.z);
+  const s = Math.sign(l.z || 1), out = new THREE.Vector3(); worldOfDeck(bt, l.x, 0, s * (bt.sp.B / 2 + 3.2), out);
+  const from = new THREE.Vector3(p.x, p.y, p.z), wy = waveH(out.x, out.z, simT) - 1.15;
+  startHop(p, from, (o) => o.set(out.x, wy, out.z), 0.9, 0.9, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = out.x; p.z = out.z; p.y = wy; p.swim = true; giveBody(p); });
+}
+function fpHelm() {
+  const p = fp.p; if (!p || !p.ride || p.hop) return; const bt = p.ride.boat; if (bt.sunk) return;
+  fp.helm = bt; activeIdx = boats.indexOf(bt); bt.order = null; bt.anchor = null; bt.docked = null; bt.dockH = undefined; if (bt.marker) bt.marker.visible = false;
+  mode = 'helm'; camS.dist = bt.sp.dist; camS.lastDrag = -10; $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
+  fwdV_(bt); document.body.dataset.mode = 'helm'; refreshPanel(); refreshHelm(); renderTray(true); toast('At the helm of ' + bt.sp.name + '. Esc to go back to your feet');
+}
+function fwdV_(bt) { bt.body.quaternion.vmult(fwdV.set(1, 0, 0), fwdV); camS.yaw = Math.atan2(-fwdV.x, -fwdV.z); camS.tgt.copy(bt.group.position); }
+function fpResumeFromHelm() {
+  const bt = boats[activeIdx]; if (bt) { bt.anchor = bt.body.position.clone(); bt.rudder = 0; bt.throttle = 0; bt.status = 'Anchored'; }
+  fp.helm = null; mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; if (fp.p && fp.p.ride) fp.betaPrev = boatYaw(fp.p.ride.boat); refreshPanel(); renderTray(); toast('Back on your feet');
+}
+function updateFP(dt, t) {
+  const p = fp.p; if (!p || !people.includes(p)) { if (fp.on) exitFP(); return; }
+  if (p.state === 'rag') { fp.air = false; $('fpPrompt').textContent = (isTouch ? 'Tap Jump' : 'Space') + ': get up'; return; }
+  if (p.hop) { p.fpMoving = true; return; }
+  // move
+  let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy;
+  let r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
+  const len = Math.hypot(f, r); if (len > 1) { f /= len; r /= len; }
+  const run = keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.92, spd = (run ? 3.4 : 1.9) * (p.carry ? 0.8 : 1) * (p.swim ? 0.7 : 1);
+  const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw), dx = (fx_ * f + (-fz_) * r) * spd * dt, dz = (fz_ * f + fx_ * r) * spd * dt;
+  p.fpMoving = len > 0.05; if (p.fpMoving) fp.bob += dt * (run ? 11 : 7);
+  if (p.ride) {
+    const bt = p.ride.boat, beta = boatYaw(bt); fp.yaw += wrap(beta - fp.betaPrev); fp.betaPrev = beta;
+    const c = Math.cos(beta), s = Math.sin(beta), lx = dx * c - dz * s, lz = dx * s + dz * c, q = deckClamp(bt, p.ride.lx + lx, p.ride.lz + lz);
+    p.ride.lx = q[0]; p.ride.lz = q[1]; p.ride.rel = fp.yaw - beta; p.ride.order = null;
+    if (fp.jump) fp.jump = false;
+  } else {
+    let nx = p.x + dx, nz = p.z + dz;
+    for (const tr of trees) { const ex = nx - tr.x, ez = nz - tr.z, rr = (tr.kind === 'shrub' ? 0.35 : 0.5) * tr.sc, d2 = ex * ex + ez * ez; if (d2 < rr * rr && d2 > 1e-6 && Math.abs(tr.h - p.y) < 3) { const d = Math.sqrt(d2); nx = tr.x + ex / d * rr; nz = tr.z + ez / d * rr; } }
+    const gy = standY(nx, nz);
+    if (!p.swim && gy < -0.3 && !fp.air) { p.swim = true; }
+    else if (p.swim && gy > -0.25) { p.swim = false; }
+    if (!p.swim && gy - p.y > 0.6 && !fp.air) { nx = p.x; nz = p.z; }
+    p.x = nx; p.z = nz; p.heading = fp.yaw;
+    if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jump = false; }
+    else {
+      const g2 = standY(p.x, p.z);
+      if (fp.jump && !fp.air) { fp.vy = 3.6; fp.air = true; }
+      fp.jump = false;
+      if (fp.air) { fp.vy -= 9.82 * dt; p.y += fp.vy * dt; if (p.y <= g2) { p.y = g2; fp.vy = 0; fp.air = false; } }
+      else p.y += (g2 - p.y) * Math.min(1, 18 * dt);
+    }
+  }
+  fp.scanT -= dt; if (fp.scanT <= 0) { fp.scanT = 0.12; fpScan(); }
+}
+function fpCamera(dt, t) {
+  const p = fp.p; if (!p) return;
+  let px = p.x, py = p.y + fpEye(p), pz = p.z;
+  if (p.state === 'rag' && p.rag) { const hd = p.rag.bodies.head.interpolatedPosition; px = hd.x; py = hd.y + 0.12; pz = hd.z; }
+  else if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob) * 0.035;
+  camera.position.set(px, py, pz);
+  const cp = Math.cos(fp.pitch); camera.lookAt(px + Math.sin(fp.yaw) * cp, py + Math.sin(fp.pitch), pz + Math.cos(fp.yaw) * cp);
+}
+/* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
+document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Click the view to look around again. Esc leaves first person.'; });
+addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
+canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { passive: false });
+{ // touch: stick and look pad
+  const st = $('fpStick'), kn = $('fpKnob'), lk = $('fpLook'); let sid = null, lid = null, lx = 0, ly = 0;
+  st.addEventListener('pointerdown', (e) => { sid = e.pointerId; st.setPointerCapture(e.pointerId); mv(e); e.preventDefault(); });
+  const mv = (e) => { const r = st.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2; let dx = (e.clientX - cx) / 56, dy = (e.clientY - cy) / 56; const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; } fp.sx = dx; fp.sy = dy; kn.style.transform = `translate(${dx * 42}px,${dy * 42}px)`; };
+  st.addEventListener('pointermove', (e) => { if (e.pointerId === sid) mv(e); });
+  const sEnd = (e) => { if (e.pointerId !== sid) return; sid = null; fp.sx = fp.sy = 0; kn.style.transform = ''; };
+  st.addEventListener('pointerup', sEnd); st.addEventListener('pointercancel', sEnd);
+  lk.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') return; lid = e.pointerId; lk.setPointerCapture(e.pointerId); lx = e.clientX; ly = e.clientY; });
+  lk.addEventListener('pointermove', (e) => { if (e.pointerId !== lid) return; fp.yaw -= (e.clientX - lx) * 0.0055; fp.pitch = clamp(fp.pitch - (e.clientY - ly) * 0.0055, -1.45, 1.45); lx = e.clientX; ly = e.clientY; });
+  const lEnd = (e) => { if (e.pointerId === lid) lid = null; }; lk.addEventListener('pointerup', lEnd); lk.addEventListener('pointercancel', lEnd);
+}
+function fpJumpOrGetUp() {
+  const p = fp.p; if (!p) return;
+  if (p.state === 'rag') { if (standY(p.rag.bodies.pelvis.position.x, p.rag.bodies.pelvis.position.z) >= 0.15) standUp(p); else { const pb = p.rag.bodies.pelvis.position; freeRag(p); p.state = 'idle'; p.floating = false; p.x = pb.x; p.z = pb.z; p.swim = true; p.y = waveH(p.x, p.z, simT) - 1.15; for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } p.obj.quaternion.identity(); giveBody(p); } return; }
+  fp.jump = true;
+}
+$('fpUse').addEventListener('click', fpUse); $('fpJump').addEventListener('click', fpJumpOrGetUp); $('fpExit').addEventListener('click', exitFP);
+$('fpDrop').addEventListener('click', () => { if (fp.p && fp.p.carry) dropCarry(fp.p); }); $('fpHelm').addEventListener('click', fpHelm);
+addEventListener('keydown', (e) => {
+  if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
+  if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
+  if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
+  else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab') { exitFP(); e.preventDefault(); }
+});
+
+combatReady = true; boats.forEach(setupBoatCombat);
 
 /* ================================================================ weather and time of day */
 const SKIES = {
@@ -1698,22 +2525,31 @@ function personAtScreen(cx, cy) {
 const twoInfo = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; };
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('pointerdown', (e) => {
+  if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button });
   if (ptrs.size === 1) {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
+    if (mode === 'god' && tool === 'select' && e.button === 0 && (boxMode || e.shiftKey)) marq = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY, add: e.shiftKey || e.ctrlKey, active: false };
     if (mode === 'god' && tool === 'land' && e.button === 0 && land.finger === 'paint') {
       const p = pick(e.clientX, e.clientY);
       if (p) { land.painting = true; land.flatH = groundAt(p.x, p.z); hoverPt = p; downInfo.moved = true; }
     }
   }
-  if (ptrs.size === 2) { g2 = { ...twoInfo(), dist: mode === 'god' ? god.dist : camS.dist, yaw: god.yaw }; land.painting = false; if (downInfo) downInfo.moved = true; }
+  if (ptrs.size === 2) { if (marq) { marq = null; $('marquee').hidden = true; } g2 = { ...twoInfo(), dist: mode === 'god' ? god.dist : camS.dist, yaw: god.yaw }; land.painting = false; if (downInfo) downInfo.moved = true; }
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (mode === 'fp') { if (fp.drag && !fp.locked && (e.buttons & 1)) { fp.yaw -= (e.clientX - fp.drag.x) * 0.004; fp.pitch = clamp(fp.pitch - (e.clientY - fp.drag.y) * 0.004, -1.45, 1.45); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   if (e.pointerType === 'mouse') { lastMouse.x = e.clientX; lastMouse.y = e.clientY; lastMouse.on = true; }
   const p = ptrs.get(e.pointerId);
   if (!p) { if (mode === 'god' && tool === 'land' && e.pointerType === 'mouse') hoverPt = pick(e.clientX, e.clientY); return; }
   let ox = p.x, oy = p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptrs.size === 1) {
+    if (marq) {                                                      // drawing a selection box
+      marq.x1 = e.clientX; marq.y1 = e.clientY;
+      if (!marq.active && Math.hypot(marq.x1 - marq.x0, marq.y1 - marq.y0) > 8) marq.active = true;
+      if (marq.active) { const el = $('marquee'); el.hidden = false; el.style.left = Math.min(marq.x0, marq.x1) + 'px'; el.style.top = Math.min(marq.y0, marq.y1) + 'px'; el.style.width = Math.abs(marq.x1 - marq.x0) + 'px'; el.style.height = Math.abs(marq.y1 - marq.y0) + 'px'; }
+      return;
+    }
     if (downInfo && !downInfo.moved && Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y) > 8) { downInfo.moved = true; ox = downInfo.x; oy = downInfo.y; }   // the slop distance is part of the drag, so the map starts under the finger
     else if (!downInfo || !downInfo.moved) return;
     const dx = e.clientX - ox, dy = e.clientY - oy;
@@ -1730,11 +2566,13 @@ canvas.addEventListener('pointermove', (e) => {
   }
 });
 const endPtr = (e) => {
+  fp.drag = null;
   if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
   if (ptrs.size < 2) g2 = null;
   if (ptrs.size === 0) {
     if (land.painting) { land.painting = false; commitLand(true); }
-    if (downInfo && !downInfo.moved && performance.now() - downInfo.t < 450 && e.type === 'pointerup') tapAt(e.clientX, e.clientY, downInfo.btn);
+    if (marq) { const m = marq; marq = null; $('marquee').hidden = true; if (m.active && e.type === 'pointerup') { selectInRect(m.x0, m.y0, m.x1, m.y1, m.add); downInfo = null; return; } }
+    if (downInfo && !downInfo.moved && performance.now() - downInfo.t < 450 && e.type === 'pointerup') tapAt(e.clientX, e.clientY, downInfo.btn, e.shiftKey || e.ctrlKey);
     downInfo = null;
     if (e.pointerType !== 'mouse') hoverPt = null;     // no hover on touch: clear the brush ring once the finger lifts
   }
@@ -1742,41 +2580,96 @@ const endPtr = (e) => {
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('pointerleave', () => { lastMouse.on = false; if (!land.painting && !ptrs.size) hoverPt = null; });
 canvas.addEventListener('wheel', (e) => {
-  e.preventDefault();
+  e.preventDefault(); if (mode === 'fp') return;
   if (mode === 'helm') camS.dist = clamp(camS.dist * Math.exp(e.deltaY * 0.0012), 5, 120);
   else god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD);
 }, { passive: false });
-function tapAt(cx, cy, btn) {
+function orderBoats(sb, p) {                       // move boats to open water, or dock the first one at the shore
+  const first = sb[0], water = groundAt(p.x, p.z) < -(first.sp.D - first.sp.fb) - 0.2;
+  if (!water) { const br = findBerth(first, p); if (br) { dockBoat(first, br); toast(first.sp.name + ': docking'); } else toast('No safe berth there'); return; }
+  sb.forEach((b, i) => {
+    if (b.sunk) return;
+    const o = formationPt(p.x, p.z, i), r = i ? (b.sp.L + first.sp.L) * 0.35 / 1.2 : 0, tx = p.x + (o.x - p.x) * r, tz = p.z + (o.z - p.z) * r;
+    const ok = groundAt(tx, tz) < -(b.sp.D - b.sp.fb) - 0.2; orderTo(b, ok ? tx : p.x, ok ? tz : p.z);
+  });
+  toast(sb.length > 1 ? sb.length + ' boats: under way' : first.sp.name + ': under way');
+}
+function tapAt(cx, cy, btn, mods) {
+  if (mode === 'fp') return;
   if (mode === 'helm') { const p = pick(cx, cy); if (p && BUILD[buildSel] && BUILD[buildSel].cargo !== undefined) place(BUILD[buildSel], p); return; }
   if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { brush(p.x, p.z, 0.3); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
   if (tool === 'build') { const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }
-  const bt = boatAtScreen(cx, cy), pe = personAtScreen(cx, cy);
-  if (pe && btn !== 2 && (!bt || personAtScreen.d < boatAtScreen.d)) { selectPerson(pe === selPerson ? null : pe); return; }
-  if (bt && btn !== 2) { selectBoat(bt === selBoat ? null : bt); return; }
-  if (selPerson) { const p = pick(cx, cy); if (p) walkTo(selPerson, p.x, p.z); return; }
-  if (selBoat) {
-    const p = pick(cx, cy); if (!p) return;
-    if (groundAt(p.x, p.z) > -(selBoat.sp.D - selBoat.sp.fb) - 0.2) { toast('That is ashore. Pick open water'); return; }
-    orderTo(selBoat, p.x, p.z); toast(selBoat.sp.name + ': under way');
+  const add = !!mods, pe = personAtScreen(cx, cy), ob = objectAtScreen(cx, cy), od = objectAtScreen.d, bt = boatUnderTap(cx, cy), bd = boatAtScreen.d;
+  const sp = selPeople(), sb = selBoats(), now = performance.now();
+  // fire mode: tap a boat to engage it, tap anywhere else to cease fire
+  if (fireMode && sb.length) { if (bt && !sb.includes(bt)) orderFire(sb, bt); else ceaseFire(sb); return; }
+  // a person under the pointer: select (shift or ctrl adds, double-tap takes everyone on screen)
+  if (pe && btn !== 2) {
+    if (add) { toggleSel(pe); return; }
+    const dbl = lastTap.u === pe && now - lastTap.t < 380; lastTap = { t: now, u: pe };
+    if (dbl) { selectAllVisible('person'); return; }
+    if (sp.length === 1 && sp[0] === pe) setSel([]); else setSel([pe]);
+    return;
   }
+  // people selected: pick something up, board a boat, or walk
+  if (sp.length && btn !== 2) {
+    if (ob && (!bt || od <= bd)) { orderPickup(sp, ob); return; }
+    if (bt) {
+      const riders = sp.filter(p => p.ride && p.ride.boat === bt), land = sp.filter(p => !p.ride && p.state !== 'rag');
+      if (riders.length) { const pt = pickAtY(cx, cy, bt.group.position.y + deckLy(bt, 0, 0)); if (pt) { riders.forEach((p, i) => { cancelJob(p); const t = formationPt(pt.x, pt.z, i); setOrder(p, t.x, t.z); }); toast('Crew: walking on deck'); } }
+      if (land.length) orderBoard(land, bt); else if (!riders.length) toast('Stand them up first');
+      return;
+    }
+    const p = pick(cx, cy); if (p) commandWalk(sp, p.x, p.z);
+    return;
+  }
+  // boats
+  if (bt && btn !== 2) {
+    if (add) { toggleSel(bt); return; }
+    const dbl = lastTap.u === bt && now - lastTap.t < 380; lastTap = { t: now, u: bt };
+    if (dbl) { selectAllVisible('boat', bt.key); return; }
+    if (sb.length === 1 && sb[0] === bt) setSel([]); else setSel([bt]);
+    if (selBoat) god.follow = null;
+    return;
+  }
+  if (sb.length) { const p = pick(cx, cy); if (p) orderBoats(sb, p); return; }
+  if (ob) { const m = ob.body.mass, need = liftNeed(ob); toast(`${ob.c.name}: ${Math.round(m)} kg${need > 4 ? ', too heavy to lift' : need > 1 ? ', ' + need + ' people to lift' : ', one person can lift it'}`); }
 }
 addEventListener('keydown', (e) => {
-  if (e.metaKey || e.ctrlKey) return; const k = e.key.toLowerCase(); keys.add(k);
+  const k0 = e.key.toLowerCase();
+  if (mode === 'fp') { keys.add(k0); return; }
+  if (e.metaKey || e.ctrlKey) return; const k = k0; keys.add(k);
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
-  if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else { selectBoat(null); selectPerson(null); } }
+  if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else setSel([]); }
   else if (k === 'tab') { e.preventDefault(); nextBoat(); }
   else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); }
   if (k === 'r') squall(); else if (k === 'c') clearCargo();
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
 });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
-/* Delete / Backspace: remove what is selected, otherwise whatever is under the mouse pointer */
+/* selection groups, fire mode, drop: the overview's own shortcuts */
+addEventListener('keydown', (e) => {
+  if (mode !== 'god' || !$('help').hidden) return; const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+  if (mod && /^[5-9]$/.test(k)) { groups[k] = sel.slice(); e.preventDefault(); toast('Group ' + k + ' saved: ' + sel.length); return; }
+  if (mod && k === 'a') { e.preventDefault(); setSel(people.length ? people.slice() : boats.slice()); return; }
+  if (mod || e.altKey) return;
+  if (/^[5-9]$/.test(k) && groups[k]) {
+    const g = groups[k].filter(u => u.kind === 'person' ? people.includes(u) : boats.includes(u)); if (!g.length) return;
+    const dbl = performance.now() - (groups._t || 0) < 400 && groups._k === k; groups._t = performance.now(); groups._k = k; setSel(g);
+    if (dbl) { const c = g[0]; god.tgt.set(c.kind === 'boat' ? c.body.position.x : c.x, 0, c.kind === 'boat' ? c.body.position.z : c.z); god.follow = null; }
+  } else if (k === 'f') { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }
+  else if (k === 'b') { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }
+  else if (k === 'g') { selPeople().forEach(p => { if (p.carry) dropCarry(p); }); refreshPanel(); }
+});
+/* Delete / Backspace: remove everything selected, otherwise whatever is under the mouse pointer */
 const lastMouse = { x: 0, y: 0, on: false };
 addEventListener('keydown', (e) => {
-  if ((e.key !== 'Delete' && e.key !== 'Backspace') || e.metaKey || e.ctrlKey || mode === 'helm' || !$('help').hidden) return;
+  if ((e.key !== 'Delete' && e.key !== 'Backspace') || e.metaKey || e.ctrlKey || mode !== 'god' || !$('help').hidden) return;
   e.preventDefault();
-  if (selPerson) { removePerson(selPerson); toast('Removed'); return; }
-  if (selBoat) { if (boats.length > 1) { const n = selBoat.sp.name; removeBoat(selBoat); refreshPanel(); toast(n + ' removed'); } else toast('Keep at least one boat'); return; }
+  if (sel.length) {
+    let n = 0, keep = false; for (const u of sel.slice()) { if (u.kind === 'person') { removePerson(u); n++; } else if (boats.length > 1) { removeBoat(u); n++; } else keep = true; }
+    refreshPanel(); toast(n ? n + ' removed' + (keep ? ' (keeping the last boat)' : '') : 'Keep at least one boat'); return;
+  }
   const p = lastMouse.on ? pick(lastMouse.x, lastMouse.y) : null;
   if (p) erase(p); else toast('Select something, or point at it, then press Delete');
 });
@@ -1791,19 +2684,16 @@ const hold = {};
 });
 
 /* ================================================================ actions */
-function selectBoat(bt) {
-  selBoat = bt; selRing.visible = !!bt; if (bt) selPerson = null;
-  if (bt) { selRing.scale.setScalar(bt.sp.L * 0.62); activeIdx = boats.indexOf(bt); }
-  refreshPanel();
-}
 function toggleMode() {
+  if (mode === 'fp') return;
   if (mode === 'god') {
-    const bt = selBoat || boats[activeIdx] || boats[0]; if (!bt) return;
+    const bt = selBoat || boats[activeIdx] || boats[0]; if (!bt || bt.sunk) return;
     activeIdx = boats.indexOf(bt); bt.order = null; bt.anchor = null; if (bt.marker) bt.marker.visible = false;
     mode = 'helm'; camS.dist = bt.sp.dist; camS.lastDrag = -10;
     bt.body.quaternion.vmult(fwdV.set(1, 0, 0), fwdV); camS.yaw = Math.atan2(-fwdV.x, -fwdV.z); camS.tgt.copy(bt.group.position);
     toast('At the helm of ' + bt.sp.name);
   } else {
+    if (fp.on && fp.helm) { fpResumeFromHelm(); return; }
     const bt = boats[activeIdx]; if (bt) { bt.anchor = bt.body.position.clone(); bt.rudder = 0; bt.throttle = 0; bt.status = 'Anchored'; god.tgt.set(bt.body.position.x, 0, bt.body.position.z); }
     mode = 'god'; selectBoat(bt || null); toast('Overview');
   }
@@ -1855,15 +2745,21 @@ function setTool(t) { tool = t; [...tabs.children].forEach(b => b.setAttribute('
 let traySig = '';
 function renderTray(force = true) {
   const T0 = mode === 'helm' ? 'build' : tool;
-  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (b === selBoat ? '*' : '') + (b.status || '')).join(',') : Math.random());
+  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + people.length : Math.random());
   if (!force && sig === traySig) return;
   traySig = sig; const keep = tray.scrollLeft;
   tray.innerHTML = '';
   requestAnimationFrame(() => { tray.scrollLeft = keep; });
   const T = mode === 'helm' ? 'build' : tool;
   if (T === 'select') {
+    tray.append(sep('Select'));
+    tray.append(chip('Box', boxMode ? 'on: drag' : 'off', null, boxMode, () => { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }, 'chip mini'));
+    tray.append(chip('Fire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
+    tray.append(chip('All people', String(people.length), null, false, () => setSel(people.slice()), 'chip mini'));
+    tray.append(chip('Idle', 'people', null, false, () => setSel(people.filter(q => !q.order && !q.job && !q.hop && !q.carry && !q.fp && q.state !== 'rag')), 'chip mini'));
+    tray.append(chip('All boats', String(boats.length), null, false, () => setSel(boats.slice()), 'chip mini'));
     tray.append(sep('Fleet'));
-    boats.forEach(bt => tray.append(chip(bt.sp.name, bt.status || (bt.order ? 'Under way' : 'Anchored'), bt.sp.kind === 'sail' ? '#e9e3d6' : bt.sp.glb === 'ccg' ? '#d52b1e' : '#2c2f33', bt === selBoat, () => { selectBoat(bt === selBoat ? null : bt); if (selBoat) god.follow = bt; renderTray(); })));
+    boats.forEach(bt => tray.append(chip(bt.sp.name, bt.sunk ? 'Sinking' : (bt.status || (bt.order ? 'Under way' : 'Anchored')) + (bt.hpMax && bt.hp < bt.hpMax ? ' ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''), bt.sp.kind === 'sail' ? '#e9e3d6' : bt.sp.glb === 'ccg' || bt.sp.glb === 'ccgfleet' ? '#d52b1e' : '#2c2f33', sel.includes(bt), () => { if (sel.length === 1 && sel[0] === bt) setSel([]); else setSel([bt]); if (selBoat) god.follow = bt; renderTray(); })));
     tray.append(chip('All stop', 'anchor everyone', null, false, () => { boats.forEach(b => { if (b.order) arrive(b); }); toast('All boats anchored'); renderTray(); }, 'tool'));
   } else if (T === 'build') {
     let cat = null;
@@ -1900,27 +2796,31 @@ function renderTray(force = true) {
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
 function refreshPanel() {
-  const bt = mode === 'helm' ? boats[activeIdx] : selBoat, pe = mode === 'god' ? selPerson : null;
-  $('boatName').innerHTML = pe ? `${pe.role}<small>${personStatus(pe)}</small>` : bt ? `${bt.sp.name}<small>${bt.sp.note}</small>` : `Overview<small>${boats.length} boats${people.length ? ', ' + people.length + ' people' : ''}</small>`;
+  const ps = selPeople(), bs = selBoats();
+  const bt = mode === 'helm' ? boats[activeIdx] : selBoat, pe = mode === 'god' ? selPerson : null, god_ = mode === 'god';
+  let title;
+  if (god_ && sel.length > 1) title = `${sel.length} selected<small>${[ps.length && ps.length + ' people', bs.length && bs.length + ' boats'].filter(Boolean).join(', ')}</small>`;
+  else if (pe) title = `${pe.role}<small>${personStatus(pe)}</small>`;
+  else if (bt) title = `${bt.sp.name}<small>${bt.sp.note}</small>`;
+  else title = `Overview<small>${boats.length} boats${people.length ? ', ' + people.length + ' people' : ''}</small>`;
+  $('boatName').innerHTML = title;
   $('bMode').textContent = mode === 'helm' ? 'Overview' : 'Take the helm';
-  $('bMode').disabled = mode === 'god' && !bt;
-  $('bStop').hidden = !(mode === 'god' && bt);
-  $('bDel').hidden = !(mode === 'god' && bt && boats.length > 1);
-  $('bTopple').hidden = !pe; $('bDelP').hidden = !pe; if (pe) $('bTopple').textContent = pe.state === 'rag' ? 'Stand up' : 'Topple';
-  if (tool === 'select' && mode === 'god') renderTray();
+  $('bMode').disabled = god_ && !(bt && !bt.sunk && bs.length <= 1);
+  $('bStop').hidden = !(god_ && bs.length); $('bDel').hidden = !(god_ && bs.length && boats.length > 1);
+  $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length);
+  if (ps.length) { $('bTopple').textContent = ps.every(q => q.state === 'rag') ? 'Stand up' : 'Topple'; $('bDelP').textContent = ps.length > 1 ? 'Remove people' : 'Remove person'; }
+  $('bDrop').hidden = !(god_ && ps.some(q => q.carry));
+  $('bJoin').hidden = !god_;
+  if (tool === 'select' && god_) renderTray();
 }
 tabs.querySelector('[data-t="select"]').setAttribute('aria-pressed', 'true');
 $('bMode').addEventListener('click', toggleMode);
-$('bStop').addEventListener('click', () => { if (selBoat) { arrive(selBoat); refreshPanel(); toast(selBoat.sp.name + ' anchored'); } });
-$('bDel').addEventListener('click', () => { if (selBoat && boats.length > 1) { const n = selBoat.sp.name; removeBoat(selBoat); toast(n + ' removed'); } });
-$('bTopple').addEventListener('click', () => { const p = selPerson; if (!p) return; if (p.state === 'rag') standUp(p); else topple(p, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); refreshPanel(); });
-$('bDelP').addEventListener('click', () => { if (selPerson) { removePerson(selPerson); toast('Removed'); } });
-$('bBoat').addEventListener('click', nextBoat);
-$('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
-$('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
-$('bRight').addEventListener('click', rightBoat);
-$('sAuto').addEventListener('click', toggleAuto);
-$('sAuto').addEventListener('pointerdown', () => { const b = boats[activeIdx]; if (b && b.sp.kind === 'motor') b.throttle = 0; });
+$('bStop').addEventListener('click', () => { const bs = selBoats(); bs.forEach(b => { if (b.order || b.docked) arrive(b); b.target = null; }); refreshPanel(); toast(bs.length > 1 ? bs.length + ' boats anchored' : bs[0].sp.name + ' anchored'); });
+$('bDel').addEventListener('click', () => { const bs = selBoats().filter(() => boats.length > 1); let n = 0; for (const b of bs) if (boats.length > 1) { removeBoat(b); n++; } refreshPanel(); toast(n + ' removed'); });
+$('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.length) return; if (ps.every(q => q.state === 'rag')) ps.forEach(standUp); else ps.forEach(q => { if (q.state !== 'rag') topple(q, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); }); refreshPanel(); });
+$('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
+$('bDrop').addEventListener('click', () => { selPeople().forEach(p => { if (p.carry) dropCarry(p); }); refreshPanel(); });
+$('bJoin').addEventListener('click', () => enterFP(selPerson || null));
 function setQuality(q) {
   quality = q; try { localStorage.setItem('sc-quality', q); } catch (e) {}
   $('bQual').textContent = 'Quality: ' + (q === 'high' ? 'High' : 'Low');
@@ -1971,7 +2871,7 @@ function frame(now) {
     bt.rudder += clamp(((left ? 1 : 0) - (right ? 1 : 0)) * 0.7 - bt.rudder, -2.5 * dt, 2.5 * dt);
     if (bt.sp.kind === 'motor') { if (up) bt.throttle = clamp(bt.throttle + 0.6 * dt, -0.5, 1); if (down) bt.throttle = clamp(bt.throttle - 0.6 * dt, -0.5, 1); }
     else if (up || down) { if (bt.auto) { bt.auto = false; refreshHelm(); } bt.sheet = clamp(bt.sheet + (down ? 1 : -1) * 0.8 * dt, 0.05, 1.45); }
-  } else {
+  } else if (mode === 'god') {
     // keyboard pan / turn / zoom for the overview
     const sp = god.dist * 0.9 * dt;
     const kx = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
@@ -1995,7 +2895,8 @@ function frame(now) {
   }
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
-  updatePeople(dt, t);
+  if (fp.on && mode === 'fp') updateFP(dt, t);
+  updatePeople(dt, t); updateCombat(dt, t); updateSunkObjects(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;
@@ -2006,6 +2907,8 @@ function frame(now) {
     camera.position.set(camS.tgt.x + Math.sin(camS.yaw) * cp * camS.dist, camS.tgt.y + Math.sin(camS.pitch) * camS.dist, camS.tgt.z + Math.cos(camS.yaw) * cp * camS.dist);
     camera.position.y = Math.max(camera.position.y, waveH(camera.position.x, camera.position.z, t) + 0.8, heightAt(camera.position.x, camera.position.z) + 1.5);
     camera.lookAt(camS.tgt);
+  } else if (mode === 'fp') {
+    fpCamera(dt, t);
   } else {
     if (god.follow && boats.includes(god.follow)) { const p = god.follow.body.interpolatedPosition; god.tgt.x += (p.x - god.tgt.x) * (1 - Math.exp(-dt * 3)); god.tgt.z += (p.z - god.tgt.z) * (1 - Math.exp(-dt * 3)); }
     const gy = Math.max(0, heightAt(god.tgt.x, god.tgt.z) * 0.6);
@@ -2017,11 +2920,9 @@ function frame(now) {
   }
   camera.far = mode === 'god' ? 4000 : 3000; camera.updateProjectionMatrix();
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(...o.pos); camera.lookAt(new THREE.Vector3(...o.look)); }
-  const focus = mode === 'helm' ? camS.tgt : god.tgt;
+  const focus = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
   // markers
-  if (selBoat && mode === 'god') { const p = selBoat.body.interpolatedPosition; selRing.position.set(p.x, waveH(p.x, p.z, t) + 0.3, p.z); selRing.visible = true; }
-  else if (selPerson && mode === 'god') { selRing.position.set(selPerson.x, Math.max(selPerson.y, waveH(selPerson.x, selPerson.z, t)) + 0.15, selPerson.z); selRing.scale.setScalar(selPerson.state === 'rag' ? 1.4 : 0.9); selRing.visible = true; }
-  else selRing.visible = false;
+  updateRings(t);
   if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size]); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
   terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt;
@@ -2075,10 +2976,10 @@ function frame(now) {
       fb.body.quaternion.vmult(fwdV.set(1, 0, 0), fwdV);
       const v = fb.body.velocity; $('sog').textContent = (Math.hypot(v.x, v.z) * KN).toFixed(1) + ' kn';
       head = bearing(fwdV.x, fwdV.z); const twa = Math.abs(((from - head + 540) % 360) - 180);
-      if (mode === 'god') { $('pos').textContent = fb.status || 'Anchored'; $('sheet').textContent = fb.sp.kind === 'motor' ? Math.round(fb.throttle * 100) + '%' : pointOfSail(twa); $('sheetLbl').textContent = fb.sp.kind === 'motor' ? 'Throttle' : 'Point'; }
+      if (mode === 'god') { $('pos').textContent = (fb.status || 'Anchored') + (fb.hpMax && fb.hp < fb.hpMax ? ' · hull ' + Math.round(100 * fb.hp / fb.hpMax) + '%' : ''); $('sheet').textContent = fb.sp.kind === 'motor' ? Math.round(fb.throttle * 100) + '%' : pointOfSail(twa); $('sheetLbl').textContent = fb.sp.kind === 'motor' ? 'Throttle' : 'Point'; }
       else if (fb.sp.kind === 'motor') { $('pos').textContent = 'Under power'; $('sheet').textContent = Math.round(fb.throttle * 100) + '%' + (fb.throttle < 0 ? ' astern' : ''); }
       else { $('pos').textContent = pointOfSail(twa) + (Math.abs(fb.aoa || 0) < 0.12 && twa > 38 ? ', luffing' : ''); $('sheet').textContent = (fb.auto ? 'Auto ' : '') + Math.round(Math.abs(fb.beta) * 180 / Math.PI) + '°'; }
-    } else if (selPerson && mode === 'god') { $('sog').textContent = ''; $('pos').textContent = personStatus(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
+    } else if (selPerson && mode === 'god' && sel.length === 1) { $('sog').textContent = ''; $('pos').textContent = personStatus(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
     else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = { dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]; $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
@@ -2089,7 +2990,7 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 requestAnimationFrame(frame);
-window.__sc = { D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
