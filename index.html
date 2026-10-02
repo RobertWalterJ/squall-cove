@@ -86,7 +86,7 @@ body[data-mode="helm"] .tabs{display:none}
 .tool .nm{font:600 14px/1 var(--f-display)}
 .tool .dn{display:block;font:500 10.5px/1 var(--f-mono);color:var(--muted);text-transform:none;letter-spacing:0;margin-top:3px}
 button:disabled{opacity:.45;cursor:default}
-#bStop,#bDel{background:var(--panel)}
+#bStop,#bDel,#bTopple,#bDelP{background:var(--panel)}
 #bMode{background:var(--brass);color:var(--ink);border-color:var(--brass)}
 
 .help{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,14,18,.45)}
@@ -145,6 +145,8 @@ button:disabled{opacity:.45;cursor:default}
     <button id="bBoat" type="button">Next boat</button>
     <button id="bStop" type="button" hidden>Anchor</button>
     <button id="bDel" type="button" hidden>Remove boat</button>
+    <button id="bTopple" type="button" hidden>Topple</button>
+    <button id="bDelP" type="button" hidden>Remove person</button>
     <button id="bQual" type="button">Quality: High</button>
     <button id="bHelp" type="button">Help</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
@@ -204,6 +206,7 @@ button:disabled{opacity:.45;cursor:default}
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
 const $ = (id) => document.getElementById(id);
 const A = 'assets/';
@@ -303,15 +306,15 @@ const loadImg = (n) => loadBlob(n).then(b => createImageBitmap(b));
 const LAYERS = ['sand_wet', 'sand_beach', 'grass_meadow', 'forest_floor', 'rock_granite', 'rock_strata'];
 
 async function loadAll() {
-  let done = 0; const total = 7 + LAYERS.length * 3 + 2;
+  let done = 0; const total = 8 + LAYERS.length * 3 + 2;
   const tick = (p) => { done++; progress(done / total, 'Loading ' + p); return p; };
   const heightsP = getText('terrain_257.f32.b64.txt').then(t => (tick('terrain'), new Float32Array(b64ToBuf(t))));
-  const glbs = Promise.all(['fleet', 'nature', 'harbour', 'cargo', 'ccg'].map(n => loadGLB(n).then(g => (tick(n), g))));
+  const glbs = Promise.all(['fleet', 'nature', 'harbour', 'cargo', 'ccg', 'people'].map(n => loadGLB(n).then(g => (tick(n), g))));
   const sky = loadBlob('sky_2k.jpg').then(b => Promise.all([createImageBitmap(b), createImageBitmap(b, { imageOrientation: 'flipY' })])).then(x => (tick('sky'), x));
   const imgs = Promise.all(LAYERS.flatMap(l => ['albedo', 'normal', 'orh'].map(m => loadImg(`t_${l}_${m}.jpg`).then(im => (tick(l), im)))));
   const extra = Promise.all([loadImg('t_water_normal.jpg'), loadImg('t_macro.jpg')]).then(x => (tick('water'), x));
   const [h, g, s, li, ex] = await Promise.all([heightsP, glbs, sky, imgs, extra]);
-  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1] };
+  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4], people: g[5] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1] };
 }
 
 function arrayTex(images, size) {
@@ -874,7 +877,7 @@ function makeBoat(key, glb, meta, x, z, heading) {
   let rig = null, jib = null;
   const rn = nodeByName(glb, key + '_rig'); if (rn) { rig = rn.clone(); model.add(shadowAll(rig)); }
   const jn = nodeByName(glb, key + '_jib'); if (jn) { jib = jn.clone(); model.add(shadowAll(jib)); }
-  const body = new CANNON.Body({ mass: sp.mass, material: boatMat, angularDamping: 0.25, linearDamping: 0.01, allowSleep: false });
+  const body = new CANNON.Body({ mass: sp.mass, material: boatMat, angularDamping: 0.25, linearDamping: 0.01, allowSleep: false, collisionFilterGroup: 4 });   // group 4: people on foot (group 2, mask 1) walk through boats instead of shoving them
   const hx = sp.L * 0.31, hz = sp.B * 0.42;
   body.addShape(new CANNON.Box(new CANNON.Vec3(hx, sp.D / 2, hz)), new CANNON.Vec3(-sp.L * 0.06, sp.comd, 0));
   body.addShape(new CANNON.Box(new CANNON.Vec3(sp.L * 0.14, sp.D * 0.4, sp.B * 0.22)), new CANNON.Vec3(sp.L * 0.32, sp.comd + sp.D * 0.08, 0));   // fine bow
@@ -1178,6 +1181,8 @@ const BUILD = [
   { cat: 'Island', id: 'rockb', name: 'Boulder', note: 'rock', node: 'boulder2', glb: 'nature', sw: '#8a8780', collide: 1.2 },
   { cat: 'Island', id: 'light', name: 'Lighthouse', note: 'landmark', node: 'lighthouse', glb: 'harbour', sw: '#efe6cf', land: true, collide: 2.1 },
   { cat: 'Island', id: 'buoy', name: 'Race mark', note: 'buoy', buoy: 'buoy0', sw: '#e3a948' },
+  { cat: 'People', id: 'person', name: 'Person', note: 'walks, topples', person: 1, sw: '#7d9fb3' },
+  { cat: 'People', id: 'crowd', name: 'Crowd', note: 'six at once', person: 6, sw: '#5f8196' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
 let buildSel = 0;
@@ -1185,6 +1190,7 @@ function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
   if (item.erase) return erase(p);
+  if (item.person) return placePeople(item.person, p);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, 0) + 7, z); return; }
   if (item.boat) {
     const sp = { ...SPECS[item.boat], ...FM[item.boat] };
@@ -1218,6 +1224,7 @@ function addBuoy(x, z, nm) {
   buoys.push({ body, mesh: g, anchor: new CANNON.Vec3(x, 0, z), fl, model: m });
 }
 function removeBoat(bt) {
+  for (const pe of people.slice()) if (pe.ride && pe.ride.boat === bt) topple(pe, new CANNON.Vec3(bt.body.velocity.x, 1, bt.body.velocity.z));   // the crew goes overboard
   world.removeBody(bt.body); scene.remove(bt.group); if (bt.marker) scene.remove(bt.marker);
   floaters.splice(floaters.indexOf(bt.fl), 1); const i = boats.indexOf(bt); boats.splice(i, 1);
   if (activeIdx >= boats.length) activeIdx = 0; if (selBoat === bt) selectBoat(null);
@@ -1228,8 +1235,287 @@ function erase(p) {
   for (const o of objects) consider(Math.hypot(o.body.position.x - p.x, o.body.position.z - p.z) - 1.5, () => { removeObj(o); updateCount(); });
   for (const pr of props) consider(Math.hypot(pr.x - p.x, pr.z - p.z) - 2, () => { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(props.indexOf(pr), 1); });
   for (const b of buoys) consider(Math.hypot(b.body.position.x - p.x, b.body.position.z - p.z) - 1.5, () => { world.removeBody(b.body); scene.remove(b.mesh); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); });
+  for (const pe of people) consider(Math.hypot(pe.x - p.x, pe.z - p.z) - 0.9, () => removePerson(pe));
   for (const bt of boats) if (boats.length > 1) consider(Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) - bt.sp.L * 0.5, () => removeBoat(bt));
   if (best && bd < 3) { best(); toast('Removed'); } else toast('Nothing there to remove');
+}
+
+/* ================================================================ people
+   Sixteen low poly people with CC0 faces. The GLB carries one idle clip each; walking, waving and the ragdoll are driven from code.
+   Standing people are kinematic boxes (cargo can knock them over), crew ride a boat deck, and a toppled person becomes eleven
+   jointed bodies that float. */
+const people = []; let personSeq = 0, selPerson = null;
+const MAX_PEOPLE = 14, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
+const GR_PERSON = 2, GR_RAG = 16;
+/* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
+   Each frame: put the bones I touch back to the clean animated pose, let the mixer run, snapshot, then layer on top. */
+const POSED = ['thigh.L', 'thigh.R', 'shin.L', 'shin.R', 'upper_arm.L', 'upper_arm.R', 'forearm.L', 'forearm.R'];
+function animStep(p, dt) {
+  for (const n of POSED) p.bones[n].quaternion.copy(p.snap[n]); p.bones.hips.position.copy(p.snapHip);
+  p.mixer.update(dt);
+  for (const n of POSED) p.snap[n].copy(p.bones[n].quaternion); p.snapHip.copy(p.bones.hips.position);
+}
+const UPV = new THREE.Vector3(0, 1, 0);
+const bnName = (n) => n;                                          // bones are keyed by their original name: the loader renames repeats (hips_1, hips_2) and keeps the original in userData.name
+const tq = new THREE.Quaternion(), tq2 = new THREE.Quaternion(), tv = new THREE.Vector3(), tv2 = new THREE.Vector3(), tm = new THREE.Matrix4();
+function pierY(x, z) {
+  if (!pierInfo) return -99;
+  const rx = x - pierInfo.c.x, rz = z - pierInfo.c.z, d = pierInfo.dir;
+  const along = rx * d.x + rz * d.z, across = -rx * d.z + rz * d.x;
+  return along > -2.5 && along < 24.5 && Math.abs(across) < 1.3 ? 1.35 : -99;
+}
+const standY = (x, z) => Math.max(heightAt(x, z), pierY(x, z));
+const personStatus = (p) => p.state === 'rag' ? (p.floating ? 'Floating' : 'Fallen') : p.ride ? 'Aboard ' + p.ride.boat.sp.name : p.order ? 'Walking' : p.wk > 0.5 ? 'Waving' : 'Standing';
+
+function updatePersonPanel(pe) { $('boatName').innerHTML = `${pe.role}<small>${personStatus(pe)}</small>`; $('bTopple').textContent = pe.state === 'rag' ? 'Stand up' : 'Topple'; }
+function makePerson(variant, x, z, ride) {
+  const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
+  const p = { id: ++personSeq, variant, role: ROLES[variant % 4], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
+  obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
+  const B = (n) => p.bones[bnName(n)];
+  obj.updateMatrixWorld(true);
+  // rest data: each bone's rest rotation and its parent's rest rotation in the person's own frame (the person is still unrotated here)
+  for (const n of Object.keys(p.bones)) {
+    const b = p.bones[n], Wp = new THREE.Quaternion(); if (b.parent) b.parent.getWorldQuaternion(Wp);
+    p.info[n] = { b, restQ: b.quaternion.clone(), restP: b.position.clone(), Wp, WpInv: Wp.clone().invert() };
+  }
+  // up, forward and right from the geometry: toes reach ahead of the ankle bone
+  const pos = (n) => obj.worldToLocal(B(n).getWorldPosition(new THREE.Vector3()));
+  const up = pos('head').sub(pos('hips')).normalize();
+  let fwd = new THREE.Vector3(0, 0, 1);
+  const sm = obj.getObjectByProperty('isSkinnedMesh', true);
+  if (sm) {
+    const g = sm.geometry, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, ps = g.attributes.position, sk = sm.skeleton;
+    const feet = ['foot.L', 'foot.R'].map(n => ({ i: sk.bones.indexOf(B(n)), a: pos(n) })), acc = new THREE.Vector3();
+    for (let v = 0; v < ps.count; v++) for (const f of feet) for (let k = 0; k < 4; k++) if (si.getComponent(v, k) === f.i && sw.getComponent(v, k) > 0.5) {
+      tv.fromBufferAttribute(ps, v).applyMatrix4(sm.matrix).sub(f.a); tv.addScaledVector(up, -tv.dot(up)); acc.add(tv);
+    }
+    if (acc.lengthSq() > 1e-6) fwd = acc.normalize();
+  }
+  fwd.addScaledVector(up, -fwd.dot(up)).normalize();
+  const right = new THREE.Vector3().crossVectors(fwd, up).normalize();
+  p.ax = { up, fwd, right };
+  p.yawOff = Math.atan2(fwd.x, fwd.z);
+  // which way raises the waving arm out to the side
+  { const arm = B('upper_arm.R'), hand = B('hand.R'), sh = pos('upper_arm.R').dot(right); let s = 1;
+    arm.quaternion.copy(swingQ(p, 'upper_arm.R', fwd, 2.4)); obj.updateMatrixWorld(true);
+    const out = (obj.worldToLocal(hand.getWorldPosition(new THREE.Vector3())).dot(right) - sh) * Math.sign(sh || 1);
+    if (out < 0) s = -1; p.waveSign = s; arm.quaternion.copy(p.info['upper_arm.R'].restQ); obj.updateMatrixWorld(true); }
+  const box = new THREE.Box3().setFromObject(obj); p.footOff = box.min.y - obj.position.y; p.height = box.max.y - box.min.y;
+  obj.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; const ms = Array.isArray(m.material) ? m.material : [m.material]; for (const k of ms) if ('envMapIntensity' in k) k.envMapIntensity = wx.lastEnv ?? 1; } });
+  p.snap = {}; for (const n of POSED) p.snap[n] = p.info[n].restQ.clone(); p.snapHip = p.info.hips.restP.clone();
+  p.mixer = new THREE.AnimationMixer(obj);
+  const clip = D.glb.people.animations[variant] || D.glb.people.animations[0];   // clip i is bound to person i's own bone names
+  if (clip) { const a = p.mixer.clipAction(clip); a.play(); a.time = Math.random() * clip.duration; }
+  scene.add(obj); people.push(p);
+  if (!p.ride) giveBody(p);
+  return p;
+}
+function giveBody(p) {
+  const hh = p.height / 2;
+  const b = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC, collisionFilterGroup: GR_PERSON, collisionFilterMask: 1 });
+  b.addShape(new CANNON.Box(new CANNON.Vec3(0.22, hh, 0.2)));
+  b.position.set(p.x, p.y + hh, p.z); settle(b);
+  b.addEventListener('collide', (e) => {                              // a heavy, fast thing knocks them down
+    const o = e.body; if (!o || o.mass < 6 || p.state === 'rag') return;
+    const imp = Math.abs(e.contact.getImpactVelocityAlongNormal());
+    if (imp * o.mass > 28) topple(p, new CANNON.Vec3(o.velocity.x * 0.6, 1.5 + imp * 0.3, o.velocity.z * 0.6));
+  });
+  world.addBody(b); p.body = b;
+}
+function placePeople(n, pt) {
+  if (people.length >= MAX_PEOPLE) { toast('That is a full cove: ' + MAX_PEOPLE + ' people'); return; }
+  // on a boat deck?
+  for (const bt of boats) {
+    bt.group.updateMatrixWorld(true); const l = bt.group.worldToLocal(new THREE.Vector3(pt.x, bt.group.position.y, pt.z));
+    if (Math.abs(l.x) < bt.sp.L * 0.4 && Math.abs(l.z) < bt.sp.B * 0.45) {
+      const count = people.filter(q => q.ride && q.ride.boat === bt).length;
+      if (count >= 4) { toast('The ' + bt.sp.name + ' is crewed'); return; }
+      // powered boats keep their superstructure amidships, so crew go on the aft deck; sailboats take the spot you tapped
+      const aft = bt.sp.kind === 'motor', lx = aft ? -bt.sp.L * (0.3 - 0.04 * count) : clamp(l.x, -bt.sp.L * 0.3, bt.sp.L * 0.3);
+      const lz = aft ? (count % 2 ? 1 : -1) * bt.sp.B * 0.12 * Math.ceil(count / 2) : clamp(l.z, -bt.sp.B * 0.25, bt.sp.B * 0.25);
+      const q = makePerson(Math.floor(Math.random() * 16), pt.x, pt.z, { boat: bt, lx, lz, ly: bt.sp.D / 2 + bt.sp.comd, rel: 1.57 + (Math.random() - 0.5) });
+      toast('Crew aboard the ' + bt.sp.name); refreshPanel(); return;
+    }
+  }
+  const placed = [];
+  for (let k = 0; k < n && people.length < MAX_PEOPLE; k++) {
+    const a = k * 2.4 + Math.random(), r = n > 1 ? 1.2 + Math.random() * 1.8 : 0, x = pt.x + Math.cos(a) * r, z = pt.z + Math.sin(a) * r, gy = standY(x, z);
+    if (gy < 0.15) continue;
+    const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = gy; placed.push(q);
+  }
+  if (!placed.length) { toast('People need dry land or a boat deck'); return; }
+  toast(placed.length > 1 ? placed.length + ' people' : 'Person arrived'); selectPerson(placed[0]); updateCount();
+}
+function removePerson(p) {
+  if (p.body) world.removeBody(p.body); if (p.rag) freeRag(p);
+  scene.remove(p.obj); p.mixer.stopAllAction(); people.splice(people.indexOf(p), 1); if (selPerson === p) selectPerson(null); updateCount();
+}
+function selectPerson(p) { selPerson = p; if (p) { selBoat = null; selRing.scale.setScalar(0.9); } refreshPanel(); renderTray(); }
+function walkTo(p, x, z) {
+  if (p.state === 'rag') { toast('Stand them up first'); return; }
+  if (p.ride) { toast('Aboard: stay with the boat'); return; }
+  if (standY(x, z) < 0.15) { toast('Pick dry land'); return; }
+  p.order = { x, z }; toast(p.role + ': walking');
+}
+
+/* ---- pose from code: rotate a bone about an axis of the person's own frame, whatever the rig's rest orientation */
+function swingQ(p, name, axis, theta, out = new THREE.Quaternion()) {
+  const i = p.info[bnName(name)]; tq.setFromAxisAngle(axis, theta);
+  return out.copy(i.WpInv).multiply(tq).multiply(i.Wp).multiply(i.restQ);
+}
+function blendPose(p, name, axis, theta, k) { const i = p.info[bnName(name)]; i.b.quaternion.slerp(swingQ(p, name, axis, theta, tq2), k); }
+function poseGait(p, k) {
+  const R = p.ax.right, S = Math.sin(p.ph), C = Math.cos(p.ph);
+  blendPose(p, 'thigh.L', R, 0.55 * S, k); blendPose(p, 'thigh.R', R, -0.55 * S, k);
+  blendPose(p, 'shin.L', R, -0.95 * Math.max(0, C), k); blendPose(p, 'shin.R', R, -0.95 * Math.max(0, -C), k);
+  blendPose(p, 'upper_arm.L', R, -0.5 * S, k); blendPose(p, 'upper_arm.R', R, 0.5 * S, k);
+  blendPose(p, 'forearm.L', R, 0.3 + 0.2 * Math.max(0, S), k); blendPose(p, 'forearm.R', R, 0.3 + 0.2 * Math.max(0, -S), k);
+  const hi = p.info.hips; tv.copy(p.ax.up).multiplyScalar(0.03 * Math.abs(C) * k).applyQuaternion(hi.WpInv); hi.b.position.add(tv);
+}
+function poseWave(p, k, t) {
+  blendPose(p, 'upper_arm.R', p.ax.fwd, p.waveSign * 2.5, k);
+  blendPose(p, 'forearm.R', p.ax.fwd, p.waveSign * (0.4 + 0.5 * Math.sin(t * 7 + p.ph)), k);
+}
+
+/* ---- ragdoll: eleven jointed bodies, buoyant, driving the same skeleton */
+const SEGS = [
+  { id: 'pelvis', a: 'hips', b: 'spine', r: 0.12, m: 0.14 },
+  { id: 'torso', a: 'spine', b: 'neck', r: 0.14, m: 0.30, par: 'pelvis', cone: 0.6, tw: 0.4 },
+  { id: 'head', a: 'neck', len: 0.26, r: 0.10, m: 0.07, par: 'torso', cone: 0.7, tw: 0.6 },
+  ...['L', 'R'].flatMap(s => [
+    { id: 'uarm' + s, a: 'upper_arm.' + s, b: 'forearm.' + s, r: 0.05, m: 0.03, par: 'torso', cone: 1.5, tw: 0.8 },
+    { id: 'farm' + s, a: 'forearm.' + s, b: 'hand.' + s, ext: 0.1, r: 0.045, m: 0.03, par: 'uarm' + s, cone: 1.3, tw: 0.5 },
+    { id: 'thigh' + s, a: 'thigh.' + s, b: 'shin.' + s, r: 0.08, m: 0.10, par: 'pelvis', cone: 1.1, tw: 0.5 },
+    { id: 'shin' + s, a: 'shin.' + s, b: 'foot.' + s, ext: 0.12, r: 0.06, m: 0.07, par: 'thigh' + s, cone: 1.0, tw: 0.3 }]),
+];
+const BONE_SRC = { root: 'pelvis', hips: 'pelvis', spine: 'torso', chest: 'torso', neck: 'head', head: 'head',
+  'upper_arm.L': 'uarmL', 'forearm.L': 'farmL', 'hand.L': 'farmL', 'upper_arm.R': 'uarmR', 'forearm.R': 'farmR', 'hand.R': 'farmR',
+  'thigh.L': 'thighL', 'shin.L': 'shinL', 'foot.L': 'shinL', 'thigh.R': 'thighR', 'shin.R': 'shinR', 'foot.R': 'shinR' };
+const BONE_ORDER = ['root', 'hips', 'spine', 'chest', 'neck', 'head', 'upper_arm.L', 'forearm.L', 'hand.L', 'upper_arm.R', 'forearm.R', 'hand.R', 'thigh.L', 'shin.L', 'foot.L', 'thigh.R', 'shin.R', 'foot.R'];
+function makeRagdoll(p, vel) {
+  p.obj.updateMatrixWorld(true);
+  const B = (n) => p.bones[bnName(n)], wp = (n) => B(n).getWorldPosition(new THREE.Vector3());
+  const M = 72 * Math.pow(p.height / 1.75, 2.2), bodies = {}, defs = {}, cons = [], fl = [];
+  for (const s of SEGS) {
+    const a = wp(s.a); let e;
+    if (s.b) { e = wp(s.b); if (s.ext) e.addScaledVector(e.clone().sub(a).normalize(), s.ext); }
+    else e = a.clone().addScaledVector(UPV.clone().applyQuaternion(p.obj.quaternion), s.len);
+    const Qb = B(s.a).getWorldQuaternion(new THREE.Quaternion()), Qi = Qb.clone().invert();
+    const mid = a.clone().add(e).multiplyScalar(0.5), dl = e.clone().sub(a).applyQuaternion(Qi), half = [s.r, s.r, s.r];
+    const ax = Math.abs(dl.x) > Math.abs(dl.y) ? (Math.abs(dl.x) > Math.abs(dl.z) ? 0 : 2) : (Math.abs(dl.y) > Math.abs(dl.z) ? 1 : 2);
+    half[ax] = Math.max(Math.abs(dl.getComponent(ax)) / 2, s.r);
+    const mass = M * s.m, body = new CANNON.Body({ mass, material: boatMat, linearDamping: 0.08, angularDamping: 0.45, allowSleep: true, sleepSpeedLimit: 0.15, sleepTimeLimit: 1.5, collisionFilterGroup: GR_RAG, collisionFilterMask: -1 & ~GR_RAG });
+    body.addShape(new CANNON.Box(new CANNON.Vec3(half[0], half[1], half[2])));
+    body.position.set(mid.x, mid.y, mid.z); body.quaternion.set(Qb.x, Qb.y, Qb.z, Qb.w); settle(body);
+    if (vel) body.velocity.set(vel.x, vel.y, vel.z);
+    world.addBody(body); bodies[s.id] = body;
+    defs[s.id] = { Qb, Qi, a, e, pivot: a.clone().sub(mid).applyQuaternion(Qi), dir: e.clone().sub(a).normalize() };
+    fl.push(makeFloater(body, { pts: [new CANNON.Vec3()], slab: Math.max(0.16, half[ax] * 2), volume: mass / 985, kH: 1.2, kA: 3, rad: 0.2 }));
+  }
+  for (const s of SEGS) if (s.par) {
+    const bp = bodies[s.par], bc = bodies[s.id], d = defs[s.id], dp = defs[s.par];
+    // the joint in the parent's body frame: that body's orientation was set from its start bone, so use that bone's inverse rotation
+    const pivA = d.a.clone().sub(new THREE.Vector3(bp.position.x, bp.position.y, bp.position.z)).applyQuaternion(dp.Qi);
+    const c = new CANNON.ConeTwistConstraint(bp, bc, { pivotA: new CANNON.Vec3(pivA.x, pivA.y, pivA.z), pivotB: new CANNON.Vec3(d.pivot.x, d.pivot.y, d.pivot.z),
+      axisA: new CANNON.Vec3(...d.dir.clone().applyQuaternion(dp.Qi).toArray()), axisB: new CANNON.Vec3(...d.dir.clone().applyQuaternion(d.Qi).toArray()),
+      angle: s.cone, twistAngle: s.tw, collideConnected: false, maxForce: 400 });
+    world.addConstraint(c); cons.push(c);
+  }
+  // each bone's rotation relative to the body that drives it
+  const off = {};
+  for (const n of BONE_ORDER) { const d = defs[BONE_SRC[n]], bq = B(n).getWorldQuaternion(new THREE.Quaternion()); off[n] = new THREE.Quaternion(bodies[BONE_SRC[n]].quaternion.x, bodies[BONE_SRC[n]].quaternion.y, bodies[BONE_SRC[n]].quaternion.z, bodies[BONE_SRC[n]].quaternion.w).invert().multiply(bq); }
+  p.rag = { bodies, defs, cons, fl, off, age: 0 };
+}
+function freeRag(p) {
+  const r = p.rag; if (!r) return;
+  for (const c of r.cons) world.removeConstraint(c);
+  for (const k in r.bodies) world.removeBody(r.bodies[k]);
+  for (const f of r.fl) floaters.splice(floaters.indexOf(f), 1);
+  p.rag = null;
+}
+function topple(p, vel) {
+  if (p.state === 'rag') return;
+  if (p.body) { world.removeBody(p.body); p.body = null; }
+  p.order = null; p.ride = null; p.walkK = 0; p.wk = 0;
+  p.obj.updateMatrixWorld(true); makeRagdoll(p, vel); p.state = 'rag';
+  if (selPerson === p) refreshPanel();
+}
+function standUp(p) {
+  if (p.state !== 'rag') return;
+  const hp = p.rag.bodies.pelvis.position, gy = standY(hp.x, hp.z);
+  if (gy < 0.15) { toast('Nowhere to stand in the water'); return; }
+  freeRag(p);
+  for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); i.b.scale.set(1, 1, 1); }
+  for (const n of POSED) p.snap[n].copy(p.info[n].restQ); p.snapHip.copy(p.info.hips.restP);
+  p.x = hp.x; p.z = hp.z; p.y = gy; p.state = 'idle'; p.floating = false;
+  p.obj.quaternion.identity(); p.obj.updateMatrixWorld(true); giveBody(p);
+  if (selPerson === p) refreshPanel();
+}
+const tpq = new THREE.Quaternion(), tpm = new THREE.Matrix4();
+function updateRag(p, dt) {
+  const r = p.rag, B = (n) => p.bones[bnName(n)]; r.age += dt;
+  p.obj.updateMatrixWorld(false);
+  for (const n of BONE_ORDER) {
+    const bone = B(n), src = r.bodies[BONE_SRC[n]], d = r.defs[BONE_SRC[n]], par = bone.parent, pm = par.matrixWorld;
+    tq.set(src.interpolatedQuaternion.x, src.interpolatedQuaternion.y, src.interpolatedQuaternion.z, src.interpolatedQuaternion.w).multiply(r.off[n]);
+    pm.decompose(tv, tpq, tv2); tpq.invert(); bone.quaternion.copy(tpq).multiply(tq);
+    if (n === 'hips') {   // the one bone that is placed rather than just turned: its origin sits at the pelvis joint
+      tq2.set(src.interpolatedQuaternion.x, src.interpolatedQuaternion.y, src.interpolatedQuaternion.z, src.interpolatedQuaternion.w);
+      tv.copy(d.pivot).applyQuaternion(tq2).add(tv2.set(src.interpolatedPosition.x, src.interpolatedPosition.y, src.interpolatedPosition.z));
+      bone.position.copy(tv).applyMatrix4(tpm.copy(pm).invert());
+    }
+    bone.updateMatrix(); bone.matrixWorld.multiplyMatrices(pm, bone.matrix);
+  }
+  const pb = r.bodies.pelvis, wet = r.fl.reduce((s, f) => s + f.wet, 0) / r.fl.length;
+  p.floating = wet > 0.15; p.x = pb.position.x; p.z = pb.position.z; p.y = pb.position.y;
+  if (pb.position.y < -30 || Math.abs(pb.position.x) > 400 || Math.abs(pb.position.z) > 400) removePerson(p);
+}
+
+/* ---- per frame */
+const pTmp = new THREE.Vector3();
+function updatePeople(dt, t) {
+  for (const p of people.slice()) {
+    if (p.state === 'rag') { updateRag(p, dt); continue; }
+    if (p.ride) {
+      const bt = p.ride.boat; if (!boats.includes(bt)) { topple(p, null); continue; }
+      const g = bt.group; g.updateMatrixWorld(true);
+      if (UPV.clone().applyQuaternion(g.quaternion).y < 0.55) { const v = bt.body.velocity; topple(p, new CANNON.Vec3(v.x, 1.5, v.z)); continue; }   // the boat is over: so is the crew
+      pTmp.set(p.ride.lx, p.ride.ly, p.ride.lz).applyMatrix4(g.matrixWorld);
+      tq.setFromAxisAngle(UPV, (p.ride.rel || 0) - p.yawOff);        // rel is the heading in the boat's frame: pi/2 faces the bow (+X)
+      p.obj.quaternion.copy(g.quaternion).multiply(tq);
+      p.obj.position.copy(pTmp).addScaledVector(UPV.clone().applyQuaternion(g.quaternion), -p.footOff);
+      p.x = pTmp.x; p.z = pTmp.z; p.y = pTmp.y; p.mixer.update(dt);
+      continue;
+    }
+    // on foot
+    let moving = false;
+    if (p.order) {
+      const dx = p.order.x - p.x, dz = p.order.z - p.z, d = Math.hypot(dx, dz);
+      if (d < 0.3) p.order = null;
+      else {
+        const want = Math.atan2(dx, dz), err = wrap(want - p.heading); p.heading += clamp(err, -6 * dt, 6 * dt);
+        if (Math.abs(err) < 0.8) {
+          const step = Math.min(d, 1.45 * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standY(nx, nz);
+          if (gy < 0.0) { p.order = null; toast('Stops at the water'); }
+          else if (Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; toast('Too steep to walk'); }
+          else { p.x = nx; p.z = nz; moving = true; }
+        }
+      }
+    }
+    p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
+    if (moving) p.ph += dt * 6.4;
+    const gy = standY(p.x, p.z); p.y += (gy - p.y) * Math.min(1, 14 * dt);
+    if (gy < -0.35) { topple(p, new CANNON.Vec3(Math.sin(p.heading) * 1.2, 1, Math.cos(p.heading) * 1.2)); continue; }   // the ground went out from under them
+    p.nearT -= dt;
+    if (p.nearT <= 0) { p.nearT = 0.5; p.near = !p.order && boats.some(bt => Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) < 30 && (bt.body.velocity.x ** 2 + bt.body.velocity.z ** 2) > 0.5); }
+    p.wk += ((p.near ? 1 : 0) - p.wk) * Math.min(1, 4 * dt);
+    animStep(p, dt);
+    if (p.walkK > 0.02) poseGait(p, p.walkK);
+    if (p.wk > 0.02) poseWave(p, p.wk, t);
+    p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.set(0, p.heading - p.yawOff, 0);
+    if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
+  }
 }
 
 /* ================================================================ weather and time of day */
@@ -1348,6 +1634,16 @@ function boatAtScreen(cx, cy) {
     const sx = (v.x + 1) / 2 * innerWidth, sy = (1 - v.y) / 2 * innerHeight;
     const d = Math.hypot(sx - cx, sy - cy); if (d < bd) { bd = d; best = bt; }
   }
+  boatAtScreen.d = best ? bd : 1e9;
+  return best;
+}
+function personAtScreen(cx, cy) {
+  let best = null, bd = 40 * (isTouch ? 1.3 : 1); const v = new THREE.Vector3();
+  for (const p of people) {
+    v.set(p.x, p.y + p.height * 0.5, p.z).project(camera); if (v.z > 1) continue;
+    const d = Math.hypot((v.x + 1) / 2 * innerWidth - cx, (1 - v.y) / 2 * innerHeight - cy); if (d < bd) { bd = d; best = p; }
+  }
+  personAtScreen.d = best ? bd : 1e9;
   return best;
 }
 const twoInfo = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; };
@@ -1404,8 +1700,10 @@ function tapAt(cx, cy, btn) {
   if (mode === 'helm') { const p = pick(cx, cy); if (p && BUILD[buildSel] && BUILD[buildSel].cargo !== undefined) place(BUILD[buildSel], p); return; }
   if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { brush(p.x, p.z, 0.3); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
   if (tool === 'build') { const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }
-  const bt = boatAtScreen(cx, cy);
+  const bt = boatAtScreen(cx, cy), pe = personAtScreen(cx, cy);
+  if (pe && btn !== 2 && (!bt || personAtScreen.d < boatAtScreen.d)) { selectPerson(pe === selPerson ? null : pe); return; }
   if (bt && btn !== 2) { selectBoat(bt === selBoat ? null : bt); return; }
+  if (selPerson) { const p = pick(cx, cy); if (p) walkTo(selPerson, p.x, p.z); return; }
   if (selBoat) {
     const p = pick(cx, cy); if (!p) return;
     if (groundAt(p.x, p.z) > -(selBoat.sp.D - selBoat.sp.fb) - 0.2) { toast('That is ashore. Pick open water'); return; }
@@ -1415,7 +1713,7 @@ function tapAt(cx, cy, btn) {
 addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey) return; const k = e.key.toLowerCase(); keys.add(k);
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
-  if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else selectBoat(null); }
+  if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else { selectBoat(null); selectPerson(null); } }
   else if (k === 'tab') { e.preventDefault(); nextBoat(); }
   else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); }
   if (k === 'r') squall(); else if (k === 'c') clearCargo();
@@ -1434,7 +1732,7 @@ const hold = {};
 
 /* ================================================================ actions */
 function selectBoat(bt) {
-  selBoat = bt; selRing.visible = !!bt;
+  selBoat = bt; selRing.visible = !!bt; if (bt) selPerson = null;
   if (bt) { selRing.scale.setScalar(bt.sp.L * 0.62); activeIdx = boats.indexOf(bt); }
   refreshPanel();
 }
@@ -1533,20 +1831,23 @@ function renderTray(force = true) {
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
   }
 }
-function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk'; }
+function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
 function refreshPanel() {
-  const bt = mode === 'helm' ? boats[activeIdx] : selBoat;
-  $('boatName').innerHTML = bt ? `${bt.sp.name}<small>${bt.sp.note}</small>` : `Overview<small>${boats.length} boats</small>`;
+  const bt = mode === 'helm' ? boats[activeIdx] : selBoat, pe = mode === 'god' ? selPerson : null;
+  $('boatName').innerHTML = pe ? `${pe.role}<small>${personStatus(pe)}</small>` : bt ? `${bt.sp.name}<small>${bt.sp.note}</small>` : `Overview<small>${boats.length} boats${people.length ? ', ' + people.length + ' people' : ''}</small>`;
   $('bMode').textContent = mode === 'helm' ? 'Overview' : 'Take the helm';
   $('bMode').disabled = mode === 'god' && !bt;
   $('bStop').hidden = !(mode === 'god' && bt);
   $('bDel').hidden = !(mode === 'god' && bt && boats.length > 1);
+  $('bTopple').hidden = !pe; $('bDelP').hidden = !pe; if (pe) $('bTopple').textContent = pe.state === 'rag' ? 'Stand up' : 'Topple';
   if (tool === 'select' && mode === 'god') renderTray();
 }
 tabs.querySelector('[data-t="select"]').setAttribute('aria-pressed', 'true');
 $('bMode').addEventListener('click', toggleMode);
 $('bStop').addEventListener('click', () => { if (selBoat) { arrive(selBoat); refreshPanel(); toast(selBoat.sp.name + ' anchored'); } });
 $('bDel').addEventListener('click', () => { if (selBoat && boats.length > 1) { const n = selBoat.sp.name; removeBoat(selBoat); toast(n + ' removed'); } });
+$('bTopple').addEventListener('click', () => { const p = selPerson; if (!p) return; if (p.state === 'rag') standUp(p); else topple(p, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); refreshPanel(); });
+$('bDelP').addEventListener('click', () => { if (selPerson) { removePerson(selPerson); toast('Removed'); } });
 $('bBoat').addEventListener('click', nextBoat);
 $('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
 $('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
@@ -1627,6 +1928,7 @@ function frame(now) {
   }
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
+  updatePeople(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;
@@ -1650,7 +1952,9 @@ function frame(now) {
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(...o.pos); camera.lookAt(new THREE.Vector3(...o.look)); }
   const focus = mode === 'helm' ? camS.tgt : god.tgt;
   // markers
-  if (selBoat && mode === 'god') { const p = selBoat.body.interpolatedPosition; selRing.position.set(p.x, waveH(p.x, p.z, t) + 0.3, p.z); selRing.visible = true; } else selRing.visible = false;
+  if (selBoat && mode === 'god') { const p = selBoat.body.interpolatedPosition; selRing.position.set(p.x, waveH(p.x, p.z, t) + 0.3, p.z); selRing.visible = true; }
+  else if (selPerson && mode === 'god') { selRing.position.set(selPerson.x, Math.max(selPerson.y, waveH(selPerson.x, selPerson.z, t)) + 0.15, selPerson.z); selRing.scale.setScalar(selPerson.state === 'rag' ? 1.4 : 0.9); selRing.visible = true; }
+  else selRing.visible = false;
   if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size]); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
   terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt;
@@ -1707,7 +2011,8 @@ function frame(now) {
       if (mode === 'god') { $('pos').textContent = fb.status || 'Anchored'; $('sheet').textContent = fb.sp.kind === 'motor' ? Math.round(fb.throttle * 100) + '%' : pointOfSail(twa); $('sheetLbl').textContent = fb.sp.kind === 'motor' ? 'Throttle' : 'Point'; }
       else if (fb.sp.kind === 'motor') { $('pos').textContent = 'Under power'; $('sheet').textContent = Math.round(fb.throttle * 100) + '%' + (fb.throttle < 0 ? ' astern' : ''); }
       else { $('pos').textContent = pointOfSail(twa) + (Math.abs(fb.aoa || 0) < 0.12 && twa > 38 ? ', luffing' : ''); $('sheet').textContent = (fb.auto ? 'Auto ' : '') + Math.round(Math.abs(fb.beta) * 180 / Math.PI) + '°'; }
-    } else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = { dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]; $('sheetLbl').textContent = 'Sky'; }
+    } else if (selPerson && mode === 'god') { $('sog').textContent = ''; $('pos').textContent = personStatus(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
+    else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = { dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]; $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   renderer.render(scene, camera);
@@ -1717,7 +2022,7 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 requestAnimationFrame(frame);
-window.__sc = { SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
