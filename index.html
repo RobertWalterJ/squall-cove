@@ -56,13 +56,15 @@ dl div{display:contents}
 dt{font:600 11px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 
-.actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
 .bottom{position:absolute;left:0;right:0;bottom:calc(10px + var(--safe-b));display:grid;gap:8px;padding-inline:12px;pointer-events:none}
 .bottom > *{pointer-events:auto}
-.tray{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;justify-self:center;max-width:100%}
-.tray::-webkit-scrollbar{display:none}
+.tray{display:flex;gap:8px;overflow-x:auto;padding-bottom:7px;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.5) transparent;justify-self:center;max-width:100%;overscroll-behavior-x:contain}
+.tray::-webkit-scrollbar{height:6px}
+.tray::-webkit-scrollbar-thumb{background:rgba(227,169,72,.5);border-radius:3px}
+.tray.dragging{cursor:grabbing}.tray.dragging button{pointer-events:none}
 .chip{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-items:center;text-align:left;padding:8px 11px;flex:none}
 .chip .sw{grid-row:1 / 3;width:18px;height:18px;border-radius:4px;border:1px solid rgba(0,0,0,.35)}
 .chip .nm{font:600 14px/1 var(--f-display);letter-spacing:.05em}
@@ -89,7 +91,8 @@ button:disabled{opacity:.45;cursor:default}
 #bStop,#bDel,#bTopple,#bDelP{background:var(--panel)}
 #bMode{background:var(--brass);color:var(--ink);border-color:var(--brass)}
 
-.help{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,14,18,.45)}
+.help{position:absolute;inset:0;display:flex;padding:16px;background:rgba(6,14,18,.45);overflow-y:auto;overscroll-behavior:contain}
+.help .card{margin:auto}
 .card{box-sizing:border-box;min-width:0;background:rgba(12,26,32,.92);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;max-width:430px;width:100%;display:grid;gap:14px}
 .card h1{margin:0;font:700 34px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
 .card h1 span{color:var(--brass)}
@@ -115,6 +118,18 @@ button:disabled{opacity:.45;cursor:default}
   .actions button{padding:8px 10px;font-size:12.5px}
   .toast{top:auto;bottom:calc(150px + var(--safe-b))}
   .tabs button{padding:8px 10px;font-size:13.5px}
+}
+@media (max-height:480px){   /* a phone held sideways, or a short browser window: tighter panels, and the button column scrolls */
+  .actions{gap:4px;max-height:calc(100dvh - 118px - var(--safe-t) - var(--safe-b))}
+  .actions button{padding:6px 9px;font-size:12px}
+  .inst{padding:6px 9px;gap:3px}
+  .brand{display:none}
+  #rose{width:46px;height:46px}
+  .boatname{font-size:16px}
+  dd{font-size:11px}
+  .tabs{padding:3px}.tabs button{padding:6px 10px;font-size:13px}
+  .chip{padding:5px 9px}
+  .toast{top:calc(8px + var(--safe-t))}
 }
 [hidden]{display:none!important}
 .loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--ink);z-index:5;transition:opacity .6s}
@@ -180,6 +195,7 @@ button:disabled{opacity:.45;cursor:default}
         <b>Land</b><span>Drag to raise, lower, flatten or smooth the island</span>
         <b>Weather</b><span>Wind strength and direction, sky, rain, fog</span>
         <b>H</b><span>Take the helm of the selected boat, or back to the overview</span>
+        <b>Delete</b><span>Remove the selected boat or person, or whatever is under the pointer</span>
         <b>1 to 4 · Tab</b><span>Switch tools · next boat</span>
       </div>
       <div class="keys touch-only">
@@ -1660,6 +1676,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (ptrs.size === 2) { g2 = { ...twoInfo(), dist: mode === 'god' ? god.dist : camS.dist, yaw: god.yaw }; land.painting = false; if (downInfo) downInfo.moved = true; }
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (e.pointerType === 'mouse') { lastMouse.x = e.clientX; lastMouse.y = e.clientY; lastMouse.on = true; }
   const p = ptrs.get(e.pointerId);
   if (!p) { if (mode === 'god' && tool === 'land' && e.pointerType === 'mouse') hoverPt = pick(e.clientX, e.clientY); return; }
   let ox = p.x, oy = p.y; p.x = e.clientX; p.y = e.clientY;
@@ -1690,7 +1707,7 @@ const endPtr = (e) => {
   }
 };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
-canvas.addEventListener('pointerleave', () => { if (!land.painting && !ptrs.size) hoverPt = null; });
+canvas.addEventListener('pointerleave', () => { lastMouse.on = false; if (!land.painting && !ptrs.size) hoverPt = null; });
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   if (mode === 'helm') camS.dist = clamp(camS.dist * Math.exp(e.deltaY * 0.0012), 5, 120);
@@ -1720,6 +1737,16 @@ addEventListener('keydown', (e) => {
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
 });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+/* Delete / Backspace: remove what is selected, otherwise whatever is under the mouse pointer */
+const lastMouse = { x: 0, y: 0, on: false };
+addEventListener('keydown', (e) => {
+  if ((e.key !== 'Delete' && e.key !== 'Backspace') || e.metaKey || e.ctrlKey || mode === 'helm' || !$('help').hidden) return;
+  e.preventDefault();
+  if (selPerson) { removePerson(selPerson); toast('Removed'); return; }
+  if (selBoat) { if (boats.length > 1) { const n = selBoat.sp.name; removeBoat(selBoat); refreshPanel(); toast(n + ' removed'); } else toast('Keep at least one boat'); return; }
+  const p = lastMouse.on ? pick(lastMouse.x, lastMouse.y) : null;
+  if (p) erase(p); else toast('Select something, or point at it, then press Delete');
+});
 addEventListener('blur', () => keys.clear());
 const hold = {};
 ['tL', 'tR', 'sIn', 'sOut'].forEach((id) => {
@@ -1774,6 +1801,13 @@ function rightBoat() {
 
 /* ================================================================ HUD */
 const tray = $('tray'), tabs = $('tabs');
+/* the tray scrolls sideways: let the mouse wheel and a mouse drag do it too (touch already swipes) */
+tray.addEventListener('wheel', (e) => { if (tray.scrollWidth <= tray.clientWidth) return; e.preventDefault(); tray.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; }, { passive: false });
+{ let down = null;
+  tray.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse' && e.button === 0) down = { x: e.clientX, l: tray.scrollLeft, moved: false }; });
+  addEventListener('pointermove', (e) => { if (!down) return; const dx = e.clientX - down.x; if (Math.abs(dx) > 5) { down.moved = true; tray.classList.add('dragging'); } if (down.moved) tray.scrollLeft = down.l - dx; });
+  addEventListener('pointerup', () => { if (down && down.moved) setTimeout(() => tray.classList.remove('dragging'), 0); down = null; });
+}
 function chip(label, sub, sw, pressed, onClick, cls = 'chip') {
   const b = document.createElement('button'); b.type = 'button'; b.className = cls;
   b.innerHTML = sw ? `<span class="sw" style="background:${sw}"></span><span class="nm">${label}</span><span class="dn">${sub}</span>` : `<span class="nm">${label}</span>${sub ? `<span class="dn">${sub}</span>` : ''}`;
