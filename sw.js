@@ -1,13 +1,17 @@
-/* Squall Cove service worker: cache-first so it installs and runs offline. Bump V on each release. */
-const V = 'sc-v4.3.3';
-self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png']).catch(() => {}))); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+/* Squall Cove service worker. Touches ONLY its own caches (squall-cove-vN). Bump VERSION on each release. */
+const VERSION = 'v4.3.4';
+const CACHE = 'squall-cove-' + VERSION;
+const MINE = /^squall-cove-v[\d.]+$/;
+self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {}))); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => MINE.test(k) && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  const nav = e.request.mode === 'navigate';
-  e.respondWith((nav ? fetch(e.request).catch(() => caches.match('index.html')) : caches.match(e.request).then(hit => hit || fetch(e.request))).then(async (r) => {
-    if (r && (r.ok || r.type === 'opaque') && !nav) { const c = await caches.open(V); c.put(e.request, r.clone()).catch(() => {}); }
-    else if (r && r.ok && nav) { const c = await caches.open(V); c.put('index.html', r.clone()).catch(() => {}); }
-    return r;
-  }));
+  const req = e.request, url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin || !url.pathname.startsWith('/squall-cove/')) return;   // other apps and CDNs: not ours
+  if (url.pathname.endsWith('/manifest.webmanifest')) return;                                                         // never cached, always fresh
+  const own = () => caches.open(CACHE);
+  if (req.mode === 'navigate') {
+    e.respondWith(fetch(req).then(r => { if (r.ok) own().then(c => c.put('index.html', r.clone())); return r; }).catch(() => own().then(c => c.match('index.html'))));
+    return;
+  }
+  e.respondWith(own().then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
 });
