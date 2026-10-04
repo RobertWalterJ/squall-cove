@@ -185,7 +185,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="bZoom" type="button" hidden>Zoom to selection</button>
     <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
     <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
-    <div class="grp"><button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button></div>
+    <div class="grp"><button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button><button id="bInstall" type="button" hidden>Install</button></div>
     <button id="bRight" type="button" hidden>Right the boat</button>
   </nav>
   <div class="bottom">
@@ -267,7 +267,9 @@ const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = 110;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch);
+const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch); if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+let installEv = null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstall'); if (b) b.hidden = false; });
+addEventListener('appinstalled', () => { installEv = null; const b = document.getElementById('bInstall'); if (b) b.hidden = true; });
 let quality = isTouch ? 'low' : 'high';
 try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch (e) {}
 
@@ -2820,6 +2822,7 @@ $('bDel').addEventListener('click', () => { const bs = selBoats().filter(() => b
 $('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.length) return; if (ps.every(q => q.state === 'rag')) ps.forEach(standUp); else ps.forEach(q => { if (q.state !== 'rag') topple(q, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); }); refreshPanel(); });
 $('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
 $('bBoat').addEventListener('click', nextBoat);
+$('bInstall').addEventListener('click', async () => { if (!installEv) return; installEv.prompt(); try { await installEv.userChoice; } catch (e) {} installEv = null; $('bInstall').hidden = true; });
 $('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
 $('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
 $('bRight').addEventListener('click', rightBoat);
