@@ -48,3 +48,7 @@ blender -b --python generators/people_sheet.py -- people.glb people_sheet.png 8 
   - `generators/` holds the Python scripts that build every model: `pg_*.py` are the model libraries and `build_*.py` and `export_*.py` the batch builders.
   - Those scripts are the source of truth. Hand edits made in these .blend files stay in the files; to keep one, re-export the GLB, or change the generator and rebuild.
 - **Frames.** Scenes are Z up. glTF export with "+Y Up" gives the game's frame.
+
+## Animated ship parts (v4.4)
+
+The Coast Guard ships now export a few moving parts as their own nodes, named `<gamekey>_<part>N`: `radar` (spins), `flag` (a pennant that streams downwind), and on the hovercraft `propL` and `propR` (spin with the throttle). Each part's origin sits on its pivot. `generators/pg_marine.py` builds them (`pivoted`, `flag_on`, the `ANIM` list) and `build_ccg_all.py` names and exports them. The game finds them by name in `makeBoat` and moves them in `updateBoatParts`.

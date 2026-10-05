@@ -948,6 +948,8 @@ function makeBoat(key, glb, meta, x, z, heading) {
   const hull = nodeByName(glb, key + '_hull').clone(); model.add(shadowAll(hull));
   let rig = null, jib = null;
   const rn = nodeByName(glb, key + '_rig'); if (rn) { rig = rn.clone(); model.add(shadowAll(rig)); }
+  const parts = [];                                           // animated bits from the Blender model: radar, pennants, propellers
+  glb.scene.traverse(o => { const m = o.name.startsWith(key + '_') && /^(radar|flag|propL|propR)\d+$/.exec(o.name.slice(key.length + 1)); if (m) { const n = o.clone(); model.add(shadowAll(n)); parts.push({ k: m[1], n, ph: Math.random() * 6.28 }); } });
   const jn = nodeByName(glb, key + '_jib'); if (jn) { jib = jn.clone(); model.add(shadowAll(jib)); }
   const body = new CANNON.Body({ mass: sp.mass, material: boatMat, angularDamping: 0.25, linearDamping: 0.01, allowSleep: false, collisionFilterGroup: 4 });   // group 4: people on foot (group 2, mask 1) walk through boats instead of shoving them
   const hx = sp.L * 0.31, hz = sp.B * 0.42;
@@ -961,7 +963,7 @@ function makeBoat(key, glb, meta, x, z, heading) {
   const ny = sp.kind === 'motor' && !sp.hover ? 6 : 2;       // powered hulls: six layers, so they float at their true draught
   const fl = makeFloater(body, { pts: boxPoints(sp.L * 0.4, sp.D, sp.B * 0.8, sp.comd, 3, 2, ny), slab: sp.D / (ny - 1), volume, kH: 0, kA: 0.6, rad: sp.L * 0.45 });
   const I = sp.mass / 12 * (sp.L * sp.L + sp.B * sp.B);
-  const bt = { kind: 'boat', docked: null, key, sp, group: g, model, rig, jib, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
+  const bt = { kind: 'boat', docked: null, key, sp, group: g, model, rig, jib, parts, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
     cyaw: I / 0.9, kr: I / 0.9 * 0.55 / 3 * (sp.turn ?? 1), hCE: sp.kind === 'sail' ? (sp.boom_z + sp.mast_h * 0.3 - (sp.keel_z ?? -0.5) * 0.5) : 0 };
   boats.push(bt); if (typeof combatReady !== 'undefined' && combatReady) setupBoatCombat(bt);
   return bt;
@@ -2119,6 +2121,18 @@ function checkSinking(bt) {
     if (mode === 'helm' && boats[activeIdx] === bt) toggleMode();
   }
 }
+function updateBoatParts(dt, t) {
+  for (const bt of boats) {
+    if (!bt.parts || !bt.parts.length) continue;
+    const alive = bt.sunk ? Math.max(0, 1 - bt.sinkT / 6) : 1, v = bt.body.velocity, yaw = boatYaw(bt), c = Math.cos(yaw), s_ = Math.sin(yaw);
+    const ax = wind.v.x - v.x, az = wind.v.z - v.z, lx = ax * c - az * s_, lz = ax * s_ + az * c, sp = Math.hypot(ax, az);       // apparent wind, in the boat's own frame
+    for (const q of bt.parts) {
+      if (q.k === 'radar') q.n.rotation.y += dt * 2.4 * alive;
+      else if (q.k === 'flag') q.n.rotation.y = Math.atan2(lz, -lx) + Math.sin(t * (7 + sp * 0.5) + q.ph) * clamp(0.06 + sp * 0.02, 0.06, 0.3);
+      else q.n.rotation.x += dt * (6 + Math.abs(bt.throttle || 0) * 55) * alive;
+    }
+  }
+}
 function boatTop(bt) { return bt.group.position.y + deckLy(bt, 0, 0) + bt.ssH; }   // the highest point above the water, roughly
 function updateCombat(dt, t) {
   // ---- boats: guns, flooding, fire, sinking
@@ -2921,7 +2935,7 @@ function frame(now) {
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
   if (fp.on && mode === 'fp') updateFP(dt, t);
-  updatePeople(dt, t); updateCombat(dt, t); updateSunkObjects(dt, t);
+  updatePeople(dt, t); updateBoatParts(dt, t); updateCombat(dt, t); updateSunkObjects(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;

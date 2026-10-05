@@ -17,12 +17,16 @@ report = {}
 reset(); objs = []
 for gk, key in GAME_KEYS:
     o = M.build(key); o.name = gk + '_hull'; objs.append(o)
+    cnt = {}
+    for a in M.ANIM:                                  # animated parts ride beside the hull as <gamekey>_<part>N nodes (radar, flag, propL, propR)
+        part = a.name.split('_', 1)[1].split('.')[0].rstrip('0123456789'); n = cnt.get(part, 0); cnt[part] = n + 1
+        a.name = f'{gk}_{part}{n}'; objs.append(a)
     report[gk] = dict(key=key, dims=dims(o), tris=tri_count(o))
     print('SHIP', gk, dims(o), tri_count(o))
 export_glb([o for o in objs if o.name.split('_')[0] in ('hero', 'bay', 'hover')], os.path.join(GAME, 'ccg.glb'))
 export_glb([o for o in objs if o.name.split('_')[0] not in ('hero', 'bay', 'hover')], os.path.join(GAME, 'ccgfleet.glb'))
 for gk, key in GAME_KEYS:                       # one file per ship for the Model Library (rebuilt in a clean scene each time)
     reset(); o = M.build(key); o.name = key
-    export_glb([o], os.path.join(MARINE, f'ccg_{key}.glb'))
+    export_glb([o] + list(M.ANIM), os.path.join(MARINE, f'ccg_{key}.glb'))
 json.dump(report, open(os.path.join(MARINE, 'ccg_report.json'), 'w'), indent=1)
 print('BUILD DONE')

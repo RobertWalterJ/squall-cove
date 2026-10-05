@@ -1,7 +1,8 @@
 """Canadian Coast Guard fleet: icebreakers, patrol ships, science vessel, lifeboat, hovercraft.
 Metres, Z up, +X is the bow, waterline at z = 0. Paint scheme only: red hull, white superstructure,
 white diagonal bow bar raked forward with a narrow red bar beside it, red leaf on the funnel. No wordmarks."""
-import math
+import math, bpy
+from mathutils import Matrix
 from mathutils import Vector
 from pg_core import *
 from pg_boats import Hull, foil
@@ -90,13 +91,26 @@ def funnel(x, z, l, w, h, leaf_size=None, y=0.0, black=False):
         for s in (1, -1): out.append(leaf(ls, (x, y + s * (w / 2 + 0.02), z + h * 0.52), s))
     return out
 
+ANIM = []          # separate, pivoted parts the game animates (radar, flags, propellers); build_ccg_all names and exports them beside the hull
+
+def pivoted(o, p, name):
+    """Move the object's origin to p (metres, ship space) without moving the geometry, and register it as an animated part."""
+    o.data.transform(Matrix.Translation(-Vector(p))); o.location = Vector(p); o.name = name; ANIM.append(o); return o
+
+def flag_on(x, z, size, out):
+    """A staff and a pennant. The pennant streams aft (-X) from the staff and is its own part so it can weathervane in the game."""
+    out.append(rod((x, 0, z), (x, 0, z + size * 1.5), 0.04, 5, mat('staff', '#cfcfcf', 0.5)))
+    zt = z + size * 1.5
+    pivoted(box((size * 1.5, 0.03, size * 0.85), (x - size * 0.75, 0, zt - size * 0.45), material=mat('pennant', CCG_RED, 0.8)), (x, 0, zt - size * 0.45), 'anim_flag')
+
 def mast(x, z, h, yard=3.0, radar=True, color=None):
     m = mat('mast_' + (color or CCG_WHITE), color or CCG_WHITE, 0.45); r = max(0.32, h * 0.03)
     out = [cyl(r, r * 0.55, h, 8, loc=(x, 0, z), material=m)]
     out.append(rod((x, -yard / 2, z + h * 0.72), (x, yard / 2, z + h * 0.72), 0.09, 6, m))
     if radar:
-        out.append(box((0.3, yard * 0.7, 0.18), (x + 0.3, 0, z + h * 0.55), material=mat('radar', '#2b2b2b', 0.5)))
+        pivoted(box((0.3, yard * 0.7, 0.18), (x + 0.3, 0, z + h * 0.55), material=mat('radar', '#2b2b2b', 0.5)), (x, 0, z + h * 0.55), 'anim_radar')
         out.append(cyl(0.5, 0.5, 0.55, 12, loc=(x, 0, z + h), material=mat('dome', '#ecebe6', 0.4)))
+        flag_on(x, z + h + 0.55, max(0.7, h * 0.07), out)
     return out
 
 def crane(x, y, z, reach, d=-1):
@@ -275,6 +289,7 @@ def bay_lifeboat(name='bay_class'):
     for s in (1, -1): parts.append(rod((-1.8, s * 1.8, fb + 3.8), (-0.6, s * 1.2, fb + 6.4), 0.12, 6, m))
     parts.append(rod((-0.6, -1.2, fb + 6.4), (-0.6, 1.2, fb + 6.4), 0.12, 6, m))
     parts.append(cyl(0.3, 0.3, 0.3, 10, loc=(-0.6, 0, fb + 6.45), material=mat('dome', '#ecebe6', 0.4)))
+    flag_on(-0.6, fb + 6.75, 0.5, parts)
     parts.append(box((1.2, 3.0, 0.5), (-L / 2 + 2.0, 0, fb + 0.25), material=mat('davit', ORANGE, 0.5)))      # recovery cradle
     return join(parts, name)
 
@@ -295,8 +310,8 @@ def hovercraft(name='hovercraft'):
         y = s * 3.1
         parts.append(torus(1.9, 0.28, 24, 6, loc=(-11.0, y, 4.6), rot=(0, math.pi / 2, 0), material=mat('duct', CCG_WHITE, 0.4)))
         pm = mat('prop', '#3a3a3a', 0.5)
-        parts.append(box((0.2, 0.18, 3.5), (-10.9, y, 4.6), (0.4, 0, 0), material=pm)); parts.append(box((0.2, 0.18, 3.5), (-10.9, y, 4.6), (-1.17, 0, 0), material=pm))
-        parts.append(box((0.6, 0.5, 0.5), (-10.9, y, 4.6), material=pm))
+        blades = [box((0.2, 0.18, 3.5), (-10.9, y, 4.6), (0.4, 0, 0), material=pm), box((0.2, 0.18, 3.5), (-10.9, y, 4.6), (-1.17, 0, 0), material=pm), box((0.6, 0.5, 0.5), (-10.9, y, 4.6), material=pm)]
+        pivoted(join(blades, 'prop'), (-10.9, y, 4.6), 'anim_propL' if s > 0 else 'anim_propR')
         parts.append(box((1.0, 0.1, 3.4), (-12.4, y, 4.6), material=mat('ccg_red', CCG_RED, 0.45)))                  # rudder vanes
         parts.append(box((1.4, 0.6, 2.2), (-11.0, y, 3.1), material=mat('ss_' + CCG_WHITE, CCG_WHITE, 0.45)))
     for s in (1, -1): parts.append(leaf(0.7, (-6.0, s * (B / 2 - 0.48), 1.85), s, CCG_WHITE))
@@ -305,6 +320,7 @@ def hovercraft(name='hovercraft'):
 ALL = list(FLEET) + ['bay_class', 'hovercraft']
 
 def build(key):
+    ANIM.clear()
     if key == 'bay_class': return bay_lifeboat()
     if key == 'hovercraft': return hovercraft()
     return ship(key)
