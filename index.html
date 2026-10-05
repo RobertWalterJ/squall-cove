@@ -1949,6 +1949,10 @@ function stepRide(p, dt, t) {
   poseCrewExtras(p, t);
 }
 function poseCrewExtras(p, t) {
+  if (p.state !== 'rag' && !p.swim && p.walkK < 0.3 && p.aim < 0.3 && !p.carry) {            // breathing and a slow weight shift, so nobody stands like a statue
+    const b = Math.sin(t * 1.7 + p.ph), w = Math.sin(t * 0.45 + p.ph * 1.7), k = 1 - p.walkK;
+    blendPose(p, 'chest', p.ax.right, 0.035 * b, 0.8 * k); blendPose(p, 'spine', p.ax.fwd || p.ax.right, 0.03 * w, 0.8 * k);
+  }
   if (p.carryK > 0.02) poseCarry(p, p.carryK);
   if (p.job && p.job.type === 'pickup' && p.job.phase === 'lift') poseBend(p, Math.sin(clamp(p.job.t / 0.95, 0, 1) * Math.PI));
   if (p.aim > 0.02) poseAim(p, clamp(p.aim, 0, 1), p.recoil || 0);
@@ -2067,7 +2071,7 @@ function makeGunMesh(kind) {
   const turret = new THREE.Group(); turret.position.y = big ? 0.95 : 0.55; g.add(turret);
   const head = new THREE.Mesh(new THREE.BoxGeometry(big ? 1.5 : 0.5, big ? 0.7 : 0.3, big ? 1.1 : 0.4), gunMat); turret.add(head);
   const barrel = new THREE.Mesh(new THREE.CylinderGeometry(big ? 0.12 : 0.05, big ? 0.14 : 0.06, big ? 2.6 : 1.1, 8), gunMat); barrel.rotation.z = Math.PI / 2; barrel.position.x = big ? 1.6 : 0.8; turret.add(barrel);
-  g.userData.turret = turret; g.traverse(m => { if (m.isMesh) { m.castShadow = true; } }); return g;
+  g.userData.turret = turret; g.userData.barrel = barrel; g.userData.barrelX = barrel.position.x; g.traverse(m => { if (m.isMesh) { m.castShadow = true; } }); return g;
 }
 function setupBoatCombat(bt) {
   const sp = bt.sp; bt.hpMax = Math.round(40 + sp.L * 2.6); bt.hp = bt.hpMax; bt.flood = 0; bt.fire = 0; bt.fireT = 0; bt.list = 0; bt.trim = 0; bt.sunk = false; bt.sinkT = 0; bt.subT = 0; bt.target = null; bt.lastHitBy = null; bt.lastHitT = -99; bt.hitFlash = 0;
@@ -2134,6 +2138,7 @@ function updateCombat(dt, t) {
         if (i >= manned || d > m.w.range * 1.1) continue;
         engaged = true;
         if (m.cd <= 0) { fireShot(bt, m, bt.target); m.cd = m.w.reload * (0.85 + 0.3 * Math.random()) / (0.65 + 0.35 * Math.min(2, crew.length - i)); }
+        if (m.mesh) { const ud = m.mesh.userData; ud.barrel.position.x = ud.barrelX - Math.min(1, m.burst / 0.12) * (m.k === 'gun' ? 0.45 : 0.12); }
         if (m.mesh) m.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(bt.target.body.position.z - pos.z), bt.target.body.position.x - pos.x) - boatYaw(bt));   // the mount tracks its target
       }
     }

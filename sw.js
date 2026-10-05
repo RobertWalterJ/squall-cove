@@ -1,5 +1,5 @@
 /* Squall Cove service worker. Touches ONLY its own caches (squall-cove-vN). Bump VERSION on each release. */
-const VERSION = 'v4.3.5';
+const VERSION = 'v4.3.6';
 const CACHE = 'squall-cove-' + VERSION;
 const MINE = /^squall-cove-v[\d.]+$/;
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {}))); });
