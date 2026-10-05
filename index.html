@@ -203,7 +203,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mNew" type="button">New cove</button><button id="mScen" type="button">Scenarios</button>
     <button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button>
-    <button id="mHeli" type="button">Call rescue helicopter</button><button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
+    <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button><button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
   <button id="mSandbox" type="button">Sandbox settings</button>
@@ -3134,7 +3134,7 @@ function frame(now) {
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
   if (fp.on && mode === 'fp') updateFP(dt, t);
-  updatePeople(dt, t); updateBoatParts(dt, t); updateRoutes(); updateScenario(dt); updateOrderLines(); updateCombat(dt, t); updateFirefighting(dt, t); updateDamageControl(dt); updateAbandon(); updateRescue(dt); updateHeli(dt, t); updateSunkObjects(dt, t);
+  updatePeople(dt, t); updateBoatParts(dt, t); updateRoutes(); updateScenario(dt); updateOrderLines(); updateCombat(dt, t); updateFirefighting(dt, t); updateDamageControl(dt); updateAbandon(); updateRescue(dt); updateHeli(dt, t); updateBomber(dt, t); updateSunkObjects(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;
@@ -4532,7 +4532,96 @@ function meteorAftermath(x, z) {
 /* ---- a geyser lets go every so often */
 function geyserBurst(s) { return Math.sin(simT * 0.25 + s.x) > 0.55; }
 
-window.__sc = { lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v6.1: Canadair water bomber. It skims the sea to scoop a load, climbs, and drops it on forest fires and burning boats. */
+const bomber = { on: false, state: 'idle', g: null, props: [], pos: new THREE.Vector3(), yaw: 0, roll: 0, load: 0, drops: 0, dropT: 0, target: null, scoop: null, timer: 0, lastEnd: -999 };
+const BW_MAX = 260, bwPos = new Float32Array(BW_MAX * 3).fill(-9999), bwVel = new Float32Array(BW_MAX * 3), bwLife = new Float32Array(BW_MAX); let bwHead = 0;
+const bwGeo = new THREE.BufferGeometry(); bwGeo.setAttribute('position', new THREE.BufferAttribute(bwPos, 3));
+const bwPts = new THREE.Points(bwGeo, new THREE.PointsMaterial({ color: 0xe4f2ff, size: 1.5, sizeAttenuation: true, transparent: true, opacity: 0.75, depthWrite: false })); bwPts.frustumCulled = false; bwPts.renderOrder = 4; scene.add(bwPts);
+function buildBomber() {
+  const g = new THREE.Group(), yellow = new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.45 }), red = new THREE.MeshStandardMaterial({ color: 0xd52b1e, roughness: 0.45 }), white = new THREE.MeshStandardMaterial({ color: 0xf1efe9, roughness: 0.5 }), dark = new THREE.MeshStandardMaterial({ color: 0x182430, roughness: 0.25, metalness: 0.3 }), grey = new THREE.MeshStandardMaterial({ color: 0x6b7178, roughness: 0.6 });
+  const fus = new THREE.Mesh(new THREE.CapsuleGeometry(1.6, 11, 6, 16).rotateZ(Math.PI / 2), yellow); fus.scale.y = 1.12; g.add(fus);
+  const belly = new THREE.Mesh(new THREE.CylinderGeometry(1.64, 1.64, 5, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateX(Math.PI / 2), red); belly.position.set(-0.5, -0.1, 0); g.add(belly);
+  const glass = new THREE.Mesh(new THREE.SphereGeometry(1.3, 12, 8), dark); glass.position.set(5.4, 0.55, 0); glass.scale.set(1, 0.7, 1.05); g.add(glass);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.4, 28), white); wing.position.set(0.3, 1.9, 0); g.add(wing);
+  for (const z of [-13.7, 13.7]) { const tip = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.42, 1.2), red); tip.position.set(0.3, 1.9, z); g.add(tip); }
+  const props = [];
+  for (const z of [-5.5, 5.5]) {
+    const n = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 3.6, 10).rotateZ(Math.PI / 2), grey); n.position.set(1.0, 2.4, z); g.add(n);
+    const p = new THREE.Group(); p.position.set(3.0, 2.4, z); for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.9, 0.22), dark); b.rotation.x = i * Math.PI / 4; p.add(b); }
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.5, 20).rotateY(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide })); p.add(disc); g.add(p); props.push(p);
+  }
+  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.35, 8, 10).rotateZ(Math.PI / 2), yellow); boom.position.set(-9, 0.6, 0); g.add(boom);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(2.6, 4.2, 0.3), yellow); fin.position.set(-12.2, 2.9, 0); g.add(fin);
+  const stab = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.22, 9), yellow); stab.position.set(-12.6, 5.0, 0); g.add(stab);
+  for (const z of [-9.8, 9.8]) { const f = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 2.6, 4, 8).rotateZ(Math.PI / 2), red); f.position.set(0.3, 0.7, z); g.add(f); const st = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.3, 6), grey); st.position.set(0.3, 1.3, z); g.add(st); }
+  g.scale.setScalar(1.15); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.visible = false; scene.add(g); bomber.g = g; bomber.props = props;
+}
+const fwd2 = (yaw) => ({ x: Math.cos(yaw), z: -Math.sin(yaw) });
+function fireCentre() {
+  let x = 0, z = 0, n = 0; for (const t of burning) { x += t.x; z += t.z; n++; } for (const b of boats) if (!b.sunk && b.fire > 0.3) { x += b.body.position.x; z += b.body.position.z; n++; }
+  return n ? { x: x / n, z: z / n, n } : null;
+}
+function findScoop(fx, fz) {
+  let best = null, bd = 1e9;
+  for (let r = 20; r < 240 && !best; r += 14) for (let a = 0; a < 20; a++) {
+    const ang = (a / 20) * 6.283, x = fx + Math.cos(ang) * r, z = fz + Math.sin(ang) * r; if (Math.abs(x) > 215 || Math.abs(z) > 215 || heightAt(x, z) > -3.5) continue;
+    for (let d = 0; d < 8; d++) {                                          // a straight run of open water, at least 130 metres
+      const da = d / 8 * 6.283, dx = Math.cos(da), dz = -Math.sin(da); let ok = true; for (let s = 10; s <= 130; s += 20) if (heightAt(x + dx * s, z + dz * s) > -2.5 && Math.abs(x + dx * s) < 128 && Math.abs(z + dz * s) < 128) { ok = false; break; }
+      if (ok) { const dd = Math.hypot(x - fx, z - fz); if (dd < bd) { bd = dd; best = { x, z, dx, dz }; } break; }
+    }
+  }
+  return best || { x: -150, z: -150, dx: 1, dz: 0 };
+}
+function callBomber(manual) {
+  if (bomber.on) { if (manual && bomber.state !== 'depart') { bomber.state = 'depart'; toast('Water bomber recalled.'); } return; }
+  const f = fireCentre(); if (!f) { if (manual) toast('No fire to fight.'); return; }
+  if (!bomber.g) buildBomber();
+  bomber.on = true; bomber.state = 'inbound'; bomber.load = 0; bomber.drops = 0; bomber.scoop = findScoop(f.x, f.z); bomber.pos.set(bomber.scoop.x - bomber.scoop.dx * 230, 55, bomber.scoop.z - bomber.scoop.dz * 230); bomber.yaw = Math.atan2(-bomber.scoop.dz, bomber.scoop.dx); bomber.g.visible = true; $('mBomber').textContent = 'Recall water bomber';
+  toast('A Canadair water bomber is on its way to the fire.');
+}
+function extinguishTree(t) { t.burn = 0; const i = burning.indexOf(t); if (i >= 0) burning.splice(i, 1); }
+function steer(b, tx, tz, rate, dt) { let d = Math.atan2(-(tz - b.pos.z), tx - b.pos.x) - b.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); const turn = Math.max(-rate * dt, Math.min(rate * dt, d)); b.yaw += turn; b.roll += ((turn / Math.max(dt, 1e-3)) * 0.5 - b.roll) * Math.min(1, dt * 3); return d; }
+function updateBomber(dt, t) {
+  // call it automatically when a forest fire gets going
+  if (!bomber.on) { bomber.auto = (bomber.auto || 0) - dt; if (bomber.auto <= 0) { bomber.auto = 2; if (burning.length >= 8 && simT - bomber.lastEnd > 100 && mode !== 'fp') callBomber(false); } }
+  // water in the air
+  for (let i = 0; i < BW_MAX; i++) {
+    if (bwLife[i] <= 0) continue; bwLife[i] -= dt; bwVel[i * 3 + 1] -= 9.82 * dt; bwPos[i * 3] += bwVel[i * 3] * dt; bwPos[i * 3 + 1] += bwVel[i * 3 + 1] * dt; bwPos[i * 3 + 2] += bwVel[i * 3 + 2] * dt;
+    const x = bwPos[i * 3], y = bwPos[i * 3 + 1], z = bwPos[i * 3 + 2];
+    if (y < groundTop(x, z) + 0.3 || bwLife[i] <= 0) {
+      bwLife[i] = 0; bwPos[i * 3 + 1] = -9999;
+      for (const tr of burning.slice()) if (Math.hypot(tr.x - x, tr.z - z) < 7) { extinguishTree(tr); puffSmoke(tr.x, Math.max(heightAt(tr.x, tr.z), 0) + 2, tr.z, 2, false, 1.6); }
+      for (const bt of boats) { if (bt.sunk) continue; if (insideHull(bt, x, z, 1.2)) { bt.fire = Math.max(0, bt.fire - 0.03); bt.fireT = Math.max(0, bt.fireT - 0.5); bt.body.applyImpulse(new CANNON.Vec3(0, -bt.body.mass * 0.01, 0), new CANNON.Vec3(x - bt.body.position.x, 0.5, z - bt.body.position.z)); } }
+      if (Math.random() < 0.15) { const wet = heightAt(x, z) < 0; if (wet) splash(x, z, 0.8); else puffSmoke(x, y + 0.5, z, 1, false, 0.9); }
+    }
+  }
+  bwGeo.attributes.position.needsUpdate = true;
+  if (!bomber.on) return;
+  const b = bomber, g = b.g; b.props.forEach(p => p.rotation.x += 60 * dt);
+  const speed = 42, f = fireCentre();
+  const move = (alt, rate) => { const fw = fwd2(b.yaw); b.pos.x += fw.x * speed * dt; b.pos.z += fw.z * speed * dt; b.pos.y += (alt - b.pos.y) * Math.min(1, dt * rate); };
+  if (b.state === 'inbound') { steer(b, b.scoop.x, b.scoop.z, 0.8, dt); const d = Math.hypot(b.scoop.x - b.pos.x, b.scoop.z - b.pos.z); move(d < 90 ? waveH(b.pos.x, b.pos.z, t) + 3 : 45, 0.8); if (d < 14) { b.state = 'scoop'; b.timer = 0; } }
+  else if (b.state === 'scoop') {
+    b.timer += dt; b.yaw = Math.atan2(-b.scoop.dz, b.scoop.dx); move(waveH(b.pos.x, b.pos.z, t) + 2.8, 4); b.load = Math.min(1, b.load + dt / 9);
+    if (Math.random() < dt * 25) { const fw = fwd2(b.yaw); fxS.emit(b.pos.x - fw.x * 4 + rnd(-1, 1), waveH(b.pos.x, b.pos.z, t) + 0.3, b.pos.z - fw.z * 4 + rnd(-1, 1), rnd(-2, 2), rnd(2, 4), rnd(-2, 2), 1, 1.8, 4, [0.95, 0.97, 1, 0.5], 0, 0.3); } if (Math.random() < dt * 4) splash(b.pos.x, b.pos.z, 0.7);
+    const ahead = fwd2(b.yaw); if (b.load >= 1) { b.state = 'climb'; b.timer = 0; } else if (heightAt(b.pos.x + ahead.x * 40, b.pos.z + ahead.z * 40) > -1.5) { if (b.load >= 0.7) { b.state = 'climb'; b.timer = 0; } else { b.scoop = findScoop(b.pos.x, b.pos.z); b.state = 'inbound'; } }
+  } else if (b.state === 'climb') { b.timer += dt; const tgt = f || { x: 0, z: 0 }; steer(b, tgt.x, tgt.z, 0.5, dt); move(Math.max(38, groundTop(b.pos.x, b.pos.z) + 26), 0.7); if (b.timer > 3 && Math.hypot(tgt.x - b.pos.x, tgt.z - b.pos.z) < 160) b.state = 'bomb'; }
+  else if (b.state === 'bomb') {
+    if (!f) b.state = 'depart'; else if (b.load < 0.5) { b.scoop = findScoop(b.pos.x, b.pos.z); b.state = 'inbound'; } else { steer(b, f.x, f.z, 0.6, dt); move(Math.max(36, groundTop(b.pos.x, b.pos.z) + 24), 1.2); if (Math.hypot(f.x - b.pos.x, f.z - b.pos.z) < 26 && b.load > 0.5) { b.state = 'release'; b.timer = 0; } }
+  } else if (b.state === 'release') {
+    b.timer += dt; move(Math.max(34, groundTop(b.pos.x, b.pos.z) + 22), 1.2);
+    const n = Math.floor(160 * dt) + (Math.random() < (160 * dt) % 1 ? 1 : 0); const fw = fwd2(b.yaw);
+    for (let k = 0; k < n; k++) { const i = bwHead; bwHead = (bwHead + 1) % BW_MAX; bwPos[i * 3] = b.pos.x + rnd(-1, 1); bwPos[i * 3 + 1] = b.pos.y - 1.5; bwPos[i * 3 + 2] = b.pos.z + rnd(-1, 1); bwVel[i * 3] = fw.x * speed * 0.28 + rnd(-3, 3); bwVel[i * 3 + 1] = rnd(-2, 0); bwVel[i * 3 + 2] = fw.z * speed * 0.28 + rnd(-3, 3); bwLife[i] = 4; }
+    b.load = Math.max(0, 1 - b.timer / 2.4); if (b.timer > 2.4) { b.drops++; b.load = 0; b.state = 'turn'; b.timer = 0; }
+  } else if (b.state === 'turn') {
+    b.timer += dt; move(Math.max(36, groundTop(b.pos.x, b.pos.z) + 24), 1);
+    if (b.timer > 3) { if (!f || b.drops >= 5) b.state = 'depart'; else { b.scoop = findScoop(b.pos.x, b.pos.z); b.state = 'inbound'; } }
+  } else if (b.state === 'depart') { steer(b, 260, -230, 0.5, dt); move(70, 0.5); if (Math.hypot(b.pos.x, b.pos.z) > 260) { b.on = false; g.visible = false; b.lastEnd = simT; $('mBomber').textContent = 'Call water bomber'; toast(burning.length ? 'The water bomber heads home. Some fires are still burning.' : 'The water bomber heads home. The fire is out.'); } }
+  g.position.copy(b.pos); g.rotation.set(0, b.yaw, 0); g.rotation.x = Math.max(-0.5, Math.min(0.5, b.roll));
+}
+$('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
+
+window.__sc = { bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

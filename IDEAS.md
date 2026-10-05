@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v6.1
+Canadair water bomber: it starts on its own when a forest fire gets going (or call it from the Menu), skims the sea to scoop a load, climbs, and drops it on the fire, repeating up to five times. Water drops put out trees and burning boats.
+
 ## Done in v6.0
 A separate Nature menu (trees and rocks, water, heat and cold, lava, materials) so Build is just boats, people and cargo. Earth pile, Earth fountain and Rock dump that build land even in water. Lava vent and Lava pour, Geyser, Water dump. A meteor now melts rock into magma, throws debris, scorches the ground and sets the trees on fire; fire spreads tree to tree, and lightning, lava and volcano bombs light trees too. Cargo and squalls land at the ring.
 
