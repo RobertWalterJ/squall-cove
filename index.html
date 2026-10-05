@@ -67,6 +67,8 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 #objective{position:fixed;left:12px;bottom:calc(172px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
 #objective button{min-height:36px;padding:6px 12px}
 #objective[hidden]{display:none}
+#calmBtn{position:fixed;left:12px;bottom:calc(228px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;text-transform:uppercase;z-index:5;box-shadow:0 4px 18px #0008}
+#calmBtn[hidden]{display:none}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mbody{display:grid;gap:8px}
 .mhead{font:600 13px/1.3 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:4px}
@@ -186,8 +188,10 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button" hidden>Install</button>
   </div>
   <div id="menuBody" class="mbody"></div>
+  <button id="mSandbox" type="button">Sandbox settings</button>
   <button class="go" id="mClose" type="button">Close</button>
 </div></div>
+<button id="calmBtn" type="button" hidden>Calm all</button>
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
@@ -1370,7 +1374,7 @@ const BUILD = [
   { cat: 'Water', id: 'drain', name: 'Drain', note: 'soaks it up', water: 'drain', sw: '#2a2a2e' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
-let buildSel = 0, buildRot = 0; let routeMode = false, routeLoop = false;
+let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false;
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
@@ -2878,9 +2882,15 @@ function renderTray(force = true) {
     tray.append(chip('All stop', 'anchor everyone', null, false, () => { boats.forEach(b => { b.route = null; if (b.order) arrive(b); }); toast('All boats anchored'); renderTray(); }, 'tool'));
   } else if (T === 'build') {
     let cat = null;
+    if (mode !== 'helm') {
+      const cur = CLASSES.find(c => c.id === buildCls) || CLASSES[0];
+      tray.append(chip(cur.name, 'tap to pick a kind', null, true, openClassPicker, 'chip'));
+      const ei = BUILD.findIndex(it => it.erase); tray.append(chip('Remove', 'tap a thing', '#d64b2c', buildSel === ei, () => { buildSel = ei; renderTray(); }, 'chip mini'));
+    }
     BUILD.forEach((it, i) => {
       if (mode === 'helm' && it.cargo === undefined) return;
-      if (it.cat !== cat) { cat = it.cat; tray.append(sep(cat)); }
+      if (mode !== 'helm' && classOfItem(it) !== buildCls) return;
+      if (it.cat !== cat) { cat = it.cat; if (mode === 'helm' || it.cat === 'Coast Guard') tray.append(sep(cat)); }
       tray.append(chip(it.name, it.note, it.sw, i === buildSel, () => { buildSel = i; renderTray(); }));
     });
     const sq = chip('Squall ×10', 'rain cargo', null, false, squall, 'tool');
@@ -2914,7 +2924,8 @@ function renderTray(force = true) {
     tray.append(sep('Air'));
     [['Freezing', -15], ['Cold', 2], ['Cool', 10], ['Mild', 18], ['Warm', 28], ['Hot', 38], ['Scorching', 48]].forEach(([n, T]) => tray.append(chip(n, T + ' C', null, Math.abs(clim.T - T) < 5, () => setAirTemp(T), 'chip mini')));
     tray.append(sep('Disasters'));
-    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Volcano', () => startVolcano(aimPt())], ['Deluge', startDeluge], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' || n === 'Volcano' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
+    tray.append(chip('Disasters', prefs.gentle ? 'off in gentle mode' : 'pick one', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
+    tray.append(chip('Calm all', 'clear it all', null, false, () => { calm(); renderTray(); }, 'chip'));
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
@@ -3028,7 +3039,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3172,7 +3183,7 @@ async function saveWorld(slot, quiet) {
   saving = false;
 }
 async function loadWorld(slot) {
-  if (loading) return; let d; try { d = await dbGet(slot); } catch (e) { d = null; } if (!d) { toast('Nothing saved there'); return; }
+  if (loading) return; let d; try { d = typeof slot === 'object' ? slot : await dbGet(slot); } catch (e) { d = null; } if (!d) { toast('Nothing saved there'); return; }
   loading = true;
   try {
     if (fp.on) exitFP(); if (mode === 'helm') toggleMode(); setSel([]); closeMenu(); endScenario(true);
@@ -3539,6 +3550,7 @@ const bombGeo = new THREE.SphereGeometry(0.6, 8, 6), bombMat = new THREE.MeshBas
 const VR = 38;                                                         // footprint radius, metres
 const VPEAK = 22;                                                      // how high the cone finally stands above the sea
 function startVolcano(p) {
+  if (prefs.gentle) { toast('Gentle mode is on. Turn it off in Menu, Sandbox.'); return; }
   if (volcanoes.filter(v => v.state !== 'dormant').length >= 2) { toast('One eruption at a time is plenty'); return; }
   const x = Math.max(-TH + VR + 3, Math.min(TH - VR - 3, p.x)), z = Math.max(-TH + VR + 3, Math.min(TH - VR - 3, p.z));
   const gx = Math.round(x + TH), gz = Math.round(z + TH), n = VR * 2 + 1, orig = new Float32Array(n * n);
@@ -3844,7 +3856,65 @@ function placeMaterial(item, p) {
 }
 function clearMaterials() { for (const l of [sandSrc, rods, furnaces]) { for (const o of l) scene.remove(o.mesh); l.length = 0; } MH.fill(0); MOLT.fill(0); sbx = null; hbx = null; }
 
-window.__sc = { matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.3: classes and menus, Calm all, Gentle mode, effect limits, restore */
+const CLASSES = [
+  { id: 'Boats', name: 'Boats', note: 'sail, motor and Coast Guard', cats: ['Boats', 'Coast Guard'] },
+  { id: 'People', name: 'People', note: 'walkers and crowds', cats: ['People'] },
+  { id: 'Cargo', name: 'Cargo', note: 'crates, barrels, ice', cats: ['Cargo'] },
+  { id: 'Things', name: 'Trees and rocks', note: 'plants, rocks, lighthouse, marks', cats: ['Island'] },
+  { id: 'Water', name: 'Water', note: 'springs, pours, drains, volcano', cats: ['Water'] },
+  { id: 'Heat', name: 'Heat and cold', note: 'lamps, coolers, air dryer', cats: ['Heat and cold'] },
+  { id: 'Materials', name: 'Materials', note: 'sand, furnace, lightning rod', cats: ['Materials'] },
+  { id: 'Tools', name: 'Tools', note: 'remove things', cats: ['Tools'] },
+];
+const classOfItem = (it) => (CLASSES.find(c => c.cats.includes(it.cat)) || CLASSES[0]).id;
+function openClassPicker() {
+  openMenu([menuHead('Pick a kind of thing'), ...CLASSES.map(c => menuBtn(c.name, c.note + ' (' + BUILD.filter(i => classOfItem(i) === c.id).length + ')', () => { buildCls = c.id; const i = BUILD.findIndex(it => classOfItem(it) === c.id); if (i >= 0) buildSel = i; closeMenu(); setTool('build'); renderTray(true); }))]);
+}
+/* ---- sandbox settings, kept on this phone */
+const prefs = { gentle: false, limit: 'some' };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}')); } catch (e) { }
+const savePrefs = () => { try { localStorage.setItem('squall-cove-prefs', JSON.stringify(prefs)); } catch (e) { } };
+const LIMITS = { few: 2, some: 4, lots: 8 };
+function effectsCount() { return dis.tornados.length + (dis.light > 0 ? 1 : 0) + (dis.hurricane > 0 ? 1 : 0) + (dis.tsunami ? 1 : 0) + (dis.deluge > 0 ? 1 : 0) + volcanoes.filter(v => v.state !== 'dormant').length + dis.meteors.length + (dis.quake > 0 ? 1 : 0); }
+function gateDisaster() {
+  if (prefs.gentle) { toast('Gentle mode is on. Turn it off in Menu, Sandbox.'); return false; }
+  if (effectsCount() >= LIMITS[prefs.limit]) { toast('That is a lot already. Press Calm all or raise the limit in Menu, Sandbox.'); return false; }
+  return true;
+}
+function sandboxSheet() {
+  const row = (label, sub, on, fn) => menuBtn(label + ': ' + (on ? 'On' : 'Off'), sub, () => { fn(); savePrefs(); sandboxSheet(); });
+  openMenu([menuHead('Sandbox settings'),
+    row('Gentle mode', 'Turns off disasters. Good for young players.', prefs.gentle, () => { prefs.gentle = !prefs.gentle; if (prefs.gentle) calm(); }),
+    menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
+    menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
+}
+/* ---- disasters sheet, with a way back */
+const worldUndo = [];
+function pushWorldUndo() { try { worldUndo.push(snapshotWorld()); if (worldUndo.length > 3) worldUndo.shift(); } catch (e) { } }
+function restoreWorld() { const d = worldUndo.pop(); if (!d) { toast('Nothing to restore yet'); return; } calm(); loadWorld(d); }
+const DISASTERS = [
+  ['Hurricane', 'Strong wind and rain. The sea rises.', startHurricane],
+  ['Tsunami', 'The sea pulls back, then floods the shore.', startTsunami],
+  ['Tornado', 'A funnel wanders and throws things.', () => startTornado(aimPt())],
+  ['Lightning storm', 'Bolts hit boats, land and sand.', startLightning],
+  ['Earthquake', 'The ground shakes and sinks in places.', startQuake],
+  ['Meteor', 'Something falls at the middle of the view.', () => startMeteor(aimPt())],
+  ['Volcano', 'Builds an island or a cone at the middle of the view.', () => startVolcano(aimPt())],
+  ['Deluge', 'Rain so heavy the land floods.', startDeluge],
+];
+function disastersSheet() {
+  const rows = [menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); }), menuBtn('Restore the cove', worldUndo.length ? 'Go back to before the last disaster (' + worldUndo.length + ' saved)' : 'Nothing to restore yet', restoreWorld)];
+  if (prefs.gentle) rows.push(menuHead('Gentle mode is on, so disasters are off. Change it in Menu, Sandbox.'));
+  else { rows.push(menuHead('Pick a disaster. It starts at the middle of the view.')); for (const [n, d, fn] of DISASTERS) rows.push(menuBtn(n, d, () => { if (!gateDisaster()) return; pushWorldUndo(); closeMenu(); fn(); })); }
+  openMenu(rows);
+}
+$('mSandbox').addEventListener('click', sandboxSheet);
+const calmBtn = $('calmBtn');
+calmBtn.addEventListener('click', () => calm());
+function updateGuards() { const on = effectsCount() > 0 || Math.abs(surge.level) > 0.3; calmBtn.hidden = !on || mode === 'fp'; }
+
+window.__sc = { prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

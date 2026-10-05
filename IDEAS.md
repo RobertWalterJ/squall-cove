@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.3
+Classes and menus: a class picker for Build, a Disasters sheet, always-visible Calm all, Restore the cove, Gentle mode and an effects limit (Menu, Sandbox).
+
 ## Done in v5.2
 Materials pack: sand that piles and slides, Sand fountain, Furnace, Lightning rod, Sand brush. Very high heat (lightning, meteor, lava, furnace) melts sand and it cools into glass. Lightning on sand leaves a branching glass tube.
 
