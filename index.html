@@ -243,6 +243,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>People</b><span>Select, then tap a boat to board, a crate to carry, land to walk</span>
         <b>First person</b><span>Left stick walks, drag the right side to look, Use and Drop on the buttons</span>
       </div>
+      <p id="installNote" style="margin:10px 0;font-size:14px;line-height:1.45"></p><button id="bInstall2" type="button" hidden style="margin-bottom:10px">Install on this phone</button>
       <button class="go" id="go" type="button">Open the cove</button>
     </div>
   </div>
@@ -269,7 +270,10 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch); if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 let installEv = null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstall'); if (b) b.hidden = false; });
-addEventListener('appinstalled', () => { installEv = null; const b = document.getElementById('bInstall'); if (b) b.hidden = true; });
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const setInstallNote = () => { const n = document.getElementById('installNote'), b2 = document.getElementById('bInstall2'); if (!n) return; if (standalone) { n.textContent = ''; return; } b2.hidden = !installEv; n.textContent = installEv ? 'Tap Install to add Squall Cove to your home screen.' : 'To install: open this page in Chrome, tap the three dots at the top right, then Install app or Add to Home screen. On iPhone use Safari, Share, then Add to Home Screen.'; };
+addEventListener('DOMContentLoaded', setInstallNote); addEventListener('beforeinstallprompt', () => setTimeout(setInstallNote, 0));
+addEventListener('appinstalled', () => { installEv = null; const b = document.getElementById('bInstall'); if (b) b.hidden = true; setInstallNote(); });
 let quality = isTouch ? 'low' : 'high';
 try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch (e) {}
 
@@ -2822,6 +2826,7 @@ $('bDel').addEventListener('click', () => { const bs = selBoats().filter(() => b
 $('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.length) return; if (ps.every(q => q.state === 'rag')) ps.forEach(standUp); else ps.forEach(q => { if (q.state !== 'rag') topple(q, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); }); refreshPanel(); });
 $('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
 $('bBoat').addEventListener('click', nextBoat);
+$('bInstall2').addEventListener('click', () => $('bInstall').click());
 $('bInstall').addEventListener('click', async () => { if (!installEv) return; installEv.prompt(); try { await installEv.userChoice; } catch (e) {} installEv = null; $('bInstall').hidden = true; });
 $('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
 $('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
