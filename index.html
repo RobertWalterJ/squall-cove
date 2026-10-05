@@ -69,6 +69,12 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 #objective[hidden]{display:none}
 #calmBtn{position:fixed;left:12px;bottom:calc(228px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;text-transform:uppercase;z-index:5;box-shadow:0 4px 18px #0008}
 #calmBtn[hidden]{display:none}
+#legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:4;pointer-events:none}
+#legend[hidden]{display:none}
+#camPad{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,52px);gap:6px;z-index:4;touch-action:none}
+#camPad[hidden]{display:none}
+#camPad button{min-width:52px;min-height:46px;padding:4px 6px;font-size:13px;background:rgba(12,26,32,.82);touch-action:none}
+#menuSheet{position:fixed;inset:0;z-index:30;overflow-y:auto}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mbody{display:grid;gap:8px}
 .mhead{font:600 13px/1.3 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:4px}
@@ -185,12 +191,14 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mNew" type="button">New cove</button><button id="mScen" type="button">Scenarios</button>
     <button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button>
-    <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button" hidden>Install</button>
+    <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
   <button id="mSandbox" type="button">Sandbox settings</button>
   <button class="go" id="mClose" type="button">Close</button>
 </div></div>
+<div id="legend" hidden></div>
+<div id="camPad" hidden aria-label="Camera"><button id="cmIn" type="button" aria-label="Zoom in">+</button><button id="cmOut" type="button" aria-label="Zoom out">-</button><button id="cmL" type="button" aria-label="Turn left">&#8634;</button><button id="cmR" type="button" aria-label="Turn right">&#8635;</button><button id="cmU" type="button" aria-label="Tilt up">Tilt &#9650;</button><button id="cmD" type="button" aria-label="Tilt down">Tilt &#9660;</button><button id="cmTop" type="button">Top</button><button id="cmReset" type="button">Reset</button></div>
 <button id="calmBtn" type="button" hidden>Calm all</button>
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
@@ -218,6 +226,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="bFollow" type="button" hidden>Follow</button>
     <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
     <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
+    <button id="bInstallTop" type="button" hidden>Install app</button>
     <button id="bMenu" type="button">Menu</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
   </nav>
@@ -303,11 +312,11 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch); if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
-let installEv = null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstall'); if (b) b.hidden = false; });
+let installEv = null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstallTop'); if (b && !(matchMedia('(display-mode: standalone)').matches || navigator.standalone)) b.hidden = false; });
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const setInstallNote = () => { const n = document.getElementById('installNote'), b2 = document.getElementById('bInstall2'); if (!n) return; if (standalone) { n.textContent = ''; return; } b2.hidden = !installEv; n.textContent = installEv ? 'Tap Install to add Squall Cove to your home screen.' : 'To install: open this page in Chrome, tap the three dots at the top right, then Install app or Add to Home screen. On iPhone use Safari, Share, then Add to Home Screen.'; };
-addEventListener('DOMContentLoaded', setInstallNote); addEventListener('beforeinstallprompt', () => setTimeout(setInstallNote, 0));
-addEventListener('appinstalled', () => { installEv = null; const b = document.getElementById('bInstall'); if (b) b.hidden = true; setInstallNote(); });
+addEventListener('DOMContentLoaded', () => { setInstallNote(); if (standalone) { const b = document.getElementById('bInstall'); if (b) b.hidden = true; } }); addEventListener('beforeinstallprompt', () => setTimeout(setInstallNote, 0));
+addEventListener('appinstalled', () => { installEv = null; for (const id of ['bInstall', 'bInstallTop']) { const b = document.getElementById(id); if (b) b.hidden = true; } setInstallNote(); });
 let quality = isTouch ? 'low' : 'high';
 try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch (e) {}
 
@@ -319,6 +328,7 @@ function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'
 /* ================================================================ waves (one function for GPU and physics) */
 const WAVES = [[0.20, 0.98, 0.16, 1.00, 0.0], [-0.60, 0.80, 0.27, 0.55, 1.3], [0.71, 0.70, 0.45, 0.30, 2.1], [0.10, 0.995, 0.90, 0.12, 0.7]];
 const sea = { amp: 0.25 };
+let climHDirty = true;                              // set whenever the ground changes, so the air grid refreshes its heights
 const tWin = { x: 0, y: 0, z: 0 };                 // scratch: the wind at one place
 const surge = { level: 0 };                       // storm surge or tsunami: the whole sea rises and falls together
 const WD = new Float32Array(257 * 257); let lakeWet = 0;    // water lying on the land (springs, pours), one depth per terrain cell
@@ -1307,6 +1317,7 @@ function brush(px, pz, dt) {
 }
 function commitLand(full) {
   if (!land.dirty) return;
+  climHDirty = true;
   for (let k = 0; k < TN * TN; k++) posAttr.array[k * 3 + 1] = HGT[k];
   posAttr.needsUpdate = true; terrainMesh.geometry.computeVertexNormals(); terrainMesh.geometry.computeBoundingSphere();
   heightTex.needsUpdate = true;
@@ -2586,12 +2597,12 @@ function setWindFrom(k) {
 const _updateWind = updateWind;
 
 /* ================================================================ camera rigs */
-const god = { tgt: new THREE.Vector3(0, 0, 10), yaw: Math.PI * 0.8, dist: 175, minD: 14, maxD: 340, vel: new THREE.Vector2(), follow: null };
+const god = { tgt: new THREE.Vector3(0, 0, 10), yaw: Math.PI * 0.8, dist: 175, minD: 14, maxD: 340, vel: new THREE.Vector2(), follow: null, tilt: 0, top: 0, topV: 0, fling: new THREE.Vector2(), fly: null };
 function godPitch() { const u = clamp((god.dist - god.minD) / (god.maxD - god.minD), 0, 1); return 0.5 + 0.78 * Math.pow(u, 0.7); }
 function panBy(dxPx, dyPx) {
   const k = god.dist * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / innerHeight;
   const rx = Math.cos(god.yaw), rz = -Math.sin(god.yaw), fx = -Math.sin(god.yaw), fz = -Math.cos(god.yaw);
-  const ky = k / Math.max(0.45, Math.sin(godPitch()));
+  const ky = k / Math.max(0.45, Math.sin(curPitch()));
   god.tgt.x += -dxPx * k * rx + dyPx * ky * fx; god.tgt.z += -dxPx * k * rz + dyPx * ky * fz;   // the map follows the finger
   god.tgt.x = clamp(god.tgt.x, -220, 220); god.tgt.z = clamp(god.tgt.z, -220, 220); god.follow = null;
 }
@@ -2647,7 +2658,7 @@ const twoInfo = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypo
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('pointerdown', (e) => {
   if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
-  canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button });
+  canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button }); god.fling.set(0, 0); god.fly = null; god._pt = performance.now();
   if (ptrs.size === 1) {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
     if (mode === 'god' && tool === 'select' && e.button === 0 && (boxMode || e.shiftKey)) marq = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY, add: e.shiftKey || e.ctrlKey, active: false };
@@ -2676,8 +2687,8 @@ canvas.addEventListener('pointermove', (e) => {
     const dx = e.clientX - ox, dy = e.clientY - oy;
     if (mode === 'helm') { camS.yaw -= dx * 0.006; camS.pitch = clamp(camS.pitch + dy * 0.005, 0.03, 1.35); camS.lastDrag = performance.now() / 1000; return; }
     if (land.painting) { hoverPt = pick(e.clientX, e.clientY - (e.pointerType === 'touch' ? 70 : 0)); return; }
-    if (p.btn === 2) { god.yaw -= dx * 0.006; god.dist = clamp(god.dist * Math.exp(dy * 0.004), god.minD, god.maxD); }
-    else panScreen(ox, oy, e.clientX, e.clientY);
+    if (p.btn === 2 || p.btn === 1) { god.yaw -= dx * 0.006; god.tilt = clamp(god.tilt + dy * 0.004, -0.5, 0.75); god.fly = null; }                // right or middle drag turns and tilts
+    else { const tx = god.tgt.x, tz = god.tgt.z, nw = performance.now(), dtm = Math.max(8, nw - (god._pt || nw)) / 1000; god._pt = nw; panScreen(ox, oy, e.clientX, e.clientY); god.fling.x += ((god.tgt.x - tx) / dtm - god.fling.x) * 0.5; god.fling.y += ((god.tgt.z - tz) / dtm - god.fling.y) * 0.5; if (god.fling.length() > 320) god.fling.setLength(320); }
   } else if (ptrs.size === 2 && g2) {
     const n = twoInfo();
     if (mode === 'helm') { camS.dist = clamp(g2.dist * g2.d / n.d, 5, 120); return; }
@@ -2693,7 +2704,7 @@ const endPtr = (e) => {
   if (ptrs.size === 0) {
     if (land.painting) { land.painting = false; commitLand(true); }
     if (marq) { const m = marq; marq = null; $('marquee').hidden = true; if (m.active && e.type === 'pointerup') { selectInRect(m.x0, m.y0, m.x1, m.y1, m.add); downInfo = null; return; } }
-    if (downInfo && !downInfo.moved && performance.now() - downInfo.t < 450 && e.type === 'pointerup') tapAt(e.clientX, e.clientY, downInfo.btn, e.shiftKey || e.ctrlKey);
+    if (downInfo && !downInfo.moved && performance.now() - downInfo.t < 450 && e.type === 'pointerup') { god.fling.set(0, 0); tapOrFly(e, downInfo.btn, e.shiftKey || e.ctrlKey); }
     downInfo = null;
     if (e.pointerType !== 'mouse') hoverPt = null;     // no hover on touch: clear the brush ring once the finger lifts
   }
@@ -2703,7 +2714,7 @@ canvas.addEventListener('pointerleave', () => { lastMouse.on = false; if (!land.
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault(); if (mode === 'fp') return;
   if (mode === 'helm') camS.dist = clamp(camS.dist * Math.exp(e.deltaY * 0.0012), 5, 120);
-  else god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD);
+  else { const p0 = pick(e.clientX, e.clientY), d0 = god.dist; god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD); god.fly = null; if (p0) { const r = god.dist / d0; god.tgt.x = p0.x + (god.tgt.x - p0.x) * r; god.tgt.z = p0.z + (god.tgt.z - p0.z) * r; } }       // zoom toward the pointer
 }, { passive: false });
 function orderBoats(sb, p) {
   for (const b of sb) { b.route = null; b.loop = false; }                       // move boats to open water, or dock the first one at the shore
@@ -2930,6 +2941,8 @@ function renderTray(force = true) {
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Air'));
     [['Freezing', -15], ['Cold', 2], ['Cool', 10], ['Mild', 18], ['Warm', 28], ['Hot', 38], ['Scorching', 48]].forEach(([n, T]) => tray.append(chip(n, T + ' C', null, Math.abs(clim.T - T) < 5, () => setAirTemp(T), 'chip mini')));
+    tray.append(sep('Map'));
+    [['Off', 0], ['Heat', 1], ['Wet', 2]].forEach(([n, v]) => tray.append(chip(n, v === 1 ? 'air temperature' : v === 2 ? 'humidity, cloud' : '', null, mapMode === v, () => setMapMode(v), 'chip mini')));
     tray.append(sep('Wind view'));
     [['Off', 0], ['Ground', 1], ['Aloft', 2]].forEach(([n, v]) => tray.append(chip(n, v === 1 ? 'near the ground' : v === 2 ? 'high up' : '', null, windView === v, () => setWindView(v), 'chip mini')));
     tray.append(sep('Warm layer aloft'));
@@ -2966,7 +2979,15 @@ $('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.l
 $('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
 $('bBoat').addEventListener('click', nextBoat);
 $('bInstall2').addEventListener('click', () => $('bInstall').click());
-$('bInstall').addEventListener('click', async () => { if (!installEv) return; installEv.prompt(); try { await installEv.userChoice; } catch (e) {} installEv = null; $('bInstall').hidden = true; });
+function installSteps() {
+  openMenu([menuHead('Install on your phone'),
+    menuBtn('Android, Chrome', 'Tap the three dots at the top right, then Install app (or Add to Home screen).', () => { }),
+    menuBtn('iPhone, Safari', 'Tap Share, then Add to Home Screen.', () => { }),
+    menuBtn('Chrome says it is already installed?', 'Reload this page, then tap Install on phone again. If it still fails, tell Claude. Do not clear site data: that erases saved progress in your other apps.', () => { }),
+    menuBtn('Try the install prompt now', 'Works when Chrome is ready to offer it.', async () => { if (installEv) { installEv.prompt(); try { await installEv.userChoice; } catch (e) { } installEv = null; $('bInstallTop').hidden = true; } else toast('Chrome has not offered it yet. Use the three dots menu steps.'); })]);
+}
+$('bInstall').addEventListener('click', async () => { if (!installEv) { installSteps(); return; } installEv.prompt(); try { await installEv.userChoice; } catch (e) { } installEv = null; $('bInstallTop').hidden = true; });
+$('bInstallTop').addEventListener('click', () => $('bInstall').click());
 $('bHelp').addEventListener('click', () => { $('help').hidden = false; $('go').focus(); });
 $('go').addEventListener('click', () => { $('help').hidden = true; canvas.focus(); });
 $('bRight').addEventListener('click', rightBoat);
@@ -3050,7 +3071,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3077,7 +3098,7 @@ function frame(now) {
     if (god.follow && boats.includes(god.follow)) { const p = god.follow.body.interpolatedPosition; god.tgt.x += (p.x - god.tgt.x) * (1 - Math.exp(-dt * 3)); god.tgt.z += (p.z - god.tgt.z) * (1 - Math.exp(-dt * 3)); }
     const gy = Math.max(0, heightAt(god.tgt.x, god.tgt.z) * 0.6);
     god.tgt.y += (gy - god.tgt.y) * (1 - Math.exp(-dt * 4));
-    const pit = godPitch(), cp = Math.cos(pit);
+    const pit = curPitch(), cp = Math.cos(pit);
     camera.position.set(god.tgt.x + Math.sin(god.yaw) * cp * god.dist, god.tgt.y + Math.sin(pit) * god.dist, god.tgt.z + Math.cos(god.yaw) * cp * god.dist);
     camera.position.y = Math.max(camera.position.y, heightAt(camera.position.x, camera.position.z) + 4);
     camera.lookAt(god.tgt);
@@ -3140,7 +3161,7 @@ function frame(now) {
       fb.body.quaternion.vmult(fwdV.set(1, 0, 0), fwdV);
       const v = fb.body.velocity; $('sog').textContent = (Math.hypot(v.x, v.z) * KN).toFixed(1) + ' kn';
       head = bearing(fwdV.x, fwdV.z); const twa = Math.abs(((from - head + 540) % 360) - 180);
-      if (mode === 'god') { $('pos').textContent = (fb.status || 'Anchored') + (fb.hpMax && fb.hp < fb.hpMax ? ' · hull ' + Math.round(100 * fb.hp / fb.hpMax) + '%' : ''); $('sheet').textContent = fb.sp.kind === 'motor' ? Math.round(fb.throttle * 100) + '%' : pointOfSail(twa); $('sheetLbl').textContent = fb.sp.kind === 'motor' ? 'Throttle' : 'Point'; }
+      if (mode === 'god') { $('pos').textContent = (fb.status || 'Anchored') + (fb.ice > 0.05 ? ' · ice ' + Math.round(fb.ice * 100) + '%' : '') + (fb.hpMax && fb.hp < fb.hpMax ? ' · hull ' + Math.round(100 * fb.hp / fb.hpMax) + '%' : ''); $('sheet').textContent = fb.sp.kind === 'motor' ? Math.round(fb.throttle * 100) + '%' : pointOfSail(twa); $('sheetLbl').textContent = fb.sp.kind === 'motor' ? 'Throttle' : 'Point'; }
       else if (fb.sp.kind === 'motor') { $('pos').textContent = 'Under power'; $('sheet').textContent = Math.round(fb.throttle * 100) + '%' + (fb.throttle < 0 ? ' astern' : ''); }
       else { $('pos').textContent = pointOfSail(twa) + (Math.abs(fb.aoa || 0) < 0.12 && twa > 38 ? ', luffing' : ''); $('sheet').textContent = (fb.auto ? 'Auto ' : '') + Math.round(Math.abs(fb.beta) * 180 / Math.PI) + '°'; }
     } else if (selPerson && mode === 'god' && sel.length === 1) { $('sog').textContent = ''; $('pos').textContent = personStatus1(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
@@ -3700,6 +3721,7 @@ function startDeluge() { dis.deluge = 150; stormUp(2, 1, 3); toast('Deluge. The 
 /* ================================================================ v5.1: climate. Heat evaporates water, vapour drifts, cool air aloft turns it to cloud and rain. */
 const CN = 64, CK = CN * CN;                                    // a coarse 64 x 64 air grid, 4 m cells
 const CT = new Float32Array(CK).fill(18), CH = new Float32Array(CK).fill(5), CC = new Float32Array(CK), CT2 = new Float32Array(CK), CH2 = new Float32Array(CK), CC2 = new Float32Array(CK), CHT = new Float32Array(CK);
+const CHG = new Float32Array(64 * 64);                            // ground height at the centre of each air cell
 const CW = new Float32Array(64 * 64).fill(16);                     // the warm layer a few hundred metres up (slower to change than the ground)
 const clim = { nose: 0, mid: 16, p: { rain: 1, snow: 0, frz: 0, sleet: 0 }, T: 18, acc: 0, emitT: 0, cloud: 0, hum: 0, rainLvl: 0, mean: 18, hotCells: 0 };
 const heatSrc = [];
@@ -3713,19 +3735,20 @@ function csample(arr, x, z) {
 const airTempAt = (x, z) => csample(CT, x, z);
 function stepClimate(dt) {
   const k1 = 1 - Math.exp(-dt / 20), k1sea = 1 - Math.exp(-dt / 70);
+  if (climHDirty) { for (let c = 0; c < CK; c++) CHG[c] = heightAt((c % CN) * 4 - TH + 2, ((c - c % CN) / CN) * 4 - TH + 2); climHDirty = false; }
   CHT.fill(0);
   if (lavaOn) for (let i = Math.max(2, lbx.z0); i <= Math.min(TN - 3, lbx.z1); i++) for (let j = Math.max(2, lbx.x0); j <= Math.min(TN - 3, lbx.x1); j++) { const k = i * TN + j; if (LV[k] > 0.02 && LT[k] > 0.25) { const c = ((i >> 2) * CN) + (j >> 2); if (c >= 0 && c < CK) CHT[c] += LT[k] * 0.45; } }
   for (const s of heatSrc) { const cj = (s.x + TH) / 4, ci = (s.z + TH) / 4, R = s.r / 4; for (let i = Math.max(0, Math.floor(ci - R)); i <= Math.min(CN - 1, Math.ceil(ci + R)); i++) for (let j = Math.max(0, Math.floor(cj - R)); j <= Math.min(CN - 1, Math.ceil(cj + R)); j++) { const d = Math.hypot(j - cj, i - ci); if (d < R) CHT[i * CN + j] += s.k * (1 - d / R) / 1; } }
   let tSum = 0, cSum = 0, hSum = 0, hot = 0, wSum = 0; const kW = 1 - Math.exp(-dt / 90);
   for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
-    const c = i * CN + j, x = j * 4 - TH + 2, z = i * 4 - TH + 2, h = heightAt(x, z);
+    const c = i * CN + j, x = j * 4 - TH + 2, z = i * 4 - TH + 2, h = CHG[c];
     const l = j > 0 ? CT[c - 1] : CT[c], r = j < CN - 1 ? CT[c + 1] : CT[c], u = i > 0 ? CT[c - CN] : CT[c], d = i < CN - 1 ? CT[c + CN] : CT[c];
     let T = CT[c] + 0.15 * ((l + r + u + d) / 4 - CT[c]);                                     // spreads a little to its neighbours
     T += ((clim.T + SOLAR[wx.sky] * (h < 0 ? 0.3 : 1) - 0.15 * Math.max(h, 0)) - T) * (h < 0 ? k1sea : k1) + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
     T = Math.max(-60, Math.min(160, T)); CT2[c] = T;
     CW[c] += ((clim.T - 2 + clim.nose - 0.15 * Math.max(h, 0)) - CW[c]) * kW + CHT[c] * dt * 0.5; wSum += CW[c];
     // evaporation from open water, faster when hot
-    let wet = h < 0 ? 1 : Math.min(1, lakeDepth(x, z) * 6), hu = CH[c];
+    let wet = h < 0 ? 1 : lakeWet > 0 ? Math.min(1, lakeDepth(x, z) * 6) : 0, hu = CH[c];
     if (wet > 0 && T > 8) {
       const room = 0.65 * qsat(T) - hu;
       if (room > 0) { const e = Math.min(room, 0.5 * (T - 8) / 20 * wet * dt * (h < 0 ? 0.35 : 1)); hu += e; if (h >= 0) { const amt = e * 0.003; const gx = Math.round(x + TH) - 2, gz = Math.round(z + TH) - 2; for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) { const kk = (gz + a) * TN + gx + b; if (WD[kk] > 0) WD[kk] = Math.max(0, WD[kk] - amt); } } }
@@ -3733,7 +3756,7 @@ function stepClimate(dt) {
     CH2[c] = hu; tSum += T; hSum += hu; if (T > 60) hot++;
   }
   // vapour and cloud drift with the wind (semi-Lagrangian), then condense or clear
-  computeWinds();
+  if ((clim.n = (clim.n || 0) + 1) % 2 === 1) computeWinds();                // the wind pattern changes slowly, so every other step is plenty
   for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
     const c = i * CN + j;
     let fx = Math.max(0, Math.min(CN - 1.001, j - (wind.v.x + TU[c]) * dt / 4)), fz = Math.max(0, Math.min(CN - 1.001, i - (wind.v.z + TV[c]) * dt / 4));       // vapour drifts with the wind near the ground
@@ -3755,7 +3778,7 @@ function stepClimate(dt) {
   if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; wx.rain = lvl; if (lvl > 0 && wx.fog === 0 && clim.mean > 3) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
 }
 function updateClimate(dt) {
-  clim.acc += dt; if (clim.acc >= 0.2) { const s = Math.min(0.5, clim.acc); clim.acc = 0; stepClimate(s); }
+  clim.acc += dt; if (clim.acc >= 0.33) { const s = Math.min(0.7, clim.acc); clim.acc = 0; stepClimate(s); updateMapOverlay(); }
   clim.emitT -= dt;
   if (clim.emitT <= 0) {
     clim.emitT = 0.25;
@@ -3906,6 +3929,7 @@ function gateDisaster() {
 function sandboxSheet() {
   const row = (label, sub, on, fn) => menuBtn(label + ': ' + (on ? 'On' : 'Off'), sub, () => { fn(); savePrefs(); sandboxSheet(); });
   openMenu([menuHead('Sandbox settings'),
+    row('Camera pad', 'Buttons to zoom, turn and tilt the view.', prefs.camPad, () => { prefs.camPad = !prefs.camPad; }),
     row('Gentle mode', 'Turns off disasters. Good for young players.', prefs.gentle, () => { prefs.gentle = !prefs.gentle; if (prefs.gentle) calm(); }),
     menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
     menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
@@ -3984,7 +4008,7 @@ function stepEnv(dt) {
 }
 function updateIce(dt) {
   iceAcc += dt; if (iceAcc >= 0.25) { const s = iceAcc; iceAcc = 0; stepIce(s); }
-  envAcc += dt; if (envAcc >= 0.25) { const s = envAcc; envAcc = 0; stepEnv(s); }
+  envAcc += dt; if (envAcc >= 0.25) { const s = envAcc; envAcc = 0; stepEnv(s); updateBoatIce(s); }
 }
 function clearIce() { snowData.fill(0); snowTex.needsUpdate = true; iceActive = false; for (const p of people) { p.cold = 0; p.heat = 0; p.frozen = false; } }
 
@@ -4062,7 +4086,104 @@ function updateStorms(dt) {
   for (let n = 0; n < 24; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 2.2 && CUP[c] > 0.8) { const j = c % CN, i = (c - j) / CN; strikeAt(j * 4 - TH + 2 + rnd(-2, 2), i * 4 - TH + 2 + rnd(-2, 2)); noteOnce('storm', 'A thunderstorm has built over the hot, wet ground.'); break; } }
 }
 
-window.__sc = { TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.7: heat and wet map overlay, ice on boats, lighter climate update */
+/* ---- map overlay: colours draped over the land and sea */
+let mapMode = 0, mapT = 0;                                   // 0 off, 1 heat, 2 wet
+const mapCol = new Float32Array(CK * 4), mapPos = new Float32Array(CK * 3);
+const mapGeo = new THREE.BufferGeometry();
+(() => {
+  const idx = []; for (let i = 0; i < CN - 1; i++) for (let j = 0; j < CN - 1; j++) { const a = i * CN + j; idx.push(a, a + CN, a + 1, a + 1, a + CN, a + CN + 1); }
+  mapGeo.setIndex(idx); mapGeo.setAttribute('position', new THREE.BufferAttribute(mapPos, 3)); mapGeo.setAttribute('color', new THREE.BufferAttribute(mapCol, 4));
+})();
+const mapMesh = new THREE.Mesh(mapGeo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+mapMesh.frustumCulled = false; mapMesh.renderOrder = 3; mapMesh.visible = false; scene.add(mapMesh);
+const HEAT_STOPS = [[-30, 0.25, 0.25, 0.9], [-10, 0.3, 0.6, 1], [0, 0.55, 0.82, 1], [12, 0.3, 0.85, 0.4], [22, 1, 0.92, 0.25], [32, 1, 0.6, 0.2], [45, 0.9, 0.15, 0.1], [90, 1, 1, 1]];
+function heatRamp(T, out, o) {
+  let a = HEAT_STOPS[0], b = HEAT_STOPS[HEAT_STOPS.length - 1];
+  if (T <= a[0]) { out[o] = a[1]; out[o + 1] = a[2]; out[o + 2] = a[3]; return; }
+  for (let i = 1; i < HEAT_STOPS.length; i++) if (T <= HEAT_STOPS[i][0]) { a = HEAT_STOPS[i - 1]; b = HEAT_STOPS[i]; const u = (T - a[0]) / (b[0] - a[0]); out[o] = a[1] + (b[1] - a[1]) * u; out[o + 1] = a[2] + (b[2] - a[2]) * u; out[o + 2] = a[3] + (b[3] - a[3]) * u; return; }
+  out[o] = b[1]; out[o + 1] = b[2]; out[o + 2] = b[3];
+}
+function updateMapOverlay() {
+  if (!mapMode) return;
+  for (let c = 0; c < CK; c++) {
+    const j = c % CN, i = (c - j) / CN, o = c * 4;
+    mapPos[c * 3] = j * 4 - TH + 2; mapPos[c * 3 + 1] = Math.max(CHG[c], surge.level) + 0.5; mapPos[c * 3 + 2] = i * 4 - TH + 2;
+    if (mapMode === 1) { heatRamp(CT[c], mapCol, o); mapCol[o + 3] = 0.5; }
+    else { const rh = Math.max(0, Math.min(1, CH[c] / Math.max(0.5, qsat(CT[c])))), cl = Math.min(1, CC[c] / 2); mapCol[o] = 0.85 - rh * 0.65 + cl * 0.1; mapCol[o + 1] = 0.78 - rh * 0.2 + cl * 0.1; mapCol[o + 2] = 0.55 + rh * 0.3 + cl * 0.15; mapCol[o + 3] = 0.42 + cl * 0.2; }
+  }
+  mapGeo.attributes.position.needsUpdate = true; mapGeo.attributes.color.needsUpdate = true;
+}
+const legendEl = $('legend');
+function setMapMode(m) { mapMode = m; mapMesh.visible = m > 0; legendEl.hidden = m === 0; if (m) updateMapOverlay(); renderTray(true); toast(m === 0 ? 'Map off' : m === 1 ? 'Heat map: blue is cold, orange and red are hot' : 'Wet map: tan is dry, teal is damp, grey is cloud'); }
+function updateLegend(dt) {
+  if (!mapMode) return; mapT -= dt; if (mapT > 0) return; mapT = 0.25;
+  const p = reticlePt() || { x: 0, z: 0 };
+  legendEl.textContent = mapMode === 1 ? 'Heat map. Blue cold, orange hot. At the cross: ' + Math.round(airTempAt(p.x, p.z)) + ' C' : 'Wet map. Tan dry, teal damp, grey cloud. At the cross: ' + Math.round(100 * Math.min(1, csample(CH, p.x, p.z) / Math.max(0.5, qsat(airTempAt(p.x, p.z))))) + '% humid';
+}
+/* ---- ice on boats: freezing spray and snow add weight, which sits the boat lower and makes it top heavy */
+function updateBoatIce(dt) {
+  for (const bt of boats) {
+    if (bt.sunk) continue; const T = airTempAt(bt.body.position.x, bt.body.position.z), small = Math.max(0.1, Math.min(1, 1 - bt.sp.L / 70)), brk = ICEBREAKERS.includes(bt.key) ? 0.25 : 1;
+    const wet = Math.min(1, 0.4 + sea.amp * 1.2 + wx.rainAmt * 0.6), v0 = bt.ice || 0;
+    let ice = v0;
+    if (T < -2) ice += dt * 0.004 * Math.min(2, (-T) / 8) * wet * (0.4 + small) * brk; else if (T > 0) ice -= dt * 0.006 * Math.min(4, T);
+    ice = Math.max(0, Math.min(1, ice)); bt.ice = ice;
+    if (Math.abs(ice - (bt.iceApplied || 0)) > 0.02 || (ice === 0 && bt.iceApplied)) {
+      if (!bt.m0) bt.m0 = bt.body.mass; bt.body.mass = bt.m0 * (1 + 0.2 * small * ice + 0.04 * ice); bt.body.updateMassProperties();
+      if (bt.hCE0 === undefined) bt.hCE0 = bt.hCE; if (bt.sp.kind === 'sail') bt.hCE = bt.hCE0 * (1 + 0.5 * ice);
+      bt.iceApplied = ice;
+    }
+    if (ice > 0.5 && !bt.iceWarned) { bt.iceWarned = true; noteOnce('iceboat', 'Ice weighs the ' + bt.sp.name + ' down. Warm the air or head for warmer water.'); } else if (ice < 0.2) bt.iceWarned = false;
+  }
+}
+
+if (prefs.camPad === undefined) prefs.camPad = isTouch;
+let lastMapTap = { t: 0, x: 0, y: 0 };
+function tapOrFly(e, btn, mods) {
+  const now = performance.now();
+  if (mode === 'god' && tool === 'select' && !sel.length && !boxMode && !fireMode && !routeMode && btn !== 2) {
+    const near = now - lastMapTap.t < 380 && Math.hypot(e.clientX - lastMapTap.x, e.clientY - lastMapTap.y) < 36;
+    if (near && !personAtScreen(e.clientX, e.clientY) && !boatUnderTap(e.clientX, e.clientY) && !objectAtScreen(e.clientX, e.clientY)) { const p = pick(e.clientX, e.clientY); if (p) { camFlyTo(p.x, p.z, god.dist * 0.5); lastMapTap.t = 0; return; } }
+    lastMapTap = { t: now, x: e.clientX, y: e.clientY };
+  }
+  tapAt(e.clientX, e.clientY, btn, mods);
+}
+/* ================================================================ v5.7: better camera. Tilt, zoom to the pointer, momentum, double-tap to fly, and a camera pad. */
+const camHold = { zi: 0, zo: 0, tl: 0, tr: 0, tu: 0, td: 0 };
+function camReset() {
+  const f = boats.length ? nearFleet() : { x: 0, z: 0 };
+  god.fly = { x: f.x, z: f.z, dist: 175, yaw: Math.PI * 0.8, tilt: 0, top: 0 }; god.follow = null; god.fling.set(0, 0);
+}
+function camFlyTo(x, z, dist) { god.fly = { x, z, dist: Math.max(god.minD, Math.min(god.maxD, dist)) }; god.follow = null; god.fling.set(0, 0); }
+function updateCamera(dt) {
+  if (mode !== 'god') return;
+  const h = camHold;
+  if (h.zi) god.dist = clamp(god.dist * (1 - 0.9 * dt), god.minD, god.maxD); if (h.zo) god.dist = clamp(god.dist * (1 + 0.9 * dt), god.minD, god.maxD);
+  if (h.tl) god.yaw += 1.3 * dt; if (h.tr) god.yaw -= 1.3 * dt;
+  if (h.tu) god.tilt = clamp(god.tilt + 0.9 * dt, -0.5, 0.75); if (h.td) god.tilt = clamp(god.tilt - 0.9 * dt, -0.5, 0.75);
+  if (keys.has('pageup')) god.tilt = clamp(god.tilt + 0.9 * dt, -0.5, 0.75); if (keys.has('pagedown')) god.tilt = clamp(god.tilt - 0.9 * dt, -0.5, 0.75);
+  if (keys.has('home')) camReset();
+  god.topV += ((god.top ? 1 : 0) - god.topV) * (1 - Math.exp(-dt * 5));
+  if (god.fling.lengthSq() > 0.4 && ptrs.size === 0) { god.tgt.x = clamp(god.tgt.x + god.fling.x * dt, -220, 220); god.tgt.z = clamp(god.tgt.z + god.fling.y * dt, -220, 220); god.fling.multiplyScalar(Math.exp(-3.2 * dt)); } else god.fling.set(0, 0);
+  const f = god.fly;
+  if (f) {
+    const k = 1 - Math.exp(-dt * 4.5); god.tgt.x += (f.x - god.tgt.x) * k; god.tgt.z += (f.z - god.tgt.z) * k; god.dist += (f.dist - god.dist) * k;
+    if (f.yaw !== undefined) { let dy = f.yaw - god.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); god.yaw += dy * k; }
+    if (f.tilt !== undefined) god.tilt += (f.tilt - god.tilt) * k; if (f.top !== undefined) god.top = f.top;
+    if (Math.hypot(f.x - god.tgt.x, f.z - god.tgt.z) < 0.4 && Math.abs(f.dist - god.dist) < 0.8) god.fly = null;
+  }
+}
+const curPitch = () => clamp(godPitch() + god.tilt + god.topV * 0.9, 0.28, 1.5);
+/* ---- the pad: hold a button to keep turning, tilting or zooming */
+const camPad = $('camPad');
+const padBind = (id, key) => { const b = $(id); const on = (e) => { e.preventDefault(); camHold[key] = 1; god.fly = null; god.fling.set(0, 0); try { b.setPointerCapture(e.pointerId); } catch (x) { } }, off = () => { camHold[key] = 0; }; b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off); };
+padBind('cmIn', 'zi'); padBind('cmOut', 'zo'); padBind('cmL', 'tl'); padBind('cmR', 'tr'); padBind('cmU', 'tu'); padBind('cmD', 'td');
+$('cmTop').addEventListener('click', () => { god.top = god.top ? 0 : 1; god.fly = null; toast(god.top ? 'Top view' : 'Angled view'); });
+$('cmReset').addEventListener('click', () => { camReset(); toast('Camera reset'); });
+function updateCamPad() { camPad.hidden = !(mode === 'god' && prefs.camPad && $('help').hidden && menuSheet.hidden); }
+
+window.__sc = { camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

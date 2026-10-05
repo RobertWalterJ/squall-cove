@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.7
+Heat and wet map overlay with a legend and a readout at the cross. Ice on boats (extra weight, top heavy sails, icebreakers shed it). Lighter climate update. Better camera: tilt, top view, zoom to the pointer, momentum, double tap to fly, a camera pad. Install on phone button in the Menu and the top buttons. Fixed the Menu sheet being hidden behind the screen.
+
 ## Done in v5.6
 Thermal winds: warm ground draws wind in, cold ground pushes it out, the air aloft flows the other way. Sea breeze by day, land breeze by night. Convection builds cloud and thunderstorms over hot wet ground. Wind view arrows (ground or aloft). Boats, sails, flags, objects and clouds all feel the local wind.
 
