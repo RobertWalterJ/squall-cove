@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v4.8
+Volcano: place it in deep water and it builds an island, or on land and it builds a cone. Ash column, lava bombs, glowing crater, dark ash ground.
+
 ## Done in v4.7
 Placeable water (spring, big spring, pour, drain) that flows downhill, pools and drains to the sea. Catastrophes: hurricane with storm surge, tsunami, tornado, lightning storm, earthquake, meteor, and Calm.
 
@@ -23,3 +26,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Boats in lakes (the placement check only knows the sea today).
 - Fire that spreads over forest, and rain that feeds springs.
 - Flood warnings and rescue scenarios built on the new disasters.
+- Lava flows down the volcano's flanks (the water solver could carry a second, thicker fluid).
+- Plants and trees slowly returning to a cooled volcanic island.
+- Volcano that wakes again on its own, and a tsunami from a big submarine blast.

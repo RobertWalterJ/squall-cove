@@ -499,6 +499,8 @@ const canopyTex = new THREE.CanvasTexture(canopyCanvas); canopyTex.colorSpace = 
 
 const terrainU = { uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value: albArr }, tNrm: { value: nrmArr }, tOrh: { value: orhArr },
   tMacro: { value: macroTex }, tCanopy: { value: canopyTex } };
+const ashData = new Uint8Array(257 * 257), ashTex = new THREE.DataTexture(ashData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType);       // where volcanic ash and rock lie
+ashTex.minFilter = ashTex.magFilter = THREE.LinearFilter; ashTex.needsUpdate = true; terrainU.tAsh = { value: ashTex };
 const terrainMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 });
 terrainMat.onBeforeCompile = (sh) => {
   Object.assign(sh.uniforms, terrainU);
@@ -508,7 +510,7 @@ terrainMat.onBeforeCompile = (sh) => {
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>
       precision highp sampler2DArray;
-      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy; uniform float uTime, uAmp;
+      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy, tAsh; uniform float uTime, uAmp;
       varying vec3 vWPos; varying vec3 vWNrm; varying float vAO;
       ${WAVE_GLSL.replace('uniform float uTime; uniform float uAmp;', '')}
       const float SCALE[6] = float[6](0.33, 0.30, 0.42, 0.36, 0.22, 0.12);
@@ -563,6 +565,8 @@ terrainMat.onBeforeCompile = (sh) => {
       alb /= tw; pert /= tw; rough /= tw; aoT /= tw;
       alb *= 0.86 + 0.28 * macro.g;                                         // large-scale tonal drift breaks tiling
       alb *= mix(vec3(1.0), vec3(0.92, 1.0, 0.86), clamp(macro2.r - 0.4, 0.0, 1.0) * wG);
+      float ash = texture2D(tAsh, (vWPos.xz + 128.5) / 257.0).r;
+      alb = mix(alb, vec3(0.05, 0.045, 0.045) * (0.6 + 0.8 * macro.g) + vec3(0.03, 0.025, 0.02) * macro2.r, ash * 0.92); rough = mix(rough, 0.95, ash);
       float under = smoothstep(0.0, -3.0, y);                              // underwater: darker, cooler
       alb = mix(alb, alb * vec3(0.55, 0.72, 0.72), under);
       float wet = smoothstep(swash + 0.15, swash - 0.05, y);               // freshly washed sand shines
@@ -1341,6 +1345,7 @@ const BUILD = [
   { cat: 'Island', id: 'buoy', name: 'Race mark', note: 'buoy', buoy: 'buoy0', sw: '#e3a948' },
   { cat: 'People', id: 'person', name: 'Person', note: 'walks, topples', person: 1, sw: '#7d9fb3' },
   { cat: 'People', id: 'crowd', name: 'Crowd', note: 'six at once', person: 6, sw: '#5f8196' },
+  { cat: 'Water', id: 'volcano', name: 'Volcano', note: 'builds an island', volcano: true, sw: '#c8431b' },
   { cat: 'Water', id: 'spring', name: 'Spring', note: 'endless source', water: 'spring', sw: '#3a8fc4' },
   { cat: 'Water', id: 'bigspring', name: 'Big spring', note: 'floods fast', water: 'big', sw: '#2a6fa4' },
   { cat: 'Water', id: 'pour', name: 'Pour', note: 'one splash', water: 'pour', sw: '#6fb0dc' },
@@ -1353,6 +1358,7 @@ function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
   if (item.erase) return erase(p);
   if (item.water) return placeWater(item, p);
+  if (item.volcano) return startVolcano(p);
   if (item.person) return placePeople(item.person, p);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, 0) + 7, z); return; }
   if (item.boat) {
@@ -2882,7 +2888,7 @@ function renderTray(force = true) {
     tray.append(sep('Fog'));
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Disasters'));
-    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
+    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Volcano', () => startVolcano(aimPt())], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' || n === 'Volcano' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
@@ -2996,7 +3002,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t);
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3127,7 +3133,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
-    wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
+    ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
 }
@@ -3147,7 +3153,7 @@ async function loadWorld(slot) {
     for (const pr of props) { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); } props.length = 0;
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
-    clearWater(); calm0(); if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
+    clearWater(); calm0(); if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
     const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
@@ -3404,6 +3410,7 @@ const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math
 function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wind.level = level; }
 function calm() {
   dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
+  for (const v of volcanoes) if (v.state !== 'dormant') { v.state = 'dormant'; v.t = 0; v.p = Math.max(v.p, 0.0); }
   wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
 }
 function startTornado(p) {
@@ -3489,10 +3496,89 @@ function updateDisasters(dt, t) {
 }
 const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-function calm0() { dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+function calm0() { clearVolcanoes(); dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
 const shakeV = new THREE.Vector3();
 
-window.__sc = { stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v4.8: volcano. Stand it in deep water and it builds an island. */
+const volcanoes = [], bombs = [];
+const bombGeo = new THREE.SphereGeometry(0.6, 8, 6), bombMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a, fog: false });
+const VR = 38;                                                         // footprint radius, metres
+const VPEAK = 22;                                                      // how high the cone finally stands above the sea
+function startVolcano(p) {
+  if (volcanoes.filter(v => v.state !== 'dormant').length >= 2) { toast('One eruption at a time is plenty'); return; }
+  const x = Math.max(-TH + VR + 3, Math.min(TH - VR - 3, p.x)), z = Math.max(-TH + VR + 3, Math.min(TH - VR - 3, p.z));
+  const gx = Math.round(x + TH), gz = Math.round(z + TH), n = VR * 2 + 1, orig = new Float32Array(n * n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) orig[i * n + j] = HGT[(gz - VR + i) * TN + gx - VR + j];
+  landMark();
+  const lava = new THREE.Mesh(new THREE.CircleGeometry(4.2, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff5a10, fog: false })); lava.visible = false; scene.add(lava);
+  const sea = heightAt(x, z) < -1;
+  volcanoes.push({ x, z, gx, gz, n, orig, state: 'rumble', t: 0, p: 0, lava, wet: sea, tick: 0, bomb: 0 });
+  dis.quake = Math.max(dis.quake, 4);
+  toast(sea ? 'The sea floor is shaking. A volcano is forming.' : 'The ground is shaking. A volcano is waking.');
+}
+function volcanoSurface(v) { return Math.max(heightAt(v.x, v.z), 0); }
+function reshape(v) {
+  const e = p => p * p * (3 - 2 * p), pp = e(v.p), cr = Math.max(0, (v.p - 0.8) / 0.2);
+  for (let i = 0; i < v.n; i++) for (let j = 0; j < v.n; j++) {
+    const dx = j - VR, dz = i - VR, r = Math.hypot(dx, dz); if (r > VR) continue;
+    const prof = VPEAK * Math.pow(1 - r / VR, 1.4) + (r < 7 ? 1.2 * (1 - r / 7) : 0), val = -14 + (prof + 14) * pp - (r < 6 ? 4.5 * cr * (1 - r / 6) ** 2 : 0);
+    const k = (v.gz - VR + i) * TN + v.gx - VR + j, o = v.orig[i * v.n + j], h = Math.max(o, val);
+    HGT[k] = Math.min(34, Math.max(-9.2, h));
+    if (h > o + 0.05 || val > -3) { const a = Math.min(1, (1 - r / VR) * 3.2 + 0.1) * 255; if (a > ashData[k]) ashData[k] = a; }
+  }
+  ashTex.needsUpdate = true;
+  land.x0 = v.x - VR - 2; land.x1 = v.x + VR + 2; land.z0 = v.z - VR - 2; land.z1 = v.z + VR + 2; land.dirty = true;
+}
+function launchBomb(v, fast) {
+  const b = bombs.find(q => !q.live) || (bombs.length < 36 ? (bombs.push({ live: false, mesh: new THREE.Mesh(bombGeo, bombMat) }), scene.add(bombs[bombs.length - 1].mesh), bombs[bombs.length - 1]) : null); if (!b) return;
+  const a = Math.random() * 6.283, sp = rnd(8, fast ? 24 : 16), cy = Math.max(heightAt(v.x, v.z), 0) + 2;
+  b.live = true; b.mesh.visible = true; b.x = v.x; b.y = cy; b.z = v.z; b.vx = Math.cos(a) * sp; b.vz = Math.sin(a) * sp; b.vy = rnd(24, 40); b.v = v; b.mesh.scale.setScalar(rnd(0.7, 1.6));
+}
+function updateVolcanoes(dt, t) {
+  for (const v of volcanoes) {
+    v.t += dt; const topY = Math.max(heightAt(v.x, v.z), 0);
+    if (v.state === 'rumble') {
+      dis.shake = Math.max(dis.shake || 0, 0.18);
+      if (v.wet) { v.tick -= dt; if (v.tick <= 0) { v.tick = 0.25; splash(v.x + rnd(-6, 6), v.z + rnd(-6, 6), 1.5); puffSmoke(v.x + rnd(-6, 6), 0.5, v.z + rnd(-6, 6), 2, false, 1.6); } }
+      else puffSmoke(v.x + rnd(-5, 5), topY + 0.5, v.z + rnd(-5, 5), 2, true, 1.2);
+      if (v.t > 4) { v.state = 'build'; v.t = 0; toast('It is erupting'); for (const bt of boats) { const d = Math.hypot(bt.body.position.x - v.x, bt.body.position.z - v.z); if (d < 70) bt.body.applyImpulse(new CANNON.Vec3((bt.body.position.x - v.x) / d * bt.body.mass * 1.2, bt.body.mass * 0.6, (bt.body.position.z - v.z) / d * bt.body.mass * 1.2), bt.body.position); } }
+    } else if (v.state === 'build' || v.state === 'active') {
+      if (v.state === 'build') { v.p = Math.min(1, v.t / 55); v.tick -= dt; }
+      v.upd = (v.upd || 0) - dt; if (v.state === 'build' && v.upd <= 0) { v.upd = 0.2; reshape(v); }
+      if (v.state === 'build' && v.p >= 1) { v.state = 'active'; v.t = 0; reshape(v); }
+      if (v.state === 'active' && v.t > 45) { v.state = 'dormant'; v.t = 0; toast('The volcano quiets. The island stays.'); }
+      const power = v.state === 'build' ? 0.4 + v.p * 0.6 : Math.max(0.15, 1 - v.t / 45), emerged = topY > 0.4;
+      // ash and steam column
+      v.col = (v.col || 0) - dt; if (v.col <= 0) { v.col = 0.05; const wetCol = !emerged; const c = wetCol ? [0.92, 0.94, 0.95, 0.5] : [0.16, 0.15, 0.15, 0.6]; for (let i = 0; i < 2; i++) fxS.emit(v.x + rnd(-2, 2), topY + 1, v.z + rnd(-2, 2), rnd(-2, 2) + wind.v.x * 0.3, rnd(9, 16) * power, rnd(-2, 2) + wind.v.z * 0.3, rnd(5, 9), rnd(2.5, 5) * (0.6 + power), 4, c, -0.1, 0.35); }
+      // glowing flanks
+      if (emerged && Math.random() < dt * 14 * power) { const a = Math.random() * 6.283, r = rnd(3, VR * 0.45); fxG.emit(v.x + Math.cos(a) * r, Math.max(heightAt(v.x + Math.cos(a) * r, v.z + Math.sin(a) * r), 0) + 0.4, v.z + Math.sin(a) * r, 0, 0.3, 0, rnd(1.5, 3), rnd(0.6, 1.2), 0.1, [1, rnd(0.3, 0.55), 0.1, 0.9]); }
+      // bombs
+      v.bomb -= dt; if (v.bomb <= 0 && (emerged || v.p > 0.3)) { v.bomb = rnd(0.25, 0.7) / power; launchBomb(v, power > 0.7); }
+      if (v.state === 'build' && v.p > 0.55 && !v.boomed) { v.boomed = true; dis.quake = Math.max(dis.quake, 3); dis.flashes = 0.6; }
+    } else if (v.state === 'dormant') {
+      v.col = (v.col || 0) - dt; if (v.col <= 0) { v.col = 0.6; puffSmoke(v.x + rnd(-2, 2), topY + 1, v.z + rnd(-2, 2), 1, false, 0.8); }
+    }
+    const lavaOn = (v.state === 'build' && v.p > 0.7) || v.state === 'active' || v.state === 'dormant';
+    v.lava.visible = lavaOn; if (lavaOn) { v.lava.position.set(v.x, Math.max(heightAt(v.x, v.z), 0) + 0.25, v.z); v.lava.material.color.setRGB(1, 0.28 + 0.2 * Math.sin(t * 5 + v.x), v.state === 'dormant' ? 0.02 : 0.05); v.lava.scale.setScalar(v.state === 'dormant' ? 0.5 : 1); }
+  }
+  // lava bombs: ballistic, they hurt what they land on
+  for (const b of bombs) {
+    if (!b.live) continue;
+    b.vy -= 9.8 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.mesh.position.set(b.x, b.y, b.z);
+    if (Math.random() < dt * 40) fxG.emit(b.x, b.y, b.z, 0, 0, 0, 0.5, 0.7, 0.3, [1, 0.5, 0.15, 0.8]);
+    const ground = Math.max(heightAt(b.x, b.z), waveH(b.x, b.z, t));
+    if (b.y < ground && b.vy < 0) {
+      b.live = false; b.mesh.visible = false;
+      const wet = heightAt(b.x, b.z) < waveH(b.x, b.z, t) - 0.2;
+      if (wet) { splash(b.x, b.z, 1.2); puffSmoke(b.x, ground + 0.3, b.z, 2, false, 1); } else { sparks(b.x, ground + 0.4, b.z, 10); puffSmoke(b.x, ground + 0.3, b.z, 2, true, 0.8); }
+      for (const bt of boats) { if (bt.sunk) continue; const d = Math.hypot(bt.body.position.x - b.x, bt.body.position.z - b.z); if (d < bt.sp.L * 0.4 + 3) { damageBoat(bt, 14, b.x, ground + 1, b.z, null, 'gun'); if (bt.fire < 0.2 && Math.random() < 0.5) { bt.fire = 0.3; bt.fireT = rnd(30, 60); } } }
+      for (const q of people) if (Math.hypot(q.x - b.x, q.z - b.z) < 4) topple(q, new CANNON.Vec3(rnd(-3, 3), 4, rnd(-3, 3)));
+    }
+  }
+}
+function clearVolcanoes() { ashData.fill(0); ashTex.needsUpdate = true; for (const v of volcanoes) scene.remove(v.lava); volcanoes.length = 0; for (const b of bombs) { b.live = false; b.mesh.visible = false; } }
+
+window.__sc = { volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
