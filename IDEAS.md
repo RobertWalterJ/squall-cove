@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.2
+Materials pack: sand that piles and slides, Sand fountain, Furnace, Lightning rod, Sand brush. Very high heat (lightning, meteor, lava, furnace) melts sand and it cools into glass. Lightning on sand leaves a branching glass tube.
+
 ## Done in v5.1
 Climate: air temperature, evaporation, humidity, clouds and rain, clear vapour when everything is hot. Heat lamp, Cooler and Air dryer.
 
@@ -35,3 +38,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Lava flows down the volcano's flanks (the water solver could carry a second, thicker fluid).
 - Plants and trees slowly returning to a cooled volcanic island.
 - Volcano that wakes again on its own, and a tsunami from a big submarine blast.
+- Materials to add next: wet sand and mud, clay and bricks, salt, obsidian from lava meeting sea, metal that melts and casts.
+- Wind-blown dunes and sandstorms.
+- Glass that can be picked up as shards or blown into objects.
