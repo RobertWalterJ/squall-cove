@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.4
+Freezing: ice on ponds and shallow shore water, snow on land, ice that holds boats (icebreakers cut through), slippery ice, and cold and heat that slow people (frozen and hot states).
+
 ## Done in v5.3
 Classes and menus: a class picker for Build, a Disasters sheet, always-visible Calm all, Restore the cove, Gentle mode and an effects limit (Menu, Sandbox).
 
@@ -44,3 +47,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Materials to add next: wet sand and mud, clay and bricks, salt, obsidian from lava meeting sea, metal that melts and casts.
 - Wind-blown dunes and sandstorms.
 - Glass that can be picked up as shards or blown into objects.
+- Snow that looks like snow: rain particles that turn to flakes below freezing.
+- A heat map overlay and a temperature readout you can tap.
+- Ice weight on small boats, and chipping ice off decks.
