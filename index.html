@@ -501,6 +501,8 @@ const terrainU = { uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value:
   tMacro: { value: macroTex }, tCanopy: { value: canopyTex } };
 const ashData = new Uint8Array(257 * 257), ashTex = new THREE.DataTexture(ashData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType);       // where volcanic ash and rock lie
 ashTex.minFilter = ashTex.magFilter = THREE.LinearFilter; ashTex.needsUpdate = true; terrainU.tAsh = { value: ashTex };
+const hotData = new Uint8Array(257 * 257 * 4), hotTex = new THREE.DataTexture(hotData, 257, 257, THREE.RGBAFormat, THREE.UnsignedByteType);       // R: lava cover, G: lava heat
+hotTex.minFilter = hotTex.magFilter = THREE.LinearFilter; hotTex.needsUpdate = true; terrainU.tHot = { value: hotTex };
 const terrainMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 });
 terrainMat.onBeforeCompile = (sh) => {
   Object.assign(sh.uniforms, terrainU);
@@ -510,7 +512,7 @@ terrainMat.onBeforeCompile = (sh) => {
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>
       precision highp sampler2DArray;
-      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy, tAsh; uniform float uTime, uAmp;
+      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy, tAsh, tHot; uniform float uTime, uAmp;
       varying vec3 vWPos; varying vec3 vWNrm; varying float vAO;
       ${WAVE_GLSL.replace('uniform float uTime; uniform float uAmp;', '')}
       const float SCALE[6] = float[6](0.33, 0.30, 0.42, 0.36, 0.22, 0.12);
@@ -565,8 +567,10 @@ terrainMat.onBeforeCompile = (sh) => {
       alb /= tw; pert /= tw; rough /= tw; aoT /= tw;
       alb *= 0.86 + 0.28 * macro.g;                                         // large-scale tonal drift breaks tiling
       alb *= mix(vec3(1.0), vec3(0.92, 1.0, 0.86), clamp(macro2.r - 0.4, 0.0, 1.0) * wG);
+      vec2 hot = texture2D(tHot, (vWPos.xz + 128.5) / 257.0).rg;
       float ash = texture2D(tAsh, (vWPos.xz + 128.5) / 257.0).r;
       alb = mix(alb, vec3(0.05, 0.045, 0.045) * (0.6 + 0.8 * macro.g) + vec3(0.03, 0.025, 0.02) * macro2.r, ash * 0.92); rough = mix(rough, 0.95, ash);
+      alb = mix(alb, vec3(0.03, 0.025, 0.025), hot.r * 0.85);
       float under = smoothstep(0.0, -3.0, y);                              // underwater: darker, cooler
       alb = mix(alb, alb * vec3(0.55, 0.72, 0.72), under);
       float wet = smoothstep(swash + 0.15, swash - 0.05, y);               // freshly washed sand shines
@@ -574,6 +578,7 @@ terrainMat.onBeforeCompile = (sh) => {
       float occl = vAO * mix(1.0, 0.55, canopy) * mix(1.0, aoT, 0.7);
       diffuseColor.rgb = alb * mix(1.0, occl, 0.45);
       `)
+    .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(1.0, 0.30, 0.04) * pow(hot.g, 1.6) * min(1.0, hot.r * 1.6) * 3.2;')
     .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = rough;')
     .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       vec3 Nw = normalize(N0 + pert * 0.9);
@@ -2888,7 +2893,7 @@ function renderTray(force = true) {
     tray.append(sep('Fog'));
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Disasters'));
-    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Volcano', () => startVolcano(aimPt())], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' || n === 'Volcano' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
+    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Volcano', () => startVolcano(aimPt())], ['Deluge', startDeluge], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' || n === 'Volcano' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
@@ -3002,7 +3007,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt);
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3133,7 +3138,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
-    ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
+    lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
 }
@@ -3153,7 +3158,7 @@ async function loadWorld(slot) {
     for (const pr of props) { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); } props.length = 0;
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
-    clearWater(); calm0(); if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
+    clearWater(); calm0(); if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
     const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
@@ -3358,7 +3363,9 @@ const LD = new Float32Array(TN * TN);
 let lakeAcc = 0, lakeTexT = 0;
 function stepLake(dt) {
   for (const s of springs) { const j = Math.round(s.x + TH), i = Math.round(s.z + TH); if (j < 2 || i < 2 || j > TN - 3 || i > TN - 3) continue; const k = i * TN + j; if (s.rate > 0) WD[k] = Math.min(30, WD[k] + s.rate * dt); else for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) WD[k + di * TN + dj] = Math.max(0, WD[k + di * TN + dj] + s.rate * dt * 0.3); }
-  if (lakeWet <= 0 && !springs.some(s => s.rate > 0)) return;
+  const raining = wx.rainAmt > 0.05;
+  if (lakeWet <= 0 && !raining && !springs.some(s => s.rate > 0)) return;
+  const rr = raining ? 0.0005 * wx.rainAmt * ((dis.deluge || 0) > 0 ? 24 : 1) * dt : 0;
   LD.fill(0); let wet = 0;
   for (let i = 1; i < TN - 1; i++) for (let j = 1; j < TN - 1; j++) {
     const k = i * TN + j, w = WD[k]; if (w < 1e-4) continue;
@@ -3373,11 +3380,12 @@ function stepLake(dt) {
     const out = Math.min(w * 0.95, tot * 0.25), f = out / tot;
     LD[k] -= out; LD[n0] += d0 * f; LD[n1] += d1 * f; LD[n2] += d2 * f; LD[n3] += d3 * f;
   }
-  for (let k = 0; k < TN * TN; k++) { let w = WD[k] + LD[k]; if (w < 0) w = 0; if (HGT[k] < 0) w = 0; WD[k] = w; if (w > 0.04) wet++; }
+  for (let k = 0; k < TN * TN; k++) { let w = WD[k] + LD[k] + (rr && HGT[k] >= 0 ? rr : 0); if (w > 0) w = Math.max(0, w - 0.00005 * dt); if (w < 0) w = 0; if (HGT[k] < 0) w = 0; WD[k] = w; if (w > 0.04) wet++; }
   for (let a = 0; a < TN; a++) { WD[a] = 0; WD[(TN - 1) * TN + a] = 0; WD[a * TN] = 0; WD[a * TN + TN - 1] = 0; }
   lakeWet = wet;
 }
 function updateLake(dt) {
+  if (dis.deluge > 0) dis.deluge -= dt;
   lakeAcc += dt; let n = 0; while (lakeAcc >= 1 / 15 && n < 2) { lakeAcc -= 1 / 15; n++; stepLake(1 / 15); } if (lakeAcc > 0.2) lakeAcc = 0;
   lakeTexT -= dt;
   if ((lakeWet > 0 || lakeMesh.visible) && lakeTexT <= 0) {
@@ -3410,6 +3418,7 @@ const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math
 function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wind.level = level; }
 function calm() {
   dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
+  dis.deluge = 0;
   for (const v of volcanoes) if (v.state !== 'dormant') { v.state = 'dormant'; v.t = 0; v.p = Math.max(v.p, 0.0); }
   wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
 }
@@ -3496,7 +3505,7 @@ function updateDisasters(dt, t) {
 }
 const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-function calm0() { clearVolcanoes(); dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+function calm0() { clearVolcanoes(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
 const shakeV = new THREE.Vector3();
 
 /* ================================================================ v4.8: volcano. Stand it in deep water and it builds an island. */
@@ -3546,14 +3555,15 @@ function updateVolcanoes(dt, t) {
       if (v.state === 'build') { v.p = Math.min(1, v.t / 55); v.tick -= dt; }
       v.upd = (v.upd || 0) - dt; if (v.state === 'build' && v.upd <= 0) { v.upd = 0.2; reshape(v); }
       if (v.state === 'build' && v.p >= 1) { v.state = 'active'; v.t = 0; reshape(v); }
-      if (v.state === 'active' && v.t > 45) { v.state = 'dormant'; v.t = 0; toast('The volcano quiets. The island stays.'); }
-      const power = v.state === 'build' ? 0.4 + v.p * 0.6 : Math.max(0.15, 1 - v.t / 45), emerged = topY > 0.4;
+      if (v.state === 'active' && v.t > 90) { v.state = 'dormant'; v.t = 0; toast('The volcano quiets. The island stays.'); }
+      const power = v.state === 'build' ? 0.4 + v.p * 0.6 : Math.max(0.15, 1 - v.t / 90), emerged = topY > 0.4;
       // ash and steam column
       v.col = (v.col || 0) - dt; if (v.col <= 0) { v.col = 0.05; const wetCol = !emerged; const c = wetCol ? [0.92, 0.94, 0.95, 0.5] : [0.16, 0.15, 0.15, 0.6]; for (let i = 0; i < 2; i++) fxS.emit(v.x + rnd(-2, 2), topY + 1, v.z + rnd(-2, 2), rnd(-2, 2) + wind.v.x * 0.3, rnd(9, 16) * power, rnd(-2, 2) + wind.v.z * 0.3, rnd(5, 9), rnd(2.5, 5) * (0.6 + power), 4, c, -0.1, 0.35); }
       // glowing flanks
       if (emerged && Math.random() < dt * 14 * power) { const a = Math.random() * 6.283, r = rnd(3, VR * 0.45); fxG.emit(v.x + Math.cos(a) * r, Math.max(heightAt(v.x + Math.cos(a) * r, v.z + Math.sin(a) * r), 0) + 0.4, v.z + Math.sin(a) * r, 0, 0.3, 0, rnd(1.5, 3), rnd(0.6, 1.2), 0.1, [1, rnd(0.3, 0.55), 0.1, 0.9]); }
       // bombs
       v.bomb -= dt; if (v.bomb <= 0 && (emerged || v.p > 0.3)) { v.bomb = rnd(0.25, 0.7) / power; launchBomb(v, power > 0.7); }
+      { const feed = v.state === 'active' ? power : v.p > 0.7 ? (v.p - 0.7) / 0.3 * 0.5 : 0; if (feed > 0 && emerged) for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) if (di * di + dj * dj <= 5) addLava(v.gx + dj, v.gz + di, 0.32 * feed * dt); }
       if (v.state === 'build' && v.p > 0.55 && !v.boomed) { v.boomed = true; dis.quake = Math.max(dis.quake, 3); dis.flashes = 0.6; }
     } else if (v.state === 'dormant') {
       v.col = (v.col || 0) - dt; if (v.col <= 0) { v.col = 0.6; puffSmoke(v.x + rnd(-2, 2), topY + 1, v.z + rnd(-2, 2), 1, false, 0.8); }
@@ -3576,9 +3586,68 @@ function updateVolcanoes(dt, t) {
     }
   }
 }
-function clearVolcanoes() { ashData.fill(0); ashTex.needsUpdate = true; for (const v of volcanoes) scene.remove(v.lava); volcanoes.length = 0; for (const b of bombs) { b.live = false; b.mesh.visible = false; } }
+function clearVolcanoes() { clearLava(); ashData.fill(0); ashTex.needsUpdate = true; for (const v of volcanoes) scene.remove(v.lava); volcanoes.length = 0; for (const b of bombs) { b.live = false; b.mesh.visible = false; } }
 
-window.__sc = { volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.0: catastrophic rain (in stepLake) and lava flows */
+const LV = new Float32Array(TN * TN), LT = new Float32Array(TN * TN), LDl = new Float32Array(TN * TN);   // lava thickness (m), lava heat (0..1), flow delta
+let lavaOn = false, lbx = { x0: 0, x1: 0, z0: 0, z1: 0 }, lavaAcc = 0, lavaTexT = 0, lavaSolidT = 0, lavaSolid = false, lavaPuffs = 0, lavaHaz = 0;
+function lavaTouch(j, i) { if (!lavaOn) { lavaOn = true; lbx = { x0: j, x1: j, z0: i, z1: i }; } else { lbx.x0 = Math.min(lbx.x0, j); lbx.x1 = Math.max(lbx.x1, j); lbx.z0 = Math.min(lbx.z0, i); lbx.z1 = Math.max(lbx.z1, i); } }
+function addLava(gx, gz, amt) { if (gx < 3 || gz < 3 || gx > TN - 4 || gz > TN - 4) return; const k = gz * TN + gx; LV[k] += amt; LT[k] = 1; lavaTouch(gx, gz); }
+function stepLava(dt) {
+  if (!lavaOn) return;
+  const x0 = Math.max(2, lbx.x0 - 1), x1 = Math.min(TN - 3, lbx.x1 + 1), z0 = Math.max(2, lbx.z0 - 1), z1 = Math.min(TN - 3, lbx.z1 + 1);
+  LDl.fill(0);
+  for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
+    const k = i * TN + j, v = LV[k]; if (v < 0.003) continue;
+    const Hs = HGT[k] + v, temp = LT[k], n0 = k - 1, n1 = k + 1, n2 = k - TN, n3 = k + TN;
+    let d0 = 0, d1 = 0, d2 = 0, d3 = 0, tot = 0, hn;
+    hn = HGT[n0] + LV[n0]; if (Hs > hn) { d0 = Hs - hn; tot += d0; }
+    hn = HGT[n1] + LV[n1]; if (Hs > hn) { d1 = Hs - hn; tot += d1; }
+    hn = HGT[n2] + LV[n2]; if (Hs > hn) { d2 = Hs - hn; tot += d2; }
+    hn = HGT[n3] + LV[n3]; if (Hs > hn) { d3 = Hs - hn; tot += d3; }
+    if (tot <= 0) continue;
+    const out = Math.min(v * 0.5, tot * (0.02 + 0.1 * temp * temp)), f = out / tot, th = temp * 0.97;
+    LDl[k] -= out;
+    if (d0 > 0) { LDl[n0] += d0 * f; if (LT[n0] < th) LT[n0] = th; lavaTouch(j - 1, i); }
+    if (d1 > 0) { LDl[n1] += d1 * f; if (LT[n1] < th) LT[n1] = th; lavaTouch(j + 1, i); }
+    if (d2 > 0) { LDl[n2] += d2 * f; if (LT[n2] < th) LT[n2] = th; lavaTouch(j, i - 1); }
+    if (d3 > 0) { LDl[n3] += d3 * f; if (LT[n3] < th) LT[n3] = th; lavaTouch(j, i + 1); }
+  }
+  let live = 0, mx0 = 1e9, mx1 = -1, mz0 = 1e9, mz1 = -1; lavaPuffs = 0;
+  for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
+    const k = i * TN + j; let v = LV[k] + LDl[k]; if (v < 0.003) { LV[k] = 0; LT[k] = 0; continue; }
+    let temp = LT[k] - dt * (0.010 + 0.012 / Math.max(0.15, v));
+    const sea = HGT[k] < -0.1, wet = WD[k] > 0.02;
+    if (sea || wet) { temp -= dt * 0.5; if (wet) WD[k] = Math.max(0, WD[k] - dt * 0.4); if (lavaPuffs < 5 && Math.random() < 0.25) { lavaPuffs++; puffSmoke(j - TH, Math.max(HGT[k], 0) + 0.6, i - TH, 2, false, 1.5); if (sea && Math.random() < 0.3) splash(j - TH, i - TH, 0.8); } }
+    if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(34, HGT[k] + v * 0.75); LV[k] = 0; LT[k] = 0; if (ashData[k] < 235) ashData[k] = 235; lavaSolid = true; continue; }
+    LV[k] = Math.min(8, v); LT[k] = temp; live++; if (j < mx0) mx0 = j; if (j > mx1) mx1 = j; if (i < mz0) mz0 = i; if (i > mz1) mz1 = i;
+  }
+  if (live) lbx = { x0: mx0, x1: mx1, z0: mz0, z1: mz1 }; else { lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; }
+}
+function updateLava(dt) {
+  lavaAcc += dt; if (lavaAcc >= 1 / 8) { const step = Math.min(lavaAcc, 0.25); lavaAcc = 0; stepLava(step); }
+  if (lavaOn) {
+    lavaTexT -= dt;
+    if (lavaTexT <= 0) {
+      lavaTexT = 0.2; const x0 = Math.max(0, lbx.x0 - 2), x1 = Math.min(TN - 1, lbx.x1 + 2), z0 = Math.max(0, lbx.z0 - 2), z1 = Math.min(TN - 1, lbx.z1 + 2);
+      for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) { const k = i * TN + j, v = LV[k]; hotData[k * 4] = v > 0.003 ? Math.min(255, 70 + v * 300) : 0; hotData[k * 4 + 1] = v > 0.003 ? Math.min(255, LT[k] * 255) : 0; }
+      hotTex.needsUpdate = true;
+      for (let n = 0; n < 4; n++) { const j = x0 + Math.floor(Math.random() * (x1 - x0 + 1)), i = z0 + Math.floor(Math.random() * (z1 - z0 + 1)), k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(j - TH, HGT[k] + LV[k] + 0.3, i - TH, rnd(-0.3, 0.3), rnd(0.5, 1.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(0.5, 1), 0.1, [1, rnd(0.3, 0.5), 0.1, 0.9]); }
+    }
+    lavaHaz -= dt;
+    if (lavaHaz <= 0) {                                              // what lava touches: people fall, boats near the shore burn
+      lavaHaz = 0.5;
+      for (const q of people) { if (q.state === 'rag' || q.fp) continue; const k = Math.round(q.z + TH) * TN + Math.round(q.x + TH); if (LV[k] > 0.05) topple(q, new CANNON.Vec3(rnd(-2, 2), 3, rnd(-2, 2))); }
+      for (const bt of boats) { if (bt.sunk) continue; const k = Math.round(bt.body.position.z + TH) * TN + Math.round(bt.body.position.x + TH); let hot = 0; for (const o of [0, 1, -1, TN, -TN]) if (LV[k + o] > 0.08) hot = 1; if (hot) { damageBoat(bt, 4, bt.body.position.x, bt.body.position.y + 1, bt.body.position.z, null, 'mg'); if (bt.fire < 0.2 && Math.random() < 0.3) { bt.fire = 0.3; bt.fireT = rnd(25, 50); } } }
+    }
+    if (lavaSolid) { lavaSolidT -= dt; if (lavaSolidT <= 0) { lavaSolidT = 0.5; lavaSolid = false; land.x0 = lbx.x0 - TH - 3; land.x1 = lbx.x1 - TH + 3; land.z0 = lbx.z0 - TH - 3; land.z1 = lbx.z1 - TH + 3; land.dirty = true; ashTex.needsUpdate = true; } }
+  }
+}
+function clearLava() { LV.fill(0); LT.fill(0); lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; }
+/* ---- the Deluge: rain that floods the land */
+function startDeluge() { dis.deluge = 150; stormUp(2, 1, 3); toast('Deluge. The land will flood and the water will run to the sea.'); }
+
+window.__sc = { LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
