@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.8
+A calmer interface: nothing on screen but More, Menu and the tabs until you select something. Info panel, compass and wind readout gone; wind shows in the world instead: gusts that sweep across water and trees, whitecaps that grow with the wind, streaks in a gale. Hide buttons (photo mode) in Menu.
+
 ## Done in v5.7
 Heat and wet map overlay with a legend and a readout at the cross. Ice on boats (extra weight, top heavy sails, icebreakers shed it). Lighter climate update. Better camera: tilt, top view, zoom to the pointer, momentum, double tap to fly, a camera pad. Install on phone button in the Menu and the top buttons. Fixed the Menu sheet being hidden behind the screen.
 
@@ -64,3 +67,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Wind that spins: low pressure with a rotating storm (a proper hurricane that forms over warm sea and moves).
 - Mountain and valley winds, and wind funnelled between hills.
 - Sailing races that use sea breezes.
+- Gust sound and the creak of rigging, once there is any sound.
+- Wind lines or drifting leaves and dust that show the gust front.
+- Swipe up from the bottom for the tray, swipe from the right edge for actions.

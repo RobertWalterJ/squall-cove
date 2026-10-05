@@ -71,6 +71,18 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 #calmBtn[hidden]{display:none}
 #legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:4;pointer-events:none}
 #legend[hidden]{display:none}
+/* a calm interface: the picture is the star, controls appear when they are needed */
+body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
+body.ui-min.noinst .inst{display:none}
+body.ui-min .inst dl > div:nth-child(2){display:none}
+body.ui-min .actions:not(.open) > button:not(#bMenu):not(#bMore):not(#bMode){display:none}
+body.ui-min #bMode:disabled{display:none}
+body.ui-min.tray-idle .tray{display:none}
+#trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
+#trayTog[hidden]{display:none}
+#hudOn{position:fixed;top:12px;right:12px;z-index:6;opacity:.55;min-height:40px}
+#hudOn[hidden]{display:none}
+body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camPad,body.hud-off #calmBtn,body.hud-off #legend,body.hud-off #objective,body.hud-off #sculpt,body.hud-off #landUndo,body.hud-off #placeBtn,body.hud-off #turnBtn{display:none!important}
 #camPad{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,52px);gap:6px;z-index:4;touch-action:none}
 #camPad[hidden]{display:none}
 #camPad button{min-width:52px;min-height:46px;padding:4px 6px;font-size:13px;background:rgba(12,26,32,.82);touch-action:none}
@@ -191,12 +203,13 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mNew" type="button">New cove</button><button id="mScen" type="button">Scenarios</button>
     <button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button>
-    <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
+    <button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
   <button id="mSandbox" type="button">Sandbox settings</button>
   <button class="go" id="mClose" type="button">Close</button>
 </div></div>
+<button id="hudOn" type="button" hidden>Show buttons</button>
 <div id="legend" hidden></div>
 <div id="camPad" hidden aria-label="Camera"><button id="cmIn" type="button" aria-label="Zoom in">+</button><button id="cmOut" type="button" aria-label="Zoom out">-</button><button id="cmL" type="button" aria-label="Turn left">&#8634;</button><button id="cmR" type="button" aria-label="Turn right">&#8635;</button><button id="cmU" type="button" aria-label="Tilt up">Tilt &#9650;</button><button id="cmD" type="button" aria-label="Tilt down">Tilt &#9660;</button><button id="cmTop" type="button">Top</button><button id="cmReset" type="button">Reset</button></div>
 <button id="calmBtn" type="button" hidden>Calm all</button>
@@ -227,10 +240,12 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
     <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
     <button id="bInstallTop" type="button" hidden>Install app</button>
+    <button id="bMore" type="button">More</button>
     <button id="bMenu" type="button">Menu</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
   </nav>
   <div class="bottom">
+    <button id="trayTog" type="button" hidden>Fleet and select</button>
     <div class="tray" id="tray" role="toolbar" aria-label="Tool options"></div>
     <div class="tabs" id="tabs" role="toolbar" aria-label="Tools"></div>
     <div class="helm">
@@ -673,22 +688,32 @@ function updateWind(t) {
 }
 const beaufort = (kn) => { const t = [1, 4, 7, 11, 17, 22, 28, 34, 41, 48, 56, 64]; const i = t.findIndex(v => kn < v); return i < 0 ? 12 : i; };
 const bearing = (x, z) => ((Math.atan2(x, -z) * 180 / Math.PI) + 360) % 360;
-const windU = { uWind: { value: new THREE.Vector2(0, -1) }, uWindStr: { value: 0.5 }, uTime: terrainU.uTime };
+const windU = { uWind: { value: new THREE.Vector2(0, -1) }, uWindStr: { value: 0.5 }, uBlow: { value: 0.2 }, uTime: terrainU.uTime };
+/* gusts: bands of stronger wind that travel downwind. In a light breeze they come and go; in a gale the air is nearly always blowing. */
+const GUST_GLSL = `
+float gustAt(vec2 p, vec2 wd, float t, float blow){
+  float s = dot(p, wd), c = dot(p, vec2(-wd.y, wd.x));
+  float a = sin(s * 0.040 - t * (0.9 + blow * 1.6) + sin(c * 0.021) * 1.7);
+  float b = sin(s * 0.017 - t * 0.55 + c * 0.013 + 2.0);
+  float g = smoothstep(-0.15, 0.85, a * 0.6 + b * 0.5);
+  return mix(g, 1.0, blow * 0.65);
+}`;
 
 /* ================================================================ vegetation: instanced trees with wind sway, canopy map */
 const swayMaterials = [];
 function swayMaterial(src, height, stiff) {
   const m = src.clone(); m.vertexColors = true;
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uWind = windU.uWind; sh.uniforms.uWindStr = windU.uWindStr; sh.uniforms.uTime = windU.uTime;
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec2 uWind; uniform float uWindStr; uniform float uTime;')
+    sh.uniforms.uWind = windU.uWind; sh.uniforms.uWindStr = windU.uWindStr; sh.uniforms.uTime = windU.uTime; sh.uniforms.uBlow = windU.uBlow;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec2 uWind; uniform float uWindStr; uniform float uTime; uniform float uBlow;' + GUST_GLSL)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         { float hh = clamp(transformed.y / ${height.toFixed(2)}, 0.0, 1.5); float k = hh * hh * ${stiff.toFixed(3)} * uWindStr;
           vec3 ip = vec3(instanceMatrix[3]);
           float ph = uTime * 1.3 + ip.x * 0.21 + ip.z * 0.17;
-          float gust = 0.55 + 0.45 * sin(ph) * sin(ph * 0.37 + 1.1);
-          transformed.x += uWind.x * k * gust + k * 0.18 * sin(ph * 2.7 + transformed.y);
-          transformed.z += uWind.y * k * gust + k * 0.18 * cos(ph * 2.3 + transformed.x); }`);
+          float gust = gustAt(ip.xz, uWind, uTime, uBlow);
+          float lean = 0.14 + 1.15 * gust;
+          transformed.x += uWind.x * k * lean + k * (0.12 + 0.3 * gust) * sin(ph * 2.7 + transformed.y);
+          transformed.z += uWind.y * k * lean + k * (0.12 + 0.3 * gust) * cos(ph * 2.3 + transformed.x); }`);
   };
   swayMaterials.push(m); return m;
 }
@@ -866,7 +891,7 @@ function buildGrass() {
 /* ================================================================ water */
 const MAXFOAM = 32, MAXWAKE = 24;
 const waterU = { tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrainU.uAmp, tSky: { value: skyTex }, tH: { value: heightTex }, tN: { value: waterNTex },
-  uSun: { value: sunDir }, uSunCol: { value: new THREE.Color(1.0, 0.85, 0.66) }, uWind: windU.uWind, uSkyTint: skyMat.uniforms.uTint,
+  uSun: { value: sunDir }, uSunCol: { value: new THREE.Color(1.0, 0.85, 0.66) }, uWind: windU.uWind, uWindStr: windU.uWindStr, uBlow: windU.uBlow, uSkyTint: skyMat.uniforms.uTint,
   uFoam: { value: Array.from({ length: MAXFOAM }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uWake: { value: Array.from({ length: MAXWAKE }, () => new THREE.Vector4(0, 0, 99, 0)) },
   ...THREE.UniformsLib.fog };
@@ -880,7 +905,8 @@ const waterMat = new THREE.ShaderMaterial({
       #include <fog_vertex>
     }`,
   fragmentShader: `
-    uniform float uTime, uAmp; uniform sampler2D tSky, tH, tN, tSnow; uniform vec3 uSun, uSunCol, uSkyTint; uniform vec2 uWind;
+    uniform float uTime, uAmp, uWindStr, uBlow; uniform sampler2D tSky, tH, tN, tSnow; uniform vec3 uSun, uSunCol, uSkyTint; uniform vec2 uWind;
+    ${GUST_GLSL}
     uniform vec4 uFoam[${MAXFOAM}]; uniform vec4 uWake[${MAXWAKE}];
     varying vec3 vW; varying vec2 vG;
     #include <common>
@@ -894,7 +920,8 @@ const waterMat = new THREE.ShaderMaterial({
       // detail ripples: two tiles of the same normal map scrolling with and across the wind, faded with distance
       vec2 d1 = texture2D(tN, vW.xz * 0.11 + uWind * uTime * 0.012).xy * 2.0 - 1.0;
       vec2 d2 = texture2D(tN, vW.xz * 0.043 - vec2(uWind.y, -uWind.x) * uTime * 0.007 + 0.5).xy * 2.0 - 1.0;
-      vec2 det = (d1 * 0.6 + d2 * 0.4) * (0.35 + uAmp) * (1.0 - smoothstep(30.0, 160.0, dist));
+      float gst = gustAt(vW.xz, uWind, uTime, uBlow);
+      vec2 det = (d1 * 0.6 + d2 * 0.4) * (0.35 + uAmp) * (1.0 + gst * (0.7 + uBlow)) * (1.0 - smoothstep(30.0, 160.0, dist));
       vec3 n = normalize(vec3(-vG.x + det.x * 0.55, 1.0, -vG.y - det.y * 0.55));
       float fres = 0.02 + 0.98 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
       vec3 R = reflect(-V, n); R.y = abs(R.y);
@@ -909,7 +936,7 @@ const waterMat = new THREE.ShaderMaterial({
       // a little subsurface glow on the sun side of wave faces
       float sss = pow(max(dot(V, -uSun), 0.0), 4.0) * smoothstep(-0.2, 0.6, vW.y / max(uAmp * 1.9, 0.05)) * 0.35;
       body += vec3(0.05, 0.22, 0.18) * sss;
-      vec3 col = mix(body, refl, fres);
+      vec3 col = mix(body, refl, fres); col *= 1.0 - 0.16 * gst * (1.0 - uBlow * 0.6);
       vec3 Hh = normalize(uSun + V);
       float spec = pow(max(dot(n, Hh), 0.0), 900.0) * 3.0 + pow(max(dot(n, Hh), 0.0), 80.0) * 0.05;
       col += uSunCol * spec;
@@ -917,7 +944,8 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 fz = texture2D(tN, vW.xz * 0.21 + uTime * 0.02).rgb;
       float foamN = smoothstep(0.35, 0.75, fz.x * 0.6 + fz.y * 0.4);
       float shore = smoothstep(0.9, 0.05, depth) * (0.55 + 0.45 * sin(depth * 9.0 - uTime * 1.7 + fz.z * 3.0));
-      float crest = smoothstep(0.6, 0.95, (vW.y) / max(uAmp * 1.9, 0.05)) * step(0.3, uAmp);
+      float crest = smoothstep(0.55, 0.92, (vW.y) / max(uAmp * 1.9, 0.05)) * smoothstep(0.16, 0.45, uAmp) * (0.35 + 0.65 * gst);
+      float streak = smoothstep(0.74, 0.97, texture2D(tN, vec2(dot(vW.xz, uWind) * 0.012 - uTime * 0.04, dot(vW.xz, vec2(-uWind.y, uWind.x)) * 1.1)).x) * smoothstep(0.55, 1.0, uBlow) * 0.5;
       float ring = 0.0;
       for (int i = 0; i < ${MAXFOAM}; i++) { vec4 f = uFoam[i]; if (f.w <= 0.0) continue;
         float d = length(vW.xz - f.xy) - f.z; ring += f.w * exp(-d * d / 0.25) * (d > -0.3 ? 1.0 : 0.0); }
@@ -926,7 +954,8 @@ const waterMat = new THREE.ShaderMaterial({
       for (int i = 0; i < ${MAXWAKE}; i++) { vec4 k = uWake[i]; if (k.z > 8.0) continue;
         float wdt = 0.5 + k.z * 0.55; float d = length(vW.xz - k.xy);
         wake += k.w * exp(-d * d / (wdt * wdt)) * (1.0 - k.z / 8.0); }
-      float foam = clamp(shore * 0.9 + crest * 0.5 + ring + wake * 0.7, 0.0, 1.0) * foamN;
+      float cap = crest * smoothstep(0.42, 0.78, texture2D(tN, vW.xz * 0.9 - uWind * uTime * 0.05).y) * (0.5 + 0.5 * uBlow);        // small white caps on the crests
+      float foam = clamp(clamp(shore * 0.9 + streak * 0.8 + ring + wake * 0.7, 0.0, 1.0) * foamN + cap, 0.0, 1.0);
       col = mix(col, vec3(0.92, 0.95, 0.94) * (uSunCol * 0.7 + 0.35), foam);
       float alpha = clamp(1.0 - exp(-path * 0.55), 0.0, 1.0);
       alpha = clamp(max(alpha, fres) + foam, 0.0, 1.0);
@@ -3071,7 +3100,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3111,7 +3140,7 @@ function frame(now) {
   if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size]); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
   terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt;
-  windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt);
+  windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt); windU.uBlow.value += (clamp(wind.ms / 14, 0, 1) - windU.uBlow.value) * 0.05;
   grassU.uCam.value.set(focus.x, focus.z);
   grassU.uPatch.value = mode === 'god' ? clamp(god.dist * 0.7, 60, 140) : 60;
   water.position.set(Math.round(camera.position.x / 2) * 2, surge.level, Math.round(camera.position.z / 2) * 2);
@@ -4138,7 +4167,7 @@ function updateBoatIce(dt) {
   }
 }
 
-if (prefs.camPad === undefined) prefs.camPad = isTouch;
+if (prefs.camPad === undefined) prefs.camPad = false;           // gestures first; the pad is optional in Menu, Sandbox
 let lastMapTap = { t: 0, x: 0, y: 0 };
 function tapOrFly(e, btn, mods) {
   const now = performance.now();
@@ -4182,6 +4211,21 @@ padBind('cmIn', 'zi'); padBind('cmOut', 'zo'); padBind('cmL', 'tl'); padBind('cm
 $('cmTop').addEventListener('click', () => { god.top = god.top ? 0 : 1; god.fly = null; toast(god.top ? 'Top view' : 'Angled view'); });
 $('cmReset').addEventListener('click', () => { camReset(); toast('Camera reset'); });
 function updateCamPad() { camPad.hidden = !(mode === 'god' && prefs.camPad && $('help').hidden && menuSheet.hidden); }
+
+/* ================================================================ v5.8: a calmer interface */
+document.body.classList.add('ui-min');
+let trayOpen = false;
+const trayTog = $('trayTog');
+function updateHud() {
+  const idle = mode === 'god' && tool === 'select' && !sel.length && !boxMode && !fireMode && !routeMode;
+  document.body.classList.toggle('tray-idle', idle && !trayOpen);
+  trayTog.hidden = !idle; trayTog.textContent = trayOpen ? 'Hide fleet and select' : 'Fleet and select';
+  document.body.classList.toggle('noinst', mode === 'god' && !sel.length);
+}
+trayTog.addEventListener('click', () => { trayOpen = !trayOpen; });
+$('bMore').addEventListener('click', () => { const a = document.querySelector('.actions'); a.classList.toggle('open'); $('bMore').textContent = a.classList.contains('open') ? 'Less' : 'More'; });
+$('mHide').addEventListener('click', () => { closeMenu(); document.body.classList.add('hud-off'); $('hudOn').hidden = false; toast('Buttons hidden. Tap Show buttons to bring them back.'); });
+$('hudOn').addEventListener('click', () => { document.body.classList.remove('hud-off'); $('hudOn').hidden = true; });
 
 window.__sc = { camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
