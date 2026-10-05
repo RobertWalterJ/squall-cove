@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.5
+Layered air: a warm layer aloft over the ground. What falls depends on both: rain, snow, sleet or freezing rain (which glazes the ground with ice). Snowflakes, and the fog eases off as it freezes.
+
 ## Done in v5.4
 Freezing: ice on ponds and shallow shore water, snow on land, ice that holds boats (icebreakers cut through), slippery ice, and cold and heat that slow people (frozen and hot states).
 
@@ -50,3 +53,5 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Snow that looks like snow: rain particles that turn to flakes below freezing.
 - A heat map overlay and a temperature readout you can tap.
 - Ice weight on small boats, and chipping ice off decks.
+- More air layers: a real vertical column with fronts moving across the map, so a warm front can ride over cold ground.
+- Glaze ice on boat decks and rigging, and on power lines and trees.
