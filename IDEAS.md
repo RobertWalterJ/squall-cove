@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.9
+Fire fighting: Coast Guard boats and tugs spray any burning boat nearby, the jet pushes the target a little. Crew put out small fires and slowly patch hull damage. A skipper on every boat; boats with nobody aboard cannot take orders. Abandon ship when damage is unrecoverable, and other boats go to rescue swimmers. Search and rescue helicopter that clears people off the map (medic for the fallen). Deselect button, touch and hold then drag to select a group, and an Add mode.
+
 ## Done in v5.8
 A calmer interface: nothing on screen but More, Menu and the tabs until you select something. Info panel, compass and wind readout gone; wind shows in the world instead: gusts that sweep across water and trees, whitecaps that grow with the wind, streaks in a gale. Hide buttons (photo mode) in Menu.
 

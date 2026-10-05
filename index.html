@@ -75,7 +75,7 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
 body.ui-min.noinst .inst{display:none}
 body.ui-min .inst dl > div:nth-child(2){display:none}
-body.ui-min .actions:not(.open) > button:not(#bMenu):not(#bMore):not(#bMode){display:none}
+body.ui-min .actions:not(.open) > button:not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli){display:none}
 body.ui-min #bMode:disabled{display:none}
 body.ui-min.tray-idle .tray{display:none}
 #trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
@@ -203,7 +203,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mNew" type="button">New cove</button><button id="mScen" type="button">Scenarios</button>
     <button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button>
-    <button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
+    <button id="mHeli" type="button">Call rescue helicopter</button><button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
   <button id="mSandbox" type="button">Sandbox settings</button>
@@ -240,6 +240,8 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
     <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
     <button id="bInstallTop" type="button" hidden>Install app</button>
+    <button id="bDesel" type="button" hidden>Deselect</button>
+    <button id="bHeli" type="button" hidden>Rescue helicopter</button>
     <button id="bMore" type="button">More</button>
     <button id="bMenu" type="button">Menu</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
@@ -296,7 +298,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>Build</b><span>Tap to place</span>
         <b>Land</b><span>Tap to dab the island. Switch Drag to Paints land to shape it with a finger</span>
         <b>Take the helm</b><span>Sail the selected boat yourself</span>
-        <b>Box</b><span>In Command, turn on Box in the tray and drag to select several at once</span>
+        <b>Select a group</b><span>Touch and hold empty ground, then drag a box. Lift without dragging to deselect. Or turn on Add and tap each one</span>
         <b>People</b><span>Select, then tap a boat to board, a crate to carry, land to walk</span>
         <b>First person</b><span>Left stick walks, drag the right side to look, Use and Drop on the buttons</span>
       </div>
@@ -1420,7 +1422,7 @@ const BUILD = [
   { cat: 'Water', id: 'drain', name: 'Drain', note: 'soaks it up', water: 'drain', sw: '#2a2a2e' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
-let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false;
+let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false, multiTap = false, lpTimer = 0;
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
@@ -1440,7 +1442,7 @@ function place(item, p) {
     for (const o of boats) if (Math.hypot(o.body.position.x - x, o.body.position.z - z) < (o.sp.L + sp.L) * 0.42) { toast('Too close to the ' + o.sp.name); return; }   // overlapping hulls would fling each other apart
     if (boats.length >= 14) { toast('That is a full harbour: 14 boats'); return; }
     const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2 + buildRot);
-    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; selectBoat(nb); toast(sp.name + ' launched'); return;
+    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; ensureSkipper(nb); selectBoat(nb); toast(sp.name + ' launched'); return;
   }
   if (item.buoy) { if (h > -1) { toast('Marks go in the water'); return; } addBuoy(x, z, item.buoy); return; }
   if (item.land && h < 0.2) { toast(item.name + ' needs dry land'); return; }
@@ -1493,7 +1495,7 @@ function erase(p) {
    Standing people are kinematic boxes (cargo can knock them over), crew ride a boat deck, and a toppled person becomes eleven
    jointed bodies that float. */
 const people = []; let personSeq = 0, selPerson = null;
-const MAX_PEOPLE = 14, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
+const MAX_PEOPLE = 40, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
 const GR_PERSON = 2, GR_RAG = 16;
 /* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
    Each frame: put the bones I touch back to the clean animated pose, let the mixer run, snapshot, then layer on top. */
@@ -2139,6 +2141,7 @@ function stepFoot(p, dt, t) {
 const pTmp = new THREE.Vector3();
 function updatePeople(dt, t) {
   for (const p of people.slice()) {
+    if (p.hoist) continue;                                          // on the helicopter's cable
     if (p.state === 'rag') { updateRag(p, dt); continue; }
     if (p.hop) { stepHop(p, dt, t); continue; }
     stepJob(p, dt, t);
@@ -2690,6 +2693,7 @@ canvas.addEventListener('pointerdown', (e) => {
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button }); god.fling.set(0, 0); god.fly = null; god._pt = performance.now();
   if (ptrs.size === 1) {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
+    if (mode === 'god' && tool === 'select' && e.button === 0 && e.pointerType === 'touch') { const x = e.clientX, y = e.clientY; clearTimeout(lpTimer); lpTimer = setTimeout(() => { if (ptrs.size === 1 && downInfo && !downInfo.moved && !marq && !personAtScreen(x, y) && !boatUnderTap(x, y) && !objectAtScreen(x, y)) { marq = { x0: x, y0: y, x1: x, y1: y, add: false, active: false, lp: true }; if (navigator.vibrate) navigator.vibrate(18); toast('Drag to select a group. Lift to deselect.'); } }, 420); }
     if (mode === 'god' && tool === 'select' && e.button === 0 && (boxMode || e.shiftKey)) marq = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY, add: e.shiftKey || e.ctrlKey, active: false };
     if (mode === 'god' && tool === 'land' && e.button === 0 && land.finger === 'paint') {
       const p = pick(e.clientX, e.clientY - (e.pointerType === 'touch' ? 70 : 0));       // on a phone the brush sits above the fingertip so you can see it
@@ -2732,7 +2736,8 @@ const endPtr = (e) => {
   if (ptrs.size < 2) g2 = null;
   if (ptrs.size === 0) {
     if (land.painting) { land.painting = false; commitLand(true); }
-    if (marq) { const m = marq; marq = null; $('marquee').hidden = true; if (m.active && e.type === 'pointerup') { selectInRect(m.x0, m.y0, m.x1, m.y1, m.add); downInfo = null; return; } }
+    clearTimeout(lpTimer);
+    if (marq) { const m = marq; marq = null; $('marquee').hidden = true; if (m.active && e.type === 'pointerup') { selectInRect(m.x0, m.y0, m.x1, m.y1, m.add); downInfo = null; return; } if (m.lp && !m.active && e.type === 'pointerup') { if (sel.length) { setSel([]); toast('Deselected'); } downInfo = null; return; } }
     if (downInfo && !downInfo.moved && performance.now() - downInfo.t < 450 && e.type === 'pointerup') { god.fling.set(0, 0); tapOrFly(e, downInfo.btn, e.shiftKey || e.ctrlKey); }
     downInfo = null;
     if (e.pointerType !== 'mouse') hoverPt = null;     // no hover on touch: clear the brush ring once the finger lifts
@@ -2746,6 +2751,7 @@ canvas.addEventListener('wheel', (e) => {
   else { const p0 = pick(e.clientX, e.clientY), d0 = god.dist; god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD); god.fly = null; if (p0) { const r = god.dist / d0; god.tgt.x = p0.x + (god.tgt.x - p0.x) * r; god.tgt.z = p0.z + (god.tgt.z - p0.z) * r; } }       // zoom toward the pointer
 }, { passive: false });
 function orderBoats(sb, p) {
+  sb = sb.filter(crewed); if (!sb.length) { toast('Nobody is aboard to take the order.'); return; }
   for (const b of sb) { b.route = null; b.loop = false; }                       // move boats to open water, or dock the first one at the shore
   const first = sb[0], water = groundAt(p.x, p.z) < -(first.sp.D - first.sp.fb) - 0.2;
   if (!water) { const br = findBerth(first, p); if (br) { dockBoat(first, br); toast(first.sp.name + ': docking'); } else toast('No safe berth there'); return; }
@@ -2909,7 +2915,7 @@ function setTool(t) { tool = t; [...tabs.children].forEach(b => b.setAttribute('
 let traySig = '';
 function renderTray(force = true) {
   const T0 = mode === 'helm' ? 'build' : tool;
-  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + routeMode + routeLoop + people.length : Math.random());
+  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + routeMode + routeLoop + multiTap + people.length : Math.random());
   if (!force && sig === traySig) return;
   traySig = sig; const keep = tray.scrollLeft;
   tray.innerHTML = '';
@@ -2919,6 +2925,7 @@ function renderTray(force = true) {
     tray.append(sep('Select'));
     tray.append(chip('Box', boxMode ? 'on: drag' : 'off', null, boxMode, () => { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }, 'chip mini'));
     tray.append(chip('Fire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
+    tray.append(chip('Add', multiTap ? 'on: taps add' : 'off', null, multiTap, () => { multiTap = !multiTap; renderTray(); toast(multiTap ? 'Add is on. Tap boats and people to add or remove them.' : 'Add is off'); }, 'chip mini'));
     tray.append(chip('Route', routeMode ? 'on: tap points' : 'off', null, routeMode, () => { routeMode = !routeMode; if (routeMode) fireMode = false; renderTray(); toast(routeMode ? 'Route: select a boat, then tap open water to add stops' : 'Route off'); }, 'chip mini'));
     tray.append(chip('Loop', routeLoop ? 'on' : 'off', null, routeLoop, () => { routeLoop = !routeLoop; renderTray(); }, 'chip mini'));
     tray.append(chip('All people', String(people.length), null, false, () => setSel(people.slice()), 'chip mini'));
@@ -2994,7 +3001,7 @@ function refreshPanel() {
   $('bMode').textContent = mode === 'helm' ? 'Overview' : 'Take the helm';
   $('bMode').disabled = god_ && !(bt && !bt.sunk && bs.length <= 1);
   $('bStop').hidden = !(god_ && bs.length); $('bDel').hidden = !(god_ && bs.length && boats.length > 1);
-  $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length);
+  $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length); $('bHeli').hidden = !(god_ && ps.length); $('bDesel').hidden = !(god_ && sel.length);
   if (ps.length) { $('bTopple').textContent = ps.every(q => q.state === 'rag') ? 'Stand up' : 'Topple'; $('bDelP').textContent = ps.length > 1 ? 'Remove people' : 'Remove person'; }
   $('bDrop').hidden = !(god_ && ps.some(q => q.carry));
   $('bJoin').hidden = !god_; $('bZoom').hidden = !(god_ && sel.length); $('bCenter').hidden = !(god_ && !sel.length); $('bFollow').hidden = !(god_ && bs.length === 1); if (bs.length === 1) $('bFollow').textContent = god.follow === bs[0] ? 'Stop following' : 'Follow';
@@ -3110,7 +3117,7 @@ function frame(now) {
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
   if (fp.on && mode === 'fp') updateFP(dt, t);
-  updatePeople(dt, t); updateBoatParts(dt, t); updateRoutes(); updateScenario(dt); updateOrderLines(); updateCombat(dt, t); updateSunkObjects(dt, t);
+  updatePeople(dt, t); updateBoatParts(dt, t); updateRoutes(); updateScenario(dt); updateOrderLines(); updateCombat(dt, t); updateFirefighting(dt, t); updateDamageControl(dt); updateAbandon(); updateRescue(dt); updateHeli(dt, t); updateSunkObjects(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;
@@ -3329,6 +3336,7 @@ $('mRead').addEventListener('click', readHelp); $('bRead').addEventListener('cli
 /* ---- routes: tap several points and the boat sails them in turn */
 
 function addWaypoint(sb, p) {
+  sb = sb.filter(crewed); if (!sb.length) { toast('Nobody is aboard to take the order.'); return; }
   const bt0 = sb[0]; if (groundAt(p.x, p.z) > -(bt0.sp.D - bt0.sp.fb) - 0.2) { toast('Routes stay on open water'); return; }
   for (const b of sb) {
     if (b.sunk) continue; b.route = b.route || [];
@@ -3604,7 +3612,7 @@ function updateDisasters(dt, t) {
 }
 const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-function calm0() { clearIce(); clearMaterials(); clearVolcanoes(); clearClimate(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+function calm0() { clearFirefighting(); clearIce(); clearMaterials(); clearVolcanoes(); clearClimate(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
 const shakeV = new THREE.Vector3();
 
 /* ================================================================ v4.8: volcano. Stand it in deep water and it builds an island. */
@@ -4176,7 +4184,7 @@ function tapOrFly(e, btn, mods) {
     if (near && !personAtScreen(e.clientX, e.clientY) && !boatUnderTap(e.clientX, e.clientY) && !objectAtScreen(e.clientX, e.clientY)) { const p = pick(e.clientX, e.clientY); if (p) { camFlyTo(p.x, p.z, god.dist * 0.5); lastMapTap.t = 0; return; } }
     lastMapTap = { t: now, x: e.clientX, y: e.clientY };
   }
-  tapAt(e.clientX, e.clientY, btn, mods);
+  tapAt(e.clientX, e.clientY, btn, mods || multiTap);
 }
 /* ================================================================ v5.7: better camera. Tilt, zoom to the pointer, momentum, double-tap to fly, and a camera pad. */
 const camHold = { zi: 0, zo: 0, tl: 0, tr: 0, tu: 0, td: 0 };
@@ -4227,7 +4235,226 @@ $('bMore').addEventListener('click', () => { const a = document.querySelector('.
 $('mHide').addEventListener('click', () => { closeMenu(); document.body.classList.add('hud-off'); $('hudOn').hidden = false; toast('Buttons hidden. Tap Show buttons to bring them back.'); });
 $('hudOn').addEventListener('click', () => { document.body.classList.remove('hud-off'); $('hudOn').hidden = true; });
 
-window.__sc = { camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.9: fire fighting. Coast Guard craft and tugs have water monitors that go to work on any boat burning nearby. */
+const FF_MAX = 240, ffPos = new Float32Array(FF_MAX * 3).fill(-9999), ffVel = new Float32Array(FF_MAX * 3), ffLife = new Float32Array(FF_MAX), ffTgt = new Array(FF_MAX).fill(null);
+const ffGeo = new THREE.BufferGeometry(); ffGeo.setAttribute('position', new THREE.BufferAttribute(ffPos, 3));
+const ffPts = new THREE.Points(ffGeo, new THREE.PointsMaterial({ color: 0xd6ecff, size: 0.75, sizeAttenuation: true, transparent: true, opacity: 0.8, depthWrite: false }));
+ffPts.frustumCulled = false; ffPts.renderOrder = 4; scene.add(ffPts);
+let ffHead = 0; const ffImp = new Map(), ffV = new THREE.Vector3();
+const isFireboat = (bt) => bt.sp.glb === 'ccg' || bt.sp.glb === 'ccgfleet' || bt.key === 'bollard';
+const ffSpec = (bt) => ({ range: Math.min(95, 28 + bt.sp.L * 1.0), rate: Math.min(110, 30 + bt.sp.L * 1.6), lx: bt.sp.L * 0.22 });
+function ensureMonitor(bt) {
+  if (bt.ffMesh) return; const sp = ffSpec(bt), ly = deckLy(bt, sp.lx, 0) + 1.2 + Math.min(2.5, bt.sp.L * 0.025);
+  const g = new THREE.Group(), post = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.0 + Math.min(1.5, bt.sp.L * 0.015), 8), new THREE.MeshStandardMaterial({ color: 0xcfd3d8, roughness: 0.5, metalness: 0.4 })); post.position.y = 0.5;
+  const head = new THREE.Group(); head.position.y = 1.0 + Math.min(1.5, bt.sp.L * 0.015);
+  const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.17, 1.5, 8).rotateZ(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd52b1e, roughness: 0.5 })); noz.position.x = 0.7; head.add(noz); head.rotation.z = 0.5;
+  g.add(post, head); g.position.set(sp.lx, ly, 0); bt.group.add(g); bt.ffMesh = g; bt.ffHead = head;
+}
+function ffSpray(bt, tgt, n) {
+  const sp = ffSpec(bt), from = worldOfDeck(bt, sp.lx, deckLy(bt, sp.lx, 0) + 2.2 + Math.min(3, bt.sp.L * 0.03), 0, new THREE.Vector3()), tp = tgt.body.position, g = 9.82;
+  const lt = toBoatLocal(tgt, from.x, from.z);
+  for (let k = 0; k < n; k++) {
+    const i = ffHead; ffHead = (ffHead + 1) % FF_MAX;
+    const along = rnd(-0.3, 0.3) * tgt.sp.L, side = rnd(-0.25, 0.25) * tgt.sp.B, fx = Math.cos(boatYaw(tgt)), fz = -Math.sin(boatYaw(tgt));
+    const ax = tp.x + fx * along + -fz * side, az = tp.z + fz * along + fx * side, ay = tp.y + 1.2;
+    const dx = ax - from.x, dz = az - from.z, dy = ay - from.y, d = Math.max(3, Math.hypot(dx, dz)), T = Math.max(0.5, Math.min(2.2, d / 26));
+    ffPos[i * 3] = from.x; ffPos[i * 3 + 1] = from.y; ffPos[i * 3 + 2] = from.z;
+    ffVel[i * 3] = dx / T + rnd(-0.6, 0.6); ffVel[i * 3 + 1] = dy / T + 0.5 * g * T + rnd(-0.4, 0.4); ffVel[i * 3 + 2] = dz / T + rnd(-0.6, 0.6); ffLife[i] = T + 0.5; ffTgt[i] = tgt;
+  }
+}
+function updateFirefighting(dt, t) {
+  for (const bt of boats) {
+    if (!isFireboat(bt) || bt.sunk) continue;
+    ensureMonitor(bt);
+    bt.ffScan = (bt.ffScan || 0) - dt;
+    if (bt.ffScan <= 0) {
+      bt.ffScan = 0.5; const sp = ffSpec(bt), me = bt.body.position; let best = null, bd = 1e9;
+      for (const o of boats) { if (o === bt || o.sunk || !(o.fire > 0.05)) continue; const d = Math.hypot(o.body.position.x - me.x, o.body.position.z - me.z); if (d < sp.range && d < bd) { best = o; bd = d; } }
+      if (best && best !== bt.ffTarget) noteOnce('ff' + bt.id, 'The ' + bt.sp.name + ' is fighting the fire on the ' + best.sp.name + '.');
+      bt.ffTarget = best;
+    }
+    const tgt = bt.ffTarget;
+    if (!tgt || tgt.sunk || !boats.includes(tgt) || tgt.fire <= 0.02) { if (tgt && !tgt.sunk && tgt.fire <= 0.02 && boats.includes(tgt)) { tgt.fire = 0; tgt.fireT = 0; noteOnce('out' + tgt.id, 'The fire on the ' + tgt.sp.name + ' is out.'); } bt.ffTarget = null; continue; }
+    const lt = toBoatLocal(bt, tgt.body.position.x, tgt.body.position.z); bt.ffMesh.rotation.y = Math.atan2(-(lt.z - 0), lt.x - ffSpec(bt).lx);
+    bt.ffAcc = (bt.ffAcc || 0) + ffSpec(bt).rate * dt; const n = Math.floor(bt.ffAcc); bt.ffAcc -= n; if (n) ffSpray(bt, tgt, n);
+  }
+  // the water in the air
+  ffImp.clear();
+  for (let i = 0; i < FF_MAX; i++) {
+    if (ffLife[i] <= 0) continue;
+    ffLife[i] -= dt; ffVel[i * 3 + 1] -= 9.82 * dt; ffPos[i * 3] += ffVel[i * 3] * dt; ffPos[i * 3 + 1] += ffVel[i * 3 + 1] * dt; ffPos[i * 3 + 2] += ffVel[i * 3 + 2] * dt;
+    const x = ffPos[i * 3], y = ffPos[i * 3 + 1], z = ffPos[i * 3 + 2], tg = ffTgt[i];
+    let done = ffLife[i] <= 0;
+    if (!done && tg && ffVel[i * 3 + 1] < 0 && boats.includes(tg) && y < tg.body.position.y + 1.6 && insideHull(tg, x, z, 1.8)) {       // it lands on the deck
+      done = true; tg.fire = Math.max(0, tg.fire - 0.011); tg.fireT = Math.max(0, tg.fireT - 0.25);
+      if (tg.flood < 0.22 && tg.body.mass < 25000) tg.flood += 0.0003;
+      let e = ffImp.get(tg); if (!e) { e = { x: 0, z: 0, n: 0, vx: 0, vz: 0 }; ffImp.set(tg, e); } e.x += x; e.z += z; e.n++; e.vx += ffVel[i * 3]; e.vz += ffVel[i * 3 + 2];
+      if (Math.random() < 0.25) puffSmoke(x, y + 0.3, z, 1, false, 0.5);
+    } else if (!done && y < waveH(x, z, t) && ffVel[i * 3 + 1] < 0) { done = true; if (Math.random() < 0.06) splash(x, z, 0.25); }
+    if (done) { ffLife[i] = 0; ffPos[i * 3 + 1] = -9999; ffTgt[i] = null; }
+  }
+  for (const [tg, e] of ffImp) {                                    // the jet pushes the boat it hits, a little
+    const m = e.n, vx = e.vx / m, vz = e.vz / m, sp = Math.hypot(vx, vz) || 1, F = 3.5 * m;
+    tg.body.applyImpulse(new CANNON.Vec3(vx / sp * F, 0, vz / sp * F), new CANNON.Vec3(e.x / m - tg.body.position.x, 0.5, e.z / m - tg.body.position.z));
+  }
+  ffGeo.attributes.position.needsUpdate = true;
+}
+function clearFirefighting() { ffLife.fill(0); ffPos.fill(-9999); for (let i = 0; i < FF_MAX; i++) ffTgt[i] = null; for (const b of boats) b.ffTarget = null; }
+/* ---- crew damage control: people aboard put out small fires, pump, and slowly patch the hull */
+function updateDamageControl(dt) {
+  for (const bt of boats) {
+    if (bt.sunk || !bt.hpMax) continue;
+    const c = boatCrew(bt).length; if (!c) continue;
+    if (bt.fire > 0) { bt.fire = Math.max(0, bt.fire - (bt.fire < 0.4 ? c * 0.012 : c * 0.002) * dt); if (bt.fire < 0.03) { bt.fire = 0; bt.fireT = 0; noteOnce('crewout' + bt.id, 'The crew of the ' + bt.sp.name + ' put out the fire.'); } }
+    if (bt.hp < bt.hpMax * 0.85 && !(bt.fire > 0.1) && simT - bt.lastHitT > 6) {
+      bt.hp = Math.min(bt.hpMax * 0.85, bt.hp + c * bt.hpMax * 0.0004 * dt);
+      if (!bt.repairing) { bt.repairing = true; noteOnce('rep' + bt.id, 'The crew are patching the hull of the ' + bt.sp.name + '. It is slow.'); }
+    } else if (bt.hp >= bt.hpMax * 0.85) bt.repairing = false;
+  }
+}
+
+/* ================================================================ v5.9: a skipper on every boat, abandon ship, and rescue */
+function ensureSkipper(bt) {
+  if (bt.sunk || boatCrew(bt).length || people.length >= MAX_PEOPLE) return;
+  const n0 = people.length; crewOn(bt, 1); if (people.length > n0) people[people.length - 1].role = 'Skipper';
+}
+/* a boat with nobody aboard cannot be commanded */
+const crewed = (b) => b.sunk || boatCrew(b).length > 0;
+/* abandon ship once the damage cannot be recovered: the crew jump and become survivors in the water */
+function updateAbandon() {
+  for (const bt of boats) {
+    if (bt.sunk || !bt.hpMax) continue;
+    const hpP = bt.hp / bt.hpMax;
+    if (bt.abandoned && hpP > 0.35 && bt.flood < 0.3 && boatCrew(bt).length) bt.abandoned = false;
+    if (bt.abandoned) continue;
+    const crew = boatCrew(bt); if (!crew.length) continue;
+    if (hpP < 0.2 || bt.flood > 0.45 || (bt.fire > 0.6 && hpP < 0.4)) {
+      bt.abandoned = true; bt.order = null; bt.anchor = null; bt.throttle = 0; bt.target = null; bt.route = null; bt.status = 'Abandoned'; if (bt.marker) bt.marker.visible = false;
+      toast('The crew abandon the ' + bt.sp.name + '.');
+      for (const q of crew) { cancelJob(q); q.role = 'Survivor'; const a = Math.random() * 6.28; topple(q, new CANNON.Vec3(Math.cos(a) * 2.5, 3, Math.sin(a) * 2.5)); }
+      if (mode === 'helm' && boats[activeIdx] === bt) toggleMode();
+    }
+  }
+}
+/* rescue: any crewed boat that is not busy goes for people in the water, and takes them aboard */
+function rescueAboard(q, bt) {
+  const sp = freeSpot(bt, { x: 0, z: 0 }); if (!sp) return false;
+  if (q.state === 'rag') {
+    freeRag(q); for (const n in q.info) { const i = q.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); i.b.scale.set(1, 1, 1); }
+    for (const n of POSED) q.snap[n].copy(q.info[n].restQ); q.snapHip.copy(q.info.hips.restP); q.obj.quaternion.identity(); q.obj.updateMatrixWorld(true); q.state = 'idle'; q.floating = false;
+  }
+  q.swim = false; if (q.body) { world.removeBody(q.body); q.body = null; } q.order = null; q.job = null; q.cold = 0;
+  q.ride = { boat: bt, lx: sp[0], lz: sp[1], ly: deckLy(bt, sp[0], sp[1]), rel: 1.57 + rnd(-0.5, 0.5) };
+  splash(q.x, q.z, 0.5); return true;
+}
+let rescueT = 0;
+function updateRescue(dt) {
+  rescueT -= dt; if (rescueT > 0) return; rescueT = 0.5;
+  const victims = people.filter(q => !q.ride && !q.fp && !q.hop && !q.carry && (q.swim || (q.state === 'rag' && q.floating)) && standY(q.x, q.z) < 0.3);
+  const free = (b) => !b.sunk && !b.abandoned && !b.raider && boatCrew(b).length > 0 && !(mode === 'helm' && boats[activeIdx] === b) && !b.docked && crewCount(b) < (b.sp.capacity || 4);
+  for (const bt of boats) {
+    if (!free(bt)) { bt.rescue = null; continue; }
+    if (bt.rescue && bt.order !== bt.rescueOrder) bt.rescue = null;                 // the player gave a new order: let it go
+    if (!bt.order || bt.rescue || (bt.status === 'Under way' && false)) {
+      if (!bt.rescue || !people.includes(bt.rescue) || bt.rescue.ride) bt.rescue = null;
+      if (!bt.rescue) {
+        let best = null, bd = 150; for (const q of victims) { if (boats.some(o => o !== bt && o.rescue === q)) continue; const d = Math.hypot(q.x - bt.body.position.x, q.z - bt.body.position.z); if (d < bd) { best = q; bd = d; } }
+        if (best) { bt.rescue = best; noteOnce('res' + bt.id, 'The ' + bt.sp.name + ' goes to pick up people in the water.'); }
+      }
+      const q = bt.rescue; if (!q) { if (bt.status === 'Rescuing') { arrive(bt); } continue; }
+      if (distToHull(bt, q.x, q.z) < 4.5) { if (rescueAboard(q, bt)) { noteOnce('saved' + q.id, 'Someone is rescued onto the ' + bt.sp.name + '.'); } bt.rescue = null; arrive(bt); continue; }
+      orderTo(bt, q.x, q.z); bt.rescueOrder = bt.order; bt.status = 'Rescuing';
+    }
+  }
+}
+
+/* ================================================================ v5.9: search and rescue helicopter. It clears people off the map: it hoists them one group at a time, treats the fallen first, and nothing in the cove can touch it. */
+const heli = { on: false, state: 'idle', g: null, rotor: null, tail: null, cable: null, hook: null, pos: new THREE.Vector3(), vel: new THREE.Vector3(), cluster: [], hookY: 0, medT: 0, yaw: 0, washT: 0, saved: 0 };
+function buildHeli() {
+  const g = new THREE.Group(), red = new THREE.MeshStandardMaterial({ color: 0xd52b1e, roughness: 0.45 }), white = new THREE.MeshStandardMaterial({ color: 0xf1efe9, roughness: 0.5 }), dark = new THREE.MeshStandardMaterial({ color: 0x182430, roughness: 0.2, metalness: 0.3 }), grey = new THREE.MeshStandardMaterial({ color: 0x6b7178, roughness: 0.6 });
+  const fus = new THREE.Mesh(new THREE.CapsuleGeometry(1.5, 6.2, 6, 14).rotateZ(Math.PI / 2), red); fus.scale.y = 1.05; g.add(fus);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(1.53, 1.53, 1.1, 16).rotateZ(Math.PI / 2), white); band.position.x = -0.4; g.add(band);
+  const glass = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 8), dark); glass.position.set(3.3, 0.25, 0); glass.scale.set(1, 0.85, 1.05); g.add(glass);
+  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.28, 7.5, 10).rotateZ(Math.PI / 2), red); boom.position.set(-7.4, 0.5, 0); g.add(boom);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.6, 0.18), red); fin.position.set(-10.6, 1.5, 0); g.add(fin);
+  const tail = new THREE.Group(); tail.position.set(-10.7, 2.3, 0.3); for (let i = 0; i < 2; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.9, 0.14), dark); b.rotation.z = i * Math.PI / 2; tail.add(b); } g.add(tail);
+  for (const z of [-0.85, 0.85]) { const n = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 2.6, 10).rotateZ(Math.PI / 2), grey); n.position.set(-0.4, 1.7, z); g.add(n); }
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.28, 1.0, 8), grey); mast.position.y = 2.1; g.add(mast);
+  const rotor = new THREE.Group(); rotor.position.y = 2.7; for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.07, 0.55), dark); b.position.x = 4.2; const h = new THREE.Group(); h.rotation.y = i * Math.PI * 2 / 3; h.add(b); rotor.add(h); }
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(8.6, 36).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide })); rotor.add(disc); g.add(rotor);
+  for (const z of [-1.7, 1.7]) { const s = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 2.2, 4, 8).rotateZ(Math.PI / 2), white); s.position.set(-0.2, -1.0, z); g.add(s); }
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.2, 6).rotateX(Math.PI / 2), grey); arm.position.set(0.8, 0.9, 1.9); g.add(arm);
+  g.scale.setScalar(1.25); g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  heli.g = g; heli.rotor = rotor; heli.tail = tail; scene.add(g);
+  heli.cable = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, -1, 0)]), new THREE.LineBasicMaterial({ color: 0x20262c })); heli.cable.frustumCulled = false; heli.cable.visible = false; scene.add(heli.cable);
+  heli.hook = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.5), new THREE.MeshStandardMaterial({ color: 0xe8c13a, roughness: 0.5 })); heli.hook.visible = false; scene.add(heli.hook);
+}
+const groundTop = (x, z) => Math.max(heightAt(x, z), waveH(x, z, simT));
+const fallenOrAfield = (q) => !q.ride && !q.fp && !q.hoist;
+function callHeli() {
+  if (heli.on) { if (heli.state !== 'depart') { heli.state = 'depart'; toast('Helicopter recalled.'); } return; }
+  const targets = people.filter(fallenOrAfield); if (!targets.length) { toast('Nobody to rescue. People aboard boats stay with their boats.'); return; }
+  if (!heli.g) buildHeli();
+  heli.on = true; heli.state = 'inbound'; heli.saved = 0; heli.pos.set(-215, 80, -170); heli.vel.set(0, 0, 0); heli.g.position.copy(heli.pos); heli.g.visible = true; heli.cluster = []; $('mHeli').textContent = 'Recall helicopter';
+  toast('Search and rescue helicopter is inbound. It will take everyone off the land and water.');
+}
+function pickCluster() {
+  const left = people.filter(fallenOrAfield); if (!left.length) return [];
+  let best = left[0], bd = 1e9; for (const q of left) { const d = Math.hypot(q.x - heli.pos.x, q.z - heli.pos.z); if (d < bd) { best = q; bd = d; } }
+  const c = [best]; for (const q of left) if (q !== best && c.length < 3 && Math.hypot(q.x - best.x, q.z - best.z) < 7) c.push(q); return c;
+}
+function readyForHoist(q) {
+  if (q.state === 'rag') { freeRag(q); for (const n in q.info) { const i = q.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); i.b.scale.set(1, 1, 1); } for (const n of POSED) q.snap[n].copy(q.info[n].restQ); q.snapHip.copy(q.info.hips.restP); q.obj.quaternion.identity(); q.obj.updateMatrixWorld(true); q.state = 'idle'; q.floating = false; }
+  if (q.body) { world.removeBody(q.body); q.body = null; } cancelJob(q); q.order = null; q.swim = false; q.hoist = { t: 0 }; unselect(q);
+}
+function updateHeli(dt, t) {
+  if (!heli.on) return;
+  const g = heli.g; heli.rotor.rotation.y += 36 * dt; heli.tail.rotation.z += 50 * dt;
+  // choose who to collect next
+  if (['inbound', 'transit'].includes(heli.state)) { heli.cluster = heli.cluster.filter(q => people.includes(q) && fallenOrAfield(q)); if (!heli.cluster.length) heli.cluster = pickCluster(); if (!heli.cluster.length) heli.state = 'depart'; }
+  let des = null;
+  const cl = heli.cluster; let cx = 0, cz = 0; if (cl.length) { for (const q of cl) { cx += q.state === 'rag' && q.rag ? q.rag.bodies.pelvis.position.x : q.x; cz += q.state === 'rag' && q.rag ? q.rag.bodies.pelvis.position.z : q.z; } cx /= cl.length; cz /= cl.length; }
+  if (heli.state === 'depart') des = new THREE.Vector3(230, 85, 190);
+  else if (cl.length) { const hov = groundTop(cx, cz) + 16, far = Math.hypot(cx - heli.pos.x, cz - heli.pos.z) > 30; des = new THREE.Vector3(cx, far ? Math.max(hov, heli.pos.y > 40 ? 40 : hov + 10) : hov, cz); }
+  if (des) {
+    const to = des.clone().sub(heli.pos), d = to.length(), sp = Math.min(34, d * 1.1), want = d > 0.05 ? to.multiplyScalar(sp / d) : to.set(0, 0, 0);
+    heli.vel.lerp(want, Math.min(1, dt * 2.4)); heli.pos.addScaledVector(heli.vel, dt);
+  }
+  const hor = Math.hypot(heli.vel.x, heli.vel.z);
+  if (hor > 3) { let dy = Math.atan2(-heli.vel.z, heli.vel.x) - heli.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); heli.yaw += dy * Math.min(1, dt * 1.8); }
+  g.position.set(heli.pos.x, heli.pos.y + 0.25 * Math.sin(t * 2.1), heli.pos.z); g.rotation.set(0, heli.yaw, 0); g.rotation.z = -Math.min(0.25, hor * 0.008); g.rotation.x = 0;
+  g.position.y = heli.pos.y + 0.25 * Math.sin(t * 2.1);
+  const winch = new THREE.Vector3(0.8 * 1.25, 0.9 * 1.25, 1.9 * 1.25).applyAxisAngle(UPV, heli.yaw).add(g.position);
+  // the hoist
+  if (heli.state === 'inbound' || heli.state === 'transit') {
+    if (cl.length && Math.hypot(cx - heli.pos.x, cz - heli.pos.z) < 2.5 && Math.abs(heli.pos.y - (groundTop(cx, cz) + 16)) < 2.5) { if (cl.some(q => q.state === 'rag')) { heli.state = 'medic'; heli.medT = 2.6; noteOnce('medic', 'A medic goes down to the casualty.'); } else { heli.state = 'lower'; heli.hookY = winch.y - 1; } }
+  } else if (heli.state === 'medic') { heli.medT -= dt; if (heli.medT <= 0) { heli.state = 'lower'; heli.hookY = winch.y - 1; } }
+  else if (heli.state === 'lower') {
+    const gy = groundTop(cx, cz) + 2.4; heli.hookY = Math.max(gy, heli.hookY - 6 * dt);
+    if (heli.hookY <= gy + 0.05) { for (const q of cl) readyForHoist(q); heli.state = 'lift'; }
+  } else if (heli.state === 'lift') {
+    heli.hookY += 3.6 * dt;
+    if (heli.hookY >= winch.y - 1.4) { for (const q of cl) if (people.includes(q)) { removePerson(q); heli.saved++; } heli.cluster = []; heli.state = 'transit'; }
+  }
+  const showHook = ['lower', 'lift'].includes(heli.state);
+  heli.cable.visible = heli.hook.visible = showHook;
+  if (showHook) {
+    const hx = winch.x + (cx - winch.x) * Math.min(1, (winch.y - heli.hookY) / 10 * 0.0), hz = winch.z; const hp = new THREE.Vector3(heli.state === 'lower' || heli.state === 'lift' ? cx : winch.x, heli.hookY, heli.state === 'lower' || heli.state === 'lift' ? cz : winch.z);
+    heli.hook.position.copy(hp); heli.cable.geometry.setFromPoints([winch, hp]);
+    if (heli.state === 'lift') cl.forEach((q, i) => { if (!people.includes(q)) return; const a = i * 2.1; q.obj.position.set(hp.x + Math.cos(a) * 0.5, hp.y - 1.9, hp.z + Math.sin(a) * 0.5); q.obj.rotation.y += dt * 1.2; q.obj.visible = true; q.x = q.obj.position.x; q.z = q.obj.position.z; });
+  }
+  // downwash: spray off the water, dust off the land
+  heli.washT -= dt; const gH = groundTop(heli.pos.x, heli.pos.z);
+  if (heli.washT <= 0 && heli.pos.y - gH < 40) { heli.washT = 0.07; const wet = heightAt(heli.pos.x, heli.pos.z) < 0; for (let i = 0; i < 3; i++) { const a = Math.random() * 6.283, r = rnd(1, 6); fxS.emit(heli.pos.x + Math.cos(a) * r, gH + 0.5, heli.pos.z + Math.sin(a) * r, Math.cos(a) * 6, 0.6, Math.sin(a) * 6, 0.9, 1.3, 4, wet ? [0.92, 0.95, 0.97, 0.3] : [0.62, 0.55, 0.45, 0.25], 0, 0.3); } if (wet && Math.random() < 0.4) splash(heli.pos.x, heli.pos.z, 0.5); }
+  if (heli.state === 'depart' && Math.hypot(heli.pos.x, heli.pos.z) > 200) { heli.on = false; g.visible = false; heli.cable.visible = heli.hook.visible = false; $('mHeli').textContent = 'Call rescue helicopter'; toast(heli.saved ? 'The helicopter takes ' + heli.saved + (heli.saved === 1 ? ' person' : ' people') + ' to safety. The cove is clear.' : 'The helicopter heads home.'); }
+}
+$('mHeli').addEventListener('click', () => { closeMenu(); callHeli(); });
+$('bHeli').addEventListener('click', () => callHeli());
+
+$('bDesel').addEventListener('click', () => { setSel([]); toast('Deselected'); });
+boats.forEach(ensureSkipper);
+
+window.__sc = { heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
