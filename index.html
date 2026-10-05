@@ -1351,6 +1351,9 @@ const BUILD = [
   { cat: 'People', id: 'person', name: 'Person', note: 'walks, topples', person: 1, sw: '#7d9fb3' },
   { cat: 'People', id: 'crowd', name: 'Crowd', note: 'six at once', person: 6, sw: '#5f8196' },
   { cat: 'Water', id: 'volcano', name: 'Volcano', note: 'builds an island', volcano: true, sw: '#c8431b' },
+  { cat: 'Heat and cold', id: 'heater', name: 'Heat lamp', note: 'warms the air', climate: 'heat', sw: '#e8741c' },
+  { cat: 'Heat and cold', id: 'cooler', name: 'Cooler', note: 'chills the air', climate: 'cool', sw: '#7cc4e8' },
+  { cat: 'Heat and cold', id: 'dehum', name: 'Air dryer', note: 'pulls out water', climate: 'dry', sw: '#9fb4c2' },
   { cat: 'Water', id: 'spring', name: 'Spring', note: 'endless source', water: 'spring', sw: '#3a8fc4' },
   { cat: 'Water', id: 'bigspring', name: 'Big spring', note: 'floods fast', water: 'big', sw: '#2a6fa4' },
   { cat: 'Water', id: 'pour', name: 'Pour', note: 'one splash', water: 'pour', sw: '#6fb0dc' },
@@ -1364,6 +1367,7 @@ function place(item, p) {
   if (item.erase) return erase(p);
   if (item.water) return placeWater(item, p);
   if (item.volcano) return startVolcano(p);
+  if (item.climate) return placeClimate(item, p);
   if (item.person) return placePeople(item.person, p);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, 0) + 7, z); return; }
   if (item.boat) {
@@ -1414,6 +1418,7 @@ function erase(p) {
   for (const pr of props) consider(Math.hypot(pr.x - p.x, pr.z - p.z) - 2, () => { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(props.indexOf(pr), 1); });
   for (const b of buoys) consider(Math.hypot(b.body.position.x - p.x, b.body.position.z - p.z) - 1.5, () => { world.removeBody(b.body); scene.remove(b.mesh); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); });
   for (const pe of people) consider(Math.hypot(pe.x - p.x, pe.z - p.z) - 0.9, () => removePerson(pe));
+  for (const hs of heatSrc) consider(Math.hypot(hs.x - p.x, hs.z - p.z) - 1.5, () => { scene.remove(hs.mesh); heatSrc.splice(heatSrc.indexOf(hs), 1); toast('Removed'); });
   for (const sp of springs) consider(Math.hypot(sp.x - p.x, sp.z - p.z) - 1.5, () => { scene.remove(sp.mesh); springs.splice(springs.indexOf(sp), 1); toast('Spring removed'); });
   for (const bt of boats) if (boats.length > 1) consider(Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) - bt.sp.L * 0.5, () => removeBoat(bt));
   if (best && bd < 3) { best(); toast('Removed'); } else toast('Nothing there to remove');
@@ -2892,6 +2897,8 @@ function renderTray(force = true) {
     ['Dry', 'Showers', 'Downpour'].forEach((n, i) => tray.append(chip(n, '', null, wx.rain === i, () => { wx.rain = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Fog'));
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
+    tray.append(sep('Air'));
+    [['Freezing', -15], ['Cold', 2], ['Cool', 10], ['Mild', 18], ['Warm', 28], ['Hot', 38], ['Scorching', 48]].forEach(([n, T]) => tray.append(chip(n, T + ' C', null, Math.abs(clim.T - T) < 5, () => setAirTemp(T), 'chip mini')));
     tray.append(sep('Disasters'));
     [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Volcano', () => startVolcano(aimPt())], ['Deluge', startDeluge], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' || n === 'Volcano' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
   }
@@ -3007,7 +3014,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt);
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3101,7 +3108,7 @@ function frame(now) {
       else if (fb.sp.kind === 'motor') { $('pos').textContent = 'Under power'; $('sheet').textContent = Math.round(fb.throttle * 100) + '%' + (fb.throttle < 0 ? ' astern' : ''); }
       else { $('pos').textContent = pointOfSail(twa) + (Math.abs(fb.aoa || 0) < 0.12 && twa > 38 ? ', luffing' : ''); $('sheet').textContent = (fb.auto ? 'Auto ' : '') + Math.round(Math.abs(fb.beta) * 180 / Math.PI) + '°'; }
     } else if (selPerson && mode === 'god' && sel.length === 1) { $('sog').textContent = ''; $('pos').textContent = personStatus(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
-    else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = { dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]; $('sheetLbl').textContent = 'Sky'; }
+    else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = ({ dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]) + ' ' + Math.round(clim.mean) + ' C'; $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
@@ -3138,6 +3145,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
+    clim: { T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) },
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
@@ -3158,7 +3166,8 @@ async function loadWorld(slot) {
     for (const pr of props) { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); } props.length = 0;
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
-    clearWater(); calm0(); if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
+    clearWater(); calm0(); if (d.clim) { clim.T = d.clim.T; CT.set(d.clim.ct); CH.set(d.clim.ch); CC.set(d.clim.cc); for (const h of d.clim.src || []) addSource(h.x, h.z, h.k); }
+    if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
     const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
@@ -3418,7 +3427,7 @@ const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math
 function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wind.level = level; }
 function calm() {
   dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
-  dis.deluge = 0;
+  dis.deluge = 0; clim.T = 18; CC.fill(0); clim.rainLvl = 0;
   for (const v of volcanoes) if (v.state !== 'dormant') { v.state = 'dormant'; v.t = 0; v.p = Math.max(v.p, 0.0); }
   wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
 }
@@ -3505,7 +3514,7 @@ function updateDisasters(dt, t) {
 }
 const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-function calm0() { clearVolcanoes(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+function calm0() { clearVolcanoes(); clearClimate(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
 const shakeV = new THREE.Vector3();
 
 /* ================================================================ v4.8: volcano. Stand it in deep water and it builds an island. */
@@ -3647,7 +3656,89 @@ function clearLava() { LV.fill(0); LT.fill(0); lavaOn = false; hotData.fill(0); 
 /* ---- the Deluge: rain that floods the land */
 function startDeluge() { dis.deluge = 150; stormUp(2, 1, 3); toast('Deluge. The land will flood and the water will run to the sea.'); }
 
-window.__sc = { LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.1: climate. Heat evaporates water, vapour drifts, cool air aloft turns it to cloud and rain. */
+const CN = 64, CK = CN * CN;                                    // a coarse 64 x 64 air grid, 4 m cells
+const CT = new Float32Array(CK).fill(18), CH = new Float32Array(CK).fill(5), CC = new Float32Array(CK), CT2 = new Float32Array(CK), CH2 = new Float32Array(CK), CC2 = new Float32Array(CK), CHT = new Float32Array(CK);
+const clim = { T: 18, acc: 0, emitT: 0, cloud: 0, hum: 0, rainLvl: 0, mean: 18, hotCells: 0 };
+const heatSrc = [];
+const qsat = (T) => Math.min(160, 6 * Math.pow(1.07, T));       // how much vapour air can hold at this temperature
+const aloft = (T) => T - 6;                                     // the air a kilometre up is cooler
+function csample(arr, x, z) {
+  let fx = (x + TH) / 4 - 0.5, fz = (z + TH) / 4 - 0.5; fx = Math.max(0, Math.min(CN - 1.001, fx)); fz = Math.max(0, Math.min(CN - 1.001, fz));
+  const j = Math.floor(fx), i = Math.floor(fz), a = fx - j, b = fz - i, k = i * CN + j;
+  return (arr[k] * (1 - a) + arr[k + 1] * a) * (1 - b) + (arr[k + CN] * (1 - a) + arr[k + CN + 1] * a) * b;
+}
+const airTempAt = (x, z) => csample(CT, x, z);
+function stepClimate(dt) {
+  const k1 = 1 - Math.exp(-dt / 20);
+  CHT.fill(0);
+  if (lavaOn) for (let i = Math.max(2, lbx.z0); i <= Math.min(TN - 3, lbx.z1); i++) for (let j = Math.max(2, lbx.x0); j <= Math.min(TN - 3, lbx.x1); j++) { const k = i * TN + j; if (LV[k] > 0.02 && LT[k] > 0.25) { const c = ((i >> 2) * CN) + (j >> 2); if (c >= 0 && c < CK) CHT[c] += LT[k] * 0.45; } }
+  for (const s of heatSrc) { const cj = (s.x + TH) / 4, ci = (s.z + TH) / 4, R = s.r / 4; for (let i = Math.max(0, Math.floor(ci - R)); i <= Math.min(CN - 1, Math.ceil(ci + R)); i++) for (let j = Math.max(0, Math.floor(cj - R)); j <= Math.min(CN - 1, Math.ceil(cj + R)); j++) { const d = Math.hypot(j - cj, i - ci); if (d < R) CHT[i * CN + j] += s.k * (1 - d / R) / 1; } }
+  let tSum = 0, cSum = 0, hSum = 0, hot = 0;
+  for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
+    const c = i * CN + j, x = j * 4 - TH + 2, z = i * 4 - TH + 2, h = heightAt(x, z);
+    const l = j > 0 ? CT[c - 1] : CT[c], r = j < CN - 1 ? CT[c + 1] : CT[c], u = i > 0 ? CT[c - CN] : CT[c], d = i < CN - 1 ? CT[c + CN] : CT[c];
+    let T = CT[c] + 0.15 * ((l + r + u + d) / 4 - CT[c]);                                     // spreads a little to its neighbours
+    T += ((clim.T - 0.15 * Math.max(h, 0)) - T) * k1 + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
+    T = Math.max(-60, Math.min(160, T)); CT2[c] = T;
+    // evaporation from open water, faster when hot
+    let wet = h < 0 ? 1 : Math.min(1, lakeDepth(x, z) * 6), hu = CH[c];
+    if (wet > 0 && T > 8) {
+      const room = 0.65 * qsat(T) - hu;
+      if (room > 0) { const e = Math.min(room, 0.5 * (T - 8) / 20 * wet * dt * (h < 0 ? 0.35 : 1)); hu += e; if (h >= 0) { const amt = e * 0.003; const gx = Math.round(x + TH) - 2, gz = Math.round(z + TH) - 2; for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) { const kk = (gz + a) * TN + gx + b; if (WD[kk] > 0) WD[kk] = Math.max(0, WD[kk] - amt); } } }
+    }
+    CH2[c] = hu; tSum += T; hSum += hu; if (T > 60) hot++;
+  }
+  // vapour and cloud drift with the wind (semi-Lagrangian), then condense or clear
+  const wx_ = wind.v.x * dt / 4, wz_ = wind.v.z * dt / 4;
+  for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
+    const c = i * CN + j; let fx = Math.max(0, Math.min(CN - 1.001, j - wx_)), fz = Math.max(0, Math.min(CN - 1.001, i - wz_));
+    const jj = Math.floor(fx), ii = Math.floor(fz), a = fx - jj, b = fz - ii, q = ii * CN + jj;
+    let hu = (CH2[q] * (1 - a) + CH2[q + 1] * a) * (1 - b) + (CH2[q + CN] * (1 - a) + CH2[q + CN + 1] * a) * b;
+    let cl = (CC[q] * (1 - a) + CC[q + 1] * a) * (1 - b) + (CC[q + CN] * (1 - a) + CC[q + CN + 1] * a) * b;
+    const T = CT2[c], Ta = aloft(T), q0 = qsat(Ta);
+    if (hu > q0 && Ta < 28) { const co = (hu - q0) * 0.5; hu -= co; cl += co; }                  // cool air aloft: vapour becomes cloud. When it stays hot (Ta of 28 or more) the vapour stays clear.
+    else if (cl > 0 && hu < q0 * 0.8) { const ev = Math.min(cl, (q0 * 0.8 - hu) * 0.1); cl -= ev; hu += ev; }
+    const pr = Math.max(0, cl - 1.2) * 0.06 * dt; cl -= pr;                                    // heavy cloud lets go as rain
+    CH[c] = Math.max(0, hu); CC2[c] = Math.max(0, cl); cSum += cl;
+  }
+  CT.set(CT2); CC.set(CC2);
+  clim.mean = tSum / CK; clim.hum = hSum / CK; clim.cloud = cSum / CK; clim.hotCells = hot;
+  // the sky follows the clouds
+  const lvl = clim.cloud > 1.1 ? 2 : clim.cloud > 0.45 ? 1 : 0;
+  if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; wx.rain = lvl; if (lvl > 0 && wx.fog === 0) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
+}
+function updateClimate(dt) {
+  clim.acc += dt; if (clim.acc >= 0.2) { const s = Math.min(0.5, clim.acc); clim.acc = 0; stepClimate(s); }
+  clim.emitT -= dt;
+  if (clim.emitT <= 0) {
+    clim.emitT = 0.25;
+    for (let n = 0; n < 3; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 0.5) { const j = c % CN, i = (c - j) / CN, x = j * 4 - TH + 2 + rnd(-2, 2), z = i * 4 - TH + 2 + rnd(-2, 2), dark = Math.min(1, CC[c] / 3); fxS.emit(x, rnd(60, 90), z, wind.v.x * 0.6, 0, wind.v.z * 0.6, 8, rnd(12, 22), 4, [0.92 - dark * 0.45, 0.93 - dark * 0.45, 0.95 - dark * 0.42, 0.3 + dark * 0.2], 0, 0.1); } }
+  }
+  // haze from clear vapour, a little heat shimmer tint, and dim light under heavy cloud
+  const haze = Math.min(1, clim.hum / 40);
+  scene.fog.density += 0.0035 * haze + 0.004 * Math.min(1, clim.cloud / 2);
+  hemi.intensity *= 1 - 0.25 * Math.min(1, clim.cloud / 2);
+}
+function addSource(x, z, k) {
+  if (heatSrc.length >= 10) { toast('That is plenty of heat and cold. Remove one first.'); return; }
+  const g = new THREE.Group();
+  if (k > 0) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 10), new THREE.MeshBasicMaterial({ color: 0xff7a1a })); m.position.y = 2.2; const st = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); st.position.y = 1.1; g.add(st, m); }
+  else { const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.9), new THREE.MeshBasicMaterial({ color: 0xa8e4ff })); m.position.y = 2.2; const st = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); st.position.y = 1.1; g.add(st, m); }
+  g.position.set(x, Math.max(standY(x, z), 0), z); scene.add(g); heatSrc.push({ x, z, r: 26, k, mesh: g });
+}
+function placeClimate(item, p) {
+  if (item.climate === 'dry') {
+    let got = 0; for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) { const x = j * 4 - TH + 2, z = i * 4 - TH + 2, d = Math.hypot(x - p.x, z - p.z); if (d > 40) continue; const c = i * CN + j, take = CH[c] * (1 - d / 40) * 0.9, tc = CC[c] * (1 - d / 40) * 0.9; CH[c] -= take; CC[c] -= tc; got += take + tc; }
+    const gx = Math.round(p.x + TH), gz = Math.round(p.z + TH), amt = got * 0.0012; for (let a = -4; a <= 4; a++) for (let b = -4; b <= 4; b++) { const kk = (gz + a) * TN + gx + b; if (kk > 0 && kk < TN * TN && HGT[kk] >= 0) WD[kk] += amt; } lakeWet = Math.max(lakeWet, 1);
+    puffSmoke(p.x, Math.max(groundAt(p.x, p.z), 0) + 1, p.z, 6, false, 2); toast('The air dries. Water falls as puddles.'); return;
+  }
+  addSource(p.x, p.z, item.climate === 'heat' ? 1.4 : -1.4); toast(item.climate === 'heat' ? 'Heat lamp placed. Water nearby will evaporate.' : 'Cooler placed. Vapour nearby turns to cloud and rain.');
+}
+function setAirTemp(T) { clim.T = T; renderTray(true); toast(T <= -5 ? 'Freezing air' : T <= 5 ? 'Cold air' : T <= 14 ? 'Cool air' : T <= 24 ? 'Mild air' : T <= 34 ? 'Warm air' : 'Hot air'); }
+function clearClimate() { CT.fill(18); CH.fill(5); CC.fill(0); clim.T = 18; clim.rainLvl = 0; for (const s of heatSrc) scene.remove(s.mesh); heatSrc.length = 0; }
+
+window.__sc = { clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.1
+Climate: air temperature, evaporation, humidity, clouds and rain, clear vapour when everything is hot. Heat lamp, Cooler and Air dryer.
+
 ## Done in v5.0
 Catastrophic rain (Deluge) that floods the land and runs to the sea; lava flows that creep down, glow through the ground, cool to rock, hiss and build land at the sea.
 

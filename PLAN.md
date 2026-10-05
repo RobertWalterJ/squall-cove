@@ -16,11 +16,16 @@ Each stage ships on its own and is tested before the next starts.
 - Hot ground and lava evaporate water. Vapour drifts with the wind. Where the air is cool it condenses into cloud and then rain. When everything stays hot it stays clear vapour.
 - Tools: a global temperature slider, a local Heat brush and a Cool brush (hold button like Sculpt), and Pull humidity.
 
-### Stage C (v5.2): freezing and effects on actors
+### Stage E (v5.2): materials pack (added by request, built before C and D)
+- Sand: pour it, source it, paint it. It piles at a natural angle and slides when too steep. Wind slowly walks dunes downwind.
+- Melting: very high heat (lightning, meteor, lava, a Furnace) heats sand until it glows, then it cools into glass. Lightning on sand leaves a branching glass tube (fulgurite). A meteor leaves a glass crater. Lava edges leave glass.
+- A Lightning rod draws strikes. Glass is shiny and smooth; sand is pale and grainy.
+
+### Stage C (v5.3): freezing and effects on actors
 - Below freezing water skins over with ice and snow settles on land. Ice slows and holds boats, makes the ground slippery and lets cargo rest on top.
 - People get simple states: Wet, Cold, Hot, Burning, Frozen. No deaths in safe mode. Boats gain ice weight in the cold and take fire near lava.
 
-### Stage D (v5.3): classes and menus
+### Stage D (v5.4): classes and menus
 - One registry of items with a class and a handler, so adding an item is one line.
 - A class picker sheet so the build tray shows one class at a time.
 - A Calm all button that is always on screen, a global Undo, effect limits and a Gentle mode that hides disasters.
