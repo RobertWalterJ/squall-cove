@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v6.0
+A separate Nature menu (trees and rocks, water, heat and cold, lava, materials) so Build is just boats, people and cargo. Earth pile, Earth fountain and Rock dump that build land even in water. Lava vent and Lava pour, Geyser, Water dump. A meteor now melts rock into magma, throws debris, scorches the ground and sets the trees on fire; fire spreads tree to tree, and lightning, lava and volcano bombs light trees too. Cargo and squalls land at the ring.
+
 ## Done in v5.9
 Fire fighting: Coast Guard boats and tugs spray any burning boat nearby, the jet pushes the target a little. Crew put out small fires and slowly patch hull damage. A skipper on every boat; boats with nobody aboard cannot take orders. Abandon ship when damage is unrecoverable, and other boats go to rescue swimmers. Search and rescue helicopter that clears people off the map (medic for the fallen). Deselect button, touch and hold then drag to select a group, and an Add mode.
 
@@ -73,3 +76,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Gust sound and the creak of rigging, once there is any sound.
 - Wind lines or drifting leaves and dust that show the gust front.
 - Swipe up from the bottom for the tray, swipe from the right edge for actions.
+- Burnt trees that leave charred stumps, and ground that regrows.
+- Fire that spreads over grass, and fire breaks you can dig.
+- Fire boats and the helicopter water-bombing a forest fire.
