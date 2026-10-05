@@ -61,9 +61,18 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
- #sculpt{position:fixed;right:16px;bottom:calc(150px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
-#landUndo{position:fixed;right:118px;bottom:calc(158px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
-#landUndo[hidden]{display:none}
+ #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(150px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
+#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(158px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
+#landUndo[hidden],#turnBtn[hidden],#placeBtn[hidden]{display:none}
+#objective{position:fixed;left:12px;bottom:calc(172px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
+#objective button{min-height:36px;padding:6px 12px}
+#objective[hidden]{display:none}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mbody{display:grid;gap:8px}
+.mhead{font:600 13px/1.3 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.mrow{display:grid;gap:3px;text-align:left;padding:12px 14px;min-height:52px}
+.mrow b{font:600 16px var(--f-display);letter-spacing:.04em;text-transform:uppercase}
+.mrow span{font:500 12px var(--f-mono);color:var(--muted)}
 #sculpt.on{background:#fff2c7;transform:scale(.94)}
 #sculpt[hidden]{display:none}
 .bottom{position:absolute;left:0;right:0;bottom:calc(10px + var(--safe-b));display:grid;gap:8px;padding-inline:12px;pointer-events:none}
@@ -168,7 +177,19 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 </style>
 
 <div id="marquee" hidden></div>
-<button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button>
+<div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
+  <h2 style="margin:0;font:700 24px var(--f-display);letter-spacing:.04em;text-transform:uppercase">Menu</h2>
+  <div class="mgrid">
+    <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
+    <button id="mNew" type="button">New cove</button><button id="mScen" type="button">Scenarios</button>
+    <button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button>
+    <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button" hidden>Install</button>
+  </div>
+  <div id="menuBody" class="mbody"></div>
+  <button class="go" id="mClose" type="button">Close</button>
+</div></div>
+<div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
+<button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
 <div class="hud">
   <section class="inst" aria-label="Instruments">
@@ -189,9 +210,11 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="bJoin" type="button">First person</button>
     <button id="bBoat" type="button">Next boat</button>
     <button id="bZoom" type="button" hidden>Zoom to selection</button>
+    <button id="bCenter" type="button">Recenter</button>
+    <button id="bFollow" type="button" hidden>Follow</button>
     <div class="grp"><button id="bStop" type="button" hidden>Anchor</button><button id="bDel" type="button" hidden>Remove boat</button></div>
     <div class="grp"><button id="bTopple" type="button" hidden>Topple</button><button id="bDelP" type="button" hidden>Remove person</button><button id="bDrop" type="button" hidden>Drop</button></div>
-    <div class="grp"><button id="bQual" type="button">Quality: High</button><button id="bHelp" type="button">Help</button><button id="bInstall" type="button" hidden>Install</button></div>
+    <button id="bMenu" type="button">Menu</button>
     <button id="bRight" type="button" hidden>Right the boat</button>
   </nav>
   <div class="bottom">
@@ -250,6 +273,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>First person</b><span>Left stick walks, drag the right side to look, Use and Drop on the buttons</span>
       </div>
       <p id="installNote" style="margin:10px 0;font-size:14px;line-height:1.45"></p><button id="bInstall2" type="button" hidden style="margin-bottom:10px">Install on this phone</button>
+      <button id="bRead" type="button">Read aloud</button><button id="bContinue" type="button" hidden>Continue last session</button>
       <button class="go" id="go" type="button">Open the cove</button>
     </div>
   </div>
@@ -1313,7 +1337,7 @@ const BUILD = [
   { cat: 'People', id: 'crowd', name: 'Crowd', note: 'six at once', person: 6, sw: '#5f8196' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
-let buildSel = 0;
+let buildSel = 0, buildRot = 0; let routeMode = false, routeLoop = false;
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
@@ -1328,7 +1352,7 @@ function place(item, p) {
     if (h > -(sp.D - sp.fb) - 0.4) { toast('Too shallow for the ' + sp.name); return; }
     for (const o of boats) if (Math.hypot(o.body.position.x - x, o.body.position.z - z) < (o.sp.L + sp.L) * 0.42) { toast('Too close to the ' + o.sp.name); return; }   // overlapping hulls would fling each other apart
     if (boats.length >= 14) { toast('That is a full harbour: 14 boats'); return; }
-    const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2);
+    const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2 + buildRot);
     nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; selectBoat(nb); toast(sp.name + ' launched'); return;
   }
   if (item.buoy) { if (h > -1) { toast('Marks go in the water'); return; } addBuoy(x, z, item.buoy); return; }
@@ -1336,7 +1360,7 @@ function place(item, p) {
   const node = nodeByName(D.glb[item.glb], item.node); if (!node) return;
   const m = shadowAll(node.clone()); m.position.set(0, 0, 0);
   const g = new THREE.Group(); g.add(m);
-  const sc = item.id === 'light' ? 1 : 0.8 + Math.random() * 0.5; g.scale.setScalar(sc); g.rotation.y = Math.random() * 6.28;
+  const sc = item.id === 'light' ? 1 : 0.8 + Math.random() * 0.5; g.scale.setScalar(sc); g.rotation.y = buildRot ? buildRot : Math.random() * 6.28;
   const dy = item.id === 'light' ? -1.0 : item.id === 'rockb' ? -0.3 * sc : -0.15;
   g.position.set(x, h + dy, z); scene.add(g);
   const pr = { mesh: g, x, z, dy, item, body: null, by: 0 };
@@ -1353,7 +1377,7 @@ function addBuoy(x, z, nm) {
   const body = new CANNON.Body({ mass: 160, shape: new CANNON.Cylinder(1.0, 1.0, 0.8, 12), angularDamping: 0.4 });
   body.position.set(x, 0, z); settle(body); world.addBody(body);
   const fl = makeFloater(body, { pts: boxPoints(1.0, 0.7, 1.0, 0.0), slab: 0.7, volume: 0.6, kH: 0.6, rad: 1.1 });
-  buoys.push({ body, mesh: g, anchor: new CANNON.Vec3(x, 0, z), fl, model: m });
+  buoys.push({ body, mesh: g, anchor: new CANNON.Vec3(x, 0, z), fl, model: m, nm });
 }
 function removeBoat(bt) {
   for (const pe of people.slice()) if (pe.ride && pe.ride.boat === bt) topple(pe, new CANNON.Vec3(bt.body.velocity.x, 1, bt.body.velocity.z));   // the crew goes overboard
@@ -2585,7 +2609,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (mode === 'fp') { if (fp.drag && !fp.locked && (e.buttons & 1)) { fp.yaw -= (e.clientX - fp.drag.x) * 0.004; fp.pitch = clamp(fp.pitch - (e.clientY - fp.drag.y) * 0.004, -1.45, 1.45); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   if (e.pointerType === 'mouse') { lastMouse.x = e.clientX; lastMouse.y = e.clientY; lastMouse.on = true; }
   const p = ptrs.get(e.pointerId);
-  if (!p) { if (mode === 'god' && tool === 'land' && e.pointerType === 'mouse') hoverPt = pick(e.clientX, e.clientY); return; }
+  if (!p) { if (mode === 'god' && (tool === 'land' || tool === 'build') && e.pointerType === 'mouse') hoverPt = pick(e.clientX, e.clientY); return; }
   let ox = p.x, oy = p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptrs.size === 1) {
     if (marq) {                                                      // drawing a selection box
@@ -2628,7 +2652,8 @@ canvas.addEventListener('wheel', (e) => {
   if (mode === 'helm') camS.dist = clamp(camS.dist * Math.exp(e.deltaY * 0.0012), 5, 120);
   else god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD);
 }, { passive: false });
-function orderBoats(sb, p) {                       // move boats to open water, or dock the first one at the shore
+function orderBoats(sb, p) {
+  for (const b of sb) { b.route = null; b.loop = false; }                       // move boats to open water, or dock the first one at the shore
   const first = sb[0], water = groundAt(p.x, p.z) < -(first.sp.D - first.sp.fb) - 0.2;
   if (!water) { const br = findBerth(first, p); if (br) { dockBoat(first, br); toast(first.sp.name + ': docking'); } else toast('No safe berth there'); return; }
   sb.forEach((b, i) => {
@@ -2642,10 +2667,11 @@ function tapAt(cx, cy, btn, mods) {
   if (mode === 'fp') return;
   if (mode === 'helm') { const p = pick(cx, cy); if (p && BUILD[buildSel] && BUILD[buildSel].cargo !== undefined) place(BUILD[buildSel], p); return; }
   if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { landMark(); brush(p.x, p.z, 0.45); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
-  if (tool === 'build') { const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }
+  if (tool === 'build') { if (isTouch) return; const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }      // on a phone the cross and the Place button do the placing
   const add = !!mods, pe = personAtScreen(cx, cy), ob = objectAtScreen(cx, cy), od = objectAtScreen.d, bt = boatUnderTap(cx, cy), bd = boatAtScreen.d;
   const sp = selPeople(), sb = selBoats(), now = performance.now();
   // fire mode: tap a boat to engage it, tap anywhere else to cease fire
+  if (routeMode && sb.length && !bt) { const p = pick(cx, cy); if (p) addWaypoint(sb, p); return; }
   if (fireMode && sb.length) { if (bt && !sb.includes(bt)) orderFire(sb, bt); else ceaseFire(sb); return; }
   // a person under the pointer: select (shift or ctrl adds, double-tap takes everyone on screen)
   if (pe && btn !== 2) {
@@ -2790,7 +2816,7 @@ function setTool(t) { tool = t; [...tabs.children].forEach(b => b.setAttribute('
 let traySig = '';
 function renderTray(force = true) {
   const T0 = mode === 'helm' ? 'build' : tool;
-  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + people.length : Math.random());
+  const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + routeMode + routeLoop + people.length : Math.random());
   if (!force && sig === traySig) return;
   traySig = sig; const keep = tray.scrollLeft;
   tray.innerHTML = '';
@@ -2800,12 +2826,14 @@ function renderTray(force = true) {
     tray.append(sep('Select'));
     tray.append(chip('Box', boxMode ? 'on: drag' : 'off', null, boxMode, () => { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }, 'chip mini'));
     tray.append(chip('Fire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
+    tray.append(chip('Route', routeMode ? 'on: tap points' : 'off', null, routeMode, () => { routeMode = !routeMode; if (routeMode) fireMode = false; renderTray(); toast(routeMode ? 'Route: select a boat, then tap open water to add stops' : 'Route off'); }, 'chip mini'));
+    tray.append(chip('Loop', routeLoop ? 'on' : 'off', null, routeLoop, () => { routeLoop = !routeLoop; renderTray(); }, 'chip mini'));
     tray.append(chip('All people', String(people.length), null, false, () => setSel(people.slice()), 'chip mini'));
     tray.append(chip('Idle', 'people', null, false, () => setSel(people.filter(q => !q.order && !q.job && !q.hop && !q.carry && !q.fp && q.state !== 'rag')), 'chip mini'));
     tray.append(chip('All boats', String(boats.length), null, false, () => setSel(boats.slice()), 'chip mini'));
     tray.append(sep('Fleet'));
     boats.forEach(bt => tray.append(chip(bt.sp.name, bt.sunk ? 'Sinking' : (bt.status || (bt.order ? 'Under way' : 'Anchored')) + (bt.hpMax && bt.hp < bt.hpMax ? ' ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''), bt.sp.kind === 'sail' ? '#e9e3d6' : bt.sp.glb === 'ccg' || bt.sp.glb === 'ccgfleet' ? '#d52b1e' : '#2c2f33', sel.includes(bt), () => { if (sel.length === 1 && sel[0] === bt) setSel([]); else setSel([bt]); if (selBoat) god.follow = bt; renderTray(); })));
-    tray.append(chip('All stop', 'anchor everyone', null, false, () => { boats.forEach(b => { if (b.order) arrive(b); }); toast('All boats anchored'); renderTray(); }, 'tool'));
+    tray.append(chip('All stop', 'anchor everyone', null, false, () => { boats.forEach(b => { b.route = null; if (b.order) arrive(b); }); toast('All boats anchored'); renderTray(); }, 'tool'));
   } else if (T === 'build') {
     let cat = null;
     BUILD.forEach((it, i) => {
@@ -2859,12 +2887,12 @@ function refreshPanel() {
   $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length);
   if (ps.length) { $('bTopple').textContent = ps.every(q => q.state === 'rag') ? 'Stand up' : 'Topple'; $('bDelP').textContent = ps.length > 1 ? 'Remove people' : 'Remove person'; }
   $('bDrop').hidden = !(god_ && ps.some(q => q.carry));
-  $('bJoin').hidden = !god_; $('bZoom').hidden = !(god_ && sel.length);
+  $('bJoin').hidden = !god_; $('bZoom').hidden = !(god_ && sel.length); $('bCenter').hidden = !(god_ && !sel.length); $('bFollow').hidden = !(god_ && bs.length === 1); if (bs.length === 1) $('bFollow').textContent = god.follow === bs[0] ? 'Stop following' : 'Follow';
   if (tool === 'select' && god_) renderTray();
 }
 tabs.querySelector('[data-t="select"]').setAttribute('aria-pressed', 'true');
 $('bMode').addEventListener('click', toggleMode);
-$('bStop').addEventListener('click', () => { const bs = selBoats(); bs.forEach(b => { if (b.order || b.docked) arrive(b); b.target = null; }); refreshPanel(); toast(bs.length > 1 ? bs.length + ' boats anchored' : bs[0].sp.name + ' anchored'); });
+$('bStop').addEventListener('click', () => { const bs = selBoats(); bs.forEach(b => { b.route = null; if (b.order || b.docked) arrive(b); b.target = null; }); refreshPanel(); toast(bs.length > 1 ? bs.length + ' boats anchored' : bs[0].sp.name + ' anchored'); });
 $('bDel').addEventListener('click', () => { const bs = selBoats().filter(() => boats.length > 1); let n = 0; for (const b of bs) if (boats.length > 1) { removeBoat(b); n++; } refreshPanel(); toast(n + ' removed'); });
 $('bTopple').addEventListener('click', () => { const ps = selPeople(); if (!ps.length) return; if (ps.every(q => q.state === 'rag')) ps.forEach(standUp); else ps.forEach(q => { if (q.state !== 'rag') topple(q, new CANNON.Vec3((Math.random() - 0.5) * 2, 1.5, (Math.random() - 0.5) * 2)); }); refreshPanel(); });
 $('bDelP').addEventListener('click', () => { const ps = selPeople(); ps.forEach(removePerson); toast(ps.length + ' removed'); });
@@ -2946,6 +2974,7 @@ function frame(now) {
   // terraforming: paint while held, rebuild the mesh at 20 Hz and the physics at 3 Hz
   if (mode === 'god' && tool === 'land' && isTouch && land.finger === 'hold' && !land.painting) hoverPt = reticlePt();
   if (mode === 'god' && tool === 'land' && (land.painting || land.holding) && hoverPt) brush(hoverPt.x, hoverPt.z, dt);
+  updateBuildGhost();
   sculptBtn.hidden = !(mode === 'god' && tool === 'land' && land.finger === 'hold'); $('landUndo').hidden = !(mode === 'god' && tool === 'land' && isTouch && land.undo.length);
   if (!(mode === 'god' && tool === 'land') && land.holding) sculptEnd();
   land.meshT -= dt; land.physT -= dt;
@@ -2962,7 +2991,7 @@ function frame(now) {
   for (const b of buoys) syncMesh(b.mesh, b.body);
   for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i]; syncMesh(o.mesh, o.body); if (o.body.position.y < -40) { removeObj(o); updateCount(); } }
   if (fp.on && mode === 'fp') updateFP(dt, t);
-  updatePeople(dt, t); updateBoatParts(dt, t); updateCombat(dt, t); updateSunkObjects(dt, t);
+  updatePeople(dt, t); updateBoatParts(dt, t); updateRoutes(); updateScenario(dt); updateOrderLines(); updateCombat(dt, t); updateSunkObjects(dt, t);
   // camera
   if (mode === 'helm') {
     const bp = bt.body.interpolatedPosition;
@@ -2989,7 +3018,7 @@ function frame(now) {
   const focus = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
   // markers
   updateRings(t);
-  if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size]); } else brushRing.visible = false;
+  if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size]); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
   terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt;
   windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt);
@@ -3056,7 +3085,216 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 requestAnimationFrame(frame);
-window.__sc = { land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v4.6: menu, saving, build preview, camera helpers, reading aloud */
+const rd = (n) => Math.round(n);
+/* ---- the menu sheet */
+const menuSheet = $('menuSheet'), menuBody = $('menuBody');
+const openMenu = (html) => { menuSheet.hidden = false; if (html !== undefined) menuBody.replaceChildren(...html); };
+const closeMenu = () => { menuSheet.hidden = true; menuBody.replaceChildren(); };
+$('bMenu').addEventListener('click', () => openMenu([]));
+$('mClose').addEventListener('click', closeMenu);
+menuSheet.addEventListener('pointerdown', (e) => { if (e.target === menuSheet) closeMenu(); });
+const menuBtn = (label, sub, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), s = document.createElement('span'); l.textContent = label; s.textContent = sub || ''; b.append(l, s); b.addEventListener('click', fn); return b; };
+const menuHead = (t) => { const h = document.createElement('div'); h.className = 'mhead'; h.textContent = t; return h; };
+
+/* ---- saving: the whole cove goes into the phone's own database */
+const dbOpen = () => new Promise((res, rej) => { const r = indexedDB.open('squall-cove-saves', 1); r.onupgradeneeded = () => r.result.createObjectStore('saves'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const dbPut = (k, v) => dbOpen().then(db => new Promise((res, rej) => { const t = db.transaction('saves', 'readwrite'); t.objectStore('saves').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }));
+const dbGet = (k) => dbOpen().then(db => new Promise((res, rej) => { const r = db.transaction('saves').objectStore('saves').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+const dbInfo = async (k) => { try { const d = await dbGet(k); return d ? { t: d.t, boats: d.boats.length, people: d.people.length, objects: d.objects.length } : null; } catch (e) { return null; } };
+function snapshotWorld() {
+  const live = boats.filter(b => !b.sunk);
+  return {
+    v: 1, t: Date.now(), hgt: HGT.slice(),
+    boats: live.map(b => ({ key: b.key, x: b.body.position.x, z: b.body.position.z, yaw: boatYaw(b), hp: b.hp, flood: b.flood })),
+    people: people.map(p => ({ variant: p.variant, x: p.x, z: p.z, heading: p.heading, ride: p.ride && !p.ride.boat.sunk ? { bi: live.indexOf(p.ride.boat), lx: p.ride.lx, lz: p.ride.lz, rel: p.ride.rel } : null })).filter(p => !p.ride || p.ride.bi >= 0),
+    objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
+    props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
+    buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
+    wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
+  };
+}
+let saving = false, loading = false, noAutosave = false;
+async function saveWorld(slot, quiet) {
+  if (saving || loading) return; saving = true;
+  try { await dbPut(slot, snapshotWorld()); if (!quiet) toast('Saved'); } catch (e) { if (!quiet) toast('Could not save here'); }
+  saving = false;
+}
+async function loadWorld(slot) {
+  if (loading) return; let d; try { d = await dbGet(slot); } catch (e) { d = null; } if (!d) { toast('Nothing saved there'); return; }
+  loading = true;
+  try {
+    if (fp.on) exitFP(); if (mode === 'helm') toggleMode(); setSel([]); closeMenu(); endScenario(true);
+    if (d.boats.some(b => SPECS[b.key] && SPECS[b.key].glb === 'ccgfleet') && !D.glb.ccgfleet) { toast('Loading the Coast Guard fleet'); await ensureFleet(); }
+    people.slice().forEach(removePerson); objects.slice().forEach(removeObj);
+    for (const pr of props) { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); } props.length = 0;
+    for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
+    boats.slice().forEach(removeBoat);
+    HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
+    const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
+    if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
+    const nb = [];
+    for (const b of d.boats) { if (!SPECS[b.key]) continue; const bt = makeBoat(b.key, null, null, b.x, b.z, b.yaw); bt.hp = b.hp ?? bt.hp; bt.flood = b.flood || 0; bt.anchor = bt.body.position.clone(); bt.status = 'Anchored'; nb.push(bt); }
+    for (const p of d.people) { const bt = p.ride && nb[p.ride.bi]; const q = makePerson(p.variant, p.x, p.z, bt ? { boat: bt, lx: p.ride.lx, lz: p.ride.lz, ly: deckLy(bt, p.ride.lx, p.ride.lz), rel: p.ride.rel } : null); q.heading = p.heading; if (!bt) q.y = standY(p.x, p.z); }
+    for (const o of d.objects) if (CARGO[o.cid]) spawn(CARGO[o.cid], o.x, o.y, o.z);
+    for (const s of d.props) { const it = BUILD.find(i => i.id === s.id); if (it) { const n0 = props.length; place(it, { x: s.x, z: s.z }); if (props.length > n0) { const pr = props[props.length - 1]; pr.mesh.rotation.y = s.ry; pr.mesh.scale.setScalar(s.sc); } } }
+    for (const b of d.buoys || []) addBuoy(b.x, b.z, b.nm);
+    if (boats[0]) { god.tgt.set(boats[0].body.position.x, 0, boats[0].body.position.z); god.follow = null; }
+    activeIdx = 0; refreshPanel(); renderTray(true); updateCount(); toast('Loaded');
+  } catch (e) { console.error(e); toast('That save would not load'); }
+  loading = false;
+}
+const when = (t) => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const SLOTS = [['auto', 'Last session'], ['s1', 'Slot 1'], ['s2', 'Slot 2'], ['s3', 'Slot 3']];
+async function slotList(kind) {
+  const rows = [menuHead(kind === 'save' ? 'Save the cove to' : 'Load the cove from')];
+  for (const [k, n] of SLOTS) {
+    if (kind === 'save' && k === 'auto') continue;
+    const i = await dbInfo(k);
+    if (kind === 'load' && !i) continue;
+    rows.push(menuBtn(n, i ? `${when(i.t)} · ${i.boats} boats, ${i.people} people` : 'empty', async () => { if (kind === 'save') { await saveWorld(k); openMenu(await slotList('save')); } else loadWorld(k); }));
+  }
+  if (rows.length === 1) rows.push(menuHead('Nothing saved yet'));
+  return rows;
+}
+$('mSave').addEventListener('click', async () => openMenu(await slotList('save')));
+$('mLoad').addEventListener('click', async () => openMenu(await slotList('load')));
+$('mNew').addEventListener('click', () => openMenu([menuHead('Start a new cove? The last session save is cleared. Your numbered slots stay.'), menuBtn('Yes, new cove', 'the harbour as it first opens', async () => { noAutosave = true; try { const db = await dbOpen(); const t = db.transaction('saves', 'readwrite'); t.objectStore('saves').delete('auto'); t.oncomplete = () => location.reload(); t.onerror = () => location.reload(); } catch (e) { location.reload(); } })]));
+setInterval(() => { if (!noAutosave && !loading && !document.hidden) saveWorld('auto', true); }, 30000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && !noAutosave) saveWorld('auto', true); });
+addEventListener('pagehide', () => { if (!noAutosave) saveWorld('auto', true); });
+dbInfo('auto').then(i => { if (i && i.boats) { const b = $('bContinue'); b.hidden = false; b.textContent = 'Continue last session (' + when(i.t) + ')'; } });
+$('bContinue').addEventListener('click', () => { $('help').hidden = true; loadWorld('auto'); });
+
+/* ---- build preview: aim the cross, then place */
+const placeBtn = $('placeBtn'), turnBtn = $('turnBtn');
+const buildOn = () => mode === 'god' && tool === 'build' && !!BUILD[buildSel];
+const ghostArrow = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 4).rotateZ(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xe3a948, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, fog: false }));
+ghostArrow.renderOrder = 5; ghostArrow.visible = false; scene.add(ghostArrow);
+function ghostSize() { const it = BUILD[buildSel]; return it && it.boat ? Math.max(3, (FM[it.boat] && FM[it.boat].L || SPECS[it.boat].L || 8) * 0.5) : 1.6; }
+function ghostHeading() { return god.yaw + Math.PI / 2 + buildRot; }
+function updateBuildGhost() {
+  const on = buildOn();
+  if (on && isTouch) hoverPt = reticlePt();
+  placeBtn.hidden = turnBtn.hidden = !(on && isTouch);
+  if (on && hoverPt) {
+    const R = ghostSize(), y = Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, th = ghostHeading(), it = BUILD[buildSel], dirable = !!(it.boat || it.glb);
+    brushRing.visible = true; brushRing.position.set(hoverPt.x, y, hoverPt.z); brushRing.scale.setScalar(R);
+    ghostArrow.visible = dirable; ghostArrow.position.set(hoverPt.x + Math.cos(th) * R * 1.1, y + 0.1, hoverPt.z - Math.sin(th) * R * 1.1); ghostArrow.rotation.y = th; ghostArrow.scale.setScalar(Math.max(0.6, R * 0.35));
+  } else ghostArrow.visible = false;
+}
+placeBtn.addEventListener('click', () => { if (hoverPt && buildOn()) place(BUILD[buildSel], hoverPt); });
+turnBtn.addEventListener('click', () => { buildRot += Math.PI / 4; toast('Turned to ' + rd(((buildRot * 180 / Math.PI) % 360 + 360) % 360) + ' degrees'); });
+addEventListener('keydown', (e) => { if (mode !== 'god' || tool !== 'build' || !$('help').hidden || e.ctrlKey || e.metaKey) return; if (e.key === ',') buildRot -= Math.PI / 8; else if (e.key === '.') buildRot += Math.PI / 8; });
+
+/* ---- camera helpers and reading aloud */
+$('bCenter').addEventListener('click', () => {
+  const us = sel.length ? sel : boats; if (!us.length) return; let x = 0, z = 0;
+  for (const u of us) { x += u.kind === 'boat' ? u.body.position.x : u.x; z += u.kind === 'boat' ? u.body.position.z : u.z; }
+  god.tgt.set(x / us.length, 0, z / us.length); god.follow = null; god.dist = clamp(Math.max(god.dist, 70), god.minD, god.maxD);
+});
+$('bFollow').addEventListener('click', () => { const b = selBoats()[0]; if (!b) return; god.follow = god.follow === b ? null : b; $('bFollow').textContent = god.follow === b ? 'Stop following' : 'Follow'; });
+const say = (txt) => { const ss = window.speechSynthesis; if (!ss) { toast('This browser cannot read aloud'); return; } if (ss.speaking) { ss.cancel(); return; } const u = new SpeechSynthesisUtterance(txt); u.rate = 0.95; ss.speak(u); };
+const readHelp = () => say(document.querySelector('#help .card').innerText.replace(/Open the cove|Read aloud|Continue last session[^\n]*/g, ''));
+$('mRead').addEventListener('click', readHelp); $('bRead').addEventListener('click', readHelp);
+
+/* ================================================================ v4.6: routes, order lines, scenarios */
+/* ---- routes: tap several points and the boat sails them in turn */
+
+function addWaypoint(sb, p) {
+  const bt0 = sb[0]; if (groundAt(p.x, p.z) > -(bt0.sp.D - bt0.sp.fb) - 0.2) { toast('Routes stay on open water'); return; }
+  for (const b of sb) {
+    if (b.sunk) continue; b.route = b.route || [];
+    if (!b.order && !b.docked && !b.route.length) { orderTo(b, p.x, p.z); if (routeLoop) b.route.push({ x: p.x, z: p.z }); }
+    else b.route.push({ x: p.x, z: p.z });
+    b.loop = routeLoop;
+  }
+  toast('Waypoint ' + (sb[0].route.length + (sb[0].order ? 1 : 0)) + ' added');
+}
+function updateRoutes() {
+  for (const b of boats) {
+    if (!b.route || !b.route.length || b.sunk || b.order || b.docked) continue;
+    const n = b.route.shift(); if (b.loop) b.route.push(n); orderTo(b, n.x, n.z);
+  }
+}
+/* ---- order lines: from each selected thing to where it is going */
+const OL_MAX = 240, olPos = new Float32Array(OL_MAX * 3), olGeo = new THREE.BufferGeometry();
+olGeo.setAttribute('position', new THREE.BufferAttribute(olPos, 3)); olGeo.setDrawRange(0, 0);
+const orderLines = new THREE.LineSegments(olGeo, new THREE.LineBasicMaterial({ color: 0xe3a948, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false, fog: false }));
+orderLines.renderOrder = 4; orderLines.frustumCulled = false; scene.add(orderLines);
+function updateOrderLines() {
+  let n = 0; const seg = (ax, ay, az, bx, by, bz) => { if (n + 2 > OL_MAX) return; olPos.set([ax, ay, az, bx, by, bz], n * 3); n += 2; };
+  if (mode === 'god' && sel.length) {
+    for (const u of sel) {
+      if (u.kind === 'boat') {
+        let x = u.body.position.x, z = u.body.position.z; const wy = 1.2;
+        const pts = []; if (u.order) pts.push(u.order); if (u.route) pts.push(...u.route);
+        for (const q of pts) { seg(x, wy, z, q.x, wy, q.z); x = q.x; z = q.z; }
+      } else if (u.order) { const g = u.via || u.order; seg(u.x, u.y + 1.2, u.z, g.x, u.y + 1.2, g.z); if (u.via) seg(g.x, u.y + 1.2, g.z, u.order.x, u.y + 1.2, u.order.z); }
+    }
+  }
+  olGeo.setDrawRange(0, n); olGeo.attributes.position.needsUpdate = true;
+}
+/* ---- scenarios: optional goals, no clocks */
+const scnPill = $('objective'), scnText = $('objText');
+let scn = null;
+function scnCleanup(s) {
+  for (const p of s.people || []) if (people.includes(p)) removePerson(p);
+  for (const o of s.objs || []) if (objects.includes(o)) removeObj(o);
+  for (const b of [s.friend, ...(s.raiders || [])]) if (b && boats.includes(b) && boats.length > 1) { people.filter(q => q.ride && q.ride.boat === b).forEach(removePerson); removeBoat(b); }
+}
+function endScenario(silent, keep) { if (!scn) return; if (!keep) scnCleanup(scn); scn = null; scnPill.hidden = true; if (!silent) toast('Back to free play'); }
+const nearFleet = () => { let x = 0, z = 0; for (const b of boats) { x += b.body.position.x; z += b.body.position.z; } return { x: x / Math.max(1, boats.length), z: z / Math.max(1, boats.length) }; };
+function findSpot(cx, cz, r0, r1, ok, tries = 400) { for (let i = 0; i < tries; i++) { const a = Math.random() * 6.283, r = r0 + Math.random() * (r1 - r0), x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (Math.abs(x) < 110 && Math.abs(z) < 110 && ok(x, z)) return { x, z }; } return null; }
+const wetSpot = (x, z) => heightAt(x, z) < -5 && boats.every(b => Math.hypot(b.body.position.x - x, b.body.position.z - z) > 28);
+const shoreSpot = (x, z) => { const h = standY(x, z); return h > 1.2 && h < 6 && (!pierInfo || Math.hypot(x - pierInfo.c.x, z - pierInfo.c.z) > 60) && [[10, 0], [-10, 0], [0, 10], [0, -10], [14, 14], [-14, -14], [14, -14], [-14, 14]].some(([dx, dz]) => heightAt(x + dx, z + dz) < -3); };
+function crewOn(bt, n) { for (let i = 0; i < n && people.length < MAX_PEOPLE; i++) { const sp = freeSpot(bt, { x: 0, z: 0 }); if (!sp) break; const p = bt.body.position; makePerson(Math.floor(Math.random() * 16), p.x, p.z, { boat: bt, lx: sp[0], lz: sp[1], ly: deckLy(bt, sp[0], sp[1]), rel: 1.57 }); } }
+function scnBoat(key, x, z, yaw, crew) { const bt = makeBoat(key, null, null, x, z, yaw); bt.anchor = bt.body.position.clone(); bt.status = 'Anchored'; crewOn(bt, crew); return bt; }
+const SCENARIOS = [
+  { id: 'storm', name: 'Storm rescue', note: 'Five hikers are stranded on a beach in a gale. Ferry them to the pier.',
+    setup(s) {
+      wx.sky = 'dusk'; wx.rain = 2; wx.fog = 1; wind.level = 3;
+      const f = nearFleet(), spot = findSpot(f.x, f.z, 30, 100, shoreSpot); if (!spot) { toast('No beach found. Try again'); scn = null; return; }
+      s.people = []; for (let i = 0; i < 5 && people.length < MAX_PEOPLE; i++) { const x = spot.x + (i % 3) * 1.6 - 1.6, z = spot.z + Math.floor(i / 3) * 1.6; const p = makePerson(i * 3 + 1, x, z); p.y = standY(x, z); p.role = 'Hiker'; s.people.push(p); }
+      god.tgt.set(spot.x, 0, spot.z); god.follow = null; god.dist = 90; setTool('select');
+    },
+    check(s) { if (!pierInfo) return { text: 'No pier here', done: false }; const e = pierInfo.end, c = pierInfo.c; let n = 0; for (const p of s.people) { if (!people.includes(p)) continue; const at = p.ride ? Math.hypot(p.ride.boat.body.position.x - e.x, p.ride.boat.body.position.z - e.z) < 32 : (p.state !== 'rag' && standY(p.x, p.z) > 0.2 && Math.hypot(p.x - c.x, p.z - c.z) < 24); if (at) n++; } return { text: `At the pier: ${n} of ${s.people.length}`, done: n >= s.people.length && s.people.length > 0 }; },
+    hint: 'Select the hikers, then tap a boat. It will come to the shore and take them. Then take the boat to the pier and land them.' },
+  { id: 'cargo', name: 'Cargo run', note: 'Six crates are piled on a beach. Load them onto a boat.',
+    setup(s) {
+      const f = nearFleet(), spot = findSpot(f.x, f.z, 30, 100, shoreSpot); if (!spot) { toast('No beach found. Try again'); scn = null; return; }
+      s.objs = []; for (let i = 0; i < 6; i++) { const x = spot.x + (i % 3) * 1.4 - 1.4, z = spot.z + Math.floor(i / 2) * 1.2 - 1.2; spawn(CARGO[0], x, standY(x, z) + 1 + (i % 2) * 0.1, z); s.objs.push(objects[objects.length - 1]); }
+      s.people = []; for (let i = 0; i < 3 && people.length < MAX_PEOPLE; i++) { const x = spot.x - 4 - i * 1.4, z = spot.z + 2; const p = makePerson(i * 5 + 2, x, z); p.y = standY(x, z); s.people.push(p); }
+      god.tgt.set(spot.x, 0, spot.z); god.follow = null; god.dist = 60; setTool('select');
+    },
+    check(s) { let n = 0; for (const o of s.objs) { if (!objects.includes(o)) continue; const p = o.body.position; if (boats.some(b => !b.sunk && insideHull(b, p.x, p.z, 0.3) && p.y > b.group.position.y - 1)) n++; } return { text: `Crates aboard: ${n} of ${s.objs.length}`, done: n >= s.objs.length }; },
+    hint: 'Select the people, tap a crate to pick it up (two people lift a heavy one), then tap a boat to board. Boats must come to the beach first.' },
+  { id: 'raid', name: 'Harbour defence', note: 'Two raiders are coming. Sink them with your Hero class.',
+    setup(s) {
+      const f = nearFleet(); const a = findSpot(f.x, f.z, 20, 80, wetSpot); if (!a) { toast('No room. Try again'); scn = null; return; }
+      s.friend = scnBoat('hero', a.x, a.z, 0, 3); s.raiders = [];
+      for (let i = 0; i < 2; i++) { const r = findSpot(a.x, a.z, 100, 150, wetSpot, 800); if (!r) continue; const rb = scnBoat('hero', r.x, r.z, Math.atan2(-(a.z - r.z), a.x - r.x), 2); rb.raider = true; rb.target = s.friend; orderTo(rb, a.x, a.z); s.raiders.push(rb); }
+      god.tgt.set(a.x, 0, a.z); god.follow = null; god.dist = 120; setTool('select'); setSel([s.friend]);
+    },
+    tick(s, dt) { s.ai = (s.ai || 0) - dt; if (s.ai > 0) return; s.ai = 2.5; for (const r of s.raiders) { if (r.sunk || !boats.includes(r)) continue; const tgt = boats.find(b => !b.raider && !b.sunk && b.mounts && b.mounts.length) || s.friend; if (tgt && boats.includes(tgt)) { r.target = tgt; if (Math.hypot(tgt.body.position.x - r.body.position.x, tgt.body.position.z - r.body.position.z) > 70) orderTo(r, tgt.body.position.x, tgt.body.position.z); } }
+      for (const b of boats) if (!b.raider && !b.sunk && b.mounts && b.mounts.length && !b.target) { const near = s.raiders.filter(r => !r.sunk && boats.includes(r)).sort((p, q) => Math.hypot(p.body.position.x - b.body.position.x, p.body.position.z - b.body.position.z) - Math.hypot(q.body.position.x - b.body.position.x, q.body.position.z - b.body.position.z))[0]; if (near && Math.hypot(near.body.position.x - b.body.position.x, near.body.position.z - b.body.position.z) < 160) b.target = near; } },
+    check(s) { const n = s.raiders.filter(r => r.sunk || !boats.includes(r)).length; return { text: `Raiders sunk: ${n} of ${s.raiders.length}`, done: n >= s.raiders.length && s.raiders.length > 0 }; },
+    hint: 'Your boat will shoot back on its own. Select it and use Fire to choose a target, or sail it to get a better angle.' },
+];
+function startScenario(def) {
+  endScenario(true); closeMenu(); scn = { def, t: 0, doneSaid: false }; def.setup(scn);
+  if (!scn) return; scnPill.hidden = false; toast(def.hint); updateScenario(0, true);
+}
+function updateScenario(dt, force) {
+  if (!scn) return; if (scn.def.tick) scn.def.tick(scn, dt);
+  scn.t -= dt; if (scn.t > 0 && !force) return; scn.t = 0.5;
+  const r = scn.def.check(scn); scnText.textContent = scn.def.name + ': ' + r.text;
+  if (r.done && !scn.doneSaid) { scn.doneSaid = true; toast(scn.def.name + ' complete. Keep playing or pick another scenario in the menu.'); scnText.textContent = scn.def.name + ': done'; }
+}
+$('objEnd').addEventListener('click', () => endScenario(false, !!(scn && scn.doneSaid)));
+$('mScen').addEventListener('click', () => openMenu([menuHead('Scenarios are optional goals. There are no clocks.'), ...SCENARIOS.map(d => menuBtn(d.name, d.note, () => startScenario(d))), menuBtn('Free play', 'no goal, just the cove', () => { endScenario(); closeMenu(); })]));
+
+window.__sc = { startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
