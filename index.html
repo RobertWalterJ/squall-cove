@@ -61,6 +61,11 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
+ #sculpt{position:fixed;right:16px;bottom:calc(150px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
+#landUndo{position:fixed;right:118px;bottom:calc(158px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
+#landUndo[hidden]{display:none}
+#sculpt.on{background:#fff2c7;transform:scale(.94)}
+#sculpt[hidden]{display:none}
 .bottom{position:absolute;left:0;right:0;bottom:calc(10px + var(--safe-b));display:grid;gap:8px;padding-inline:12px;pointer-events:none}
 .bottom > *{pointer-events:auto}
 .tray{display:flex;gap:8px;overflow-x:auto;padding-bottom:7px;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.5) transparent;justify-self:center;max-width:100%;overscroll-behavior-x:contain}
@@ -163,6 +168,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 </style>
 
 <div id="marquee" hidden></div>
+<button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
 <div class="hud">
   <section class="inst" aria-label="Instruments">
@@ -1224,7 +1230,7 @@ const brushRing = new THREE.Mesh(new THREE.RingGeometry(0.94, 1, 64).rotateX(-Ma
 brushRing.renderOrder = 4; brushRing.visible = false; scene.add(brushRing);
 
 /* ================================================================ terraforming */
-const land = { finger: isTouch ? 'move' : 'paint', op: 'raise', size: 1, R: [5, 10, 18], painting: false, flatH: 0, dirty: false, meshT: 0, physT: 0, x0: 1e9, x1: -1e9, z0: 1e9, z1: -1e9 };
+const land = { finger: isTouch ? 'hold' : 'paint', holding: false, undo: [], op: 'raise', size: 1, R: [5, 10, 18], painting: false, flatH: 0, dirty: false, meshT: 0, physT: 0, x0: 1e9, x1: -1e9, z0: 1e9, z1: -1e9 };
 const posAttr = terrainMesh.geometry.attributes.position;
 function brush(px, pz, dt) {
   const R = land.R[land.size], rate = (land.size === 2 ? 5 : 3.5) * dt;
@@ -1265,6 +1271,19 @@ function commitLand(full) {
   for (const b of world.bodies) if (b.mass > 0 && inBox(b.position.x, b.position.z)) b.wakeUp();
   land.dirty = false; land.x0 = land.z0 = 1e9; land.x1 = land.z1 = -1e9;
 }
+
+/* terraform history: one snapshot per stroke, so any digging can be taken back */
+const HGT0 = HGT.slice();
+function landMark() { land.undo.push(HGT.slice()); if (land.undo.length > 12) land.undo.shift(); if (tool === 'land') renderTray(true); }
+function landRestore(src, msg) { HGT.set(src); land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true); renderTray(true); toast(msg); }
+function landUndo() { const u = land.undo.pop(); if (!u) { toast('Nothing to undo'); return; } landRestore(u, 'Undone'); }
+function landReset() { landMark(); landRestore(HGT0, 'Land reset to the start'); }
+const sculptBtn = $('sculpt'), sculptStart = (e) => { e.preventDefault(); if (land.holding) return; const c = hoverPt; land.holding = true; landMark(); land.flatH = c ? groundAt(c.x, c.z) : 0; sculptBtn.setPointerCapture(e.pointerId); sculptBtn.classList.add('on'); };
+const sculptEnd = () => { if (!land.holding) return; land.holding = false; sculptBtn.classList.remove('on'); commitLand(true); };
+sculptBtn.addEventListener('pointerdown', sculptStart); sculptBtn.addEventListener('pointerup', sculptEnd); sculptBtn.addEventListener('pointercancel', sculptEnd); sculptBtn.addEventListener('lostpointercapture', sculptEnd);
+$('landUndo').addEventListener('click', landUndo);
+sculptBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+const reticlePt = () => pick(innerWidth / 2, innerHeight * 0.4);        // the brush target for the hold button: the middle of the open water or land
 
 /* ================================================================ building: boats, cargo, trees, rocks, marks */
 const props = [];
@@ -2556,8 +2575,8 @@ canvas.addEventListener('pointerdown', (e) => {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
     if (mode === 'god' && tool === 'select' && e.button === 0 && (boxMode || e.shiftKey)) marq = { x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY, add: e.shiftKey || e.ctrlKey, active: false };
     if (mode === 'god' && tool === 'land' && e.button === 0 && land.finger === 'paint') {
-      const p = pick(e.clientX, e.clientY);
-      if (p) { land.painting = true; land.flatH = groundAt(p.x, p.z); hoverPt = p; downInfo.moved = true; }
+      const p = pick(e.clientX, e.clientY - (e.pointerType === 'touch' ? 70 : 0));       // on a phone the brush sits above the fingertip so you can see it
+      if (p) { land.painting = true; landMark(); land.flatH = groundAt(p.x, p.z); hoverPt = p; downInfo.moved = true; }
     }
   }
   if (ptrs.size === 2) { if (marq) { marq = null; $('marquee').hidden = true; } g2 = { ...twoInfo(), dist: mode === 'god' ? god.dist : camS.dist, yaw: god.yaw }; land.painting = false; if (downInfo) downInfo.moved = true; }
@@ -2579,7 +2598,7 @@ canvas.addEventListener('pointermove', (e) => {
     else if (!downInfo || !downInfo.moved) return;
     const dx = e.clientX - ox, dy = e.clientY - oy;
     if (mode === 'helm') { camS.yaw -= dx * 0.006; camS.pitch = clamp(camS.pitch + dy * 0.005, 0.03, 1.35); camS.lastDrag = performance.now() / 1000; return; }
-    if (land.painting) { hoverPt = pick(e.clientX, e.clientY); return; }
+    if (land.painting) { hoverPt = pick(e.clientX, e.clientY - (e.pointerType === 'touch' ? 70 : 0)); return; }
     if (p.btn === 2) { god.yaw -= dx * 0.006; god.dist = clamp(god.dist * Math.exp(dy * 0.004), god.minD, god.maxD); }
     else panScreen(ox, oy, e.clientX, e.clientY);
   } else if (ptrs.size === 2 && g2) {
@@ -2622,7 +2641,7 @@ function orderBoats(sb, p) {                       // move boats to open water, 
 function tapAt(cx, cy, btn, mods) {
   if (mode === 'fp') return;
   if (mode === 'helm') { const p = pick(cx, cy); if (p && BUILD[buildSel] && BUILD[buildSel].cargo !== undefined) place(BUILD[buildSel], p); return; }
-  if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { brush(p.x, p.z, 0.3); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
+  if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { landMark(); brush(p.x, p.z, 0.45); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
   if (tool === 'build') { const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }
   const add = !!mods, pe = personAtScreen(cx, cy), ob = objectAtScreen(cx, cy), od = objectAtScreen.d, bt = boatUnderTap(cx, cy), bd = boatAtScreen.d;
   const sp = selPeople(), sb = selBoats(), now = performance.now();
@@ -2676,6 +2695,7 @@ addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 addEventListener('keydown', (e) => {
   if (mode !== 'god' || !$('help').hidden) return; const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
   if (mod && /^[5-9]$/.test(k)) { groups[k] = sel.slice(); e.preventDefault(); toast('Group ' + k + ' saved: ' + sel.length); return; }
+  if (mod && k === 'z' && tool === 'land') { e.preventDefault(); landUndo(); return; }
   if (mod && k === 'a') { e.preventDefault(); setSel(people.length ? people.slice() : boats.slice()); return; }
   if (mod || e.altKey) return;
   if (/^[5-9]$/.test(k) && groups[k]) {
@@ -2803,8 +2823,12 @@ function renderTray(force = true) {
       tray.append(chip(n, d, null, land.op === k, () => { land.op = k; renderTray(); })));
     tray.append(sep('Size'));
     ['Small', 'Medium', 'Large'].forEach((n, i) => tray.append(chip(n, land.R[i] + ' m', null, land.size === i, () => { land.size = i; renderTray(); }, 'chip mini')));
-    tray.append(sep('Drag'));
-    tray.append(chip(land.finger === 'paint' ? 'Paints land' : 'Moves map', land.finger === 'paint' ? 'two fingers move' : 'tap to dab', null, land.finger === 'paint', () => { land.finger = land.finger === 'paint' ? 'move' : 'paint'; renderTray(); toast(land.finger === 'paint' ? 'Drag paints. Two fingers move the map' : 'Drag moves the map. Tap to dab'); }));
+    tray.append(sep('Finger'));
+    const FM_ = { hold: ['Hold button', 'aim at the cross'], paint: ['Finger paints', 'two fingers move'], move: ['Tap to dab', 'drag moves map'] }, FT_ = { hold: 'Move the map, then hold the Sculpt button to shape the land under the cross', paint: 'Drag paints just above your finger. Two fingers move the map', move: 'Drag moves the map. Tap to dab' };
+    tray.append(chip(FM_[land.finger][0], FM_[land.finger][1], null, true, () => { land.finger = land.finger === 'hold' ? 'paint' : land.finger === 'paint' ? 'move' : 'hold'; renderTray(true); toast(FT_[land.finger]); }));
+    tray.append(sep('History'));
+    tray.append(chip('Undo', land.undo.length ? land.undo.length + ' steps' : 'nothing yet', null, false, landUndo, 'chip mini'));
+    tray.append(chip('Reset', 'back to start', null, false, landReset, 'chip mini'));
   } else {
     tray.append(sep('Wind'));
     WIND_LEVELS.forEach((L, i) => tray.append(chip(L.name, Math.round(L.ms * KN) + ' kn', null, wind.level === i, () => { wind.level = i; renderTray(); }, 'chip mini')));
@@ -2920,9 +2944,12 @@ function frame(now) {
     if (keys.has('z')) god.dist = clamp(god.dist * (1 - dt), god.minD, god.maxD); if (keys.has('x')) god.dist = clamp(god.dist * (1 + dt), god.minD, god.maxD);
   }
   // terraforming: paint while held, rebuild the mesh at 20 Hz and the physics at 3 Hz
-  if (mode === 'god' && tool === 'land' && land.painting && hoverPt) brush(hoverPt.x, hoverPt.z, dt);
+  if (mode === 'god' && tool === 'land' && isTouch && land.finger === 'hold' && !land.painting) hoverPt = reticlePt();
+  if (mode === 'god' && tool === 'land' && (land.painting || land.holding) && hoverPt) brush(hoverPt.x, hoverPt.z, dt);
+  sculptBtn.hidden = !(mode === 'god' && tool === 'land' && land.finger === 'hold'); $('landUndo').hidden = !(mode === 'god' && tool === 'land' && isTouch && land.undo.length);
+  if (!(mode === 'god' && tool === 'land') && land.holding) sculptEnd();
   land.meshT -= dt; land.physT -= dt;
-  if (land.dirty && land.meshT <= 0) { land.meshT = 0.08; commitLand(land.physT <= 0 || !land.painting); if (land.physT <= 0) land.physT = 0.35; }
+  if (land.dirty && land.meshT <= 0) { land.meshT = 0.08; commitLand(land.physT <= 0 || !(land.painting || land.holding)); if (land.physT <= 0) land.physT = 0.35; }
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
@@ -3029,7 +3056,7 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 requestAnimationFrame(frame);
-window.__sc = { fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
