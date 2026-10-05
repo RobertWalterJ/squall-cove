@@ -315,13 +315,19 @@ function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'
 /* ================================================================ waves (one function for GPU and physics) */
 const WAVES = [[0.20, 0.98, 0.16, 1.00, 0.0], [-0.60, 0.80, 0.27, 0.55, 1.3], [0.71, 0.70, 0.45, 0.30, 2.1], [0.10, 0.995, 0.90, 0.12, 0.7]];
 const sea = { amp: 0.25 };
+const surge = { level: 0 };                       // storm surge or tsunami: the whole sea rises and falls together
+const WD = new Float32Array(257 * 257); let lakeWet = 0;    // water lying on the land (springs, pours), one depth per terrain cell
+function lakeDepth(x, z) { const fx = x + TH, fz = z + TH, j = Math.floor(fx), i = Math.floor(fz); if (j < 0 || i < 0 || j >= TN - 1 || i >= TN - 1) return 0; const a = fx - j, b = fz - i, k = i * TN + j; return (WD[k] * (1 - a) + WD[k + 1] * a) * (1 - b) + (WD[k + TN] * (1 - a) + WD[k + TN + 1] * a) * b; }
 function waveH(x, z, t) {
   let h = 0;
   for (const w of WAVES) h += w[3] * Math.sin(w[2] * (w[0] * x + w[1] * z) - Math.sqrt(G * w[2]) * t + w[4]);
-  return h * sea.amp;
+  h = h * sea.amp + surge.level;
+  if (lakeWet > 0) { const d = lakeDepth(x, z); if (d > 0.05) return heightAt(x, z) + d + 0.012 * Math.sin(t * 2 + x * 1.3 + z * 0.9); }
+  return h;
 }
 /** surface water-particle velocity (deep-water orbital motion), used to let floating things ride the waves */
 function waveVel(x, z, t, out) {
+  if (lakeWet > 0 && lakeDepth(x, z) > 0.05) return out.set(0, 0, 0);
   let u = 0, v = 0, w = 0;
   for (const wv of WAVES) {
     const om = Math.sqrt(G * wv[2]), ph = wv[2] * (wv[0] * x + wv[1] * z) - om * t + wv[4];
@@ -622,7 +628,7 @@ function meshesOf(node) { const out = []; node.updateMatrixWorld(true); node.tra
 function shadowAll(o, cast = true, recv = true) { o.traverse(m => { if (m.isMesh) { m.castShadow = cast; m.receiveShadow = recv; } }); return o; }
 
 /* ================================================================ wind */
-const WIND_LEVELS = [{ name: 'Light', ms: 3.2, amp: 0.12 }, { name: 'Moderate', ms: 6.2, amp: 0.25 }, { name: 'Fresh', ms: 9.5, amp: 0.42 }, { name: 'Gale', ms: 16, amp: 0.75 }];
+const WIND_LEVELS = [{ name: 'Light', ms: 3.2, amp: 0.12 }, { name: 'Moderate', ms: 6.2, amp: 0.25 }, { name: 'Fresh', ms: 9.5, amp: 0.42 }, { name: 'Gale', ms: 16, amp: 0.75 }, { name: 'Hurricane', ms: 38, amp: 1.25 }];
 const wind = { level: 1, ms: 6.2, ang: Math.PI, v: new CANNON.Vec3() };
 function updateWind(t) {
   const L = WIND_LEVELS[wind.level];
@@ -1335,6 +1341,10 @@ const BUILD = [
   { cat: 'Island', id: 'buoy', name: 'Race mark', note: 'buoy', buoy: 'buoy0', sw: '#e3a948' },
   { cat: 'People', id: 'person', name: 'Person', note: 'walks, topples', person: 1, sw: '#7d9fb3' },
   { cat: 'People', id: 'crowd', name: 'Crowd', note: 'six at once', person: 6, sw: '#5f8196' },
+  { cat: 'Water', id: 'spring', name: 'Spring', note: 'endless source', water: 'spring', sw: '#3a8fc4' },
+  { cat: 'Water', id: 'bigspring', name: 'Big spring', note: 'floods fast', water: 'big', sw: '#2a6fa4' },
+  { cat: 'Water', id: 'pour', name: 'Pour', note: 'one splash', water: 'pour', sw: '#6fb0dc' },
+  { cat: 'Water', id: 'drain', name: 'Drain', note: 'soaks it up', water: 'drain', sw: '#2a2a2e' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
 let buildSel = 0, buildRot = 0; let routeMode = false, routeLoop = false;
@@ -1342,6 +1352,7 @@ function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
   if (item.erase) return erase(p);
+  if (item.water) return placeWater(item, p);
   if (item.person) return placePeople(item.person, p);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, 0) + 7, z); return; }
   if (item.boat) {
@@ -1392,6 +1403,7 @@ function erase(p) {
   for (const pr of props) consider(Math.hypot(pr.x - p.x, pr.z - p.z) - 2, () => { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(props.indexOf(pr), 1); });
   for (const b of buoys) consider(Math.hypot(b.body.position.x - p.x, b.body.position.z - p.z) - 1.5, () => { world.removeBody(b.body); scene.remove(b.mesh); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); });
   for (const pe of people) consider(Math.hypot(pe.x - p.x, pe.z - p.z) - 0.9, () => removePerson(pe));
+  for (const sp of springs) consider(Math.hypot(sp.x - p.x, sp.z - p.z) - 1.5, () => { scene.remove(sp.mesh); springs.splice(springs.indexOf(sp), 1); toast('Spring removed'); });
   for (const bt of boats) if (boats.length > 1) consider(Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) - bt.sp.L * 0.5, () => removeBoat(bt));
   if (best && bd < 3) { best(); toast('Removed'); } else toast('Nothing there to remove');
 }
@@ -2869,6 +2881,8 @@ function renderTray(force = true) {
     ['Dry', 'Showers', 'Downpour'].forEach((n, i) => tray.append(chip(n, '', null, wx.rain === i, () => { wx.rain = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Fog'));
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
+    tray.append(sep('Disasters'));
+    [['Hurricane', startHurricane], ['Tsunami', startTsunami], ['Tornado', () => startTornado(aimPt())], ['Lightning', startLightning], ['Quake', startQuake], ['Meteor', () => startMeteor(aimPt())], ['Calm', calm]].forEach(([n, fn]) => tray.append(chip(n, n === 'Tornado' || n === 'Meteor' ? 'at the view centre' : n === 'Calm' ? 'clear it all' : '', n === 'Calm' ? null : '#b8402a', false, () => { fn(); renderTray(); }, 'chip mini')));
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
@@ -2982,6 +2996,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
+  updateLake(dt); updateDisasters(dt, t);
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3024,8 +3039,8 @@ function frame(now) {
   windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt);
   grassU.uCam.value.set(focus.x, focus.z);
   grassU.uPatch.value = mode === 'god' ? clamp(god.dist * 0.7, 60, 140) : 60;
-  water.position.set(Math.round(camera.position.x / 2) * 2, 0, Math.round(camera.position.z / 2) * 2);
-  if (mode === 'god') water.position.set(Math.round(focus.x / 2) * 2, 0, Math.round(focus.z / 2) * 2);
+  water.position.set(Math.round(camera.position.x / 2) * 2, surge.level, Math.round(camera.position.z / 2) * 2);
+  if (mode === 'god') water.position.set(Math.round(focus.x / 2) * 2, surge.level, Math.round(focus.z / 2) * 2);
   skyDome.position.copy(camera.position);
   const shadowR = mode === 'god' ? clamp(god.dist * 0.75, 48, 200) : 48;
   Object.assign(sunLight.shadow.camera, { left: -shadowR, right: shadowR, top: shadowR, bottom: -shadowR, far: 200 + shadowR * 2 }); sunLight.shadow.camera.updateProjectionMatrix();
@@ -3078,6 +3093,7 @@ function frame(now) {
     else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = { dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]; $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
+  if (dis.shake > 0) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
@@ -3111,6 +3127,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
+    wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
 }
@@ -3130,6 +3147,7 @@ async function loadWorld(slot) {
     for (const pr of props) { scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); } props.length = 0;
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
+    clearWater(); calm0(); if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
     const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
@@ -3294,7 +3312,187 @@ function updateScenario(dt, force) {
 $('objEnd').addEventListener('click', () => endScenario(false, !!(scn && scn.doneSaid)));
 $('mScen').addEventListener('click', () => openMenu([menuHead('Scenarios are optional goals. There are no clocks.'), ...SCENARIOS.map(d => menuBtn(d.name, d.note, () => startScenario(d))), menuBtn('Free play', 'no goal, just the cove', () => { endScenario(); closeMenu(); })]));
 
-window.__sc = { startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v4.7: placeable water (springs, pours, drains) and catastrophes */
+/* ---- lake layer: a depth of water on the land, flowing downhill into the sea */
+const springs = [];
+const lakeData = new Float32Array(TN * TN * 2), lakeTex = new THREE.DataTexture(lakeData, TN, TN, THREE.RGFormat, THREE.FloatType);
+lakeTex.minFilter = lakeTex.magFilter = THREE.NearestFilter; lakeTex.needsUpdate = true;
+const lakeMat = new THREE.ShaderMaterial({
+  uniforms: { tL: { value: lakeTex }, uTime: waterU.uTime, uSun: waterU.uSun, uSunCol: waterU.uSunCol, uSkyTint: waterU.uSkyTint, ...THREE.UniformsLib.fog },
+  transparent: true, depthWrite: false, fog: true, side: THREE.DoubleSide,
+  vertexShader: `uniform sampler2D tL; varying vec3 vW; varying float vD;
+    #include <fog_pars_vertex>
+    void main(){ ivec2 i = ivec2(floor(position.xz + 128.5)); vec2 sd = texelFetch(tL, i, 0).rg; vec3 p = position; p.y = sd.x + 0.03; vD = sd.y;
+      vec4 wp = modelMatrix * vec4(p, 1.0); vW = wp.xyz; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
+      #include <fog_vertex>
+    }`,
+  fragmentShader: `uniform float uTime; uniform vec3 uSun, uSunCol, uSkyTint; varying vec3 vW; varying float vD;
+    #include <common>
+    #include <fog_pars_fragment>
+    void main(){
+      if (vD < 0.025) discard;
+      vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if (n.y < 0.0) n = -n;
+      n = normalize(n + vec3(0.07 * sin(vW.x * 1.7 + uTime * 1.3 + vW.z * 0.6), 0.0, 0.07 * cos(vW.z * 1.9 + uTime * 1.1)));
+      vec3 V = normalize(cameraPosition - vW);
+      float fres = 0.04 + 0.96 * pow(1.0 - max(dot(n, V), 0.0), 4.0);
+      vec3 body = mix(vec3(0.07, 0.30, 0.36), vec3(0.02, 0.10, 0.18), clamp(vD / 2.5, 0.0, 1.0));
+      vec3 sky = vec3(0.55, 0.68, 0.80) * uSkyTint;
+      float spec = pow(max(dot(reflect(-uSun, n), V), 0.0), 90.0);
+      vec3 col = mix(body * (0.3 + 0.5 * uSunCol), sky, fres * 0.45) + uSunCol * spec * 1.2;
+      float a = smoothstep(0.025, 0.4, vD) * 0.88;
+      gl_FragColor = vec4(col, max(a, fres * 0.6 * smoothstep(0.025, 0.2, vD)));
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+      #include <fog_fragment>
+    }`,
+});
+const lakeMesh = new THREE.Mesh(new THREE.PlaneGeometry(TN - 1, TN - 1, TN - 1, TN - 1).rotateX(-Math.PI / 2), lakeMat);
+lakeMesh.frustumCulled = false; lakeMesh.renderOrder = 2; scene.add(lakeMesh);
+const LD = new Float32Array(TN * TN);
+let lakeAcc = 0, lakeTexT = 0;
+function stepLake(dt) {
+  for (const s of springs) { const j = Math.round(s.x + TH), i = Math.round(s.z + TH); if (j < 2 || i < 2 || j > TN - 3 || i > TN - 3) continue; const k = i * TN + j; if (s.rate > 0) WD[k] = Math.min(30, WD[k] + s.rate * dt); else for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) WD[k + di * TN + dj] = Math.max(0, WD[k + di * TN + dj] + s.rate * dt * 0.3); }
+  if (lakeWet <= 0 && !springs.some(s => s.rate > 0)) return;
+  LD.fill(0); let wet = 0;
+  for (let i = 1; i < TN - 1; i++) for (let j = 1; j < TN - 1; j++) {
+    const k = i * TN + j, w = WD[k]; if (w < 1e-4) continue;
+    const h = HGT[k]; if (h < 0) { WD[k] = 0; continue; }
+    const Hs = h + w; let d0 = 0, d1 = 0, d2 = 0, d3 = 0, tot = 0;
+    const n0 = k - 1, n1 = k + 1, n2 = k - TN, n3 = k + TN;
+    let hn = HGT[n0] < 0 ? 0 : HGT[n0] + WD[n0]; if (Hs > hn) { d0 = Hs - hn; tot += d0; }
+    hn = HGT[n1] < 0 ? 0 : HGT[n1] + WD[n1]; if (Hs > hn) { d1 = Hs - hn; tot += d1; }
+    hn = HGT[n2] < 0 ? 0 : HGT[n2] + WD[n2]; if (Hs > hn) { d2 = Hs - hn; tot += d2; }
+    hn = HGT[n3] < 0 ? 0 : HGT[n3] + WD[n3]; if (Hs > hn) { d3 = Hs - hn; tot += d3; }
+    if (tot <= 0) continue;
+    const out = Math.min(w * 0.95, tot * 0.25), f = out / tot;
+    LD[k] -= out; LD[n0] += d0 * f; LD[n1] += d1 * f; LD[n2] += d2 * f; LD[n3] += d3 * f;
+  }
+  for (let k = 0; k < TN * TN; k++) { let w = WD[k] + LD[k]; if (w < 0) w = 0; if (HGT[k] < 0) w = 0; WD[k] = w; if (w > 0.04) wet++; }
+  for (let a = 0; a < TN; a++) { WD[a] = 0; WD[(TN - 1) * TN + a] = 0; WD[a * TN] = 0; WD[a * TN + TN - 1] = 0; }
+  lakeWet = wet;
+}
+function updateLake(dt) {
+  lakeAcc += dt; let n = 0; while (lakeAcc >= 1 / 15 && n < 2) { lakeAcc -= 1 / 15; n++; stepLake(1 / 15); } if (lakeAcc > 0.2) lakeAcc = 0;
+  lakeTexT -= dt;
+  if ((lakeWet > 0 || lakeMesh.visible) && lakeTexT <= 0) {
+    lakeTexT = 0.1;
+    for (let k = 0; k < TN * TN; k++) { const w = WD[k]; lakeData[k * 2] = HGT[k] + w; lakeData[k * 2 + 1] = w; }
+    lakeTex.needsUpdate = true; lakeMesh.visible = lakeWet > 0;
+  }
+  for (const s of springs) { const t = simT; s.jet.scale.y = 0.8 + 0.25 * Math.sin(t * 9 + s.x); s.jet.rotation.y += dt * 2; }
+}
+function addSpring(x, z, rate) {
+  const g = new THREE.Group(), y = Math.max(standY(x, z), 0), big = Math.abs(rate) > 6;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 0.5, 10), new THREE.MeshStandardMaterial({ color: rate < 0 ? 0x2a2a2e : 0x7d8792, roughness: 0.7 }));
+  const jet = new THREE.Mesh(new THREE.ConeGeometry(big ? 0.7 : 0.45, big ? 3.4 : 2.2, 8, 1, true), new THREE.MeshBasicMaterial({ color: rate < 0 ? 0x223344 : 0x8cc8ff, transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide }));
+  jet.position.y = big ? 2.2 : 1.5; if (rate < 0) { jet.scale.set(1, -1, 1); jet.position.y = 0.8; }
+  g.add(base, jet); g.position.set(x, y + 0.25, z); scene.add(g); springs.push({ x, z, rate, mesh: g, jet });
+}
+function clearWater() { for (const s of springs) scene.remove(s.mesh); springs.length = 0; WD.fill(0); lakeWet = 0; lakeMesh.visible = false; }
+function placeWater(item, p) {
+  const h = groundAt(p.x, p.z);
+  if (item.water === 'pour') { if (h < 0.1) { toast('Pour water on dry land'); return; } const R = 5; for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const k = (Math.round(p.z + TH) + i) * TN + Math.round(p.x + TH) + j; if (k > 0 && k < TN * TN) WD[k] += 1.2 * (1 - d / R); } lakeWet = Math.max(lakeWet, 1); toast('Water poured'); return; }
+  if (h < 0.2) { toast('Springs go on land'); return; }
+  addSpring(p.x, p.z, item.water === 'drain' ? -8 : item.water === 'big' ? 10 : 3);
+  toast(item.water === 'drain' ? 'Drain placed: it soaks up water nearby' : item.water === 'big' ? 'Big spring: endless water' : 'Spring: endless water');
+}
+
+/* ---- catastrophes */
+const dis = { tornados: [], bolts: [], quake: 0, meteors: [], flashes: 0, surgeT: null, hurricane: 0, light: 0, lightNext: 2 };
+const aimPt = () => reticlePt() || { x: god.tgt.x, z: god.tgt.z };
+const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math.max(1, body.mass)); body.velocity.x += ax * m * dt; body.velocity.y += ay * m * dt; body.velocity.z += az * m * dt; };
+function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wind.level = level; }
+function calm() {
+  dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
+  wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
+}
+function startTornado(p) {
+  const g = new THREE.Group(), segs = [];
+  for (let i = 0; i < 9; i++) { const r0 = 1.4 + i * 1.5, r1 = 1.4 + (i + 1) * 1.5, h = 8; const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, h, 14, 1, true), new THREE.MeshBasicMaterial({ color: i < 3 ? 0x5b5148 : 0x8a8f94, transparent: true, opacity: 0.38 - i * 0.02, depthWrite: false, side: THREE.DoubleSide, fog: true })); m.position.y = h * (i + 0.5); g.add(m); segs.push(m); }
+  g.position.set(p.x, 0, p.z); scene.add(g);
+  const a = Math.random() * 6.28; dis.tornados.push({ x: p.x, z: p.z, hx: Math.cos(a), hz: Math.sin(a), life: 70, group: g, segs }); stormUp(2, 1, 3);
+  toast('Tornado. It wanders. Calm clears it.');
+}
+function startLightning() { dis.light = 90; dis.lightNext = 1; stormUp(2, 1, 3); toast('Lightning storm'); }
+function strikeAt(x, z) {
+  const pts = [new THREE.Vector3(x, 130, z)]; for (let i = 1; i < 8; i++) pts.push(new THREE.Vector3(x + rnd(-6, 6) * (1 - i / 8), 130 * (1 - i / 8), z + rnd(-6, 6) * (1 - i / 8)));
+  const y = Math.max(waveH(x, z, simT), heightAt(x, z)); pts.push(new THREE.Vector3(x, y, z));
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xf2f6ff, fog: false, depthTest: false, transparent: true })); line.renderOrder = 6; scene.add(line); dis.bolts.push({ line, life: 0.22 });
+  dis.flashes = 1; sparks(x, y + 0.5, z, 24); puffSmoke(x, y + 0.5, z, 4, true, 1.2);
+  for (const bt of boats) { const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < bt.sp.L * 0.55 + 4) { damageBoat(bt, 18, x, y + 2, z, null, 'gun'); if (bt.fire < 0.2) { bt.fire = 0.3; bt.fireT = rnd(30, 60); } } }
+  for (const q of people) if (Math.hypot(q.x - x, q.z - z) < 7) topple(q, new CANNON.Vec3(rnd(-3, 3), 4, rnd(-3, 3)));
+  for (const o of objects) { const d = Math.hypot(o.body.position.x - x, o.body.position.z - z); if (d < 9) kick(o.body, (o.body.position.x - x) / d * 80, 50, (o.body.position.z - z) / d * 80, 0.1, o.body.mass); }
+}
+function startQuake() {
+  dis.quake = 7; landMark();
+  for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(x + TH) + j, gz = Math.round(z + TH) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, 34); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
+  land.dirty = true; commitLand(true); toast('Earthquake');
+}
+function startTsunami() { dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; toast('The sea is pulling back from the shore'); }
+function startHurricane() { dis.hurricane = 150; stormUp(2, 1, 4); toast('Hurricane. Storm surge is coming.'); }
+function startMeteor(p) { dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
+function impactMeteor(m) {
+  const x = m.x, z = m.z, R = 11; landMark();
+  for (let i = -R - 4; i <= R + 4; i++) for (let j = -R - 4; j <= R + 4; j++) { const d = Math.hypot(i, j), gx = Math.round(x + TH) + j, gz = Math.round(z + TH) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; if (d <= R) HGT[k] = clamp(HGT[k] - 5 * (1 - (d / R) ** 2), -9.2, 34); else if (d <= R + 4) HGT[k] = clamp(HGT[k] + 0.9 * (1 - (d - R) / 4), -9.2, 34); }
+  land.x0 = x - R - 6; land.x1 = x + R + 6; land.z0 = z - R - 6; land.z1 = z + R + 6; land.dirty = true; commitLand(true);
+  const y = Math.max(heightAt(x, z), 0) + 1; for (let i = 0; i < 6; i++) { sparks(x, y, z, 30); puffSmoke(x + rnd(-4, 4), y, z + rnd(-4, 4), 6, true, 2.2); }
+  dis.flashes = 1; dis.quake = Math.max(dis.quake, 2.5);
+  for (const o of objects) { const dx = o.body.position.x - x, dz = o.body.position.z - z, d = Math.max(3, Math.hypot(dx, dz)); if (d < 60) kick(o.body, dx / d * 900 / d, 700 / d, dz / d * 900 / d, 0.3, o.body.mass); }
+  for (const q of people) { const d = Math.hypot(q.x - x, q.z - z); if (d < 38) topple(q, new CANNON.Vec3((q.x - x) / d * 7, 6, (q.z - z) / d * 7)); }
+  for (const bt of boats) { const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < 55) { damageBoat(bt, 60 * (1 - d / 55), x, y, z, null, 'gun'); bt.body.applyImpulse(new CANNON.Vec3((bt.body.position.x - x) / d * bt.body.mass * 1.5, bt.body.mass * 0.8, (bt.body.position.z - z) / d * bt.body.mass * 1.5), bt.body.position); } }
+  if (heightAt(x, z) < 0) splash(x, z, 6);
+}
+function updateDisasters(dt, t) {
+  // surge: the sea level the water and the physics share
+  let target = 0;
+  if (dis.tsunami) { const s = dis.tsunami; s.t += dt; target = s.t < 14 ? -3.2 * ease(s.t / 14) : s.t < 24 ? -3.2 + 9.2 * ease((s.t - 14) / 10) : s.t < 46 ? 6 : s.t < 100 ? 6 * (1 - ease((s.t - 46) / 54)) : 0; if (s.t > 100) dis.tsunami = null; }
+  if (dis.hurricane > 0) { dis.hurricane -= dt; target = Math.max(target, 1.6 * Math.min(1, (150 - dis.hurricane) / 40) * Math.min(1, dis.hurricane / 30)); }
+  surge.level += (target - surge.level) * Math.min(1, dt * (dis.tsunami && dis.tsunami.t > 12 && dis.tsunami.t < 26 ? 2.2 : 0.8));
+  if (Math.abs(surge.level) < 0.01 && target === 0) surge.level = 0;
+  if (surge.level > 1.1) for (const q of people) if (!q.ride && q.state !== 'rag' && !q.fp && standY(q.x, q.z) < surge.level - 0.5) topple(q, new CANNON.Vec3(rnd(-1, 1), 2, rnd(-1, 1)));
+  // tornados
+  for (const tn of dis.tornados.slice()) {
+    tn.life -= dt; if (tn.life <= 0) { scene.remove(tn.group); dis.tornados.splice(dis.tornados.indexOf(tn), 1); continue; }
+    const a = Math.atan2(tn.hz, tn.hx) + rnd(-1, 1) * dt * 0.8; tn.hx = Math.cos(a); tn.hz = Math.sin(a); tn.x += tn.hx * 5 * dt; tn.z += tn.hz * 5 * dt;
+    if (Math.abs(tn.x) > 105) tn.hx = -Math.sign(tn.x) * Math.abs(tn.hx); if (Math.abs(tn.z) > 105) tn.hz = -Math.sign(tn.z) * Math.abs(tn.hz);
+    tn.group.position.set(tn.x, Math.max(heightAt(tn.x, tn.z), 0), tn.z); tn.segs.forEach((m, i) => { m.rotation.y += dt * (3 + i * 0.4); m.position.x = Math.sin(t * 1.3 + i * 0.7) * i * 0.35; });
+    puffSmoke(tn.x, tn.group.position.y + 1, tn.z, 1, true, 1.6);
+    const R = 20;
+    const pull = (x, z, body, scale) => { const dx = tn.x - x, dz = tn.z - z, d = Math.max(1, Math.hypot(dx, dz)); if (d > R) return; const f = (1 - d / R) * scale; kick(body, (dx / d * 6 - dz / d * 14) * f, 18 * f, (dz / d * 6 + dx / d * 14) * f, dt, body.mass); };
+    for (const o of objects) pull(o.body.position.x, o.body.position.z, o.body, 1);
+    for (const bt of boats) { const d = Math.hypot(bt.body.position.x - tn.x, bt.body.position.z - tn.z); pull(bt.body.position.x, bt.body.position.z, bt.body, 0.5); if (d < 10) damageBoat(bt, 6 * dt, bt.body.position.x, bt.body.position.y + 2, bt.body.position.z, null, 'mg'); }
+    for (const q of people) { const d = Math.hypot(q.x - tn.x, q.z - tn.z); if (d < 14 && q.state !== 'rag') topple(q, new CANNON.Vec3((tn.x - q.x) / d * 3 - (tn.z - q.z) / d * 6, 6, (tn.z - q.z) / d * 3 + (tn.x - q.x) / d * 6)); else if (d < R && q.state === 'rag' && q.rag) pull(q.x, q.z, q.rag.bodies.pelvis, 0.6); }
+  }
+  // lightning
+  if (dis.light > 0) {
+    dis.light -= dt; dis.lightNext -= dt;
+    if (dis.lightNext <= 0) { dis.lightNext = rnd(1.2, 4); const bs = boats.filter(b => !b.sunk); let x, z; if (bs.length && Math.random() < 0.5) { const b = bs[Math.floor(Math.random() * bs.length)]; x = b.body.position.x + rnd(-3, 3); z = b.body.position.z + rnd(-3, 3); } else { const a = aimPt(); x = a.x + rnd(-90, 90); z = a.z + rnd(-90, 90); } strikeAt(x, z); }
+  }
+  for (const b of dis.bolts.slice()) { b.life -= dt; b.line.material.opacity = Math.max(0, b.life / 0.22); if (b.life <= 0) { scene.remove(b.line); b.line.geometry.dispose(); dis.bolts.splice(dis.bolts.indexOf(b), 1); } }
+  if (dis.flashes > 0) { dis.flashes = Math.max(0, dis.flashes - dt * 4); hemi.intensity += dis.flashes * 3.2; sunLight.intensity += dis.flashes * 2.5; }
+  // earthquake: shake and jolt
+  if (dis.quake > 0) {
+    dis.quake -= dt; const k = Math.min(1, dis.quake / 2);
+    for (const o of objects) if (Math.random() < dt * 4) kick(o.body, rnd(-1, 1) * 140, rnd(0.5, 1) * 160, rnd(-1, 1) * 140, 0.1, o.body.mass);
+    for (const q of people) if (!q.fp && q.state !== 'rag' && Math.random() < dt * 0.35) topple(q, new CANNON.Vec3(rnd(-2, 2), 2, rnd(-2, 2)));
+    for (const bt of boats) if (Math.random() < dt * 2) bt.body.applyImpulse(new CANNON.Vec3(rnd(-1, 1) * bt.body.mass * 0.3, 0, rnd(-1, 1) * bt.body.mass * 0.3), bt.body.position);
+    dis.shake = 0.5 * k;
+  } else dis.shake = 0;
+  // meteors
+  for (const m of dis.meteors.slice()) {
+    m.t += dt; const u = m.t / 1.4;
+    if (!m.mesh) { m.mesh = new THREE.Mesh(new THREE.SphereGeometry(2.4, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffb060, fog: false })); scene.add(m.mesh); }
+    m.mesh.position.set(m.x - 90 * (1 - u), 160 * (1 - u) * (1 - u) + Math.max(heightAt(m.x, m.z), 0), m.z - 40 * (1 - u));
+    puffSmoke(m.mesh.position.x, m.mesh.position.y, m.mesh.position.z, 1, true, 1.4); fxG.emit(m.mesh.position.x, m.mesh.position.y, m.mesh.position.z, 0, 0, 0, 0.4, 3.5, 0.6, [1, 0.6, 0.2, 1]);
+    if (u >= 1) { scene.remove(m.mesh); dis.meteors.splice(dis.meteors.indexOf(m), 1); impactMeteor(m); }
+  }
+}
+const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+
+function calm0() { dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+const shakeV = new THREE.Vector3();
+
+window.__sc = { stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
