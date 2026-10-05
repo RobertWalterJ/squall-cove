@@ -2,6 +2,9 @@
 
 A living list. Add anything that would let people express a different idea in this sandbox. Newest at the top.
 
+## Done in v5.6
+Thermal winds: warm ground draws wind in, cold ground pushes it out, the air aloft flows the other way. Sea breeze by day, land breeze by night. Convection builds cloud and thunderstorms over hot wet ground. Wind view arrows (ground or aloft). Boats, sails, flags, objects and clouds all feel the local wind.
+
 ## Done in v5.5
 Layered air: a warm layer aloft over the ground. What falls depends on both: rain, snow, sleet or freezing rain (which glazes the ground with ice). Snowflakes, and the fog eases off as it freezes.
 
@@ -55,3 +58,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Ice weight on small boats, and chipping ice off decks.
 - More air layers: a real vertical column with fronts moving across the map, so a warm front can ride over cold ground.
 - Glaze ice on boat decks and rigging, and on power lines and trees.
+- Wind that spins: low pressure with a rotating storm (a proper hurricane that forms over warm sea and moves).
+- Mountain and valley winds, and wind funnelled between hills.
+- Sailing races that use sea breezes.

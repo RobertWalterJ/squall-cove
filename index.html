@@ -319,6 +319,7 @@ function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'
 /* ================================================================ waves (one function for GPU and physics) */
 const WAVES = [[0.20, 0.98, 0.16, 1.00, 0.0], [-0.60, 0.80, 0.27, 0.55, 1.3], [0.71, 0.70, 0.45, 0.30, 2.1], [0.10, 0.995, 0.90, 0.12, 0.7]];
 const sea = { amp: 0.25 };
+const tWin = { x: 0, y: 0, z: 0 };                 // scratch: the wind at one place
 const surge = { level: 0 };                       // storm surge or tsunami: the whole sea rises and falls together
 const WD = new Float32Array(257 * 257); let lakeWet = 0;    // water lying on the land (springs, pours), one depth per terrain cell
 function lakeDepth(x, z) { const fx = x + TH, fz = z + TH, j = Math.floor(fx), i = Math.floor(fz); if (j < 0 || i < 0 || j >= TN - 1 || i >= TN - 1) return 0; const a = fx - j, b = fz - i, k = i * TN + j; return (WD[k] * (1 - a) + WD[k + 1] * a) * (1 - b) + (WD[k + TN] * (1 - a) + WD[k + TN + 1] * a) * b; }
@@ -970,7 +971,7 @@ function applyBuoyancy(f, t, dt) {
   f.wet = fsum / f.pts.length;
   if (f.wet > 0) { b.angularVelocity.scale(1 - Math.min(0.5, f.kA * f.wet * dt), b.angularVelocity); b.allowSleep = false; }
   else b.allowSleep = true;
-  const rx = wind.v.x - b.velocity.x, rz = wind.v.z - b.velocity.z, ry = -b.velocity.y, s = Math.hypot(rx, ry, rz);
+  windAt(b.position.x, b.position.z, tWin); const rx = tWin.x - b.velocity.x, rz = tWin.z - b.velocity.z, ry = -b.velocity.y, s = Math.hypot(rx, ry, rz);
   if (f.area > 0 && s > 0.01) {   // air drag on the dry part: wind push on the water, terminal velocity in the air
     const k = 0.5 * RHO_A * f.area * 0.9 * s * (1 - f.wet * 0.8);
     tF.set(k * rx, k * ry, k * rz); b.applyForce(tF, CANNON.Vec3.ZERO);
@@ -1039,7 +1040,7 @@ function boatForces(bt, active, dt) {
   if (sp.kind === 'motor') {
     if (active) b.applyLocalForce(F.set(bt.throttle * sp.thrust * (sp.hover ? 1 : wet), 0, 0), P.set(-sp.L * 0.45, sp.hover ? 0 : -sp.D * 0.3, 0));
   } else {
-    aW.set(wind.v.x - b.velocity.x, 0, wind.v.z - b.velocity.z); qInv.vmult(aW, aL); aL.y = 0;
+    windAt(b.position.x, b.position.z, tWin); aW.set(tWin.x - b.velocity.x, 0, tWin.z - b.velocity.z); qInv.vmult(aW, aL); aL.y = 0;
     const as = Math.hypot(aL.x, aL.z);
     let phi = Math.atan2(aL.z, -aL.x);
     if (Math.abs(phi) > 2.6 && bt.beta !== 0 && Math.sign(phi) !== Math.sign(bt.beta)) phi -= 2 * Math.PI * Math.sign(phi);
@@ -2220,7 +2221,7 @@ function updateBoatParts(dt, t) {
   for (const bt of boats) {
     if (!bt.parts || !bt.parts.length) continue;
     const alive = bt.sunk ? Math.max(0, 1 - bt.sinkT / 6) : 1, v = bt.body.velocity, yaw = boatYaw(bt), c = Math.cos(yaw), s_ = Math.sin(yaw);
-    const ax = wind.v.x - v.x, az = wind.v.z - v.z, lx = ax * c - az * s_, lz = ax * s_ + az * c, sp = Math.hypot(ax, az);       // apparent wind, in the boat's own frame
+    windAt(bt.body.position.x, bt.body.position.z, tWin); const ax = tWin.x - v.x, az = tWin.z - v.z, lx = ax * c - az * s_, lz = ax * s_ + az * c, sp = Math.hypot(ax, az);       // apparent wind, in the boat's own frame
     for (const q of bt.parts) {
       if (q.k === 'radar') q.n.rotation.y += dt * 2.4 * alive;
       else if (q.k === 'flag') q.n.rotation.y = Math.atan2(lz, -lx) + Math.sin(t * (7 + sp * 0.5) + q.ph) * clamp(0.06 + sp * 0.02, 0.06, 0.3);
@@ -2929,6 +2930,8 @@ function renderTray(force = true) {
     ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Air'));
     [['Freezing', -15], ['Cold', 2], ['Cool', 10], ['Mild', 18], ['Warm', 28], ['Hot', 38], ['Scorching', 48]].forEach(([n, T]) => tray.append(chip(n, T + ' C', null, Math.abs(clim.T - T) < 5, () => setAirTemp(T), 'chip mini')));
+    tray.append(sep('Wind view'));
+    [['Off', 0], ['Ground', 1], ['Aloft', 2]].forEach(([n, v]) => tray.append(chip(n, v === 1 ? 'near the ground' : v === 2 ? 'high up' : '', null, windView === v, () => setWindView(v), 'chip mini')));
     tray.append(sep('Warm layer aloft'));
     [['Off', 0], ['Weak', 5], ['Strong', 10]].forEach(([n, v]) => tray.append(chip(n, v ? '+' + v + ' C' : 'none', null, clim.nose === v, () => { clim.nose = v; renderTray(true); toast(v ? 'A warm layer sits above the ground. Cold ground under it makes freezing rain.' : 'No warm layer'); }, 'chip mini')));
     tray.append(sep('Disasters'));
@@ -3047,7 +3050,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt);
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt);
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3709,7 +3712,7 @@ function csample(arr, x, z) {
 }
 const airTempAt = (x, z) => csample(CT, x, z);
 function stepClimate(dt) {
-  const k1 = 1 - Math.exp(-dt / 20);
+  const k1 = 1 - Math.exp(-dt / 20), k1sea = 1 - Math.exp(-dt / 70);
   CHT.fill(0);
   if (lavaOn) for (let i = Math.max(2, lbx.z0); i <= Math.min(TN - 3, lbx.z1); i++) for (let j = Math.max(2, lbx.x0); j <= Math.min(TN - 3, lbx.x1); j++) { const k = i * TN + j; if (LV[k] > 0.02 && LT[k] > 0.25) { const c = ((i >> 2) * CN) + (j >> 2); if (c >= 0 && c < CK) CHT[c] += LT[k] * 0.45; } }
   for (const s of heatSrc) { const cj = (s.x + TH) / 4, ci = (s.z + TH) / 4, R = s.r / 4; for (let i = Math.max(0, Math.floor(ci - R)); i <= Math.min(CN - 1, Math.ceil(ci + R)); i++) for (let j = Math.max(0, Math.floor(cj - R)); j <= Math.min(CN - 1, Math.ceil(cj + R)); j++) { const d = Math.hypot(j - cj, i - ci); if (d < R) CHT[i * CN + j] += s.k * (1 - d / R) / 1; } }
@@ -3718,7 +3721,7 @@ function stepClimate(dt) {
     const c = i * CN + j, x = j * 4 - TH + 2, z = i * 4 - TH + 2, h = heightAt(x, z);
     const l = j > 0 ? CT[c - 1] : CT[c], r = j < CN - 1 ? CT[c + 1] : CT[c], u = i > 0 ? CT[c - CN] : CT[c], d = i < CN - 1 ? CT[c + CN] : CT[c];
     let T = CT[c] + 0.15 * ((l + r + u + d) / 4 - CT[c]);                                     // spreads a little to its neighbours
-    T += ((clim.T - 0.15 * Math.max(h, 0)) - T) * k1 + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
+    T += ((clim.T + SOLAR[wx.sky] * (h < 0 ? 0.3 : 1) - 0.15 * Math.max(h, 0)) - T) * (h < 0 ? k1sea : k1) + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
     T = Math.max(-60, Math.min(160, T)); CT2[c] = T;
     CW[c] += ((clim.T - 2 + clim.nose - 0.15 * Math.max(h, 0)) - CW[c]) * kW + CHT[c] * dt * 0.5; wSum += CW[c];
     // evaporation from open water, faster when hot
@@ -3730,13 +3733,16 @@ function stepClimate(dt) {
     CH2[c] = hu; tSum += T; hSum += hu; if (T > 60) hot++;
   }
   // vapour and cloud drift with the wind (semi-Lagrangian), then condense or clear
-  const wx_ = wind.v.x * dt / 4, wz_ = wind.v.z * dt / 4;
+  computeWinds();
   for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
-    const c = i * CN + j; let fx = Math.max(0, Math.min(CN - 1.001, j - wx_)), fz = Math.max(0, Math.min(CN - 1.001, i - wz_));
-    const jj = Math.floor(fx), ii = Math.floor(fz), a = fx - jj, b = fz - ii, q = ii * CN + jj;
+    const c = i * CN + j;
+    let fx = Math.max(0, Math.min(CN - 1.001, j - (wind.v.x + TU[c]) * dt / 4)), fz = Math.max(0, Math.min(CN - 1.001, i - (wind.v.z + TV[c]) * dt / 4));       // vapour drifts with the wind near the ground
+    let jj = Math.floor(fx), ii = Math.floor(fz), a = fx - jj, b = fz - ii, q = ii * CN + jj;
     let hu = (CH2[q] * (1 - a) + CH2[q + 1] * a) * (1 - b) + (CH2[q + CN] * (1 - a) + CH2[q + CN + 1] * a) * b;
+    fx = Math.max(0, Math.min(CN - 1.001, j - AU[c] * dt / 4)); fz = Math.max(0, Math.min(CN - 1.001, i - AV[c] * dt / 4));                                      // cloud drifts with the wind aloft
+    jj = Math.floor(fx); ii = Math.floor(fz); a = fx - jj; b = fz - ii; q = ii * CN + jj;
     let cl = (CC[q] * (1 - a) + CC[q + 1] * a) * (1 - b) + (CC[q + CN] * (1 - a) + CC[q + CN + 1] * a) * b;
-    const T = CT2[c], Ta = aloft(T), q0 = qsat(Ta);
+    const T = CT2[c], Ta = aloft(T) - CUP[c] * 3, q0 = qsat(Ta);              // rising air cools as it climbs, so hot wet ground builds tall cloud
     if (hu > q0 && Ta < 28) { const co = (hu - q0) * 0.5; hu -= co; cl += co; }                  // cool air aloft: vapour becomes cloud. When it stays hot (Ta of 28 or more) the vapour stays clear.
     else if (cl > 0 && hu < q0 * 0.8) { const ev = Math.min(cl, (q0 * 0.8 - hu) * 0.1); cl -= ev; hu += ev; }
     const pr = Math.max(0, cl - 1.2) * 0.06 * dt; cl -= pr;                                    // heavy cloud lets go as rain
@@ -3753,7 +3759,7 @@ function updateClimate(dt) {
   clim.emitT -= dt;
   if (clim.emitT <= 0) {
     clim.emitT = 0.25;
-    for (let n = 0; n < 3; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 0.5) { const j = c % CN, i = (c - j) / CN, x = j * 4 - TH + 2 + rnd(-2, 2), z = i * 4 - TH + 2 + rnd(-2, 2), dark = Math.min(1, CC[c] / 3); fxS.emit(x, rnd(60, 90), z, wind.v.x * 0.6, 0, wind.v.z * 0.6, 8, rnd(12, 22), 4, [0.92 - dark * 0.45, 0.93 - dark * 0.45, 0.95 - dark * 0.42, 0.3 + dark * 0.2], 0, 0.1); } }
+    for (let n = 0; n < 3; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 0.5) { const j = c % CN, i = (c - j) / CN, x = j * 4 - TH + 2 + rnd(-2, 2), z = i * 4 - TH + 2 + rnd(-2, 2), dark = Math.min(1, CC[c] / 3); fxS.emit(x, rnd(60, 90), z, AU[c] * 0.6, 0, AV[c] * 0.6, 8, rnd(12, 22), 4, [0.92 - dark * 0.45, 0.93 - dark * 0.45, 0.95 - dark * 0.42, 0.3 + dark * 0.2], 0, 0.1); } }
   }
   // haze from clear vapour, a little heat shimmer tint, and dim light under heavy cloud
   const haze = Math.min(1, clim.hum / 40);
@@ -4017,7 +4023,46 @@ function updatePrecipVisuals() {
   const u = snowfall.material.uniforms; u.uAmt.value = a * (p.snow + 0.5 * p.sleet); u.uCenter.value.copy(rain.material.uniforms.uCenter.value); u.uBox.value = rain.material.uniforms.uBox.value; u.uTime.value = simT; u.uWind.value.set(wind.v.x, 0, wind.v.z);
 }
 
-window.__sc = { CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+/* ================================================================ v5.6: thermal winds. Warm air rises and draws wind in, cold air sinks and pushes it out, and the air aloft returns the other way. */
+const TU = new Float32Array(CK), TV = new Float32Array(CK), AU = new Float32Array(CK), AV = new Float32Array(CK), CUP = new Float32Array(CK), TS = new Float32Array(CK), TB = new Float32Array(CK);
+const SOLAR = { dawn: -1, day: 6, golden: 3, dusk: -1, night: -5 };       // land warms and cools faster than the sea through the day: sea breeze by day, land breeze by night
+function computeWinds() {
+  TS.set(CT2);
+  for (let pass = 0; pass < 6; pass++) { TB.set(TS); for (let i = 1; i < CN - 1; i++) for (let j = 1; j < CN - 1; j++) { const c = i * CN + j; TS[c] = (TB[c - 1] + TB[c + 1] + TB[c - CN] + TB[c + CN] + TB[c] * 4) / 8; } }
+  const th = 0.7, ct = Math.cos(th), st = Math.sin(th), bx = (wind.v.x * ct - wind.v.z * st) * 1.7, bz = (wind.v.x * st + wind.v.z * ct) * 1.7;        // the air aloft is faster and turned
+  for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) {
+    const c = i * CN + j, l = TS[j > 0 ? c - 1 : c], r = TS[j < CN - 1 ? c + 1 : c], u = TS[i > 0 ? c - CN : c], d = TS[i < CN - 1 ? c + CN : c];
+    const tu = Math.max(-14, Math.min(14, (r - l) / 8 * 45)), tv = Math.max(-14, Math.min(14, (d - u) / 8 * 45));      // toward the warmer side
+    TU[c] = tu; TV[c] = tv; AU[c] = bx - 0.9 * tu; AV[c] = bz - 0.9 * tv;
+    CUP[c] = Math.max(0, CT2[c] - TS[c]) * 0.35;                                                                         // updraft over cells warmer than their surroundings
+  }
+}
+function windAt(x, z, out) { out.x = wind.v.x + csample(TU, x, z); out.z = wind.v.z + csample(TV, x, z); out.y = 0; return out; }
+/* ---- a view of the wind: arrows for the surface or for the air aloft */
+let windView = 0, windViewT = 0;
+const WVN = 16 * 16 * 6, wvPos = new Float32Array(WVN * 3), wvGeo = new THREE.BufferGeometry();
+wvGeo.setAttribute('position', new THREE.BufferAttribute(wvPos, 3)); wvGeo.setDrawRange(0, 0);
+const wvMat = new THREE.LineBasicMaterial({ color: 0xe3a948, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false, fog: false });
+const windLines = new THREE.LineSegments(wvGeo, wvMat); windLines.frustumCulled = false; windLines.renderOrder = 4; windLines.visible = false; scene.add(windLines);
+function setWindView(m) { windView = m; windLines.visible = m > 0; wvMat.color.set(m === 2 ? 0x7cc4e8 : 0xe3a948); renderTray(true); toast(m === 0 ? 'Wind view off' : m === 1 ? 'Arrows show the wind near the ground' : 'Arrows show the wind aloft'); }
+function updateWindView(dt) {
+  if (!windView) return; windViewT -= dt; if (windViewT > 0) return; windViewT = 0.2; let n = 0;
+  for (let i = 2; i < CN; i += 4) for (let j = 2; j < CN; j += 4) {
+    const c = i * CN + j, x = j * 4 - TH + 2, z = i * 4 - TH + 2, u = windView === 2 ? AU[c] : wind.v.x + TU[c], v = windView === 2 ? AV[c] : wind.v.z + TV[c], sp = Math.hypot(u, v) || 1, len = Math.max(2, Math.min(14, sp * 1.1)), dx = u / sp, dz = v / sp, y = Math.max(heightAt(x, z), 0) + (windView === 2 ? 30 : 12);
+    const ax = x - dx * len / 2, az = z - dz * len / 2, bx = x + dx * len / 2, bz = z + dz * len / 2, hl = len * 0.3, c1 = Math.cos(2.6), s1 = Math.sin(2.6);
+    wvPos.set([ax, y, az, bx, y, bz, bx, y, bz, bx + (dx * c1 - dz * s1) * hl, y, bz + (dx * s1 + dz * c1) * hl, bx, y, bz, bx + (dx * c1 + dz * s1) * hl, y, bz + (-dx * s1 + dz * c1) * hl], n * 3); n += 6;
+  }
+  wvGeo.setDrawRange(0, n); wvGeo.attributes.position.needsUpdate = true;
+}
+/* ---- thunderstorms: tall cloud over strongly rising air lets lightning go */
+let stormT = 0;
+function updateStorms(dt) {
+  stormT -= dt; if (stormT > 0) return; stormT = 1;
+  if (prefs.gentle) return;
+  for (let n = 0; n < 24; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 2.2 && CUP[c] > 0.8) { const j = c % CN, i = (c - j) / CN; strikeAt(j * 4 - TH + 2 + rnd(-2, 2), i * 4 - TH + 2 + rnd(-2, 2)); noteOnce('storm', 'A thunderstorm has built over the hot, wet ground.'); break; } }
+}
+
+window.__sc = { TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
