@@ -53,8 +53,27 @@ def bed(mk, D, seed, xf=1.0):
             y += S.make_loop(a, xf)[:nD]
         if c is not None:
             y += c[:nD]
-        chans.append(y)
+        chans.append(finish_loop(y))
     return np.stack(chans, axis=1)
+
+
+def finish_loop(y, fc=18.0, M=160):
+    """Make a periodic buffer survive synthlib.normalize(): circular high-pass (nothing below ~18 Hz), a short ramp so the last sample
+    leads into the first, and an impulse on sample 0 that cancels the zero-state start-up transient of normalize()'s 20 Hz high-pass."""
+    from scipy import signal as _sg
+    n = len(y)
+    sp = np.fft.rfft(y)
+    f = np.fft.rfftfreq(n, 1.0 / SR)
+    u = np.clip((f - fc) / 30.0, 0, 1)
+    g = u * u * (3 - 2 * u)
+    y = np.fft.irfft(sp * g, n)
+    a = y[-M - 1]; b = y[0]
+    y[-M:] = a + (b - a) * np.arange(1, M + 1) / (M + 1)
+    bb, aa = _sg.butter(1, 20.0 / (SR / 2), 'high')
+    _, H = _sg.freqz(bb, aa, worN=TWO_PI * f / SR)
+    ss0 = np.fft.irfft(np.fft.rfft(y) * H, n)[0]
+    y[0] += ss0 / bb[0] - y[0]
+    return y
 
 
 def pan_gains(p):
@@ -311,7 +330,7 @@ def make_fire(D, seed):
         cl = pmod(256, D * 256 / 255, rr, 1, 7, 0.6)
         rate = lambda ts: 10 + 45 * np.interp(ts, np.linspace(0, D, 256), cl) ** 2
         c = scatter_rate(nD, D, rate, 60, pops, rr, lognorm=0.7)
-        return roar + mid + hiss, c * 2.5
+        return roar + mid + hiss, c * 4.0
     return bed(mk, D, seed)
 
 
@@ -341,7 +360,7 @@ def make_steam(D, seed):
     def mk(r, n, D, ch, shared):
         m = pmod(n, D, r, 2, 14, 0.7)
         w = noise(n, 'white', r)
-        x = tv_filter(w, 5500 + 2500 * m, 'lp', 2, SR, 1024)
+        x = tv_filter(w, 4300 + 2000 * m, 'lp', 2, SR, 1024)
         x = hp(x, 1400, SR, 2)
         x += tv_bandpass(noise(n, 'white', r), 2500 + 2500 * pmod(n, D, r, 1, 4, 0.8), 1.5, 2, SR, 1024) * 0.7
         x *= 0.8 + 0.35 * m
@@ -497,7 +516,7 @@ def make_crickets(D, seed):
     def mk(r, n, D, ch, shared):
         nD = int(round(D * SR)); circ = np.zeros(nD)
         slow = pmod(nD, D, shared, 1, 3, 0.8)
-        cfg = [(4300, 27), (4650, 31), (4050, 34), (4450, 38), (3900, 43), (4800, 29)]
+        cfg = [(3500, 27), (3850, 31), (3300, 34), (3700, 38), (3150, 43), (4000, 29)]
         for ci, (fc, m) in enumerate(cfg):
             P = D / m; pulses = int(shared.integers(3, 5)); gap = 0.021 + 0.004 * shared.random()
             p = shared.uniform(-0.9, 0.9); g = shared.uniform(0.4, 0.9)
@@ -562,9 +581,9 @@ def render():
     # --- sea
     A('amb_sea_calm', make_sea(7.0, 2, 3, 1.0, 0.25, 0.0, 0.8, 0.2, 180, 1400, 14.0, 101),
       dict(kind='sea', swellPeriodS=7.0, swellWavelengthM=76, dutyHint='level up with sea.amp'), tags=['sea'], quality=3)
-    A('amb_sea_moderate', make_sea(5.0, 2, 3, 1.0, 0.55, 0.12, 0.9, 0.5, 220, 2200, 10.0, 102),
+    A('amb_sea_moderate', make_sea(5.0, 2, 3, 1.0, 0.3, 0.12, 0.9, 0.5, 220, 2000, 10.0, 102),
       dict(kind='sea', swellPeriodS=5.0, swellWavelengthM=39, dutyHint='crossfade between calm and rough by sea.amp'), tags=['sea'], quality=3)
-    A('amb_sea_rough', make_sea(4.0, 3, 5, 1.0, 1.0, 0.45, 1.2, 1.0, 300, 3200, 12.0, 103),
+    A('amb_sea_rough', make_sea(4.0, 3, 5, 1.0, 0.4, 0.45, 1.2, 0.8, 300, 2600, 12.0, 103),
       dict(kind='sea', swellPeriodS=4.0, swellWavelengthM=25, chop=True), tags=['sea'], quality=3)
     # --- surf
     A('amb_surf_gentle', make_surf([(1.0, 0.45), (5.4, 0.35), (9.6, 0.55)], False, 14.0, 111),
@@ -572,14 +591,14 @@ def render():
     A('amb_surf_heavy', make_surf([(1.2, 1.0), (7.4, 0.8), (10.8, 0.5)], True, 14.0, 112),
       dict(kind='surf', wavePeriodS=6.5, nearShoreOnly=True, heavy=True), tags=['surf'], quality=3)
     # --- wind (windMs = the speed the loop represents)
-    A('amb_wind_light', make_wind(250, 800, 300, 0.0, 0, 0, 0.45, 12.0, 121), dict(kind='wind', windMs=3.0, band='200-800 Hz'), quality=3)
+    A('amb_wind_light', make_wind(300, 1000, 380, 0.0, 0, 0, 0.45, 12.0, 121), dict(kind='wind', windMs=3.0, band='200-800 Hz'), quality=3)
     A('amb_wind_fresh', make_wind(450, 1700, 550, 0.0, 0, 0, 0.4, 12.0, 122), dict(kind='wind', windMs=9.0), quality=3)
-    A('amb_wind_gale', make_wind(800, 2800, 850, 0.7, 14, 0.35, 0.35, 12.0, 123, howl=0.04), dict(kind='wind', windMs=20.0, flutter=True), quality=3)
-    A('amb_wind_hurricane', make_wind(1100, 3800, 1100, 1.4, 24, 0.5, 0.35, 12.0, 124, howl=0.09), dict(kind='wind', windMs=35.0, flutter=True), quality=3)
+    A('amb_wind_gale', make_wind(1200, 3400, 1000, 0.3, 14, 0.35, 0.35, 12.0, 123, howl=0.03), dict(kind='wind', windMs=20.0, flutter=True), quality=3)
+    A('amb_wind_hurricane', make_wind(1600, 4800, 1500, 0.6, 24, 0.5, 0.35, 12.0, 124, howl=0.06), dict(kind='wind', windMs=35.0, flutter=True), quality=3)
     A('amb_wind_rigging', make_wind(350, 1100, 450, 0.0, 0, 0, 0.35, 12.0, 125, whistle=820.0, base_pink=0.7),
       dict(kind='wind', windMs=12.0, tonalWhistleHz='650-1300', useNear='rigging, cliffs, wires'), quality=3, group='core')
     # --- rain
-    A('amb_rain_light', make_rain(160, 0.5, 6500, 700, 0.0, 2000, 7000, 12.0, 131, drop_gain=3.0), dict(kind='rain', intensity=0.3, surface='land'), quality=3)
+    A('amb_rain_light', make_rain(160, 0.5, 6500, 700, 0.0, 2000, 7000, 12.0, 131, drop_gain=2.2), dict(kind='rain', intensity=0.3, surface='land'), quality=3)
     A('amb_rain_heavy', make_rain(650, 1.0, 8000, 400, 0.5, 1500, 8000, 12.0, 132, drop_gain=1.6), dict(kind='rain', intensity=0.9, surface='land'), quality=3)
     A('amb_rain_on_water', make_rain(260, 0.55, 5200, 250, 0.2, 1200, 5000, 12.0, 133, plop_rate=230, plop_gain=1.3, fine_lp=6000, drop_gain=1.5),
       dict(kind='rain', intensity=0.6, surface='water'), quality=3)

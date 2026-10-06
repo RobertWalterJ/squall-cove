@@ -5,7 +5,8 @@ os.makedirs(DST, exist_ok=True)
 merged = {}
 for f in sorted(glob.glob(os.path.join(OUT, 'manifest.*.json'))):
     if f.endswith('manifest.json'): continue
-    merged.update(json.load(open(f, encoding='utf-8')))
+    try: merged.update(json.load(open(f, encoding='utf-8')))
+    except Exception as e: print('skipping fragment being written:', os.path.basename(f))
 n = 0
 for id_ in list(merged):
     src = os.path.join(OUT, id_ + '.ogg')

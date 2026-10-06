@@ -159,7 +159,7 @@ def stone():
 
     def chink(i):
         r = rng(seed_of('sq', i)); n = n_of(0.35); f = jit(r, 2800, .2); out = np.zeros(n)
-        put(out, sine(f, 0.3, 0.05) * 0.5 + sine(f * 2.76, 0.2, 0.03) * 0.3, 0)
+        put(out, sine(f, 0.3, 0.05), 0, 0.5); put(out, sine(f * 2.76, 0.2, 0.03), 0, 0.3)
         put(out, burst(r, 0.01, 2500, 10000, 0.002), 0, 0.8)
         put(out, impact('stone', jit(r, 900, .2), .4, .8, .12, i + 1000), 0, 0.5)
         return out
@@ -344,7 +344,7 @@ def ice():
 # ---------------------------------------------------------------- terrain granular, slumps
 def terrain():
     def sand(d, r):
-        n = n_of(d); y = ticks(d, lambda t: 1500, r, 3500, 11000, 0.0015, spread=(.2, .8)) + hp(noise(n, 'white', r), 3000) * 0.05
+        n = n_of(d); y = ticks(d, lambda t: 1500, r, 2200, 8000, 0.0018, spread=(.2, .8)) + hp(lp(noise(n, 'white', r), 9000), 2500) * 0.05
         y = y * (0.8 + 0.2 * smooth(n, 12, r))
         return y + lp(noise(n, 'pink', r), 700) * 0.04 * smooth(n, 3, r)
     L('grain_sand_pour', loop_of(lambda d: sand(d, rng(seed_of('sandp')))), meta=dict(drive='flow rate -> gain; lowpass opens with fall height; rate 0.9..1.1'), lufs=-28)
@@ -367,8 +367,8 @@ def terrain():
 
     def metal(d, r):
         def g(rr, i):
-            return impact('steel', rr.uniform(2500, 7000), .2, .9, .08, int(rr.integers(1e9))) * rr.uniform(.2, 1)
-        y = grains(d, lambda t: 40, g, r); y += ticks(d, lambda t: 200, r, 4000, 11000, 0.0015) * .2
+            return impact('steel', rr.uniform(2000, 5200), .2, .8, .08, int(rr.integers(1e9))) * rr.uniform(.2, 1)
+        y = grains(d, lambda t: 40, g, r); y += ticks(d, lambda t: 200, r, 3000, 8000, 0.002) * .2
         return y
     L('grain_metal_pour', loop_of(lambda d: metal(d, rng(seed_of('metp')))), meta=dict(drive='flow rate -> gain'), lufs=-28)
 
@@ -419,8 +419,7 @@ def terrain():
     def ball(i):
         r = rng(seed_of('ball', i)); d = 1.6; out = Z(d); t = 0.0; g = 1.0; gap = jit(r, .34, .1); f0 = jit(r, 170, .15)
         while gap > 0.045 and t < d - .1:
-            hit = sweep(f0 * 1.35, f0 * .8, .09, tau=.035) + burst(r, .006, 1000, 5000, .002) * .3
-            put(out, hit, t, g); t += gap; gap *= .66; g *= .62
+            put(out, sweep(f0 * 1.35, f0 * .8, .09, tau=.035), t, g); put(out, burst(r, .006, 1000, 5000, .002), t, g * .3); t += gap; gap *= .66; g *= .62
         return out
     V('mat_ball_bounce', 4, ball, peak=-9, weight=2, meta=mat_meta('rubber', 's', (1, 8), dict(note='whole sequence; skip if you animate bounces yourself and use mat_thud_soft')))
 

@@ -1,0 +1,1101 @@
+{
+ "fire_ignite_whoomp_01": {
+  "id": "fire_ignite_whoomp_01",
+  "file": "audio/fire_ignite_whoomp_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.5,
+  "lufs": -21.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fuel catches: gas/flammable ignites; size by fuel mass",
+   "massKg": [
+    1,
+    5000
+   ]
+  }
+ },
+ "fire_ignite_whoomp_02": {
+  "id": "fire_ignite_whoomp_02",
+  "file": "audio/fire_ignite_whoomp_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.3,
+  "lufs": -21.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fuel catches: gas/flammable ignites; size by fuel mass",
+   "massKg": [
+    1,
+    5000
+   ]
+  }
+ },
+ "fire_ignite_whoomp_03": {
+  "id": "fire_ignite_whoomp_03",
+  "file": "audio/fire_ignite_whoomp_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.5,
+  "lufs": -21.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fuel catches: gas/flammable ignites; size by fuel mass",
+   "massKg": [
+    1,
+    5000
+   ]
+  }
+ },
+ "fire_ignite_whoomp_04": {
+  "id": "fire_ignite_whoomp_04",
+  "file": "audio/fire_ignite_whoomp_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.9,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fuel catches: gas/flammable ignites; size by fuel mass",
+   "massKg": [
+    1,
+    5000
+   ]
+  }
+ },
+ "fire_crackle_loop_s": {
+  "id": "fire_crackle_loop_s",
+  "file": "audio/fire_crackle_loop_s.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -28.0,
+  "lufs": -29.2,
+  "seamDb": -25.7,
+  "tags": [],
+  "meta": {
+   "drive": "burning cell/tree count near listener picks s/m/l; distance low-passes; flame intensity -> gain",
+   "size": "s"
+  }
+ },
+ "fire_crackle_loop_m": {
+  "id": "fire_crackle_loop_m",
+  "file": "audio/fire_crackle_loop_m.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.9,
+  "rmsDb": -26.3,
+  "lufs": -27.0,
+  "seamDb": -19.0,
+  "tags": [],
+  "meta": {
+   "drive": "burning cell/tree count near listener picks s/m/l; distance low-passes; flame intensity -> gain",
+   "size": "m"
+  }
+ },
+ "fire_crackle_loop_l": {
+  "id": "fire_crackle_loop_l",
+  "file": "audio/fire_crackle_loop_l.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 120,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.1,
+  "rmsDb": -24.3,
+  "lufs": -25.0,
+  "seamDb": -49.2,
+  "tags": [],
+  "meta": {
+   "drive": "burning cell/tree count near listener picks s/m/l; distance low-passes; flame intensity -> gain",
+   "size": "l"
+  }
+ },
+ "fire_extinguish_hiss_01": {
+  "id": "fire_extinguish_hiss_01",
+  "file": "audio/fire_extinguish_hiss_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 100,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.8,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fire put out by water/sand; scale with fire size"
+  }
+ },
+ "fire_extinguish_hiss_02": {
+  "id": "fire_extinguish_hiss_02",
+  "file": "audio/fire_extinguish_hiss_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 100,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.8,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fire put out by water/sand; scale with fire size"
+  }
+ },
+ "fire_extinguish_hiss_03": {
+  "id": "fire_extinguish_hiss_03",
+  "file": "audio/fire_extinguish_hiss_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 100,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.0,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fire put out by water/sand; scale with fire size"
+  }
+ },
+ "fire_extinguish_hiss_04": {
+  "id": "fire_extinguish_hiss_04",
+  "file": "audio/fire_extinguish_hiss_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 100,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -27.3,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "fire put out by water/sand; scale with fire size"
+  }
+ },
+ "fire_ember_pop_01": {
+  "id": "fire_ember_pop_01",
+  "file": "audio/fire_ember_pop_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -35.3,
+  "lufs": -35.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_ember_pop_02": {
+  "id": "fire_ember_pop_02",
+  "file": "audio/fire_ember_pop_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -36.4,
+  "lufs": -35.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_ember_pop_03": {
+  "id": "fire_ember_pop_03",
+  "file": "audio/fire_ember_pop_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -37.6,
+  "lufs": -37.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_ember_pop_04": {
+  "id": "fire_ember_pop_04",
+  "file": "audio/fire_ember_pop_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -36.5,
+  "lufs": -36.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_ember_pop_05": {
+  "id": "fire_ember_pop_05",
+  "file": "audio/fire_ember_pop_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -37.5,
+  "lufs": -37.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_ember_pop_06": {
+  "id": "fire_ember_pop_06",
+  "file": "audio/fire_ember_pop_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 0.5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.0,
+  "rmsDb": -34.6,
+  "lufs": -34.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "single spark/ember; triggered stochastically near fire at rate by intensity"
+  }
+ },
+ "fire_tree_burn_roar": {
+  "id": "fire_tree_burn_roar",
+  "file": "audio/fire_tree_burn_roar.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 110,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.4,
+  "rmsDb": -22.7,
+  "lufs": -24.0,
+  "seamDb": -20.5,
+  "tags": [],
+  "meta": {
+   "drive": "burning tree count / canopy fire intensity -> gain; wind -> lowpass up"
+  }
+ },
+ "fire_tree_fall_01": {
+  "id": "fire_tree_fall_01",
+  "file": "audio/fire_tree_fall_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.0,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "burned-through tree topples; thud at about 1.9 s, pair with water splash if it lands in water"
+  }
+ },
+ "fire_tree_fall_02": {
+  "id": "fire_tree_fall_02",
+  "file": "audio/fire_tree_fall_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -22.9,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "burned-through tree topples; thud at about 1.9 s, pair with water splash if it lands in water"
+  }
+ },
+ "fire_tree_fall_03": {
+  "id": "fire_tree_fall_03",
+  "file": "audio/fire_tree_fall_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.2,
+  "lufs": -24.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "burned-through tree topples; thud at about 1.9 s, pair with water splash if it lands in water"
+  }
+ },
+ "fire_tree_fall_04": {
+  "id": "fire_tree_fall_04",
+  "file": "audio/fire_tree_fall_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.3,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "burned-through tree topples; thud at about 1.9 s, pair with water splash if it lands in water"
+  }
+ },
+ "elec_arc_zap_01": {
+  "id": "elec_arc_zap_01",
+  "file": "audio/elec_arc_zap_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.497,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.6,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_arc_zap_02": {
+  "id": "elec_arc_zap_02",
+  "file": "audio/elec_arc_zap_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.331,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.4,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_arc_zap_03": {
+  "id": "elec_arc_zap_03",
+  "file": "audio/elec_arc_zap_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.321,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.2,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_arc_zap_04": {
+  "id": "elec_arc_zap_04",
+  "file": "audio/elec_arc_zap_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.348,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.6,
+  "lufs": -21.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_arc_zap_05": {
+  "id": "elec_arc_zap_05",
+  "file": "audio/elec_arc_zap_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.443,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.3,
+  "lufs": -22.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_arc_zap_06": {
+  "id": "elec_arc_zap_06",
+  "file": "audio/elec_arc_zap_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.432,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.4,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "electric arc / short shock; pitch by voltage"
+  }
+ },
+ "elec_hum_loop": {
+  "id": "elec_hum_loop",
+  "file": "audio/elec_hum_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 55,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -20.8,
+  "rmsDb": -31.0,
+  "lufs": -32.0,
+  "seamDb": -49.6,
+  "tags": [],
+  "meta": {
+   "drive": "charge / electric field strength -> gain, buzz grows with level; 60 Hz mains with harmonics, kept quiet"
+  }
+ },
+ "elec_strike_crack_01": {
+  "id": "elec_strike_crack_01",
+  "file": "audio/elec_strike_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -22.8,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "lightning/arc strike near; weight>8 audible beyond cull distance; duck amb 6 dB"
+  }
+ },
+ "elec_strike_crack_02": {
+  "id": "elec_strike_crack_02",
+  "file": "audio/elec_strike_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -25.3,
+  "lufs": -26.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "lightning/arc strike near; weight>8 audible beyond cull distance; duck amb 6 dB"
+  }
+ },
+ "elec_strike_crack_03": {
+  "id": "elec_strike_crack_03",
+  "file": "audio/elec_strike_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -25.3,
+  "lufs": -26.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "lightning/arc strike near; weight>8 audible beyond cull distance; duck amb 6 dB"
+  }
+ },
+ "elec_strike_crack_04": {
+  "id": "elec_strike_crack_04",
+  "file": "audio/elec_strike_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.0,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "lightning/arc strike near; weight>8 audible beyond cull distance; duck amb 6 dB"
+  }
+ },
+ "elec_spark_crackle": {
+  "id": "elec_spark_crackle",
+  "file": "audio/elec_spark_crackle.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 55,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -35.8,
+  "lufs": -33.9,
+  "seamDb": -52.4,
+  "tags": [],
+  "meta": {
+   "drive": "electrified area / charge -> gain and rate"
+  }
+ },
+ "elec_shock_pop_01": {
+  "id": "elec_shock_pop_01",
+  "file": "audio/elec_shock_pop_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 80,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.4,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "person / object shocked; short, never punishing"
+  }
+ },
+ "elec_shock_pop_02": {
+  "id": "elec_shock_pop_02",
+  "file": "audio/elec_shock_pop_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 80,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -27.3,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "person / object shocked; short, never punishing"
+  }
+ },
+ "elec_shock_pop_03": {
+  "id": "elec_shock_pop_03",
+  "file": "audio/elec_shock_pop_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 80,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.9,
+  "lufs": -25.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "person / object shocked; short, never punishing"
+  }
+ },
+ "elec_shock_pop_04": {
+  "id": "elec_shock_pop_04",
+  "file": "audio/elec_shock_pop_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 80,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -27.3,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "person / object shocked; short, never punishing"
+  }
+ },
+ "heat_hold_hiss_loop": {
+  "id": "heat_hold_hiss_loop",
+  "file": "audio/heat_hold_hiss_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 1,
+  "lazy": true,
+  "group": "tools",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -26.1,
+  "lufs": -27.0,
+  "seamDb": -50.0,
+  "tags": [],
+  "meta": {
+   "note": "hold-tool loop for the Heat tool; rises in gain as the held cell warms"
+  }
+ },
+ "cold_hold_wind_loop": {
+  "id": "cold_hold_wind_loop",
+  "file": "audio/cold_hold_wind_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 1,
+  "lazy": true,
+  "group": "tools",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.9,
+  "rmsDb": -27.7,
+  "lufs": -27.0,
+  "seamDb": -41.7,
+  "tags": [],
+  "meta": {
+   "note": "hold-tool loop for the Cold tool; icy whistle with sparse crystal tinkles"
+  }
+ }
+}

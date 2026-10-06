@@ -1,0 +1,6893 @@
+{
+ "mat_wood_knock_01": {
+  "id": "mat_wood_knock_01",
+  "file": "audio/mat_wood_knock_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -27.0,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_knock_02": {
+  "id": "mat_wood_knock_02",
+  "file": "audio/mat_wood_knock_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.4,
+  "lufs": -26.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_knock_03": {
+  "id": "mat_wood_knock_03",
+  "file": "audio/mat_wood_knock_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.6,
+  "lufs": -26.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_knock_04": {
+  "id": "mat_wood_knock_04",
+  "file": "audio/mat_wood_knock_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.5,
+  "lufs": -25.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_knock_05": {
+  "id": "mat_wood_knock_05",
+  "file": "audio/mat_wood_knock_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_knock_06": {
+  "id": "mat_wood_knock_06",
+  "file": "audio/mat_wood_knock_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.6,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "pickBy": "speed -> gain; mass -> pitch down"
+  }
+ },
+ "mat_wood_thump_01": {
+  "id": "mat_wood_thump_01",
+  "file": "audio/mat_wood_thump_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -22.3,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_thump_02": {
+  "id": "mat_wood_thump_02",
+  "file": "audio/mat_wood_thump_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.9,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_thump_03": {
+  "id": "mat_wood_thump_03",
+  "file": "audio/mat_wood_thump_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.8,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_thump_04": {
+  "id": "mat_wood_thump_04",
+  "file": "audio/mat_wood_thump_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.9,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_thump_05": {
+  "id": "mat_wood_thump_05",
+  "file": "audio/mat_wood_thump_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.0,
+  "lufs": -20.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_thump_06": {
+  "id": "mat_wood_thump_06",
+  "file": "audio/mat_wood_thump_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.4,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_wood_creak_01": {
+  "id": "mat_wood_creak_01",
+  "file": "audio/mat_wood_creak_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.532,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.1,
+  "lufs": -29.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_creak_02": {
+  "id": "mat_wood_creak_02",
+  "file": "audio/mat_wood_creak_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.392,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.8,
+  "lufs": -29.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_creak_03": {
+  "id": "mat_wood_creak_03",
+  "file": "audio/mat_wood_creak_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.065,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.5,
+  "lufs": -28.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_creak_04": {
+  "id": "mat_wood_creak_04",
+  "file": "audio/mat_wood_creak_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.339,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.2,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_creak_05": {
+  "id": "mat_wood_creak_05",
+  "file": "audio/mat_wood_creak_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.236,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -28.2,
+  "lufs": -28.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_creak_06": {
+  "id": "mat_wood_creak_06",
+  "file": "audio/mat_wood_creak_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.194,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.3,
+  "lufs": -29.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ],
+   "note": "stress groan for loaded pier/hull/beam"
+  }
+ },
+ "mat_wood_crack_01": {
+  "id": "mat_wood_crack_01",
+  "file": "audio/mat_wood_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -23.4,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_crack_02": {
+  "id": "mat_wood_crack_02",
+  "file": "audio/mat_wood_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -25.4,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_crack_03": {
+  "id": "mat_wood_crack_03",
+  "file": "audio/mat_wood_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -23.4,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_crack_04": {
+  "id": "mat_wood_crack_04",
+  "file": "audio/mat_wood_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -23.4,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_crack_05": {
+  "id": "mat_wood_crack_05",
+  "file": "audio/mat_wood_crack_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -23.3,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_crack_06": {
+  "id": "mat_wood_crack_06",
+  "file": "audio/mat_wood_crack_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -25.0,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ],
+   "note": "fracture under load"
+  }
+ },
+ "mat_wood_splinter_01": {
+  "id": "mat_wood_splinter_01",
+  "file": "audio/mat_wood_splinter_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -32.6,
+  "lufs": -30.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_splinter_02": {
+  "id": "mat_wood_splinter_02",
+  "file": "audio/mat_wood_splinter_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -33.0,
+  "lufs": -31.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_splinter_03": {
+  "id": "mat_wood_splinter_03",
+  "file": "audio/mat_wood_splinter_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -32.8,
+  "lufs": -30.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_splinter_04": {
+  "id": "mat_wood_splinter_04",
+  "file": "audio/mat_wood_splinter_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -32.5,
+  "lufs": -30.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_splinter_05": {
+  "id": "mat_wood_splinter_05",
+  "file": "audio/mat_wood_splinter_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -32.7,
+  "lufs": -30.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_splinter_06": {
+  "id": "mat_wood_splinter_06",
+  "file": "audio/mat_wood_splinter_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -32.2,
+  "lufs": -30.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    3,
+    20
+   ]
+  }
+ },
+ "mat_wood_snap_01": {
+  "id": "mat_wood_snap_01",
+  "file": "audio/mat_wood_snap_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.9,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_snap_02": {
+  "id": "mat_wood_snap_02",
+  "file": "audio/mat_wood_snap_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -26.6,
+  "lufs": -26.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_snap_03": {
+  "id": "mat_wood_snap_03",
+  "file": "audio/mat_wood_snap_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.7,
+  "lufs": -25.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_snap_04": {
+  "id": "mat_wood_snap_04",
+  "file": "audio/mat_wood_snap_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -27.1,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_snap_05": {
+  "id": "mat_wood_snap_05",
+  "file": "audio/mat_wood_snap_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -26.9,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_snap_06": {
+  "id": "mat_wood_snap_06",
+  "file": "audio/mat_wood_snap_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -26.6,
+  "lufs": -26.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "branch / mast / rigging member snaps"
+  }
+ },
+ "mat_wood_plank_drop_01": {
+  "id": "mat_wood_plank_drop_01",
+  "file": "audio/mat_wood_plank_drop_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -22.6,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_plank_drop_02": {
+  "id": "mat_wood_plank_drop_02",
+  "file": "audio/mat_wood_plank_drop_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.6,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_plank_drop_03": {
+  "id": "mat_wood_plank_drop_03",
+  "file": "audio/mat_wood_plank_drop_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.8,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_plank_drop_04": {
+  "id": "mat_wood_plank_drop_04",
+  "file": "audio/mat_wood_plank_drop_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.1,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_plank_drop_05": {
+  "id": "mat_wood_plank_drop_05",
+  "file": "audio/mat_wood_plank_drop_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.2,
+  "lufs": -24.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_plank_drop_06": {
+  "id": "mat_wood_plank_drop_06",
+  "file": "audio/mat_wood_plank_drop_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.3,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "plank lands and bounces"
+  }
+ },
+ "mat_wood_barrel_knock_01": {
+  "id": "mat_wood_barrel_knock_01",
+  "file": "audio/mat_wood_barrel_knock_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -22.7,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_barrel_knock_02": {
+  "id": "mat_wood_barrel_knock_02",
+  "file": "audio/mat_wood_barrel_knock_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -24.9,
+  "lufs": -25.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_barrel_knock_03": {
+  "id": "mat_wood_barrel_knock_03",
+  "file": "audio/mat_wood_barrel_knock_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -22.7,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_barrel_knock_04": {
+  "id": "mat_wood_barrel_knock_04",
+  "file": "audio/mat_wood_barrel_knock_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -24.1,
+  "lufs": -24.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_barrel_knock_05": {
+  "id": "mat_wood_barrel_knock_05",
+  "file": "audio/mat_wood_barrel_knock_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -25.6,
+  "lufs": -26.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_barrel_knock_06": {
+  "id": "mat_wood_barrel_knock_06",
+  "file": "audio/mat_wood_barrel_knock_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -25.1,
+  "lufs": -25.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-barrel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "hollow; empty barrels, resonant"
+  }
+ },
+ "mat_wood_crate_slam_01": {
+  "id": "mat_wood_crate_slam_01",
+  "file": "audio/mat_wood_crate_slam_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -20.2,
+  "lufs": -20.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_crate_slam_02": {
+  "id": "mat_wood_crate_slam_02",
+  "file": "audio/mat_wood_crate_slam_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -22.1,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_crate_slam_03": {
+  "id": "mat_wood_crate_slam_03",
+  "file": "audio/mat_wood_crate_slam_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.0,
+  "lufs": -21.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_crate_slam_04": {
+  "id": "mat_wood_crate_slam_04",
+  "file": "audio/mat_wood_crate_slam_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.2,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_crate_slam_05": {
+  "id": "mat_wood_crate_slam_05",
+  "file": "audio/mat_wood_crate_slam_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -20.3,
+  "lufs": -21.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_crate_slam_06": {
+  "id": "mat_wood_crate_slam_06",
+  "file": "audio/mat_wood_crate_slam_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -22.1,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood-crate",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ]
+  }
+ },
+ "mat_wood_collapse_01": {
+  "id": "mat_wood_collapse_01",
+  "file": "audio/mat_wood_collapse_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.0,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    3,
+    30
+   ],
+   "note": "whole structure/pier/house falling"
+  }
+ },
+ "mat_wood_collapse_02": {
+  "id": "mat_wood_collapse_02",
+  "file": "audio/mat_wood_collapse_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.0,
+  "lufs": -24.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    3,
+    30
+   ],
+   "note": "whole structure/pier/house falling"
+  }
+ },
+ "mat_wood_collapse_03": {
+  "id": "mat_wood_collapse_03",
+  "file": "audio/mat_wood_collapse_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.8,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    3,
+    30
+   ],
+   "note": "whole structure/pier/house falling"
+  }
+ },
+ "mat_wood_collapse_04": {
+  "id": "mat_wood_collapse_04",
+  "file": "audio/mat_wood_collapse_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.5,
+  "lufs": -24.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "wood",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    3,
+    30
+   ],
+   "note": "whole structure/pier/house falling"
+  }
+ },
+ "mat_stone_tock_01": {
+  "id": "mat_stone_tock_01",
+  "file": "audio/mat_stone_tock_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.0,
+  "lufs": -23.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_tock_02": {
+  "id": "mat_stone_tock_02",
+  "file": "audio/mat_stone_tock_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.3,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_tock_03": {
+  "id": "mat_stone_tock_03",
+  "file": "audio/mat_stone_tock_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.9,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_tock_04": {
+  "id": "mat_stone_tock_04",
+  "file": "audio/mat_stone_tock_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.0,
+  "lufs": -23.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_tock_05": {
+  "id": "mat_stone_tock_05",
+  "file": "audio/mat_stone_tock_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.2,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_tock_06": {
+  "id": "mat_stone_tock_06",
+  "file": "audio/mat_stone_tock_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.8,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "block placed on stone; the Place tool"
+  }
+ },
+ "mat_stone_scrape_01": {
+  "id": "mat_stone_scrape_01",
+  "file": "audio/mat_stone_scrape_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.113,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -25.7,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    2
+   ],
+   "note": "stone dragging; loop-able by retriggering"
+  }
+ },
+ "mat_stone_scrape_02": {
+  "id": "mat_stone_scrape_02",
+  "file": "audio/mat_stone_scrape_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.96,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -26.0,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    2
+   ],
+   "note": "stone dragging; loop-able by retriggering"
+  }
+ },
+ "mat_stone_scrape_03": {
+  "id": "mat_stone_scrape_03",
+  "file": "audio/mat_stone_scrape_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.184,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -28.0,
+  "lufs": -27.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    2
+   ],
+   "note": "stone dragging; loop-able by retriggering"
+  }
+ },
+ "mat_stone_scrape_04": {
+  "id": "mat_stone_scrape_04",
+  "file": "audio/mat_stone_scrape_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.091,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -25.1,
+  "lufs": -24.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    2
+   ],
+   "note": "stone dragging; loop-able by retriggering"
+  }
+ },
+ "mat_stone_crumble_01": {
+  "id": "mat_stone_crumble_01",
+  "file": "audio/mat_stone_crumble_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -31.4,
+  "lufs": -30.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    10
+   ],
+   "note": "block breaks down / weathers"
+  }
+ },
+ "mat_stone_crumble_02": {
+  "id": "mat_stone_crumble_02",
+  "file": "audio/mat_stone_crumble_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -30.1,
+  "lufs": -28.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    10
+   ],
+   "note": "block breaks down / weathers"
+  }
+ },
+ "mat_stone_crumble_03": {
+  "id": "mat_stone_crumble_03",
+  "file": "audio/mat_stone_crumble_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -31.1,
+  "lufs": -29.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    10
+   ],
+   "note": "block breaks down / weathers"
+  }
+ },
+ "mat_stone_crumble_04": {
+  "id": "mat_stone_crumble_04",
+  "file": "audio/mat_stone_crumble_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -29.4,
+  "lufs": -28.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    10
+   ],
+   "note": "block breaks down / weathers"
+  }
+ },
+ "mat_stone_shatter_01": {
+  "id": "mat_stone_shatter_01",
+  "file": "audio/mat_stone_shatter_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -26.1,
+  "lufs": -26.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "l",
+   "impactSpeed": [
+    4,
+    30
+   ]
+  }
+ },
+ "mat_stone_shatter_02": {
+  "id": "mat_stone_shatter_02",
+  "file": "audio/mat_stone_shatter_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -27.3,
+  "lufs": -27.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "l",
+   "impactSpeed": [
+    4,
+    30
+   ]
+  }
+ },
+ "mat_stone_shatter_03": {
+  "id": "mat_stone_shatter_03",
+  "file": "audio/mat_stone_shatter_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.6,
+  "lufs": -24.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "l",
+   "impactSpeed": [
+    4,
+    30
+   ]
+  }
+ },
+ "mat_stone_shatter_04": {
+  "id": "mat_stone_shatter_04",
+  "file": "audio/mat_stone_shatter_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -26.5,
+  "lufs": -26.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "l",
+   "impactSpeed": [
+    4,
+    30
+   ]
+  }
+ },
+ "mat_stone_rock_roll": {
+  "id": "mat_stone_rock_roll",
+  "file": "audio/mat_stone_rock_roll.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -27.2,
+  "lufs": -28.1,
+  "seamDb": -9.4,
+  "tags": [],
+  "meta": {
+   "drive": "boulder speed -> gain and rate 0.8..1.4"
+  }
+ },
+ "mat_stone_rubble_settle_01": {
+  "id": "mat_stone_rubble_settle_01",
+  "file": "audio/mat_stone_rubble_settle_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -32.3,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "aftershock of collapse"
+  }
+ },
+ "mat_stone_rubble_settle_02": {
+  "id": "mat_stone_rubble_settle_02",
+  "file": "audio/mat_stone_rubble_settle_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -31.6,
+  "lufs": -30.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "aftershock of collapse"
+  }
+ },
+ "mat_stone_rubble_settle_03": {
+  "id": "mat_stone_rubble_settle_03",
+  "file": "audio/mat_stone_rubble_settle_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -32.1,
+  "lufs": -31.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "aftershock of collapse"
+  }
+ },
+ "mat_stone_rubble_settle_04": {
+  "id": "mat_stone_rubble_settle_04",
+  "file": "audio/mat_stone_rubble_settle_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -34.2,
+  "lufs": -33.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "aftershock of collapse"
+  }
+ },
+ "mat_stone_quarry_chink_01": {
+  "id": "mat_stone_quarry_chink_01",
+  "file": "audio/mat_stone_quarry_chink_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.0,
+  "lufs": -27.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone+steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    8
+   ],
+   "note": "quarry work, pick on rock"
+  }
+ },
+ "mat_stone_quarry_chink_02": {
+  "id": "mat_stone_quarry_chink_02",
+  "file": "audio/mat_stone_quarry_chink_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.0,
+  "lufs": -26.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone+steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    8
+   ],
+   "note": "quarry work, pick on rock"
+  }
+ },
+ "mat_stone_quarry_chink_03": {
+  "id": "mat_stone_quarry_chink_03",
+  "file": "audio/mat_stone_quarry_chink_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -30.3,
+  "lufs": -28.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone+steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    8
+   ],
+   "note": "quarry work, pick on rock"
+  }
+ },
+ "mat_stone_quarry_chink_04": {
+  "id": "mat_stone_quarry_chink_04",
+  "file": "audio/mat_stone_quarry_chink_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -30.2,
+  "lufs": -28.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "stone+steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    2,
+    8
+   ],
+   "note": "quarry work, pick on rock"
+  }
+ },
+ "mat_metal_clang_s_01": {
+  "id": "mat_metal_clang_s_01",
+  "file": "audio/mat_metal_clang_s_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -19.9,
+  "lufs": -18.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_s_02": {
+  "id": "mat_metal_clang_s_02",
+  "file": "audio/mat_metal_clang_s_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -20.2,
+  "lufs": -18.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_s_03": {
+  "id": "mat_metal_clang_s_03",
+  "file": "audio/mat_metal_clang_s_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.3,
+  "lufs": -19.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_s_04": {
+  "id": "mat_metal_clang_s_04",
+  "file": "audio/mat_metal_clang_s_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -19.6,
+  "lufs": -18.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_s_05": {
+  "id": "mat_metal_clang_s_05",
+  "file": "audio/mat_metal_clang_s_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -20.8,
+  "lufs": -19.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_s_06": {
+  "id": "mat_metal_clang_s_06",
+  "file": "audio/mat_metal_clang_s_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -19.8,
+  "lufs": -18.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_metal_clang_l_01": {
+  "id": "mat_metal_clang_l_01",
+  "file": "audio/mat_metal_clang_l_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.7,
+  "lufs": -19.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_clang_l_02": {
+  "id": "mat_metal_clang_l_02",
+  "file": "audio/mat_metal_clang_l_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.5,
+  "lufs": -18.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_clang_l_03": {
+  "id": "mat_metal_clang_l_03",
+  "file": "audio/mat_metal_clang_l_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.4,
+  "lufs": -18.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_clang_l_04": {
+  "id": "mat_metal_clang_l_04",
+  "file": "audio/mat_metal_clang_l_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.9,
+  "lufs": -20.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_clang_l_05": {
+  "id": "mat_metal_clang_l_05",
+  "file": "audio/mat_metal_clang_l_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.3,
+  "lufs": -19.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_clang_l_06": {
+  "id": "mat_metal_clang_l_06",
+  "file": "audio/mat_metal_clang_l_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.3,
+  "lufs": -19.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    15
+   ]
+  }
+ },
+ "mat_metal_scrape_01": {
+  "id": "mat_metal_scrape_01",
+  "file": "audio/mat_metal_scrape_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.275,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -23.2,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    3
+   ]
+  }
+ },
+ "mat_metal_scrape_02": {
+  "id": "mat_metal_scrape_02",
+  "file": "audio/mat_metal_scrape_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.149,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -21.7,
+  "lufs": -20.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    3
+   ]
+  }
+ },
+ "mat_metal_scrape_03": {
+  "id": "mat_metal_scrape_03",
+  "file": "audio/mat_metal_scrape_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.155,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -23.2,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    3
+   ]
+  }
+ },
+ "mat_metal_scrape_04": {
+  "id": "mat_metal_scrape_04",
+  "file": "audio/mat_metal_scrape_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.0,
+  "rmsDb": -22.6,
+  "lufs": -21.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.2,
+    3
+   ]
+  }
+ },
+ "mat_metal_bend_groan_01": {
+  "id": "mat_metal_bend_groan_01",
+  "file": "audio/mat_metal_bend_groan_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.092,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -22.2,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "hull/girder yielding under load"
+  }
+ },
+ "mat_metal_bend_groan_02": {
+  "id": "mat_metal_bend_groan_02",
+  "file": "audio/mat_metal_bend_groan_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.159,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.2,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "hull/girder yielding under load"
+  }
+ },
+ "mat_metal_bend_groan_03": {
+  "id": "mat_metal_bend_groan_03",
+  "file": "audio/mat_metal_bend_groan_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.826,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.6,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "hull/girder yielding under load"
+  }
+ },
+ "mat_metal_bend_groan_04": {
+  "id": "mat_metal_bend_groan_04",
+  "file": "audio/mat_metal_bend_groan_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.207,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.2,
+  "lufs": -23.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    3
+   ],
+   "note": "hull/girder yielding under load"
+  }
+ },
+ "mat_metal_scrap_clatter_01": {
+  "id": "mat_metal_scrap_clatter_01",
+  "file": "audio/mat_metal_scrap_clatter_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.2,
+  "lufs": -21.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "scrap",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ]
+  }
+ },
+ "mat_metal_scrap_clatter_02": {
+  "id": "mat_metal_scrap_clatter_02",
+  "file": "audio/mat_metal_scrap_clatter_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.2,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "scrap",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ]
+  }
+ },
+ "mat_metal_scrap_clatter_03": {
+  "id": "mat_metal_scrap_clatter_03",
+  "file": "audio/mat_metal_scrap_clatter_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -22.1,
+  "lufs": -20.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "scrap",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ]
+  }
+ },
+ "mat_metal_scrap_clatter_04": {
+  "id": "mat_metal_scrap_clatter_04",
+  "file": "audio/mat_metal_scrap_clatter_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -22.9,
+  "lufs": -21.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "scrap",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    8
+   ]
+  }
+ },
+ "mat_metal_ingot_clunk_01": {
+  "id": "mat_metal_ingot_clunk_01",
+  "file": "audio/mat_metal_ingot_clunk_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -20.0,
+  "lufs": -20.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "iron",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    5
+   ]
+  }
+ },
+ "mat_metal_ingot_clunk_02": {
+  "id": "mat_metal_ingot_clunk_02",
+  "file": "audio/mat_metal_ingot_clunk_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -19.2,
+  "lufs": -19.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "iron",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    5
+   ]
+  }
+ },
+ "mat_metal_ingot_clunk_03": {
+  "id": "mat_metal_ingot_clunk_03",
+  "file": "audio/mat_metal_ingot_clunk_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -18.7,
+  "lufs": -19.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "iron",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    5
+   ]
+  }
+ },
+ "mat_metal_ingot_clunk_04": {
+  "id": "mat_metal_ingot_clunk_04",
+  "file": "audio/mat_metal_ingot_clunk_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -19.1,
+  "lufs": -19.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "iron",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    5
+   ]
+  }
+ },
+ "mat_metal_container_boom_01": {
+  "id": "mat_metal_container_boom_01",
+  "file": "audio/mat_metal_container_boom_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.9,
+  "lufs": -19.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel-container",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_metal_container_boom_02": {
+  "id": "mat_metal_container_boom_02",
+  "file": "audio/mat_metal_container_boom_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.7,
+  "lufs": -20.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel-container",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_metal_container_boom_03": {
+  "id": "mat_metal_container_boom_03",
+  "file": "audio/mat_metal_container_boom_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.2,
+  "lufs": -19.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel-container",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_metal_container_boom_04": {
+  "id": "mat_metal_container_boom_04",
+  "file": "audio/mat_metal_container_boom_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 200,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.6,
+  "lufs": -19.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel-container",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_metal_chain_rattle": {
+  "id": "mat_metal_chain_rattle",
+  "file": "audio/mat_metal_chain_rattle.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.6,
+  "rmsDb": -27.9,
+  "lufs": -26.0,
+  "seamDb": -24.2,
+  "tags": [],
+  "meta": {
+   "drive": "chain speed (links/s) -> rate 0.7..1.6 and gain"
+  }
+ },
+ "mat_metal_anchor_drop_01": {
+  "id": "mat_metal_anchor_drop_01",
+  "file": "audio/mat_metal_anchor_drop_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -23.8,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ],
+   "note": "chain pays out then anchor hits; play water_splash_m at +1.2 s if over water"
+  }
+ },
+ "mat_metal_anchor_drop_02": {
+  "id": "mat_metal_anchor_drop_02",
+  "file": "audio/mat_metal_anchor_drop_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -22.9,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ],
+   "note": "chain pays out then anchor hits; play water_splash_m at +1.2 s if over water"
+  }
+ },
+ "mat_metal_anchor_drop_03": {
+  "id": "mat_metal_anchor_drop_03",
+  "file": "audio/mat_metal_anchor_drop_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.3,
+  "lufs": -20.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ],
+   "note": "chain pays out then anchor hits; play water_splash_m at +1.2 s if over water"
+  }
+ },
+ "mat_metal_anchor_drop_04": {
+  "id": "mat_metal_anchor_drop_04",
+  "file": "audio/mat_metal_anchor_drop_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.8,
+  "lufs": -20.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "steel",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    12
+   ],
+   "note": "chain pays out then anchor hits; play water_splash_m at +1.2 s if over water"
+  }
+ },
+ "mat_metal_sizzle_melt_01": {
+  "id": "mat_metal_sizzle_melt_01",
+  "file": "audio/mat_metal_sizzle_melt_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.7,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "metal-hot",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "metal heating / melting"
+  }
+ },
+ "mat_metal_sizzle_melt_02": {
+  "id": "mat_metal_sizzle_melt_02",
+  "file": "audio/mat_metal_sizzle_melt_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.7,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "metal-hot",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "metal heating / melting"
+  }
+ },
+ "mat_metal_sizzle_melt_03": {
+  "id": "mat_metal_sizzle_melt_03",
+  "file": "audio/mat_metal_sizzle_melt_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.1,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "metal-hot",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "metal heating / melting"
+  }
+ },
+ "mat_metal_sizzle_melt_04": {
+  "id": "mat_metal_sizzle_melt_04",
+  "file": "audio/mat_metal_sizzle_melt_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -30.8,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "metal-hot",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "metal heating / melting"
+  }
+ },
+ "mat_glass_ping_01": {
+  "id": "mat_glass_ping_01",
+  "file": "audio/mat_glass_ping_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.0,
+  "lufs": -21.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_ping_02": {
+  "id": "mat_glass_ping_02",
+  "file": "audio/mat_glass_ping_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.6,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_ping_03": {
+  "id": "mat_glass_ping_03",
+  "file": "audio/mat_glass_ping_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.9,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_ping_04": {
+  "id": "mat_glass_ping_04",
+  "file": "audio/mat_glass_ping_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.5,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_ping_05": {
+  "id": "mat_glass_ping_05",
+  "file": "audio/mat_glass_ping_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.6,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_ping_06": {
+  "id": "mat_glass_ping_06",
+  "file": "audio/mat_glass_ping_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -23.7,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.3,
+    4
+   ]
+  }
+ },
+ "mat_glass_crack_01": {
+  "id": "mat_glass_crack_01",
+  "file": "audio/mat_glass_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.0,
+  "lufs": -21.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_crack_02": {
+  "id": "mat_glass_crack_02",
+  "file": "audio/mat_glass_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -26.0,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_crack_03": {
+  "id": "mat_glass_crack_03",
+  "file": "audio/mat_glass_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -20.9,
+  "lufs": -18.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_crack_04": {
+  "id": "mat_glass_crack_04",
+  "file": "audio/mat_glass_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.3,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_crack_05": {
+  "id": "mat_glass_crack_05",
+  "file": "audio/mat_glass_crack_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.5,
+  "lufs": -19.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_crack_06": {
+  "id": "mat_glass_crack_06",
+  "file": "audio/mat_glass_crack_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -22.3,
+  "lufs": -20.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_glass_shatter_large_01": {
+  "id": "mat_glass_shatter_large_01",
+  "file": "audio/mat_glass_shatter_large_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.2,
+  "lufs": -21.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    20
+   ]
+  }
+ },
+ "mat_glass_shatter_large_02": {
+  "id": "mat_glass_shatter_large_02",
+  "file": "audio/mat_glass_shatter_large_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -22.6,
+  "lufs": -20.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    20
+   ]
+  }
+ },
+ "mat_glass_shatter_large_03": {
+  "id": "mat_glass_shatter_large_03",
+  "file": "audio/mat_glass_shatter_large_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.8,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    20
+   ]
+  }
+ },
+ "mat_glass_shatter_large_04": {
+  "id": "mat_glass_shatter_large_04",
+  "file": "audio/mat_glass_shatter_large_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -25.0,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "l",
+   "impactSpeed": [
+    2,
+    20
+   ]
+  }
+ },
+ "mat_glass_shatter_small_01": {
+  "id": "mat_glass_shatter_small_01",
+  "file": "audio/mat_glass_shatter_small_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.0,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_glass_shatter_small_02": {
+  "id": "mat_glass_shatter_small_02",
+  "file": "audio/mat_glass_shatter_small_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.7,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_glass_shatter_small_03": {
+  "id": "mat_glass_shatter_small_03",
+  "file": "audio/mat_glass_shatter_small_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.4,
+  "lufs": -21.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_glass_shatter_small_04": {
+  "id": "mat_glass_shatter_small_04",
+  "file": "audio/mat_glass_shatter_small_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.0,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_glass_shards_settle_01": {
+  "id": "mat_glass_shards_settle_01",
+  "file": "audio/mat_glass_shards_settle_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -29.7,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_glass_shards_settle_02": {
+  "id": "mat_glass_shards_settle_02",
+  "file": "audio/mat_glass_shards_settle_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -30.2,
+  "lufs": -28.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_glass_shards_settle_03": {
+  "id": "mat_glass_shards_settle_03",
+  "file": "audio/mat_glass_shards_settle_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -29.9,
+  "lufs": -27.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_glass_shards_settle_04": {
+  "id": "mat_glass_shards_settle_04",
+  "file": "audio/mat_glass_shards_settle_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -31.0,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_ice_crack_01": {
+  "id": "mat_ice_crack_01",
+  "file": "audio/mat_ice_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.8,
+  "lufs": -23.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crack_02": {
+  "id": "mat_ice_crack_02",
+  "file": "audio/mat_ice_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.4,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crack_03": {
+  "id": "mat_ice_crack_03",
+  "file": "audio/mat_ice_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -26.3,
+  "lufs": -25.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crack_04": {
+  "id": "mat_ice_crack_04",
+  "file": "audio/mat_ice_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.9,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crack_05": {
+  "id": "mat_ice_crack_05",
+  "file": "audio/mat_ice_crack_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.7,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crack_06": {
+  "id": "mat_ice_crack_06",
+  "file": "audio/mat_ice_crack_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -25.7,
+  "lufs": -24.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "m",
+   "impactSpeed": [
+    1,
+    12
+   ]
+  }
+ },
+ "mat_ice_crunch_01": {
+  "id": "mat_ice_crunch_01",
+  "file": "audio/mat_ice_crunch_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -30.8,
+  "lufs": -28.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_crunch_02": {
+  "id": "mat_ice_crunch_02",
+  "file": "audio/mat_ice_crunch_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -30.1,
+  "lufs": -28.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_crunch_03": {
+  "id": "mat_ice_crunch_03",
+  "file": "audio/mat_ice_crunch_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -29.6,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_crunch_04": {
+  "id": "mat_ice_crunch_04",
+  "file": "audio/mat_ice_crunch_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -31.0,
+  "lufs": -29.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_crunch_05": {
+  "id": "mat_ice_crunch_05",
+  "file": "audio/mat_ice_crunch_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -30.7,
+  "lufs": -28.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_crunch_06": {
+  "id": "mat_ice_crunch_06",
+  "file": "audio/mat_ice_crunch_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.0,
+  "rmsDb": -30.5,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    6
+   ],
+   "note": "walking/stepping on ice, hull in brash"
+  }
+ },
+ "mat_ice_tinkle_01": {
+  "id": "mat_ice_tinkle_01",
+  "file": "audio/mat_ice_tinkle_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -27.3,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_ice_tinkle_02": {
+  "id": "mat_ice_tinkle_02",
+  "file": "audio/mat_ice_tinkle_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -27.1,
+  "lufs": -25.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_ice_tinkle_03": {
+  "id": "mat_ice_tinkle_03",
+  "file": "audio/mat_ice_tinkle_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -26.7,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_ice_tinkle_04": {
+  "id": "mat_ice_tinkle_04",
+  "file": "audio/mat_ice_tinkle_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -27.5,
+  "lufs": -25.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ]
+  }
+ },
+ "mat_ice_groan_01": {
+  "id": "mat_ice_groan_01",
+  "file": "audio/mat_ice_groan_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.331,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -20.9,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "mat_ice_groan_02": {
+  "id": "mat_ice_groan_02",
+  "file": "audio/mat_ice_groan_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.051,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -18.7,
+  "lufs": -19.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "mat_ice_groan_03": {
+  "id": "mat_ice_groan_03",
+  "file": "audio/mat_ice_groan_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.376,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -21.8,
+  "lufs": -22.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "mat_ice_groan_04": {
+  "id": "mat_ice_groan_04",
+  "file": "audio/mat_ice_groan_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 2.197,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -21.0,
+  "lufs": -21.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "mat_ice_creak_01": {
+  "id": "mat_ice_creak_01",
+  "file": "audio/mat_ice_creak_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 4.436,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -28.2,
+  "lufs": -27.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "sea-ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "long glide; trigger for sea ice under load or temperature change; 3 to 6 s"
+  }
+ },
+ "mat_ice_creak_02": {
+  "id": "mat_ice_creak_02",
+  "file": "audio/mat_ice_creak_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 3.33,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -26.4,
+  "lufs": -26.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "sea-ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "long glide; trigger for sea ice under load or temperature change; 3 to 6 s"
+  }
+ },
+ "mat_ice_creak_03": {
+  "id": "mat_ice_creak_03",
+  "file": "audio/mat_ice_creak_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 4.558,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -25.6,
+  "lufs": -25.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "sea-ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "long glide; trigger for sea ice under load or temperature change; 3 to 6 s"
+  }
+ },
+ "mat_ice_creak_04": {
+  "id": "mat_ice_creak_04",
+  "file": "audio/mat_ice_creak_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.416,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -26.9,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "sea-ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "long glide; trigger for sea ice under load or temperature change; 3 to 6 s"
+  }
+ },
+ "mat_ice_break_large_01": {
+  "id": "mat_ice_break_large_01",
+  "file": "audio/mat_ice_break_large_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -23.2,
+  "lufs": -23.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "floe fractures; pair with water_splash_l"
+  }
+ },
+ "mat_ice_break_large_02": {
+  "id": "mat_ice_break_large_02",
+  "file": "audio/mat_ice_break_large_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -22.9,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "floe fractures; pair with water_splash_l"
+  }
+ },
+ "mat_ice_break_large_03": {
+  "id": "mat_ice_break_large_03",
+  "file": "audio/mat_ice_break_large_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.2,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "floe fractures; pair with water_splash_l"
+  }
+ },
+ "mat_ice_break_large_04": {
+  "id": "mat_ice_break_large_04",
+  "file": "audio/mat_ice_break_large_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 180,
+  "weight": 7,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.8,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    2,
+    15
+   ],
+   "note": "floe fractures; pair with water_splash_l"
+  }
+ },
+ "mat_ice_melt_drip_01": {
+  "id": "mat_ice_melt_drip_01",
+  "file": "audio/mat_ice_melt_drip_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 35,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -17.0,
+  "rmsDb": -36.4,
+  "lufs": -34.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "rate by temperature above 0 C"
+  }
+ },
+ "mat_ice_melt_drip_02": {
+  "id": "mat_ice_melt_drip_02",
+  "file": "audio/mat_ice_melt_drip_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 35,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -17.0,
+  "rmsDb": -37.0,
+  "lufs": -35.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "rate by temperature above 0 C"
+  }
+ },
+ "mat_ice_melt_drip_03": {
+  "id": "mat_ice_melt_drip_03",
+  "file": "audio/mat_ice_melt_drip_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 35,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -17.0,
+  "rmsDb": -38.9,
+  "lufs": -36.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "rate by temperature above 0 C"
+  }
+ },
+ "mat_ice_melt_drip_04": {
+  "id": "mat_ice_melt_drip_04",
+  "file": "audio/mat_ice_melt_drip_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 35,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -17.0,
+  "rmsDb": -37.4,
+  "lufs": -35.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ice",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "rate by temperature above 0 C"
+  }
+ },
+ "grain_sand_pour": {
+  "id": "grain_sand_pour",
+  "file": "audio/grain_sand_pour.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.2,
+  "rmsDb": -30.0,
+  "lufs": -28.0,
+  "seamDb": -42.9,
+  "tags": [],
+  "meta": {
+   "drive": "flow rate -> gain; lowpass opens with fall height; rate 0.9..1.1"
+  }
+ },
+ "grain_earth_pour": {
+  "id": "grain_earth_pour",
+  "file": "audio/grain_earth_pour.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -26.6,
+  "lufs": -27.0,
+  "seamDb": -24.2,
+  "tags": [],
+  "meta": {
+   "drive": "flow rate -> gain"
+  }
+ },
+ "grain_rock_pour": {
+  "id": "grain_rock_pour",
+  "file": "audio/grain_rock_pour.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.2,
+  "rmsDb": -27.4,
+  "lufs": -26.0,
+  "seamDb": -28.8,
+  "tags": [],
+  "meta": {
+   "drive": "flow rate -> gain and rate"
+  }
+ },
+ "grain_metal_pour": {
+  "id": "grain_metal_pour",
+  "file": "audio/grain_metal_pour.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.8,
+  "rmsDb": -30.0,
+  "lufs": -28.0,
+  "seamDb": -23.2,
+  "tags": [],
+  "meta": {
+   "drive": "flow rate -> gain"
+  }
+ },
+ "pile_slump_small_01": {
+  "id": "pile_slump_small_01",
+  "file": "audio/pile_slump_small_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -27.0,
+  "lufs": -28.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "note": "pile collapses; material picks pitch via lowpass"
+  }
+ },
+ "pile_slump_small_02": {
+  "id": "pile_slump_small_02",
+  "file": "audio/pile_slump_small_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.7,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "note": "pile collapses; material picks pitch via lowpass"
+  }
+ },
+ "pile_slump_small_03": {
+  "id": "pile_slump_small_03",
+  "file": "audio/pile_slump_small_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.5,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "note": "pile collapses; material picks pitch via lowpass"
+  }
+ },
+ "pile_slump_small_04": {
+  "id": "pile_slump_small_04",
+  "file": "audio/pile_slump_small_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -27.4,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    5
+   ],
+   "note": "pile collapses; material picks pitch via lowpass"
+  }
+ },
+ "pile_slump_large_01": {
+  "id": "pile_slump_large_01",
+  "file": "audio/pile_slump_large_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.8,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "pile_slump_large_02": {
+  "id": "pile_slump_large_02",
+  "file": "audio/pile_slump_large_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.7,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "pile_slump_large_03": {
+  "id": "pile_slump_large_03",
+  "file": "audio/pile_slump_large_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.4,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "pile_slump_large_04": {
+  "id": "pile_slump_large_04",
+  "file": "audio/pile_slump_large_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 6,
+  "lazy": false,
+  "group": "core",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.3,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "granular",
+   "sizeClass": "l",
+   "impactSpeed": [
+    1,
+    10
+   ]
+  }
+ },
+ "mat_slide_loop": {
+  "id": "mat_slide_loop",
+  "file": "audio/mat_slide_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.8,
+  "rmsDb": -24.8,
+  "lufs": -26.0,
+  "seamDb": -29.2,
+  "tags": [],
+  "meta": {
+   "drive": "sliding mass speed -> gain, lowpass, rate"
+  }
+ },
+ "mat_thud_soft_01": {
+  "id": "mat_thud_soft_01",
+  "file": "audio/mat_thud_soft_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -21.9,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_thud_soft_02": {
+  "id": "mat_thud_soft_02",
+  "file": "audio/mat_thud_soft_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -22.0,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_thud_soft_03": {
+  "id": "mat_thud_soft_03",
+  "file": "audio/mat_thud_soft_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -22.0,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_thud_soft_04": {
+  "id": "mat_thud_soft_04",
+  "file": "audio/mat_thud_soft_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -21.5,
+  "lufs": -22.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_thud_soft_05": {
+  "id": "mat_thud_soft_05",
+  "file": "audio/mat_thud_soft_05.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -22.0,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_thud_soft_06": {
+  "id": "mat_thud_soft_06",
+  "file": "audio/mat_thud_soft_06.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -22.4,
+  "lufs": -23.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "soft",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.3,
+    6
+   ],
+   "note": "sand/earth/body landing"
+  }
+ },
+ "mat_dig_01": {
+  "id": "mat_dig_01",
+  "file": "audio/mat_dig_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -24.8,
+  "lufs": -26.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "earth",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    3
+   ],
+   "note": "Dig tool stroke"
+  }
+ },
+ "mat_dig_02": {
+  "id": "mat_dig_02",
+  "file": "audio/mat_dig_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -23.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "earth",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    3
+   ],
+   "note": "Dig tool stroke"
+  }
+ },
+ "mat_dig_03": {
+  "id": "mat_dig_03",
+  "file": "audio/mat_dig_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -24.9,
+  "lufs": -26.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "earth",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    3
+   ],
+   "note": "Dig tool stroke"
+  }
+ },
+ "mat_dig_04": {
+  "id": "mat_dig_04",
+  "file": "audio/mat_dig_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -23.2,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "earth",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0.5,
+    3
+   ],
+   "note": "Dig tool stroke"
+  }
+ },
+ "mat_drum_hollow_01": {
+  "id": "mat_drum_hollow_01",
+  "file": "audio/mat_drum_hollow_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.1,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "plastic-drum",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    8
+   ]
+  }
+ },
+ "mat_drum_hollow_02": {
+  "id": "mat_drum_hollow_02",
+  "file": "audio/mat_drum_hollow_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.1,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "plastic-drum",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    8
+   ]
+  }
+ },
+ "mat_drum_hollow_03": {
+  "id": "mat_drum_hollow_03",
+  "file": "audio/mat_drum_hollow_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.3,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "plastic-drum",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    8
+   ]
+  }
+ },
+ "mat_drum_hollow_04": {
+  "id": "mat_drum_hollow_04",
+  "file": "audio/mat_drum_hollow_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -21.1,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "plastic-drum",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0.5,
+    8
+   ]
+  }
+ },
+ "mat_ball_bounce_01": {
+  "id": "mat_ball_bounce_01",
+  "file": "audio/mat_ball_bounce_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.4,
+  "lufs": -30.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "rubber",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "whole sequence; skip if you animate bounces yourself and use mat_thud_soft"
+  }
+ },
+ "mat_ball_bounce_02": {
+  "id": "mat_ball_bounce_02",
+  "file": "audio/mat_ball_bounce_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.4,
+  "lufs": -30.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "rubber",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "whole sequence; skip if you animate bounces yourself and use mat_thud_soft"
+  }
+ },
+ "mat_ball_bounce_03": {
+  "id": "mat_ball_bounce_03",
+  "file": "audio/mat_ball_bounce_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.3,
+  "lufs": -29.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "rubber",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "whole sequence; skip if you animate bounces yourself and use mat_thud_soft"
+  }
+ },
+ "mat_ball_bounce_04": {
+  "id": "mat_ball_bounce_04",
+  "file": "audio/mat_ball_bounce_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -29.3,
+  "lufs": -30.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "rubber",
+   "sizeClass": "s",
+   "impactSpeed": [
+    1,
+    8
+   ],
+   "note": "whole sequence; skip if you animate bounces yourself and use mat_thud_soft"
+  }
+ }
+}

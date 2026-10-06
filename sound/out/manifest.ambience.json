@@ -17,10 +17,10 @@
   "dur": 14.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -12.2,
-  "rmsDb": -27.7,
+  "peakDb": -12.8,
+  "rmsDb": -28.5,
   "lufs": -26.0,
-  "seamDb": -31.2,
+  "seamDb": -78.0,
   "tags": [
    "sea"
   ],
@@ -49,10 +49,10 @@
   "dur": 10.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -10.8,
-  "rmsDb": -28.1,
+  "peakDb": -11.0,
+  "rmsDb": -28.6,
   "lufs": -26.0,
-  "seamDb": -22.7,
+  "seamDb": -98.0,
   "tags": [
    "sea"
   ],
@@ -81,10 +81,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -10.5,
-  "rmsDb": -28.9,
+  "peakDb": -11.4,
+  "rmsDb": -28.8,
   "lufs": -26.0,
-  "seamDb": -28.3,
+  "seamDb": -82.2,
   "tags": [
    "sea"
   ],
@@ -113,10 +113,10 @@
   "dur": 14.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -8.4,
-  "rmsDb": -29.0,
+  "peakDb": -9.3,
+  "rmsDb": -29.5,
   "lufs": -26.0,
-  "seamDb": -64.9,
+  "seamDb": -107.8,
   "tags": [
    "surf"
   ],
@@ -145,10 +145,10 @@
   "dur": 14.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -10.0,
-  "rmsDb": -28.4,
+  "peakDb": -10.5,
+  "rmsDb": -29.1,
   "lufs": -26.0,
-  "seamDb": -59.9,
+  "seamDb": -104.8,
   "tags": [
    "surf"
   ],
@@ -177,10 +177,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -11.5,
-  "rmsDb": -27.4,
+  "peakDb": -12.2,
+  "rmsDb": -28.3,
   "lufs": -26.0,
-  "seamDb": -33.1,
+  "seamDb": -75.8,
   "tags": [],
   "meta": {
    "kind": "wind",
@@ -206,10 +206,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -13.8,
-  "rmsDb": -28.0,
+  "peakDb": -13.7,
+  "rmsDb": -28.6,
   "lufs": -26.0,
-  "seamDb": -39.6,
+  "seamDb": -84.7,
   "tags": [],
   "meta": {
    "kind": "wind",
@@ -234,10 +234,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -9.3,
-  "rmsDb": -28.1,
+  "peakDb": -9.9,
+  "rmsDb": -29.1,
   "lufs": -26.0,
-  "seamDb": -22.9,
+  "seamDb": -74.9,
   "tags": [],
   "meta": {
    "kind": "wind",
@@ -263,10 +263,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -8.5,
-  "rmsDb": -26.8,
+  "peakDb": -9.1,
+  "rmsDb": -29.4,
   "lufs": -26.0,
-  "seamDb": -24.0,
+  "seamDb": -91.5,
   "tags": [],
   "meta": {
    "kind": "wind",
@@ -292,10 +292,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -11.0,
-  "rmsDb": -28.1,
+  "peakDb": -11.3,
+  "rmsDb": -28.7,
   "lufs": -26.0,
-  "seamDb": -31.6,
+  "seamDb": -72.2,
   "tags": [],
   "meta": {
    "kind": "wind",
@@ -322,10 +322,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -3.1,
+  "peakDb": -3.3,
   "rmsDb": -30.9,
   "lufs": -26.0,
-  "seamDb": -40.6,
+  "seamDb": -80.4,
   "tags": [],
   "meta": {
    "kind": "rain",
@@ -354,7 +354,7 @@
   "peakDb": -3.2,
   "rmsDb": -30.7,
   "lufs": -26.0,
-  "seamDb": -47.9,
+  "seamDb": -73.4,
   "tags": [],
   "meta": {
    "kind": "rain",
@@ -383,7 +383,7 @@
   "peakDb": -12.6,
   "rmsDb": -30.3,
   "lufs": -26.0,
-  "seamDb": -51.1,
+  "seamDb": -77.4,
   "tags": [],
   "meta": {
    "kind": "rain",
@@ -409,10 +409,10 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -8.2,
+  "peakDb": -8.3,
   "rmsDb": -29.6,
   "lufs": -26.0,
-  "seamDb": -44.5,
+  "seamDb": -86.3,
   "tags": [],
   "meta": {
    "kind": "rain",
@@ -439,154 +439,14 @@
   "dur": 12.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -13.2,
-  "rmsDb": -27.9,
+  "peakDb": -13.9,
+  "rmsDb": -28.6,
   "lufs": -26.0,
-  "seamDb": -42.6,
+  "seamDb": -78.9,
   "tags": [],
   "meta": {
    "kind": "snow",
    "note": "play with snowfall or snow cover; very quiet"
-  }
- },
- "amb_fire_bed": {
-  "id": "amb_fire_bed",
-  "file": "audio/amb_fire_bed.ogg",
-  "bus": "amb",
-  "loop": true,
-  "gain": 1.0,
-  "rate": [
-   0.94,
-   1.06
-  ],
-  "variants": 1,
-  "maxDist": 160,
-  "weight": 1.0,
-  "lazy": false,
-  "group": "core",
-  "dur": 12.0,
-  "ch": 2,
-  "sr": 44100,
-  "peakDb": -3.0,
-  "rmsDb": -28.7,
-  "lufs": -26.0,
-  "seamDb": -33.3,
-  "tags": [],
-  "meta": {
-   "kind": "fire",
-   "note": "scale level and rate with burning count; rate 0.9-1.1"
-  }
- },
- "amb_lava_bubble": {
-  "id": "amb_lava_bubble",
-  "file": "audio/amb_lava_bubble.ogg",
-  "bus": "amb",
-  "loop": true,
-  "gain": 1.0,
-  "rate": [
-   0.94,
-   1.06
-  ],
-  "variants": 1,
-  "maxDist": 160,
-  "weight": 1.0,
-  "lazy": false,
-  "group": "core",
-  "dur": 12.0,
-  "ch": 2,
-  "sr": 44100,
-  "peakDb": -8.3,
-  "rmsDb": -27.9,
-  "lufs": -26.0,
-  "seamDb": -17.0,
-  "tags": [],
-  "meta": {
-   "kind": "lava",
-   "note": "level from lava cells near camera"
-  }
- },
- "amb_steam_hiss": {
-  "id": "amb_steam_hiss",
-  "file": "audio/amb_steam_hiss.ogg",
-  "bus": "amb",
-  "loop": true,
-  "gain": 1.0,
-  "rate": [
-   0.94,
-   1.06
-  ],
-  "variants": 1,
-  "maxDist": 160,
-  "weight": 1.0,
-  "lazy": false,
-  "group": "core",
-  "dur": 10.0,
-  "ch": 2,
-  "sr": 44100,
-  "peakDb": -16.0,
-  "rmsDb": -30.9,
-  "lufs": -26.0,
-  "seamDb": -32.8,
-  "tags": [],
-  "meta": {
-   "kind": "steam",
-   "note": "lava meeting water, geysers"
-  }
- },
- "amb_birds_day": {
-  "id": "amb_birds_day",
-  "file": "audio/amb_birds_day.ogg",
-  "bus": "amb",
-  "loop": true,
-  "gain": 1.0,
-  "rate": [
-   0.94,
-   1.06
-  ],
-  "variants": 1,
-  "maxDist": 160,
-  "weight": 1.0,
-  "lazy": true,
-  "group": "core",
-  "dur": 22.0,
-  "ch": 2,
-  "sr": 44100,
-  "peakDb": -9.6,
-  "rmsDb": -30.8,
-  "lufs": -26.0,
-  "seamDb": -31.7,
-  "tags": [],
-  "meta": {
-   "kind": "birds",
-   "note": "day, fair weather only; fade out by wind > 8 m/s and any rain"
-  }
- },
- "amb_gulls": {
-  "id": "amb_gulls",
-  "file": "audio/amb_gulls.ogg",
-  "bus": "amb",
-  "loop": true,
-  "gain": 1.0,
-  "rate": [
-   0.94,
-   1.06
-  ],
-  "variants": 1,
-  "maxDist": 160,
-  "weight": 1.0,
-  "lazy": true,
-  "group": "core",
-  "dur": 20.0,
-  "ch": 2,
-  "sr": 44100,
-  "peakDb": -7.7,
-  "rmsDb": -30.0,
-  "lufs": -26.0,
-  "seamDb": -51.3,
-  "tags": [],
-  "meta": {
-   "kind": "gulls",
-   "note": "near the shore, day"
   }
  }
 }

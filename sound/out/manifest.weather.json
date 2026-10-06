@@ -1,0 +1,637 @@
+{
+ "wx_thunder_near_01": {
+  "id": "wx_thunder_near_01",
+  "file": "audio/wx_thunder_near_01.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 2500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 5.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -22.0,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "near",
+   "typicalDelayS": [
+    0.4,
+    3.0
+   ],
+   "rumbleS": 5.5,
+   "delayToRumbleRatio": 0.25,
+   "hint": "play after distance/343 s; duck amb 6 dB for 1.5 s; lowpass further with distance"
+  }
+ },
+ "wx_thunder_near_02": {
+  "id": "wx_thunder_near_02",
+  "file": "audio/wx_thunder_near_02.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 2500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 6.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.1,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "near",
+   "typicalDelayS": [
+    0.4,
+    3.0
+   ],
+   "rumbleS": 6.5,
+   "delayToRumbleRatio": 0.25,
+   "hint": "play after distance/343 s; duck amb 6 dB for 1.5 s; lowpass further with distance"
+  }
+ },
+ "wx_thunder_near_03": {
+  "id": "wx_thunder_near_03",
+  "file": "audio/wx_thunder_near_03.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 2500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 7.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.8,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "near",
+   "typicalDelayS": [
+    0.4,
+    3.0
+   ],
+   "rumbleS": 7.5,
+   "delayToRumbleRatio": 0.25,
+   "hint": "play after distance/343 s; duck amb 6 dB for 1.5 s; lowpass further with distance"
+  }
+ },
+ "wx_thunder_near_04": {
+  "id": "wx_thunder_near_04",
+  "file": "audio/wx_thunder_near_04.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 2500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 8.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.8,
+  "lufs": -21.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "near",
+   "typicalDelayS": [
+    0.4,
+    3.0
+   ],
+   "rumbleS": 8.5,
+   "delayToRumbleRatio": 0.25,
+   "hint": "play after distance/343 s; duck amb 6 dB for 1.5 s; lowpass further with distance"
+  }
+ },
+ "wx_thunder_far_01": {
+  "id": "wx_thunder_far_01",
+  "file": "audio/wx_thunder_far_01.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 6000,
+  "weight": 9.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.1,
+  "lufs": -20.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "far",
+   "typicalDelayS": [
+    5.0,
+    14.0
+   ],
+   "rumbleS": 6.0,
+   "delayToRumbleRatio": 1.4,
+   "hint": "no crack, dark; play after distance/343 s; quieter, slower attack"
+  }
+ },
+ "wx_thunder_far_02": {
+  "id": "wx_thunder_far_02",
+  "file": "audio/wx_thunder_far_02.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 6000,
+  "weight": 9.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 7.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -17.2,
+  "lufs": -19.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "far",
+   "typicalDelayS": [
+    5.0,
+    14.0
+   ],
+   "rumbleS": 7.0,
+   "delayToRumbleRatio": 1.4,
+   "hint": "no crack, dark; play after distance/343 s; quieter, slower attack"
+  }
+ },
+ "wx_thunder_far_03": {
+  "id": "wx_thunder_far_03",
+  "file": "audio/wx_thunder_far_03.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 6000,
+  "weight": 9.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.6,
+  "lufs": -21.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "far",
+   "typicalDelayS": [
+    5.0,
+    14.0
+   ],
+   "rumbleS": 8.0,
+   "delayToRumbleRatio": 1.4,
+   "hint": "no crack, dark; play after distance/343 s; quieter, slower attack"
+  }
+ },
+ "wx_thunder_far_04": {
+  "id": "wx_thunder_far_04",
+  "file": "audio/wx_thunder_far_04.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.92,
+   1.05
+  ],
+  "variants": 4,
+  "maxDist": 6000,
+  "weight": 9.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 9.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.8,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "thunder",
+   "distClass": "far",
+   "typicalDelayS": [
+    5.0,
+    14.0
+   ],
+   "rumbleS": 9.0,
+   "delayToRumbleRatio": 1.4,
+   "hint": "no crack, dark; play after distance/343 s; quieter, slower attack"
+  }
+ },
+ "wx_lightning_crack_01": {
+  "id": "wx_lightning_crack_01",
+  "file": "audio/wx_lightning_crack_01.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.95,
+   1.05
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.4,
+  "lufs": -21.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "lightning_crack",
+   "distClass": "very_near",
+   "typicalDelayS": [
+    0.0,
+    0.8
+   ],
+   "hint": "play with the strike flash; follow with thunder_near after delay"
+  }
+ },
+ "wx_lightning_crack_02": {
+  "id": "wx_lightning_crack_02",
+  "file": "audio/wx_lightning_crack_02.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.95,
+   1.05
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.7,
+  "lufs": -24.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "lightning_crack",
+   "distClass": "very_near",
+   "typicalDelayS": [
+    0.0,
+    0.8
+   ],
+   "hint": "play with the strike flash; follow with thunder_near after delay"
+  }
+ },
+ "wx_lightning_crack_03": {
+  "id": "wx_lightning_crack_03",
+  "file": "audio/wx_lightning_crack_03.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.95,
+   1.05
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "weather",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.1,
+  "lufs": -25.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "lightning_crack",
+   "distClass": "very_near",
+   "typicalDelayS": [
+    0.0,
+    0.8
+   ],
+   "hint": "play with the strike flash; follow with thunder_near after delay"
+  }
+ },
+ "wx_tornado_loop": {
+  "id": "wx_tornado_loop",
+  "file": "audio/wx_tornado_loop.ogg",
+  "bus": "wx",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 1200,
+  "weight": 9.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -6.9,
+  "rmsDb": -24.6,
+  "lufs": -22.0,
+  "seamDb": -41.9,
+  "tags": [],
+  "meta": {
+   "kind": "tornado",
+   "loop": true,
+   "hint": "level by distance to vortex; lowpass with distance"
+  }
+ },
+ "wx_quake_rumble": {
+  "id": "wx_quake_rumble",
+  "file": "audio/wx_quake_rumble.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.8,
+   1.2
+  ],
+  "variants": 1,
+  "maxDist": 5000,
+  "weight": 10.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -17.9,
+  "lufs": -19.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "quake",
+   "hint": "play at quake start, global (non-spatial); can pitch 0.8-1.2 by magnitude"
+  }
+ },
+ "wx_tsunami_rumble": {
+  "id": "wx_tsunami_rumble",
+  "file": "audio/wx_tsunami_rumble.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.85,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 5000,
+  "weight": 10.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.7,
+  "lufs": -22.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "tsunami",
+   "hint": "play as the wave approaches the shore; peak near arrival"
+  }
+ },
+ "wx_meteor_whistle": {
+  "id": "wx_meteor_whistle",
+  "file": "audio/wx_meteor_whistle.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 3000,
+  "weight": 9.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.8,
+  "lufs": -19.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "meteor_whistle",
+   "hint": "start ~3.2 s before impact; impact sound at the end"
+  }
+ },
+ "wx_meteor_impact": {
+  "id": "wx_meteor_impact",
+  "file": "audio/wx_meteor_impact.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 5000,
+  "weight": 12.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 4.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -18.2,
+  "lufs": -19.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "meteor_impact",
+   "hint": "duck all but wx by 8 dB, 0.4 s release"
+  }
+ },
+ "wx_eruption_boom": {
+  "id": "wx_eruption_boom",
+  "file": "audio/wx_eruption_boom.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 6000,
+  "weight": 12.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 5.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.6,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "eruption_boom",
+   "hint": "on eruption start"
+  }
+ },
+ "wx_eruption_loop": {
+  "id": "wx_eruption_loop",
+  "file": "audio/wx_eruption_loop.ogg",
+  "bus": "wx",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.1
+  ],
+  "variants": 1,
+  "maxDist": 3000,
+  "weight": 9.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.5,
+  "lufs": -22.4,
+  "seamDb": -53.3,
+  "tags": [],
+  "meta": {
+   "kind": "eruption",
+   "loop": true,
+   "hint": "level by distance and eruption rate"
+  }
+ },
+ "wx_landslide": {
+  "id": "wx_landslide",
+  "file": "audio/wx_landslide.ogg",
+  "bus": "wx",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.85,
+   1.15
+  ],
+  "variants": 1,
+  "maxDist": 1200,
+  "weight": 8.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 6.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.9,
+  "lufs": -20.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "kind": "landslide",
+   "hint": "scale rate/level by mass"
+  }
+ },
+ "wx_hail": {
+  "id": "wx_hail",
+  "file": "audio/wx_hail.ogg",
+  "bus": "wx",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.95,
+   1.05
+  ],
+  "variants": 1,
+  "maxDist": 400,
+  "weight": 8.0,
+  "lazy": true,
+  "group": "weather",
+  "dur": 10.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -4.2,
+  "rmsDb": -28.5,
+  "lufs": -24.0,
+  "seamDb": -48.6,
+  "tags": [],
+  "meta": {
+   "kind": "hail",
+   "loop": true,
+   "intensity": 0.7,
+   "hint": "rain bed with this on top; stops in clear weather"
+  }
+ }
+}

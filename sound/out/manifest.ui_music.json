@@ -1,0 +1,1170 @@
+{
+ "ui_tap": {
+  "id": "ui_tap",
+  "file": "audio/ui_tap.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.16,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -18.7,
+  "lufs": -18.9,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_select": {
+  "id": "ui_select",
+  "file": "audio/ui_select.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -20.8,
+  "lufs": -21.0,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_deselect": {
+  "id": "ui_deselect",
+  "file": "audio/ui_deselect.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.28,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -21.3,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_place": {
+  "id": "ui_place",
+  "file": "audio/ui_place.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -23.6,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_erase": {
+  "id": "ui_erase",
+  "file": "audio/ui_erase.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.46,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -24.1,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_error": {
+  "id": "ui_error",
+  "file": "audio/ui_error.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -19.4,
+  "lufs": -20.0,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_open": {
+  "id": "ui_open",
+  "file": "audio/ui_open.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.48,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -22.7,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_close": {
+  "id": "ui_close",
+  "file": "audio/ui_close.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.48,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -23.0,
+  "lufs": -23.2,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_tab": {
+  "id": "ui_tab",
+  "file": "audio/ui_tab.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.1,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -17.5,
+  "lufs": -17.2,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_toggle_on": {
+  "id": "ui_toggle_on",
+  "file": "audio/ui_toggle_on.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -21.2,
+  "lufs": -21.1,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_toggle_off": {
+  "id": "ui_toggle_off",
+  "file": "audio/ui_toggle_off.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.3,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -21.7,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_slider_tick": {
+  "id": "ui_slider_tick",
+  "file": "audio/ui_slider_tick.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.8,
+   1.4
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.06,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -12.0,
+  "rmsDb": -20.3,
+  "lufs": -19.6,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ],
+  "meta": {
+   "note": "play at rate 0.8-1.4 across the slider range, rate-limit to one per 60 ms"
+  }
+ },
+ "ui_toast_info": {
+  "id": "ui_toast_info",
+  "file": "audio/ui_toast_info.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.76,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -29.2,
+  "lufs": -28.9,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_toast_good": {
+  "id": "ui_toast_good",
+  "file": "audio/ui_toast_good.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.86,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -28.9,
+  "lufs": -28.5,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_toast_warn": {
+  "id": "ui_toast_warn",
+  "file": "audio/ui_toast_warn.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.76,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -27.6,
+  "lufs": -28.0,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_toast_alert": {
+  "id": "ui_toast_alert",
+  "file": "audio/ui_toast_alert.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -21.7,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_log_open": {
+  "id": "ui_log_open",
+  "file": "audio/ui_log_open.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.42,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -23.4,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_try_done": {
+  "id": "ui_try_done",
+  "file": "audio/ui_try_done.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -22.7,
+  "lufs": -22.5,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_new_world": {
+  "id": "ui_new_world",
+  "file": "audio/ui_new_world.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.7,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -22.5,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "ui_undo": {
+  "id": "ui_undo",
+  "file": "audio/ui_undo.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.4,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -10.0,
+  "rmsDb": -21.9,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "ui"
+  ]
+ },
+ "hold_heat": {
+  "id": "hold_heat",
+  "file": "audio/hold_heat.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -16.4,
+  "rmsDb": -29.8,
+  "lufs": -30.0,
+  "seamDb": -33.4,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "heat",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_cold": {
+  "id": "hold_cold",
+  "file": "audio/hold_cold.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -17.8,
+  "rmsDb": -30.9,
+  "lufs": -30.0,
+  "seamDb": -27.7,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "cold",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_water": {
+  "id": "hold_water",
+  "file": "audio/hold_water.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -16.0,
+  "rmsDb": -30.2,
+  "lufs": -30.0,
+  "seamDb": -28.1,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "water",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_lightning_charge": {
+  "id": "hold_lightning_charge",
+  "file": "audio/hold_lightning_charge.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -20.4,
+  "rmsDb": -29.4,
+  "lufs": -30.0,
+  "seamDb": -30.0,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "lightning_charge",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_electricity": {
+  "id": "hold_electricity",
+  "file": "audio/hold_electricity.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -19.9,
+  "rmsDb": -29.4,
+  "lufs": -30.0,
+  "seamDb": -26.0,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "electricity",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_fire": {
+  "id": "hold_fire",
+  "file": "audio/hold_fire.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -14.1,
+  "rmsDb": -29.0,
+  "lufs": -30.0,
+  "seamDb": -35.2,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "fire",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_lava": {
+  "id": "hold_lava",
+  "file": "audio/hold_lava.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -14.7,
+  "rmsDb": -29.1,
+  "lufs": -30.0,
+  "seamDb": -36.1,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "lava",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_sand": {
+  "id": "hold_sand",
+  "file": "audio/hold_sand.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -17.0,
+  "rmsDb": -31.6,
+  "lufs": -30.0,
+  "seamDb": -41.4,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "sand",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_earth": {
+  "id": "hold_earth",
+  "file": "audio/hold_earth.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -17.3,
+  "rmsDb": -29.3,
+  "lufs": -30.0,
+  "seamDb": -52.0,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "earth",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_rock": {
+  "id": "hold_rock",
+  "file": "audio/hold_rock.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -12.2,
+  "rmsDb": -31.1,
+  "lufs": -30.0,
+  "seamDb": -26.6,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "rock",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_metal": {
+  "id": "hold_metal",
+  "file": "audio/hold_metal.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -16.2,
+  "rmsDb": -31.8,
+  "lufs": -30.0,
+  "seamDb": -38.3,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "metal",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "hold_seed": {
+  "id": "hold_seed",
+  "file": "audio/hold_seed.ogg",
+  "bus": "ui",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.97,
+   1.03
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 32000,
+  "peakDb": -12.7,
+  "rmsDb": -31.0,
+  "lufs": -30.0,
+  "seamDb": -33.0,
+  "tags": [
+   "hold"
+  ],
+  "meta": {
+   "tool": "seed",
+   "note": "start on press, fade out on release (80 ms); level can follow tool strength"
+  }
+ },
+ "mus_pad_dawn": {
+  "id": "mus_pad_dawn",
+  "file": "audio/mus_pad_dawn.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -17.4,
+  "rmsDb": -30.4,
+  "lufs": -28.0,
+  "seamDb": -46.0,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "time": "dawn",
+   "chord": "D A D A D open fifths",
+   "note": "crossfade 6-10 s between pads on time of day"
+  }
+ },
+ "mus_pad_day": {
+  "id": "mus_pad_day",
+  "file": "audio/mus_pad_day.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -17.5,
+  "rmsDb": -30.4,
+  "lufs": -28.0,
+  "seamDb": -36.8,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "time": "day",
+   "chord": "D major pentatonic",
+   "note": "sparse, warm"
+  }
+ },
+ "mus_pad_dusk": {
+  "id": "mus_pad_dusk",
+  "file": "audio/mus_pad_dusk.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -16.6,
+  "rmsDb": -30.4,
+  "lufs": -28.0,
+  "seamDb": -37.3,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "time": "dusk",
+   "chord": "D sus4 add C",
+   "note": "mellow"
+  }
+ },
+ "mus_pad_night": {
+  "id": "mus_pad_night",
+  "file": "audio/mus_pad_night.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -21.4,
+  "rmsDb": -32.1,
+  "lufs": -30.0,
+  "seamDb": -68.0,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "time": "night",
+   "note": "very low, dark, sparse bells"
+  }
+ },
+ "mus_tension_layer": {
+  "id": "mus_tension_layer",
+  "file": "audio/mus_tension_layer.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -18.8,
+  "rmsDb": -31.0,
+  "lufs": -30.0,
+  "seamDb": -41.7,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "note": "mix over a pad as threats rise; pulse 1.25 Hz"
+  }
+ },
+ "mus_storm_layer": {
+  "id": "mus_storm_layer",
+  "file": "audio/mus_storm_layer.ogg",
+  "bus": "mus",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 40.0,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -16.4,
+  "rmsDb": -30.3,
+  "lufs": -30.0,
+  "seamDb": -31.0,
+  "tags": [
+   "music"
+  ],
+  "meta": {
+   "note": "mix over a pad in storms; tie level to wind/rain"
+  }
+ },
+ "mus_sting_discovery": {
+  "id": "mus_sting_discovery",
+  "file": "audio/mus_sting_discovery.ogg",
+  "bus": "mus",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 5.415,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -6.0,
+  "rmsDb": -24.8,
+  "lufs": -21.4,
+  "seamDb": null,
+  "tags": [
+   "sting"
+  ]
+ },
+ "mus_sting_success": {
+  "id": "mus_sting_success",
+  "file": "audio/mus_sting_success.ogg",
+  "bus": "mus",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 6.015,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -6.0,
+  "rmsDb": -22.4,
+  "lufs": -19.4,
+  "seamDb": null,
+  "tags": [
+   "sting"
+  ]
+ },
+ "mus_sting_loss": {
+  "id": "mus_sting_loss",
+  "file": "audio/mus_sting_loss.ogg",
+  "bus": "mus",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 6.865,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -6.0,
+  "rmsDb": -25.0,
+  "lufs": -22.7,
+  "seamDb": null,
+  "tags": [
+   "sting"
+  ]
+ },
+ "mus_sting_arrival": {
+  "id": "mus_sting_arrival",
+  "file": "audio/mus_sting_arrival.ogg",
+  "bus": "mus",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 0,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "music",
+  "dur": 6.475,
+  "ch": 2,
+  "sr": 32000,
+  "peakDb": -6.0,
+  "rmsDb": -24.3,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [
+   "sting"
+  ]
+ }
+}
