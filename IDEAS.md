@@ -102,3 +102,5 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 ## v8.5 (large-map branch, not pushed)
 - Done: Big ships menu; shared material table (density, heat capacity, conduction, repose, sink rate); rock and scrap metal pile and slump; rock/scrap fountains; seeds (hold-to-scatter, wind dispersal from trees, germinate only on moist mild bare ground, rot otherwise).
 - Next: whole-game physics audit (water and energy conservation, buoyancy vs displaced mass, CELL scaling on the large map); seed species by rainfall; grass and crops.
+- v8.5 water: ripple layer (256 x 256 damped wave field following the camera; splashes, cargo entering the water by mass and speed, boat bows and sterns; added to waveH so boats really rock, and into the water shader). Next for water: wake strength tuning, wave refraction near shore, caustics (desktop), Takahashi & Batty 2024 is offline-grade 3D liquid, not for a phone.
+- Audits written: AUDIT-NPC.md, AUDIT-MATERIALS.md. Order agreed: audit fixes, ripples (done), structure layer (blocks with strength and brittleness, AVBD-style solver idea), role-specific people models and vehicles in Blender.

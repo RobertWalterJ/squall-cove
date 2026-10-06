@@ -396,10 +396,50 @@ const WD = new Float32Array(257 * 257); let lakeWet = 0;    // water lying on th
 const SIf = new Float32Array(257 * 257); let iceAny = false;
 function seaIceAt(x, z) { const fx = Math.min(255.999, Math.max(0, x / CELL + 128)), fz = Math.min(255.999, Math.max(0, z / CELL + 128)), j = Math.floor(fx), i = Math.floor(fz); const a = fx - j, b = fz - i, k = i * 257 + j; return (SIf[k] * (1 - a) + SIf[k + 1] * a) * (1 - b) + (SIf[k + 257] * (1 - a) + SIf[k + 258] * a) * b; }
 function lakeDepth(x, z) { const fx = W2G(x), fz = W2G(z), j = Math.floor(fx), i = Math.floor(fz); if (j < 0 || i < 0 || j >= TN - 1 || i >= TN - 1) return 0; const a = fx - j, b = fz - i, k = i * TN + j; return (WD[k] * (1 - a) + WD[k + 1] * a) * (1 - b) + (WD[k + TN] * (1 - a) + WD[k + TN + 1] * a) * b; }
+/* ---- v8.5: ripples. A 256 x 256 damped wave field (1 m cells) that follows the camera. Splashes, falling cargo, boat bows and sterns push on it, the wave equation spreads
+   the disturbance, and the result is added to the sea height, so ripples really lift and rock boats as well as showing in the water shader. */
+const RN = 256, rip = { H: new Float32Array(RN * RN), P: new Float32Array(RN * RN), M: new Uint8Array(RN * RN), ox: 0, oz: 0, init: false, act: false, acc: 0 };
+const ripTex = new THREE.DataTexture(rip.H, RN, RN, THREE.RedFormat, THREE.FloatType); ripTex.minFilter = ripTex.magFilter = THREE.NearestFilter; ripTex.needsUpdate = true;
+function ripH(x, z) {
+  if (!rip.act) return 0; const fx = x - rip.ox, fz = z - rip.oz; if (fx < 1 || fz < 1 || fx > RN - 2 || fz > RN - 2) return 0;
+  const i = Math.floor(fz) * RN + Math.floor(fx), ax = fx - Math.floor(fx), az = fz - Math.floor(fz), H = rip.H;
+  return (H[i] * (1 - ax) + H[i + 1] * ax) * (1 - az) + (H[i + RN] * (1 - ax) + H[i + RN + 1] * ax) * az;
+}
+function ripRecentre(x, z) {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return;
+  rip.ox = Math.round(x - RN / 2); rip.oz = Math.round(z - RN / 2); rip.H.fill(0); rip.P.fill(0); rip.init = true; rip.act = false; ripU.uRipO.value.set(rip.ox, rip.oz);
+  for (let i = 0; i < RN; i++) for (let j = 0; j < RN; j++) rip.M[i * RN + j] = heightAt(rip.ox + j + 0.5, rip.oz + i + 0.5) < -0.12 ? 1 : 0;       // ripples live on open water only
+}
+function ripple(x, z, r, h) {                              // a smooth bump (or dip, if h < 0) of radius r metres and height h metres
+  if (!rip.init) ripRecentre(x, z); let fx = x - rip.ox, fz = z - rip.oz; if (fx < 3 || fz < 3 || fx > RN - 4 || fz > RN - 4) return;
+  const R_ = Math.ceil(r), cx = Math.floor(fx), cz = Math.floor(fz);
+  for (let a = -R_; a <= R_; a++) for (let b = -R_; b <= R_; b++) { const d = Math.hypot(cx + b + 0.5 - fx, cz + a + 0.5 - fz); if (d > r) continue; const k = (cz + a) * RN + cx + b; if (!rip.M[k]) continue; rip.H[k] += h * 0.5 * (1 + Math.cos(Math.PI * d / r)); }
+  rip.act = true;
+}
+function stepRipples(dt) {
+  const ft = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;                 // (not the global 'focus', which is the window function)
+  if (ft && Number.isFinite(ft.x) && Number.isFinite(ft.z) && (!rip.init || Math.hypot(ft.x - (rip.ox + RN / 2), ft.z - (rip.oz + RN / 2)) > 56)) ripRecentre(ft.x, ft.z);
+  if (!rip.init) return;
+  // sources: heavy things entering the water, and the bow and stern of moving boats
+  for (const o of objects) { const p = o.body.position, w = waveH(p.x, p.z, simT) + 0.0, wet = p.y < w + 0.2 && heightAt(p.x, p.z) < -0.15; const vy = o.body.velocity.y;
+    if (wet && !o.wasWet && vy < -0.8) { const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.2 + 0.7 * m3, Math.min(0.5, 0.025 * m3 * -vy)); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); if (m3 > 1.5) tried('ripple'); }
+    o.wasWet = wet; }
+  for (const bt of boats) { if (bt.sunk) continue; const b = bt.body, v = Math.hypot(b.velocity.x, b.velocity.z); if (v < 0.7) continue;
+    const L = bt.sp.L, B = bt.sp.B; const q = b.quaternion, fxv = 1 - 2 * (q.y * q.y + q.z * q.z), fzv = 2 * (q.x * q.z - q.w * q.y);   // local +x (the bow) in world
+    const px = b.position.x, pz = b.position.z; if (heightAt(px, pz) > -0.3) continue; const amp = Math.min(0.3, 0.012 * v * Math.sqrt(B));
+    ripple(px + fxv * L * 0.42, pz + fzv * L * 0.42, B * 0.55 + 0.6, amp * dt * 14); ripple(px - fxv * L * 0.42, pz - fzv * L * 0.42, B * 0.5 + 0.6, -amp * dt * 10); }
+  if (!rip.act) return;
+  const H = rip.H, P = rip.P, M = rip.M, c2 = 0.075, damp = Math.pow(0.9835, dt * 30); let mx = 0;
+  for (let i = 1; i < RN - 1; i++) { const row = i * RN; for (let j = 1; j < RN - 1; j++) { const k = row + j; if (!M[k]) { P[k] = 0; continue; }
+    const lap = H[k - 1] + H[k + 1] + H[k - RN] + H[k + RN] - 4 * H[k], n = (2 * H[k] - P[k] + c2 * lap) * damp; P[k] = n; const a = n < 0 ? -n : n; if (a > mx) mx = a; } }
+  rip.H = P; rip.P = H; ripTex.image.data = rip.H; ripTex.needsUpdate = true; ripU.tRip.value = ripTex;
+  if (mx < 0.0015) { rip.H.fill(0); rip.P.fill(0); rip.act = false; ripTex.needsUpdate = true; }
+}
+const ripU = { tRip: { value: ripTex }, uRipO: { value: new THREE.Vector2() } };
 function waveH(x, z, t) {
   let h = 0;
   for (const w of WAVES) h += w[3] * Math.sin(w[2] * (w[0] * x + w[1] * z) - Math.sqrt(G * w[2]) * t + w[4]);
-  h = h * sea.amp * (iceAny ? 1 - Math.min(1, seaIceAt(x, z) / 0.25) : 1) + surge.level;     // pack ice flattens the sea
+  h = h * sea.amp * (iceAny ? 1 - Math.min(1, seaIceAt(x, z) / 0.25) : 1) + surge.level + ripH(x, z);     // pack ice flattens the sea
   if (lakeWet > 0) { const d = lakeDepth(x, z); if (d > 0.05) return heightAt(x, z) + d + 0.012 * Math.sin(t * 2 + x * 1.3 + z * 0.9); }
   return h;
 }
@@ -422,6 +462,12 @@ float waveH(vec2 p){ float h = 0.0;
 vec2 waveGrad(vec2 p){ vec2 g = vec2(0.0);
   ${WAVES.map(w => `g += ${(w[3] * w[2]).toFixed(4)} * cos(${w[2].toFixed(3)} * dot(vec2(${w[0].toFixed(3)}, ${w[1].toFixed(3)}), p) - ${Math.sqrt(G * w[2]).toFixed(5)} * uTime + ${w[4].toFixed(3)}) * vec2(${w[0].toFixed(3)}, ${w[1].toFixed(3)});`).join('\n  ')}
   return g * uAmp; }`;
+
+const RIP_GLSL = `
+uniform sampler2D tRip; uniform vec2 uRipO;
+float ripH(vec2 p){ vec2 f = p - uRipO; if (f.x < 1.0 || f.y < 1.0 || f.x > ${RN - 2}.0 || f.y > ${RN - 2}.0) return 0.0; ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
+  return mix(mix(texelFetch(tRip, i, 0).r, texelFetch(tRip, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tRip, i + ivec2(0, 1), 0).r, texelFetch(tRip, i + ivec2(1, 1), 0).r, a.x), a.y); }
+vec2 ripG(vec2 p){ return vec2(ripH(p + vec2(0.8, 0.0)) - ripH(p - vec2(0.8, 0.0)), ripH(p + vec2(0.0, 0.8)) - ripH(p - vec2(0.0, 0.8))) / 1.6; }`;
 
 /* ================================================================ terrain data */
 const CELL = (() => { try { const q = new URLSearchParams(location.search).get('size'); if (q) return q === 'large' ? 2 : 1; return localStorage.getItem('squall-cove-size') === 'large' ? 2 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
@@ -989,17 +1035,17 @@ function buildGrass() {
 
 /* ================================================================ water */
 const MAXFOAM = 32, MAXWAKE = 24;
-const waterU = { tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrainU.uAmp, tSky: { value: skyTex }, tH: { value: heightTex }, tN: { value: waterNTex },
+const waterU = { ...ripU, tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrainU.uAmp, tSky: { value: skyTex }, tH: { value: heightTex }, tN: { value: waterNTex },
   uSun: { value: sunDir }, uSunCol: { value: new THREE.Color(1.0, 0.85, 0.66) }, uWind: windU.uWind, uWindStr: windU.uWindStr, uBlow: windU.uBlow, uSkyTint: skyMat.uniforms.uTint,
   uFoam: { value: Array.from({ length: MAXFOAM }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uWake: { value: Array.from({ length: MAXWAKE }, () => new THREE.Vector4(0, 0, 99, 0)) },
   ...THREE.UniformsLib.fog };
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
-  vertexShader: `${WAVE_GLSL}
+  vertexShader: `${WAVE_GLSL}${RIP_GLSL}
     varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow;
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += waveH(wp.xz) * iv; vG = waveGrad(wp.xz) * iv; vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz)) * iv; vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1092,7 +1138,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += waveH(wp.xz) * iv; vG = waveGrad(wp.xz) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz)) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
@@ -1357,7 +1403,7 @@ function spawn(c, x, y, z) {
   const mesh = pr.obj.clone(); scene.add(mesh);
   const fl = makeFloater(body, { pts, slab, volume, kH: 0.6, area, rad });
   objects.push({ body, mesh, fl, c, pr });
-  while (objects.length > MAX_OBJ) { let far = objects[0], fd = -1; for (const q of objects) { const d = Math.hypot(q.body.position.x - focus.x, q.body.position.z - focus.z); if (d > fd) { fd = d; far = q; } } removeObj(far); }       // the cargo furthest from you goes first, so a stack you are building keeps its base
+  while (objects.length > MAX_OBJ) { let far = objects[0], fd = -1; const ft = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt; for (const q of objects) { const d = Math.hypot(q.body.position.x - ft.x, q.body.position.z - ft.z); if (d > fd) { fd = d; far = q; } } removeObj(far); }       // the cargo furthest from you goes first, so a stack you are building keeps its base
   updateCount();
 }
 function removeObj(o) { world.removeBody(o.body); scene.remove(o.mesh); floaters.splice(floaters.indexOf(o.fl), 1); objects.splice(objects.indexOf(o), 1); }
@@ -1534,6 +1580,7 @@ function commitLand(full) {
 
 /* terraform history: one snapshot per stroke, so any digging can be taken back */
 const TRIES = [
+  ['ripple', 'Drop a heavy rock into the water, or sail a boat fast past another, and watch the ripples spread'],
   ['sprout', 'Scatter seeds on moist earth and wait for them to sprout'],
   ['pile', 'Pour scrap metal or rock and watch it heap up at its own angle'],
   ['slide', 'Dig out the foot of a sand or earth pile and watch it slide'],
@@ -2430,7 +2477,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 function puffSmoke(x, y, z, n, dark, big) { for (let i = 0; i < n; i++) fxS.emit(x + rnd(-0.4, 0.4), y, z + rnd(-0.4, 0.4), rnd(-0.6, 0.6) + wind.v.x * 0.25, rnd(1.2, 3.2), rnd(-0.6, 0.6) + wind.v.z * 0.25, rnd(2.5, 5.5), rnd(0.9, 1.6) * (big || 1), 4, dark ? [0.14, 0.14, 0.15, 0.42] : [0.7, 0.7, 0.72, 0.32], -0.25, 0.25); }
 function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(-4, 4), rnd(1, 6), rnd(-4, 4), rnd(0.25, 0.6), rnd(0.12, 0.28), -0.6, [1, rnd(0.55, 0.8), 0.25, 1], 9, 0.8); }
 function splash(x, z, big) {
-  const y = waveH(x, z, simT);
+  const y = waveH(x, z, simT); ripple(x, z, 0.9 + 1.1 * big, Math.min(0.45, 0.05 * big));
   for (let i = 0; i < 10 * big; i++) fxS.emit(x + rnd(-0.3, 0.3), y, z + rnd(-0.3, 0.3), rnd(-1.8, 1.8) * big, rnd(3, 7) * Math.sqrt(big), rnd(-1.8, 1.8) * big, rnd(0.7, 1.4), rnd(0.25, 0.55) * big, 0.6, [0.85, 0.93, 0.97, 0.75], 9, 0.5);
   fxS.emit(x, y + 0.1, z, 0, 1.0, 0, 1.2, 1.2 * big, 5, [0.9, 0.96, 1, 0.55], 0, 1);
 }
@@ -4588,6 +4635,7 @@ function updateMaterials(dt) {
   for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); heatGT(f.x, f.z, 6, 950); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
   updateGrains(dt);
   sandAcc += dt; if (sandAcc >= 1 / 12) { sandAcc = 0; stepSand(); }
+  rip.acc += dt; if (rip.acc >= 1 / 30) { const rd = Math.min(rip.acc, 0.1); rip.acc = 0; stepRipples(rd); }
   heatAcc += dt; if (heatAcc >= 1 / 8) { const s = heatAcc; heatAcc = 0; stepHeat(s); }
   gtAcc += dt; if (gtAcc >= 0.25) { const sg = gtAcc; gtAcc = 0; stepGround(sg); }
   if (lavaOn) { lavaSandT = (lavaSandT || 0) - dt; if (lavaSandT <= 0) { lavaSandT = 0.5; for (let i = lbx.z0; i <= lbx.z1; i++) for (let j = lbx.x0; j <= lbx.x1; j++) { const k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.5 && (matData[k * 4 + 1] || MOLT[k])) { MH[k] = Math.max(MH[k], 1.3); hbx = boxTouch(hbx, j, i, 1); } } } }
@@ -5632,7 +5680,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
