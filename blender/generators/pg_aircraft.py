@@ -115,6 +115,20 @@ def fine(o, cuts=2):
     bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=cuts, use_grid_fill=True)
     bm.to_mesh(o.data); bm.free(); o.data.update()
 
+def fine_nose(o, xmin, cuts=3):
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    ed = [e for e in bm.edges if all(v.co.x > xmin for v in e.verts)]
+    bmesh.ops.subdivide_edges(bm, edges=ed, cuts=cuts, use_grid_fill=True)
+    bm.to_mesh(o.data); bm.free(); o.data.update()
+
+def cut(o, planes):
+    """Slice the mesh along axis planes [(axis, value)] so painted regions get clean straight edges."""
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    for ax, v in planes:
+        no = [0, 0, 0]; no[ax] = 1; co = [0, 0, 0]; co[ax] = v
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=co, plane_no=no)
+    bm.to_mesh(o.data); bm.free(); o.data.update()
+
 def paint(o, material, pred):
     me = o.data; me.materials.append(material); idx = len(me.materials) - 1
     for p in me.polygons:
@@ -141,7 +155,7 @@ def cormorant(name='cormorant_hull'):
           dict(x=0.0, zt=3.92, zb=0.95, w=1.6), dict(x=-4.0, zt=3.86, zb=1.0, w=1.52), dict(x=-6.2, zt=3.7, zb=1.3, w=1.28), dict(x=-8.0, zt=3.78, zb=2.1, w=0.85), dict(x=-9.6, zt=4.2, zb=3.2, w=0.45), dict(x=-10.3, zt=4.7, zb=3.8, w=0.3)]
     parts = []
     fus = loft(st, lambda zt, zb, w: ring_round(zt, zb, w, 4.4, 34), my, 'fus')
-    fine(fus)
+    fine_nose(fus, 6.0); cut(fus, [(2, 2.0), (2, 2.45), (2, 2.85), (2, 3.5), (0, 5.7), (0, 7.4), (0, 8.1)])
     paint(fus, mr, lambda x, y, z, nx, ny, nz: 3.6 < x < 7.4 and nz > 0.5 and z > 3.3)                          # red cockpit roof
     paint(fus, mr, lambda x, y, z, nx, ny, nz: -9.3 < x < -8.0)                                                  # red band round the tail pylon
     paint(fus, mr, lambda x, y, z, nx, ny, nz: 2.38 < z < 2.56 and abs(ny) > 0.55 and -4.4 < x < 5.2)           # the thin red stripe along the cabin
@@ -172,7 +186,7 @@ def cormorant(name='cormorant_hull'):
         parts.append(box((0.08, 0.46, 0.4), (1.4, s * 0.82, 4.2), material=md, name='intake'))
         parts.append(cyl(0.15, 0.15, 0.7, 10, loc=(-4.0, s * 0.62, 4.24), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))
     parts.append(cyl(0.16, 0.16, 0.9, 10, loc=(-3.7, 0, 3.98), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))
-    parts.append(box((0.55, 0.6, 0.5), (1.4, 1.5, 3.95), material=mg, bevel=0.1, name='hoistbox')); parts.append(rod((1.4, 1.55, 3.7), (1.4, 2.3, 3.7), 0.09, 8, mg, 'hoistarm'))     # the rescue hoist
+    parts.append(box((0.55, 0.6, 0.5), (1.4, -1.5, 3.95), material=mg, bevel=0.1, name='hoistbox')); parts.append(rod((1.4, -1.55, 3.7), (1.4, -2.3, 3.7), 0.09, 8, mg, 'hoistarm'))     # the rescue hoist
     parts.append(fin_loft([dict(z=3.8, xle=-8.4, chord=2.2, t=0.1), dict(z=4.6, xle=-9.4, chord=1.95, t=0.1), dict(z=5.4, xle=-10.3, chord=1.5, t=0.09), dict(z=6.05, xle=-10.9, chord=1.05, t=0.08)], my, 'fin'))
     parts.append(cyl(0.22, 0.22, 0.5, 10, loc=(-10.4, -0.12, 5.45), rot=(-math.pi / 2, 0, 0), material=mg, name='tgb'))
     parts.append(wing_loft([dict(y=-1.7, xle=-9.0, chord=1.0, t=0.1, z=3.75), dict(y=1.7, xle=-9.0, chord=1.0, t=0.1, z=3.75)], my, 'tailplane'))
@@ -195,7 +209,7 @@ def cormorant(name='cormorant_hull'):
         a = i * math.pi / 2; b = box((0.05, 0.28, 1.95), (0, 0, 0), material=md, bevel=0.01, name='tb'); b.data.transform(Matrix.Translation((0, 0, 1.05))); b.data.transform(Matrix.Rotation(a, 4, 'Y')); tb.append(b)
     ht = cyl(0.2, 0.2, 0.3, 10, loc=(0, -0.15, 0), rot=(-math.pi / 2, 0, 0), material=mg, name='tht'); tb.append(ht)
     place_part(join(tb, 'tailrotor'), (-10.4, -0.5, 5.45), 'cormorant_tail0')
-    place_part(box((0.2, 0.2, 0.2), (0, 0, 0), material=md, name='winch'), (1.4, 2.3, 3.5), 'cormorant_winch0')
+    place_part(box((0.2, 0.2, 0.2), (0, 0, 0), material=md, name='winch'), (1.4, -2.3, 3.5), 'cormorant_winch0')
     return hull
 
 # ---------------------------------------------------------------- Canadair CL-415
@@ -207,7 +221,7 @@ def cl415(name='cl415_hull'):
           dict(x=0.0, zt=3.85, zb=0.0, w=1.64), dict(x=-3.5, zt=3.8, zb=0.0, w=1.6), dict(x=-6.0, zt=3.72, zb=0.1, w=1.48), dict(x=-8.0, zt=3.72, zb=0.7, w=1.15), dict(x=-9.3, zt=3.85, zb=1.4, w=0.7), dict(x=-9.9, zt=3.95, zb=1.8, w=0.4)]
     parts = []
     fus = loft(st, ring_hull, mo, 'fus')
-    fine(fus)
+    fine_nose(fus, 6.8); cut(fus, [(2, 2.75), (2, 3.6), (2, 2.8), (2, 3.55), (0, 6.6), (0, 8.0), (0, 8.4)])
     paint(fus, mh, lambda x, y, z, nx, ny, nz: z < 0.62)                                              # grey planing bottom with the chine
     paint(fus, mgreen, lambda x, y, z, nx, ny, nz: 0.62 <= z < 1.55 and abs(ny) > 0.3)                 # green lower side stripe
     parts.append(fus)
