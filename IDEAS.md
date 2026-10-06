@@ -86,3 +86,6 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 ## Done in v7.0.0 (Merge and shift)
 - Loose ground: anything above the original bedrock slumps, slides and soaks; digging under a pile makes it slide.
 - Soil moisture (wet ground darkens, dries, evaporates into the air grid), lava + water makes steam/cloud/rain and obsidian, meltwater from snow and ice, horizon sea, Things to try card.
+
+## Done in v7.1.0 (The world answers)
+- Ground temperature field (conducts, melts snow, boils moisture, glows, ignites trees, melts rock into lava above ~1000 C), erosion and deltas, plants that regrow, fire that runs downwind and stalls on wet soil and heats the air, terrain-bent wind with rain shadows, creeping dunes, bedrock saved, armed boats pick their own enemies.

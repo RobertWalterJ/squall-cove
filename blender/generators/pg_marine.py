@@ -274,7 +274,12 @@ def ship(key, name=None):
 
 # ---------------------------------------------------------------- small craft
 def bay_lifeboat(name='bay_class'):
-    """19 m self-righting lifeboat: deep-vee hull, tall enclosed wheelhouse, roll-over mast."""
+    """19 m Bay-class lifeboat (rebuilt Oct 2026 in pg_bay.py: lofted hull, raked bow, wheelhouse, lattice mast, rescue craft)."""
+    import pg_bay
+    return pg_bay.build(name)
+
+def bay_lifeboat_v1(name='bay_class'):
+    """(old) 19 m self-righting lifeboat: deep-vee hull, tall enclosed wheelhouse, roll-over mast."""
     L, B, T, fb = 19.0, 6.3, 1.67, 1.5
     h = Hull(L, B, T + fb, fb, transom=0.85, bow_p=1.0, stern_p=0.3, max_at=0.45, sheer_bow=0.22, sheer_stern=0.02, rocker=0.0,
              forefoot=0.45, chine=1.0, chine_h=0.3, deadrise=0.45, flare=0.1, S=48, K=12)
