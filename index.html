@@ -231,7 +231,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
   <div class="mhead">Help on the way</div>
   <div class="mgrid">
     <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button>
-    <button id="mPeople" type="button">People<small>who is doing what</small></button><button id="mFleet" type="button">Fleets<small>missions at sea</small></button>
+    <button id="mPeople" type="button">People<small>who is doing what</small></button><button id="mFleet" type="button">Fleets<small>missions at sea</small></button><button id="mReport" type="button">Cove report<small>what is really going on</small></button>
   </div>
   <div class="mhead">Settings</div>
   <div class="mgrid">
@@ -1738,6 +1738,10 @@ const BUILD = [
   { cat: 'People', id: 'p-fire', name: 'Firefighter', note: 'puts out fires', person: 1, role: 'Firefighter', sw: '#d53b2e' },
   { cat: 'People', id: 'p-forest', name: 'Forester', note: 'plants and replants trees', person: 1, role: 'Forester', sw: '#4f9a3a' },
   { cat: 'People', id: 'p-build', name: 'Builder', note: 'builds at build sites', person: 1, role: 'Builder', sw: '#c9743a' },
+  { cat: 'Factions', id: 'f-smug', name: 'Smuggler run', note: 'a disguised boat lands drums on a quiet beach', fac: 'smuggler', sw: '#7a6a52' },
+  { cat: 'Factions', id: 'f-salv', name: 'Salvage tug', note: 'collects floating cargo and sells it to the yard', fac: 'salvage', sw: '#d9822b' },
+  { cat: 'Factions', id: 'f-dev', name: 'Developer crew', note: 'rival builders: their own sites, the same stone', fac: 'dev', sw: '#3c5a8f' },
+  { cat: 'Factions', id: 'f-watch', name: 'Informant', note: 'stands and watches, reports what they see', fac: 'informant', sw: '#c9b46a' },
   { cat: 'Sites', id: 'site-plant', name: 'Plant site', note: 'foresters plant here', site: 'plant', sw: '#5fbf4a' },
   { cat: 'Sites', id: 'site-build', name: 'Build site', note: 'builders raise a stone circle', site: 'build', sw: '#e0883a' },
   { cat: 'Sites', id: 'site-yard', name: 'Cargo yard', note: 'dock workers stack cargo here', site: 'yard', sw: '#a8794a' },
@@ -1787,6 +1791,7 @@ function place(item, p) {
   if (item.mat === 'scrapfount') return placePourSrc('metal', p);
   if (item.mat === 'rockfount') return placePourSrc('rock', p);
   if (item.mat) return placeMaterial(item, p);
+  if (item.fac) return placeFaction(item, p);
   if (item.person) return placePeople(item.person, p, item.role);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, waveH(x, z, simT)) + 1.3, z); return; }       // it appears right at the ring, just above the ground or the water
   if (item.boat && boats.length >= MAX_BOATS) { toast('That is as many boats as ' + (isTouch ? 'a phone' : 'this device') + ' keeps afloat (' + MAX_BOATS + '). Remove one first.'); return; }
@@ -1923,6 +1928,7 @@ const ROLE_KIT = {
   'Builder':      { top: '#e8c21a', bottom: '#3b4a6a', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#f1f1ec'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
   'Lifeguard':    { top: '#d8342a', bottom: '#d8342a', kit: [['cap', 'head', HEAD, [0, 0, 0], '#f2f2ee', '#d8342a'], ['tube', 'chest', [0, 1.15, 0.02], [0, 0, 0]]] },
   'Skipper':      { top: '#1d2a44', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1d2a44', '#e3e0d4'], ['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
+  'Developer':    { top: '#2f4f8f', bottom: '#2a2f3a', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#eef0f2'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.1, -0.04]]] },
   'Villager':     { top: '#8a7a5a', bottom: '#5a5040', kit: [] },
   'Survivor':     { top: '#ee7a1c', bottom: '#3a4a5a', kit: [['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
 };
@@ -3385,6 +3391,7 @@ const PLACE_CATS = [
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
   { id: 'hold', name: 'Hold to apply', test: it => it.cat === 'Elements' },
   { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
+  { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
   { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
   { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
   { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump', 'rockfount', 'scrap', 'scrapfount'].includes(it.id) },
@@ -3734,6 +3741,7 @@ $('bMenu').addEventListener('click', () => openMenu());
 $('bLog').addEventListener('click', () => openLog());
 $('mPeople').addEventListener('click', () => openPeople());
 $('mFleet').addEventListener('click', () => openFleet());
+$('mReport').addEventListener('click', () => openReport());
 $('mClose').addEventListener('click', closeMenu);
 menuSheet.addEventListener('pointerdown', (e) => { if (e.target === menuSheet) closeMenu(); });
 const menuBtn = (label, sub, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), s = document.createElement('span'); l.textContent = label; s.textContent = sub || ''; b.append(l, s); b.addEventListener('click', fn); return b; };
@@ -4820,7 +4828,7 @@ function clearMaterials() { seeds.length = 0; MET.fill(0); metN = 0; for (let q 
 
 /* ================================================================ v5.3: Calm all, Gentle mode, effect limits, restore */
 /* ---- sandbox settings, kept on this phone */
-const prefs = { gentle: false, limit: 'some', threats: 'off', autoMissions: true };
+const prefs = { gentle: false, limit: 'some', threats: 'off', autoMissions: true, life: 'lively' };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}')); } catch (e) { }
 const savePrefs = () => { try { localStorage.setItem('squall-cove-prefs', JSON.stringify(prefs)); } catch (e) { } };
 const LIMITS = { few: 2, some: 4, lots: 8 };
@@ -4837,6 +4845,7 @@ function sandboxSheet() {
     row('Gentle mode', 'Turns off disasters. Good for young players.', prefs.gentle, () => { prefs.gentle = !prefs.gentle; if (prefs.gentle) calm(); }),
     menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
     menuBtn('Threats: ' + { off: 'Off', some: 'Now and then', busy: 'Busy' }[prefs.threats || 'off'], 'Smugglers and raiders sometimes come. Armed boats deal with them. Tap to change.', () => { prefs.threats = { off: 'some', some: 'busy', busy: 'off' }[prefs.threats || 'off']; savePrefs(); sandboxSheet(); }),
+    menuBtn('Cove life: ' + { quiet: 'Quiet', lively: 'Lively', busy: 'Busy' }[prefs.life || 'lively'], 'How much the cove does by itself: fishing trips, salvage, rival builders, smugglers drawn to piled-up cargo. Tap to change.', () => { prefs.life = { quiet: 'lively', lively: 'busy', busy: 'quiet' }[prefs.life || 'lively']; savePrefs(); sandboxSheet(); }),
     menuBtn('Coast Guard missions: ' + (prefs.autoMissions === false ? 'Off' : 'On'), 'The Coast Guard patrols, answers raiders and fights fires by itself.', () => { prefs.autoMissions = prefs.autoMissions === false; savePrefs(); sandboxSheet(); }),
     menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
 }
@@ -5519,6 +5528,58 @@ function unmask(bt) {
   for (const q of people) if (q.ride && q.ride.boat === bt) q.fromHostile = true;
   ECON.trust = Math.min(1, ECON.trust + 0.08); ECON.unmasked++; npcEv('unmasked'); toast('The Coast Guard unmasked a smuggler: that fishing boat was running contraband.'); const e = edgeSpot(); if (e) orderTo(bt, e.x * 1.1, e.z * 1.1);
 }
+function spawnDevelopers(n, at) {
+  if (people.length + n >= MAX_PEOPLE) return false; let cp = at || null; if (!cp) { for (let k = 0; k < 20 && !cp; k++) { const c = coastPoint(Math.random() * 6.283, 4); if (c && safeSpot(c.x, c.z)) cp = c; } } if (!cp) return false;
+  for (let i = 0; i < n; i++) { const p = makePerson(Math.floor(Math.random() * 16), cp.x + i * 1.4, cp.z + 0.8); p.y = standY(p.x, p.z); p.role = 'Developer'; p.devT0 = simT; } npcEv('devCrew'); return true;
+}
+function spawnSalvage() {
+  if (boats.some(b => b.salvage) || boats.length > MAX_BOATS - 2) return null; const e = edgeSpot(); if (!e) return null;
+  const bt = makeBoat('bollard', null, null, e.x, e.z, Math.atan2(-e.z, -e.x)); bt.sp.name = 'Salvage tug'; crewOn(bt, 2); bt.anchor = null; for (const q of people) if (q.ride && q.ride.boat === bt) q.role = 'Dock worker';
+  bt.salvage = { load: [], state: 'search', t: 0, idle: 0 }; npcEv('salvageTug'); noteOnce('salv' + bt.id, 'A salvage tug has come for the cargo floating in the cove.'); return bt;
+}
+const floatingCargo = () => objects.filter(o => !o.gone && !o.placed && !o.salv && heightAt(o.body.position.x, o.body.position.z) < -0.4 && o.body.position.y < waveH(o.body.position.x, o.body.position.z, simT) + 0.6);
+function salvageStep(bt, me, step) {
+  const sv = bt.salvage, pos = bt.body.position; sv.t += step; if (!boatCrew(bt).length) { me.mission = 'No crew'; return; }
+  if (sv.state === 'search') {
+    me.mission = 'Looking for floating cargo'; if (!sv.tgt || sv.tgt.gone || !objects.includes(sv.tgt)) { sv.tgt = null; let bd = 260; for (const o of floatingCargo()) { const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < bd) { bd = d; sv.tgt = o; } } }
+    if (sv.tgt) { sv.idle = 0; const o = sv.tgt, d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); me.mission = 'Hooking the ' + o.c.name; if (d > 13) { if (!bt.order || sv.t % 6 < step) aiGo(bt, o.body.position.x, o.body.position.z, 7); sv.hook = 0; } else { sv.hook = (sv.hook || 0) + step; if (sv.hook >= 5) { sv.load.push({ c: o.c, contraband: !!o.contraband }); o.salv = true; removeObj(o); updateCount(); sv.tgt = null; sv.hook = 0; npcEv('salvaged'); if (sv.load.length >= 4) sv.state = 'deliver'; } } }
+    else { sv.idle += step; if (sv.load.length) sv.state = 'deliver'; else if (sv.idle > 40) { sv.state = 'leave'; const e = edgeSpot(); if (e) aiGo(bt, e.x * 1.1, e.z * 1.1); } }
+  } else if (sv.state === 'deliver') {
+    const y = yardPt({ x: pos.x, z: pos.z }), tgt = pierInfo ? pierInfo.end : y; me.mission = 'Taking salvage to the yard'; const d = Math.hypot(tgt.x - pos.x, tgt.z - pos.z);
+    if (d > 16) { if (!bt.order || sv.t % 8 < step) aiGo(bt, tgt.x, tgt.z, 10); }
+    else { for (const it of sv.load) { const x = y.x + rnd(-3, 3), z = y.z + rnd(-3, 3); spawn(it.c, x, standY(x, z) + 1.4, z); if (it.contraband) { ECON.seized++; ECON.heat = Math.max(0, (ECON.heat || 0) - 0.3); npcEv('drumsSeized'); noteOnce('salvseize', 'A salvage crew handed contraband to the Port.'); } if (y.site) { y.site.stock = y.site.stock || {}; y.site.stock[it.c.id] = (y.site.stock[it.c.id] || 0) + 1; } npcEv('salvageSold'); } sv.load = []; sv.state = 'search'; sv.idle = 0; }
+  } else if (sv.state === 'leave') { me.mission = 'Leaving the cove'; if (Math.hypot(pos.x, pos.z) > EXT - 10 || (sv.leaveT = (sv.leaveT || 0) + step) > 90) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); npcEv('salvageGone'); } else if (!bt.order) { const dd = Math.hypot(pos.x, pos.z) || 1; aiGo(bt, pos.x / dd * (EXT + 8), pos.z / dd * (EXT + 8)); } }
+}
+function placeFaction(item, p) {
+  const x = p.x, z = p.z;
+  if (item.fac === 'smuggler') { if (!spawnSmuggler()) toast('A run is already under way.'); else toast('A boat is coming in. It looks like any other.'); return; }
+  if (item.fac === 'salvage') { if (!spawnSalvage()) toast('A salvage tug is already here.'); else toast('A salvage tug arrives and looks for floating cargo.'); return; }
+  if (item.fac === 'dev') { if (groundAt(x, z) < 0.3) { toast('Developers start on dry land'); return; } if (spawnDevelopers(2, { x, z })) toast('A developer crew arrives. They compete for stone and building sites.'); return; }
+  if (item.fac === 'informant') { if (groundAt(x, z) < 0.3) { toast('An informant stands on dry land'); return; } placePeople(1, { x, z }, 'Photographer'); const q = people[people.length - 1]; if (q) { q.informant = true; q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'Watching and listening'; toast('An informant keeps watch here and reports to the Coast Guard.'); } return; }
+}
+let lifeT = 0, salvT = 0, devT = 0;
+function lifeTick(dt) {                                       // what the cove does by itself
+  lifeT -= dt; if (lifeT > 0) return; lifeT = 4; const Lf = prefs.life || 'lively'; if (Lf === 'quiet') return; const f = Lf === 'busy' ? 2 : 1;
+  let stock = 0; for (const o of objects) { if (o.gone || o.placed || o.contraband) continue; const op = o.body.position; for (const st of sites) if (st.kind === 'yard' && Math.hypot(op.x - st.x, op.z - st.z) < 14) { stock++; break; } }
+  const cgOn = boats.some(b => isCG(b) && !isHostile(b) && boatCrew(b).length);
+  ECON.heat = (ECON.heat || 0) + 4 * f * (0.003 + 0.004 * Math.min(stock, 8)) * (cgOn ? 0.6 : 1);        // piled-up cargo draws smugglers, a Coast Guard presence puts them off
+  if (ECON.heat > 1 && !boats.some(b => b.disguise) && !people.some(p => p.trueRole === 'Courier') && boats.length < MAX_BOATS - 3 && spawnSmuggler()) { ECON.heat = 0.15; npcEv('heatRun'); }
+  salvT -= 4; if (salvT <= 0 && (pierInfo || sites.some(q => q.kind === 'yard')) && floatingCargo().length >= 2 && spawnSalvage()) salvT = 150 / f;
+  devT -= 4; const devs = people.filter(p => p.role === 'Developer').length;
+  if (devT <= 0 && !devs && (NPC.ev.buildDone || 0) > (ECON.devSeen || 0) && spawnDevelopers(2)) { ECON.devSeen = NPC.ev.buildDone; devT = 120 / f; }
+  else if (devT <= 0 && !devs && freeBlocks().length >= 10 && spawnDevelopers(2)) devT = 150 / f;
+}
+function openReport() {
+  const E = NPC.ev, n = (k) => E[k] || 0, row = (t) => menuHead(t);
+  const secrets = [...people.filter(p => p.trueRole).map(p => p.role + ' (secretly a ' + (p.trueRole === 'Agent' ? 'smuggler agent' : p.trueRole.toLowerCase()) + ')'), ...boats.filter(b => b.disguise).map(b => 'A ' + b.sp.name + ' that is really a smuggler')];
+  openMenu([menuHead('Cove report. Only you can see the secrets.'),
+    row('Public trust in the Coast Guard: ' + Math.round(ECON.trust * 100) + '%. Smuggler pull on this cove: ' + Math.round(Math.min(1, ECON.heat || 0) * 100) + '%.'),
+    row('Smuggling: ' + n('smugglerRun') + ' runs, ' + n('drumsLanded') + ' drums landed, ' + n('drumsStashed') + ' hidden, ' + n('drumsSeized') + ' seized, ' + n('unmasked') + ' boats unmasked, ' + n('courierCaught') + ' couriers caught.'),
+    row('Information: ' + n('witness') + ' sightings, ' + n('report') + ' reports, ' + n('falseTipFiled') + ' decoy tips, ' + n('emptyReport') + ' reports that led nowhere, ' + n('falsePositive') + ' innocent boats stopped.'),
+    row('Building: ' + n('blockPlaced') + ' blocks placed, ' + n('quarried') + ' cut from rubble, ' + n('buildDone') + ' circles finished, ' + n('blockLost') + ' blocks lost, ' + n('sabotage') + ' sabotaged, ' + n('siteTaken') + ' sites taken over.'),
+    row('Salvage: ' + n('salvaged') + ' items fished out, ' + n('salvageSold') + ' sold to the yard. Fishing trips: ' + n('fishTrip') + '.'),
+    menuHead(secrets.length ? 'Secrets right now' : 'No secrets right now'), ...secrets.map(t => row(t))]);
+}
 let obsT = 0;
 function observe(dt) {
   obsT -= dt; if (obsT > 0) return; obsT = 1.5; ECON.trust = Math.min(0.9, ECON.trust + 0.0015 * 1.5);
@@ -5526,9 +5587,9 @@ function observe(dt) {
     if (simT - e.t > 25) continue;
     for (const p of people) {
       if (p.ride || p.state === 'rag' || e.seen.has(p.id) || p.trueRole === 'Courier' || p.trueRole === 'Smuggler') continue; const r = p.role; if (!(r === 'Fisher' || r === 'Photographer' || r === 'Tourist' || r === 'Hiker' || r === 'Lifeguard' || r === 'Dock worker' || r === 'Forester')) continue;
-      const d = Math.hypot(p.x - e.x, p.z - e.z); if (d > 55 * (r === 'Photographer' ? 1.3 : 1) || !los(p.x, p.z, p.y + 1.6, e.x, e.z, standY(e.x, e.z) + 1)) continue;
+      const d = Math.hypot(p.x - e.x, p.z - e.z); if (d > (p.informant ? 85 : 55 * (r === 'Photographer' ? 1.3 : 1)) || !los(p.x, p.z, p.y + 1.6, e.x, e.z, standY(e.x, e.z) + 1)) continue;
       e.seen.add(p.id); npcEv('witness'); if (e.boat && e.boat.disguise) e.boat.disguise.susp = Math.min(1, e.boat.disguise.susp + 0.25);
-      if (!p.pendingReport && (p.trueRole === 'Agent' || Math.random() < 0.35 + 0.65 * ECON.trust)) p.pendingReport = { e, at: simT + 8 + d / 1.4, fake: p.trueRole === 'Agent' };
+      if (!p.pendingReport && (p.informant || p.trueRole === 'Agent' || Math.random() < 0.35 + 0.65 * ECON.trust)) p.pendingReport = { e, at: simT + 8 + d / 1.4, fake: p.trueRole === 'Agent' };
     }
   }
   for (const p of people) if (p.pendingReport && simT >= p.pendingReport.at) {
@@ -5612,7 +5673,20 @@ function updateFleet(dt) {
   fleetT -= dt; if (fleetT > 0) return; const step = 1.2; fleetT = step;
   for (const bt of boats) {
     if (bt.sunk || bt.abandoned) continue; const me = bt.ai || (bt.ai = { mission: '', pause: 0, myOrder: null, wpT: 0 }), hostile = isHostile(bt), cg = isCG(bt) && !hostile;
-    if (!cg && !hostile) { me.mission = bt.ferry ? 'Ferrying visitors' : (bt.order ? 'Under way' : 'At anchor'); continue; }
+    if (bt.salvage) { salvageStep(bt, me, step); continue; }
+    if (!cg && !hostile) {
+      me.mission = bt.ferry ? 'Ferrying visitors' : (bt.order ? 'Under way' : 'At anchor');
+      if (prefs.life !== 'quiet' && bt.sp.kind === 'motor' && !bt.disguise && boatCrew(bt).length && !bt.ferry && !bt.rescue && !bt.sunk && !(mode === 'helm' && boats[activeIdx] === bt)) {
+        if (me.fish) {
+          if (bt.order && bt.order !== me.myOrder) me.fish = null;
+          else if (me.fish.stage === 'out' && !bt.order) { me.fish.stage = 'fish'; me.fish.t = 0; }
+          else if (me.fish.stage === 'fish') { me.fish.t += step; me.mission = 'Out fishing'; if (me.fish.t > 25 + (bt.id % 5) * 6) { me.fish.stage = 'back'; aiGo(bt, me.fish.home.x, me.fish.home.z, 9); } }
+          else if (me.fish.stage === 'back' && (!bt.order || Math.hypot(bt.body.position.x - me.fish.home.x, bt.body.position.z - me.fish.home.z) < 14)) { bt.order = null; bt.anchor = bt.body.position.clone(); bt.status = 'Anchored'; me.fish = null; me.sortT = rnd(80, 170); }
+          if (me.fish && me.fish.stage !== 'fish') me.mission = me.fish.stage === 'out' ? 'Heading out to fish' : 'Coming back from fishing';
+        } else if (!bt.order) { me.sortT = (me.sortT === undefined ? rnd(20, 70) : me.sortT) - step; if (me.sortT <= 0) { const cp = coastPoint(Math.random() * 6.283, -(34 + Math.random() * 40)); if (cp && heightAt(cp.x, cp.z) < -4) { me.fish = { stage: 'out', home: { x: bt.body.position.x, z: bt.body.position.z } }; aiGo(bt, cp.x, cp.z, 9); npcEv('fishTrip'); } else me.sortT = 5; } }
+      }
+      continue;
+    }
     if (cg && prefs.autoMissions === false) { me.mission = 'Waiting for orders'; continue; }
     if (!boatCrew(bt).length) { me.mission = 'No crew'; continue; }
     if (mode === 'helm' && boats[activeIdx] === bt) { me.mission = 'At the helm'; continue; }
@@ -5644,7 +5718,7 @@ function updateFleet(dt) {
   }
 }
 function openFleet() {
-  const rows = boats.map(bt => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); l.textContent = bt.sp.name + ' · ' + factionOf(bt); t.textContent = (bt.sunk ? 'Sinking' : (bt.ai && bt.ai.mission) || bt.status || 'At anchor') + (bt.hpMax ? ' · hull ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectBoat(bt); camFlyTo(bt.body.position.x, bt.body.position.z, Math.max(50, bt.sp.L * 4)); }); return b; });
+  const rows = boats.map(bt => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); l.textContent = bt.sp.name + ' · ' + factionOf(bt) + (bt.disguise ? ' · secretly a smuggler' : '') + (bt.salvage ? ' · salvage' : ''); t.textContent = (bt.sunk ? 'Sinking' : (bt.ai && bt.ai.mission) || bt.status || 'At anchor') + (bt.hpMax ? ' · hull ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectBoat(bt); camFlyTo(bt.body.position.x, bt.body.position.z, Math.max(50, bt.sp.L * 4)); }); return b; });
   openMenu([menuHead('Fleets and what they are doing · civilians trust the Coast Guard ' + Math.round(ECON.trust * 100) + '%'), ...rows]);
 }
 /* ---- v8: work sites. Markers you place to shape what people want to do. */
@@ -5733,10 +5807,22 @@ function quarrySpot(p) {                                       // loose rock rub
   for (let i = 8; i < TN - 8; i += 2) for (let j = 8; j < TN - 8; j += 2) { const k = i * TN + j; if (!(MET[k] > 0 && MET[k] <= 200) || HGT[k] - BED[k] < 0.45) continue; const x = G2W(j), z = G2W(i), d = (x - p.x) ** 2 + (z - p.z) ** 2; if (d < bd && safeSpot(x, z)) { bd = d; best = { x, z, k }; } }
   return best;
 }
+const BSLOTS = RING * COURSES;
+function nextSlot(st) { st.slots = st.slots || []; for (let i = 0; i < BSLOTS; i++) if (!st.slots[i]) return i; return -1; }
 function placeBlock(st, o) {
-  const sl = buildSlot(st, st.stage), gy = standY(sl.x, sl.z), sz = o.size, b = o.body;
+  const i = nextSlot(st); if (i < 0) return false; const sl = buildSlot(st, i), gy = standY(sl.x, sl.z), sz = o.size, b = o.body;
   b.position.set(sl.x, gy + (sl.course + 0.5) * sz.y + 0.02, sl.z); b.quaternion.setFromEuler(0, -(sl.ang + Math.PI / 2), 0); b.velocity.set(0, 0, 0); b.angularVelocity.set(0, 0, 0); settle(b);
-  o.placed = true; o.site = st; (st.blocks || (st.blocks = [])).push(o); st.stage++;
+  o.placed = true; o.site = st; o.slot = i; st.slots[i] = o; st.stage = st.slots.filter(Boolean).length; return true;
+}
+let siteT = 0;
+function siteTick(dt) {                                       // blocks that have been knocked, burned or crushed out of place free their slot again; neglected sites can be taken over
+  siteT -= dt; if (siteT > 0) return; siteT = 2;
+  for (const st of sites) { if (st.kind !== 'build') continue;
+    if (st.slots) { for (let i = 0; i < BSLOTS; i++) { const o = st.slots[i]; if (!o) continue; const sl = buildSlot(st, i), gone = o.gone || !objects.includes(o); if (gone || Math.hypot(o.body.position.x - sl.x, o.body.position.z - sl.z) > 1.5 || o.body.position.y > standY(sl.x, sl.z) + 2.6) { st.slots[i] = null; if (!gone) o.placed = false; npcEv('blockLost'); } }
+      st.stage = st.slots.filter(Boolean).length; if (st.done && st.stage < BSLOTS) { st.done = false; st.flag.material.color.setHex((st.owner || 'Port') === 'Developers' ? 0x3c5a8f : 0xe0883a); } }
+    let mine = 0, rival = 0; const own = st.owner || 'Port'; for (const p of people) { if (p.ride || p.state === 'rag' || Math.hypot(p.x - st.x, p.z - st.z) > 11) continue; const f = p.role === 'Developer' ? 'Developers' : p.role === 'Builder' ? 'Port' : null; if (f === own) mine++; else if (f) rival++; }
+    if (rival >= 2 && mine === 0 && !st.done) { st.contestT = (st.contestT || 0) + 2; if (st.contestT >= 20) { st.owner = own === 'Port' ? 'Developers' : 'Port'; st.contestT = 0; st.flag.material.color.setHex(st.owner === 'Developers' ? 0x3c5a8f : 0xe0883a); npcEv('siteTaken'); toast((st.owner === 'Developers' ? 'Rival developers' : 'The Port builders') + ' took over a neglected build site.'); } } else st.contestT = 0;
+  }
 }
 const agentStat = { photos: 0, crates: 0, fish: 0, helped: 0, ferried: 0, planted: 0, built: 0 }, poiVisits = {};
 let poiT = -99, poiList = [], peak = null;
@@ -5787,7 +5873,7 @@ function agentUnsafe(p) { const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p
 function think(p, ag) {
   const role = p.role;
   if (p.trueRole === 'Courier') { courierThink(p, ag); return; }
-  if (p.carry && p.role === 'Builder' && BLOCKS.has(p.carry.c.id)) { const st = sites.find(q => q.kind === 'build' && !q.done); if (st) { const sl = buildSlot(st, st.stage), ux = Math.cos(sl.ang), uz = Math.sin(sl.ang); ag.goal = { kind: 'deliver', x: sl.x + ux * 1.3, z: sl.z + uz * 1.3, site: st }; ag.intent = 'Carrying stone to the build site'; walkAgent(p, ag.goal.x, ag.goal.z); return; } }
+  if (p.carry && (p.role === 'Builder' || p.role === 'Developer') && BLOCKS.has(p.carry.c.id)) { const fac0 = p.role === 'Developer' ? 'Developers' : 'Port', st = sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === fac0); if (st) { const sl = buildSlot(st, Math.max(0, nextSlot(st))), ux = Math.cos(sl.ang), uz = Math.sin(sl.ang); ag.goal = { kind: 'deliver', x: sl.x + ux * 1.3, z: sl.z + uz * 1.3, site: st }; ag.intent = 'Carrying stone to the build site'; walkAgent(p, ag.goal.x, ag.goal.z); return; } }
   if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4, yard: y.site }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
   if (role === 'Dock worker') { const o = freeCrate(p); if (o) { const need = liftNeed(o); if (need === 1 || people.some(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30)) { o.claimed = p; o.claimT = simT; const team = [p]; if (need > 1) { const m = people.find(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30); if (m) team.push(m); } if (team.length >= need) { team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } }); ag.goal = { kind: 'haul', obj: o, t: 0 }; ag.intent = 'Going for the ' + o.c.name; return; } } } }
   if (role === 'Forester') {
@@ -5795,11 +5881,17 @@ function think(p, ag) {
     if (st) { for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = rnd(1.5, 8), x = st.x + Math.cos(a) * d, z = st.z + Math.sin(a) * d; if (safeSpot(x, z) && !trees.some(t => !t.dead && Math.hypot(t.x - x, t.z - z) < 2.4) && !props.some(q => Math.hypot(q.x - x, q.z - z) < 2.4)) { ag.goal = { kind: 'plant', x, z, site: st, t: 0 }; ag.intent = 'Going to plant a tree'; walkAgent(p, x, z); return; } } }
     const dead = trees.find(t => t.dead && t.regrowAt && Math.hypot(t.x - p.x, t.z - p.z) < 80 && safeSpot(t.x, t.z)); if (dead) { ag.goal = { kind: 'plant', x: dead.x, z: dead.z, tree: dead, t: 0 }; ag.intent = 'Going to replant a burned tree'; walkAgent(p, dead.x, dead.z); return; }
   }
-  if (role === 'Builder') {
-    let st = sites.find(q => q.kind === 'build' && !q.done);
-    if (!st && sites.length < 12 && LM.ready && freeBlocks().length >= 5) { const y = yardPt(p), sp = lmBest('build', y); if (sp) { st = addSite('build', sp.x, sp.z, { auto: true }); if (st) { toast('Stone has amassed: builders have started a stone circle on level ground.'); npcEv('autoBuildSite'); } } }
+  if (role === 'Builder' || role === 'Developer') {
+    const fac = role === 'Developer' ? 'Developers' : 'Port'; p.devT0 = p.devT0 || simT;
+    let st = sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === fac);
+    if (role === 'Developer' && Math.random() < 0.3) {                      // rivals will knock over a neglected block of the Port's circle, then walk off: nothing is hurt, and the Port builders put it back
+      const tgt = sites.find(q => q.kind === 'build' && (q.owner || 'Port') === 'Port' && q.slots && q.slots.some(Boolean) && !people.some(w => w.role === 'Builder' && !w.ride && Math.hypot(w.x - q.x, w.z - q.z) < 14));
+      if (tgt) { const sl = buildSlot(tgt, 0); ag.goal = { kind: 'sabotage', site: tgt, x: tgt.x + Math.cos(sl.ang + 1.1) * 3.6, z: tgt.z + Math.sin(sl.ang + 1.1) * 3.6, t: 0 }; ag.intent = 'Looking over the neighbours'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
+    }
+    if (role === 'Developer' && !st && simT - p.devT0 > 300) { const cp = coastPoint(Math.random() * 6.283, 3); if (cp) { ag.goal = { kind: 'depart', t: 0 }; ag.intent = 'Heading home'; walkAgent(p, cp.x, cp.z); return; } }
+    if (!st && sites.length < 12 && LM.ready && freeBlocks().length >= 5) { const y = yardPt(p), sp = lmBest('build', y); if (sp) { st = addSite('build', sp.x, sp.z, { auto: true, owner: fac }); if (st) { if (fac === 'Developers') st.flag.material.color.setHex(0x3c5a8f); toast(fac === 'Developers' ? 'Rival developers have started their own stone circle.' : 'Stone has amassed: builders have started a stone circle on level ground.'); npcEv(fac === 'Developers' ? 'devSite' : 'autoBuildSite'); } } }
     if (st) {
-      const o = freeBlock(p, st); if (o && startLift(p, o, 'Builder', { forSite: st })) return;
+      const o = freeBlock(p, st); if (o && startLift(p, o, role, { forSite: st })) return;
       const qs = !o && quarrySpot(p); if (qs) { ag.goal = { kind: 'quarry', x: qs.x, z: qs.z, k: qs.k, t: 0 }; ag.intent = 'Going to cut stone from the rubble'; walkAgent(p, qs.x, qs.z); return; }
       if (Math.hypot(p.x - st.x, p.z - st.z) > 9) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Waiting for building stone'; walkAgent(p, st.x + 4.2, st.z); return; }
       noteOnce('needstone', 'Builders need stone: put Stone blocks from the Cargo menu near a yard, or heap rock rubble for them to cut.'); ag.cool = 3; ag.intent = 'Waiting for building stone'; return;
@@ -5867,6 +5959,8 @@ function updateAgents(dt) {
     } else if (g.kind === 'stash') {
       if (!walking) { if (p.carry) { dropCarry(p); const ob = objects[objects.length - 1]; ob.contraband = true; ob.stashed = true; ECON.stashed++; npcEv('drumsStashed'); logEvent('stash', p.x, p.z); } ag.goal = null; ag.cool = 1; } else if (g.t > 70) ag.goal = null;
     } else if (g.kind === 'depart') { if (!walking || g.t > 80) { npcEv('courierLeft'); removePerson(p); continue; }
+    } else if (g.kind === 'sabotage') {
+      if (!walking) { const site = g.site, bl = site && site.slots && site.slots.filter(Boolean); if (bl && bl.length && bl.every(o => o && objects.includes(o))) { const o = bl[(Math.random() * bl.length) | 0], m = o.body.mass; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(rnd(-1, 1) * m * 1.6, m * 1.1, rnd(-1, 1) * m * 1.6), o.body.position); npcEv('sabotage'); noteOnce('sabotage', 'Rival developers knocked over a block of the Port circle. The builders will put it back.'); } ag.goal = null; ag.cool = 10; } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'quarry') {
       if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Cutting stone from the rubble'; if (g.work > 6) { const k = g.k, loose = HGT[k] - BED[k], vol = 0.25; if (loose >= 0.3) { HGT[k] -= vol / (CELL * CELL); slumpArm(k % TN, Math.floor(k / TN), 3); land.dirty = true; spawn(CARGO.find(c => c.id === 'stone'), g.x + rnd(-0.6, 0.6), standY(g.x, g.z) + 0.8, g.z + rnd(-0.6, 0.6)); npcEv('quarried'); } ag.goal = null; ag.cool = 0.5; } } else if (g.t > 60) ag.goal = null;
     } else if (g.kind === 'wall') {
@@ -5885,7 +5979,7 @@ function updateAgents(dt) {
   }
   for (const p of people) { const ag = p.ag; if (!ag) continue; if (ag.goal !== ag._g) { if (ag._g) npcStat(p.role, ag._g.kind, 'end'); if (ag.goal) npcStat(p.role, ag.goal.kind, 'start'); ag._g = ag.goal; } }
   for (const k in poiVisits) poiVisits[k] = Math.max(0, poiVisits[k] - dt / 90);                // places recover: a view is fresh again after a while
-  lmStep(); observe(dt);
+  lmStep(); observe(dt); siteTick(dt); lifeTick(dt);
   // a tourist that boarded a boat asks for a ride across
   for (const p of people) { const ag = p.ag; if (!ag || !p.ride || p.ride.boat.ferry || !ag.hailed) continue; }
 }
@@ -5897,7 +5991,7 @@ function stepFerry(p, ag, dt) {
   } else if (f.t > 60) { bt.ferry = null; ag.goal = null; }
 }
 function openPeople() {
-  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.planted ? ' · ' + st.planted + ' planted' : '', st.built ? ' · ' + st.built + ' built' : '', st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
+  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1) + (p.trueRole ? ' · secretly a ' + (p.trueRole === 'Agent' ? 'smuggler agent' : p.trueRole.toLowerCase()) : '') + (p.informant ? ' · informant' : ''); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.planted ? ' · ' + st.planted + ' planted' : '', st.built ? ' · ' + st.built + ' built' : '', st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
   openMenu([menuHead('People: ' + people.length + '. Photos taken ' + agentStat.photos + ', crates hauled ' + agentStat.crates + ', fish caught ' + agentStat.fish + ', people helped ' + agentStat.helped + ', trees planted ' + agentStat.planted + ', things built ' + agentStat.built), ...(rows.length ? rows : [menuHead('Nobody here yet. Place some people.')])]);
 }
 /* ---- plants grow back where it is wet and warm enough, starting as saplings */
@@ -6023,7 +6117,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
