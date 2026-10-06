@@ -1533,6 +1533,8 @@ function commitLand(full) {
 
 /* terraform history: one snapshot per stroke, so any digging can be taken back */
 const TRIES = [
+  ['sprout', 'Scatter seeds on moist earth and wait for them to sprout'],
+  ['pile', 'Pour scrap metal or rock and watch it heap up at its own angle'],
   ['slide', 'Dig out the foot of a sand or earth pile and watch it slide'],
   ['soak', 'Pour water on sand or earth and watch it soak in'],
   ['steam', 'Run lava into the sea or a pool: steam, cloud, then rain'],
@@ -1578,6 +1580,7 @@ const BUILD = [
   { cat: 'Elements', id: 'h-earth', name: 'Earth', note: 'hold to pour', hold: 'earth', sw: '#5c4129' },
   { cat: 'Elements', id: 'h-rock', name: 'Rock', note: 'hold to drop', hold: 'rock', sw: '#7a746c' },
   { cat: 'Elements', id: 'h-metal', name: 'Metal', note: 'conducts current', hold: 'metal', sw: '#9aa6b4' },
+  { cat: 'Elements', id: 'h-seed', name: 'Seeds', note: 'sprout when conditions are right', hold: 'seed', sw: '#9ac24a' },
   { cat: 'Boats', id: 'petrel', name: 'Petrel', note: 'dinghy', boat: 'petrel', sw: '#e9e3d6' },
   { cat: 'Boats', id: 'kestrel', name: 'Kestrel', note: 'keelboat', boat: 'kestrel', sw: '#23465c' },
   { cat: 'Boats', id: 'bollard', name: 'Bollard', note: 'tug', boat: 'bollard', sw: '#2c2f33' },
@@ -3549,7 +3552,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
-    bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), met: MET.slice(), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
+    bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), met: MET.slice(), seeds: seeds.map(o => ({ x: o.x, z: o.z, sp: o.sp, g: o.g })), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
     clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) }, devs: devices.map(d => ({ x: d.x, z: d.z, t: d.t, p: d.p, h: d.h, r: d.r })), sites: sites.map(q => ({ kind: q.kind, x: q.x, z: q.z, stage: q.stage, done: q.done })), ocean: ocean.lvl, oceanRef: ocean.ref,
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { imp: { ...wx.imp }, sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
@@ -3575,7 +3578,7 @@ async function loadWorld(slot) {
     clearSites(); for (const q of d.sites || []) { const st = addSite(q.kind, q.x, q.z, { stage: q.stage || 0, done: !!q.done }); if (st && st.done) st.flag.material.color.setHex(0x8a8f94); }
     clearDevices(); ocean.lvl = d.ocean || 0; ocean.ref = d.oceanRef === undefined ? null : d.oceanRef; for (const q of d.devs || []) addDevice(q);
     if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true;  }
-    matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; MET.fill(0); metN = 0; if (d.met) MET.set(d.met); for (let q = 0; q < TN * TN; q++) { hotData[q * 4 + 3] = MET[q]; if (MET[q]) metN++; } hotTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else if (o.kind === 'rock' || o.kind === 'metal') placePourSrc(o.kind, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
+    matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; MET.fill(0); metN = 0; if (d.met) MET.set(d.met); for (let q = 0; q < TN * TN; q++) { hotData[q * 4 + 3] = MET[q]; if (MET[q]) metN++; } hotTex.needsUpdate = true; seeds.length = 0; for (const o of d.seeds || []) { addSeed(o.x, o.z, o.sp, o.g); seeds[seeds.length - 1].y = 0; } if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else if (o.kind === 'rock' || o.kind === 'metal') placePourSrc(o.kind, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
     if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); if (d.bed) BED.set(d.bed); else for (let q = 0; q < BED.length; q++) BED[q] = Math.min(HGT0[q], HGT[q]);
     for (let q = 0; q < SIf.length; q++) { SIf[q] = HGT[q] < -0.05 ? snowData[q * 4 + 2] / 170 : 0; SM[q] = HGT[q] >= -0.05 ? snowData[q * 4 + 2] / 255 : 0; } soilWet = true; iceAny = true;
@@ -4253,7 +4256,7 @@ function addSource(x, z, k) {
   g.position.set(x, Math.max(standY(x, z), 0), z); scene.add(g); heatSrc.push({ x, z, r: 26, k, mesh: g });
 }
 /* ---- v8: hold to apply. Press and hold on the map and the chosen element pours out under your finger or pointer; drag to move it. A short tap gives one puff. */
-const hld = { on: false, x: 0, y: 0, t: 0, item: null, timer: 0, acc: 0 }, HOLD_COL = { heat: 0xe8541c, cold: 0x9fd8ff, water: 0x4a96cc, lightning: 0xe6ecff, spark: 0x8fd0ff, fire: 0xf08020, lava: 0xd8431b, sand: 0xd8c08a, earth: 0x8a6240, rock: 0x9a948a, metal: 0xaab6c4 };
+const hld = { on: false, x: 0, y: 0, t: 0, item: null, timer: 0, acc: 0 }, HOLD_COL = { heat: 0xe8541c, cold: 0x9fd8ff, water: 0x4a96cc, lightning: 0xe6ecff, spark: 0x8fd0ff, fire: 0xf08020, lava: 0xd8431b, sand: 0xd8c08a, earth: 0x8a6240, rock: 0x9a948a, metal: 0xaab6c4, seed: 0x9ac24a };
 function applyHold(kind, x, z, dt, held) {
   const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); if (gx < 4 || gz < 4 || gx > TN - 5 || gz > TN - 5) return; const gy = Math.max(heightAt(x, z), 0), k0 = gz * TN + gx, c = ((gz >> 2) * CN) + (gx >> 2), pw = Math.min(1, 0.25 + (held || 0) / 3), em = perf.k;
   if (kind === 'heat') { heatGT(x, z, 3.2, 300 + 1200 * pw); if (c >= 0 && c < CK) CT[c] = Math.min(160, CT[c] + 12 * dt); for (let n = 0; n < 3 * em; n++) fxG.emit(x + rnd(-1.5, 1.5), gy + 0.4, z + rnd(-1.5, 1.5), rnd(-0.4, 0.4), rnd(1.5, 3.5), rnd(-0.4, 0.4), rnd(0.5, 1), rnd(0.4, 0.8), 0.4, [1, rnd(0.35, 0.6), 0.08, 0.7], -1, 0.2); }
@@ -4273,6 +4276,7 @@ function applyHold(kind, x, z, dt, held) {
   }
   else if (kind === 'fire') { igniteTreesNear(x, z, 2.2); heatGT(x, z, 2, 540); for (let n = 0; n < 3 * em; n++) fxG.emit(x + rnd(-1, 1), gy + 0.3, z + rnd(-1, 1), rnd(-0.3, 0.3), rnd(1.5, 3), rnd(-0.3, 0.3), rnd(0.5, 0.9), rnd(0.4, 0.8), 0.3, [1, rnd(0.4, 0.7), 0.08, 0.8], -1, 0.2); if (Math.random() < dt * 5) puffSmoke(x, gy + 1.5, z, 1, true, 1); for (const bt of boats) if (!bt.sunk && Math.hypot(bt.body.position.x - x, bt.body.position.z - z) < bt.sp.L * 0.5 + 2 && bt.fire < 0.2) { bt.fire = 0.3; bt.fireT = rnd(25, 50); } }
   else if (kind === 'lava') { for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) addLava(gx + b, gz + a, 0.7 * dt * (a === 0 && b === 0 ? 1.6 : 0.8)); for (let n = 0; n < 2 * em; n++) fxG.emit(x + rnd(-0.4, 0.4), gy + 0.8, z + rnd(-0.4, 0.4), rnd(-1.5, 1.5), rnd(4, 8), rnd(-1.5, 1.5), rnd(0.6, 1), rnd(0.3, 0.6), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.9], 9.8, 0.05); }
+  else if (kind === 'seed') { hld.acc += dt * 7 * em; const n = Math.floor(hld.acc); hld.acc -= n; for (let e = 0; e < n; e++) addSeed(x + rnd(-2.4, 2.4), z + rnd(-2.4, 2.4)); noteOnce('seedtip', 'Seeds sprout only on moist, mild, bare ground with room to grow. Water, earth and warmth help.'); }
   else { hld.acc += dt * 60 * em; const n = Math.floor(hld.acc); hld.acc -= n; const kind2 = kind === 'sand' ? 1 : kind === 'earth' ? 3 : kind === 'rock' ? 4 : 5, vol = kind === 'metal' ? 0.03 : 0.02; for (let e = 0; e < n; e++) spawnGrain(x + rnd(-1.3, 1.3), gy + 8 + rnd(0, 3), z + rnd(-1.3, 1.3), rnd(-0.3, 0.3), 0, rnd(-0.3, 0.3), vol, kind2, 0.13 + Math.random() * 0.1); }
 }
 function updateHold(dt) {
@@ -4435,7 +4439,7 @@ function unflagMat(k) { if (!MET[k]) return; MET[k] = 0; metN--; hotData[k * 4 +
 function depositGrain(x, z, vol, kind) {
   const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4 || vol <= 0) return; const k = i * TN + j;
   HGT[k] = Math.min(34, HGT[k] + vol); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
-  if (kind === 4 || kind === 5) flagMat(k, kind === 5 ? 255 : 120);                                   // rock rubble and scrap metal pile up, then slump at their own angle
+  if (kind === 4 || kind === 5) { flagMat(k, kind === 5 ? 255 : 120); tried('pile'); }                                   // rock rubble and scrap metal pile up, then slump at their own angle
   slumpArm(j, i, 3); matTex.needsUpdate = true;
 }
 function spawnGrain(x, y, z, vx, vy, vz, vol, kind, size) {
@@ -4472,6 +4476,52 @@ function updateGrains(dt) {
 }
 function slideGrains(j, i, n, dir) { if (ng > GRN - 400) return; const k = i * TN + j; for (let c = 0; c < n; c++) spawnGrain(G2W(j) + rnd(-0.4, 0.4), HGT[k] + 0.15, G2W(i) + rnd(-0.4, 0.4), dir[0] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), rnd(0.3, 1.2), dir[1] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), 0, kindAt(k) || 4, 0.12 + Math.random() * 0.1); }
 function slumpArm(j, i, r) { sbx = boxTouch(sbx, j, i, r); sandQuiet = 0; matDirty = true; }
+/* ---- v8.5: seeds. A seed lies where it falls. It only sprouts when its patch of ground is right for its kind: moist soil, a tolerable air and ground temperature,
+   no snow, ice, lava, glass or scrap on it, a gentle slope and some room from other trees. Good conditions build up germination; bad ones build up rot. Trees drop seeds on the wind. */
+const SEEDMAX = 160, seeds = [], SEEDCOL = { pine: [0.3, 0.5, 0.28], broad: [0.62, 0.45, 0.2], palm: [0.85, 0.7, 0.3] }, SEEDT = { pine: [-6, 12, 24], broad: [4, 18, 32], palm: [16, 26, 40] };
+const seedMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 6, 5), new THREE.MeshStandardMaterial({ roughness: 0.8 }), SEEDMAX);
+seedMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(SEEDMAX * 3), 3); seedMesh.frustumCulled = false; seedMesh.count = 0; scene.add(seedMesh);
+function seedKind(x, z) { const T = airTempAt(x, z), h = heightAt(x, z); return T > 21 && h < 7 ? 'palm' : (T < 8 || h > 11) ? 'pine' : 'broad'; }
+function addSeed(x, z, sp, g) {
+  if (seeds.length >= Math.floor(SEEDMAX * Math.max(0.4, perf.k))) seeds.shift();
+  seeds.push({ x, z, y: Math.max(heightAt(x, z), 0) + 6 + Math.random() * 4, vy: 0, sp: sp || seedKind(x, z), g: g || 0, bad: 0, why: '' });
+}
+function seedSuit(sd) {                                              // 0..1 how good this patch of ground is for this seed
+  const j = Math.round(W2G(sd.x)), i = Math.round(W2G(sd.z)); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4) { sd.why = 'off the map'; return 0; } const k = i * TN + j, h = HGT[k];
+  if (h < 0.35) { sd.why = 'in water'; return 0; } if (LV[k] > 0.02 || GT[k] > 60) { sd.why = 'too hot'; return 0; }
+  if (matData[k * 4] > 0 || MET[k]) { sd.why = 'on glass, rock rubble or metal'; return 0; }
+  if (snowData[k * 4] > 25 || snowData[k * 4 + 1] > 25) { sd.why = 'under snow or ice'; return 0; }
+  const T = airTempAt(sd.x, sd.z) - 0, r = SEEDT[sd.sp]; if (T < r[0] || T > r[2]) { sd.why = T < r[0] ? 'too cold' : 'too hot'; return 0; }
+  const tf = T < r[1] ? (T - r[0]) / (r[1] - r[0]) : 1 - 0.6 * (T - r[1]) / (r[2] - r[1]);
+  const wet = SM[k] + (WD[k] > 0.02 ? 0.4 : 0); if (wet < 0.18) { sd.why = 'too dry'; return 0; }
+  const slope = Math.max(Math.abs(HGT[k + 1] - HGT[k - 1]), Math.abs(HGT[k + TN] - HGT[k - TN])) / (2 * CELL); if (slope > 0.8) { sd.why = 'too steep'; return 0; }
+  const soil = matData[k * 4 + 1] ? 0.35 : matData[k * 4 + 3] ? 1 : 0.7;                                // sand is poor soil, earth is best
+  sd.why = ''; return Math.max(0.05, Math.min(1, tf) * Math.min(1, wet * 1.6) * soil);
+}
+let seedAcc = 0, seedI = 0, seedRotWarn = 0;
+function updateSeeds(dt) {
+  seedAcc += dt; if (trees.length && seeds.length < SEEDMAX * 0.5 && Math.random() < dt * Math.min(0.4, trees.length / 900)) {          // wind-blown seed from a live tree
+    const t = trees[(Math.random() * trees.length) | 0]; if (t && !t.dead && t.burn <= 0) { const a = Math.random() * 6.283, d = 3 + Math.random() * 12 * CELL; addSeed(t.x + Math.cos(a) * d + wind.v.x * 1.5, t.z + Math.sin(a) * d + wind.v.z * 1.5); seeds[seeds.length - 1].y = heightAt(t.x, t.z) + 7; }
+  }
+  for (let q = seeds.length - 1; q >= 0; q--) {
+    const sd = seeds[q], gh = Math.max(heightAt(sd.x, sd.z), -0.2);
+    if (sd.y > gh + 0.1) { sd.vy = Math.min(sd.vy + 9.8 * dt * 0.3, 6); sd.y -= sd.vy * dt; sd.x += wind.v.x * dt * 0.3; sd.z += wind.v.z * dt * 0.3; if (sd.y <= gh + 0.1) { sd.y = gh + 0.1; sd.vy = 0; } continue; }
+    if (((q + seedI) & 3) !== 0) continue; const tt = dt * 4;                                                                       // each seed checked a few times a second
+    const suit = seedSuit(sd);
+    if (suit > 0) { sd.g += tt * suit; sd.bad = Math.max(0, sd.bad - tt * 0.5); } else { sd.bad += tt; if (sd.why === 'too hot' || sd.why === 'in water') sd.bad += tt * 2; }
+    if (sd.g > 28) {                                                                                                                // sprouts, if there is room
+      let crowded = false; for (const t of trees) if (!t.dead && Math.abs(t.x - sd.x) < 2.4 && Math.abs(t.z - sd.z) < 2.4) { crowded = true; break; }
+      if (!crowded) for (const p of props) if (p.item && p.item.land && Math.abs(p.mesh.position.x - sd.x) < 2.4 && Math.abs(p.mesh.position.z - sd.z) < 2.4) { crowded = true; break; }
+      if (!crowded && plantTree(sd.x, sd.z, sd.sp)) { seeds.splice(q, 1); noteOnce('sprout', 'A seed sprouted. The ground was moist and mild enough.'); tried('sprout'); continue; }
+      sd.g = 20; sd.bad += 20;
+    }
+    if (sd.bad > 150) { seeds.splice(q, 1); if (simT - seedRotWarn > 40) { seedRotWarn = simT; noteOnce('seedrot', 'A seed rotted: the ground was ' + (sd.why || 'crowded') + '.'); } }
+  }
+  seedI = (seedI + 1) & 3;
+  const arr = seedMesh.instanceMatrix.array, ca = seedMesh.instanceColor.array;
+  for (let i = 0; i < seeds.length; i++) { const sd = seeds[i], o = i * 16, c = SEEDCOL[sd.sp]; arr[o] = 1; arr[o + 1] = 0; arr[o + 2] = 0; arr[o + 3] = 0; arr[o + 4] = 0; arr[o + 5] = 1; arr[o + 6] = 0; arr[o + 7] = 0; arr[o + 8] = 0; arr[o + 9] = 0; arr[o + 10] = 1; arr[o + 11] = 0; arr[o + 12] = sd.x; arr[o + 13] = sd.y; arr[o + 14] = sd.z; arr[o + 15] = 1; ca[i * 3] = c[0]; ca[i * 3 + 1] = c[1]; ca[i * 3 + 2] = c[2]; }
+  seedMesh.count = seeds.length; seedMesh.instanceMatrix.needsUpdate = true; seedMesh.instanceColor.needsUpdate = true;
+}
 /* every loose cell (anything above the original bedrock) slides downhill once it is steeper than its angle of repose:
    dry sand about 35 degrees, earth steeper, plain fill steeper still, and wet ground sags at a gentler angle. Bedrock never moves. */
 function stepSand() {
@@ -4562,7 +4612,7 @@ function placeMaterial(item, p) {
     g.add(pole, tip); g.position.set(p.x, y, p.z); scene.add(g); rods.push({ x: p.x, z: p.z, mesh: g }); toast('Lightning rod: strikes aim for it.'); return;
   }
 }
-function clearMaterials() { MET.fill(0); metN = 0; for (let q = 0; q < TN * TN; q++) hotData[q * 4 + 3] = 0; hotTex.needsUpdate = true; ng = 0; grainQ.length = 0; for (const l of [sandSrc, rods, furnaces]) { for (const o of l) scene.remove(o.mesh); l.length = 0; } GT.fill(0); tbx = null; MH.fill(0); MOLT.fill(0); sbx = null; hbx = null; }
+function clearMaterials() { seeds.length = 0; MET.fill(0); metN = 0; for (let q = 0; q < TN * TN; q++) hotData[q * 4 + 3] = 0; hotTex.needsUpdate = true; ng = 0; grainQ.length = 0; for (const l of [sandSrc, rods, furnaces]) { for (const o of l) scene.remove(o.mesh); l.length = 0; } GT.fill(0); tbx = null; MH.fill(0); MOLT.fill(0); sbx = null; hbx = null; }
 
 /* ================================================================ v5.3: Calm all, Gentle mode, effect limits, restore */
 /* ---- sandbox settings, kept on this phone */
@@ -5196,7 +5246,7 @@ function updatePerf(dt) {                                                       
   const f = 1 / perf.ema; const want = f < 18 ? 0.35 : f < 26 ? 0.6 : 1; if (want < perf.k || (want > perf.k && f > 50)) { perf.k = want; grainMesh.count = Math.min(grainMesh.count, Math.floor(GRN * perf.k)); }
 }
 function updateTreeFire(dt) {
-  growProps(dt); updateDevices(dt); updatePerf(dt); updateHold(dt);
+  growProps(dt); updateSeeds(dt); updateDevices(dt); updatePerf(dt); updateHold(dt);
   for (let i = burning.length - 1; i >= 0; i--) {
     const t = burning[i]; t.burn -= dt * (wx.rainAmt > 0.3 ? 3 : 1); const gy = Math.max(heightAt(t.x, t.z), 0);
     if (Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5), t.z + rnd(-0.6, 0.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1.1), rnd(0.7, 1.4), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]);
@@ -5302,9 +5352,9 @@ function addSite(kind, x, z, extra) {
 }
 function removeSite(st) { scene.remove(st.mesh); const i = sites.indexOf(st); if (i >= 0) sites.splice(i, 1); }
 function clearSites() { for (const st of sites.slice()) removeSite(st); }
-function plantTree(x, z) {
+function plantTree(x, z, sp) {
   if (props.filter(p => p.item && p.item.land).length >= 70) return false;
-  const h = heightAt(x, z), id = h < 3.2 ? 'palm' : h > 11 ? 'pine' : Math.random() < 0.5 ? 'broad' : 'pine', item = BUILD.find(i => i.id === id); if (!item) return false;
+  const h = heightAt(x, z), id = sp || (h < 3.2 ? 'palm' : h > 11 ? 'pine' : Math.random() < 0.5 ? 'broad' : 'pine'), item = BUILD.find(i => i.id === id); if (!item) return false;
   quietToasts = true; try { place(item, { x, z }); } catch (e) { } quietToasts = false;
   const pr = props[props.length - 1]; if (!pr || pr.item !== item) return false; pr.sc0 = pr.mesh.scale.x; pr.mesh.scale.setScalar(pr.sc0 * 0.3); pr.grow = { t: 0 };
   const k = Math.round(W2G(z)) * TN + Math.round(W2G(x)); SM[k] = Math.max(SM[k], 0.4); soilWet = true; return true;
@@ -5579,7 +5629,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

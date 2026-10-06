@@ -98,3 +98,7 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Floating buttons follow the height of the bottom stack (no overlap on phones), visible Deselect button and chip, Esc deselects.
 - Fleets: Coast Guard missions (patrol, intercept raiders, defend attacked boats, fight boat fires, break ice), raiders hunt, smugglers run, Fleets sheet.
 - Work sites (plant, build, cargo yard, viewpoint), foresters plant and replant, builders raise stone circles and shore up the coast in storms.
+
+## v8.5 (large-map branch, not pushed)
+- Done: Big ships menu; shared material table (density, heat capacity, conduction, repose, sink rate); rock and scrap metal pile and slump; rock/scrap fountains; seeds (hold-to-scatter, wind dispersal from trees, germinate only on moist mild bare ground, rot otherwise).
+- Next: whole-game physics audit (water and energy conservation, buoyancy vs displaced mass, CELL scaling on the large map); seed species by rainfall; grass and crops.
