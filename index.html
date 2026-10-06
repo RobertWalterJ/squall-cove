@@ -387,6 +387,21 @@ function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'
 /* ================================================================ waves (one function for GPU and physics) */
 const WAVES = [[0.20, 0.98, 0.16, 1.00, 0.0], [-0.60, 0.80, 0.27, 0.55, 1.3], [0.71, 0.70, 0.45, 0.30, 2.1], [0.10, 0.995, 0.90, 0.12, 0.7]];
 const sea = { amp: 0.25 };
+/* v8.5: a sea that answers to the wind. Four components keep their shapes from the old table, but the whole set now heads the way the wind blows (it turns slowly, as a swell does), its wavelength grows with wind speed
+   (wavelength goes as the square of the speed: the old table was the 6 m/s sea), strong wind lines the components up and builds the short chop, and each component's phase is accumulated so nothing jumps when the wind changes.
+   Crests are sharpened with a second harmonic (peaked crests, flat troughs). Near shore the waves lose height as the water shoals, and the orbital motion fades with depth. */
+const WS = WAVES.map(w => ({ off: Math.atan2(w[1], w[0]) - Math.atan2(WAVES[0][1], WAVES[0][0]), km: w[2] / WAVES[0][2], a0: w[3], a: w[3], ph: w[4], dx: w[0], dz: w[1], k: w[2] }));
+const swell = { ang: -Math.PI / 2, k: 0.16, U: 6.2 };
+const waveU = { uWv: { value: WS.map(() => new THREE.Vector4()) }, uWph: { value: new THREE.Vector4() } };
+const smooth01 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const shoal = (x, z) => 0.12 + 0.88 * smooth01(0, 2.4, -heightAt(x, z));
+function advanceWaves(dt) {
+  const vx = wind.v.x, vz = wind.v.z, U0 = WIND_LEVELS[wind.level].ms; if (Math.hypot(vx, vz) > 0.2) { let da = Math.atan2(vz, vx) - swell.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); swell.ang += da * (1 - Math.exp(-dt / 45)); }
+  swell.U += (U0 - swell.U) * (1 - Math.exp(-dt / 70)); const U = swell.U, kT = Math.min(0.42, Math.max(0.07, 0.16 * (6.2 / Math.max(2.4, U)) ** 2));
+  swell.k += (kT - swell.k) * (1 - Math.exp(-dt / 90)); const spread = 1.25 - 0.55 * smooth01(3, 16, U), chop = smooth01(2, 14, U);
+  WS.forEach((w, i) => { const ang = swell.ang + w.off * spread; w.dx = Math.cos(ang); w.dz = Math.sin(ang); w.k = swell.k * w.km; w.ph += Math.sqrt(G * w.k) * dt; w.a = w.a0 * (i === 3 ? 0.3 + 0.9 * chop : i === 2 ? 0.7 + 0.5 * chop : 1); });
+}
+function syncWaveU() { WS.forEach((w, i) => waveU.uWv.value[i].set(w.dx, w.dz, w.k, w.a)); waveU.uWph.value.set(WS[0].ph, WS[1].ph, WS[2].ph, WS[3].ph); }
 let climHDirty = true;                              // set whenever the ground changes, so the air grid refreshes its heights
 const tWin = { x: 0, y: 0, z: 0 };                 // scratch: the wind at one place
 const surge = { level: 0 };
@@ -438,29 +453,29 @@ function stepRipples(dt) {
 const ripU = { tRip: { value: ripTex }, uRipO: { value: new THREE.Vector2() } };
 function waveH(x, z, t) {
   let h = 0;
-  for (const w of WAVES) h += w[3] * Math.sin(w[2] * (w[0] * x + w[1] * z) - Math.sqrt(G * w[2]) * t + w[4]);
-  h = h * sea.amp * (iceAny ? 1 - Math.min(1, seaIceAt(x, z) / 0.25) : 1) + surge.level + ripH(x, z);     // pack ice flattens the sea
+  for (const w of WS) { const th = w.k * (w.dx * x + w.dz * z) - w.ph; h += w.a * (Math.sin(th) - 0.22 * Math.cos(2 * th)); }
+  h = h * sea.amp * shoal(x, z) * (iceAny ? 1 - Math.min(1, seaIceAt(x, z) / 0.25) : 1) + surge.level + ripH(x, z);     // pack ice flattens the sea
   if (lakeWet > 0) { const d = lakeDepth(x, z); if (d > 0.05) return heightAt(x, z) + d + 0.012 * Math.sin(t * 2 + x * 1.3 + z * 0.9); }
   return h;
 }
 /** surface water-particle velocity (deep-water orbital motion), used to let floating things ride the waves */
 function waveVel(x, z, t, out) {
   if (lakeWet > 0 && lakeDepth(x, z) > 0.05) return out.set(0, 0, 0);
-  let u = 0, v = 0, w = 0;
-  for (const wv of WAVES) {
-    const om = Math.sqrt(G * wv[2]), ph = wv[2] * (wv[0] * x + wv[1] * z) - om * t + wv[4];
-    const a = wv[3] * sea.amp * om;
-    u += a * Math.sin(ph) * wv[0]; v += a * Math.sin(ph) * wv[1]; w += -a * Math.cos(ph);
+  let u = 0, v = 0, w = 0; const sh = shoal(x, z);
+  for (const wv of WS) {
+    const om = Math.sqrt(G * wv.k), ph = wv.k * (wv.dx * x + wv.dz * z) - wv.ph;
+    const a = wv.a * sea.amp * om * sh;
+    u += a * Math.sin(ph) * wv.dx; v += a * Math.sin(ph) * wv.dz; w += -a * Math.cos(ph);
   }
   out.set(u, w, v); return out;
 }
 const WAVE_GLSL = `
-uniform float uTime; uniform float uAmp;
+uniform float uTime; uniform float uAmp; uniform vec4 uWv[4]; uniform vec4 uWph;
 float waveH(vec2 p){ float h = 0.0;
-  ${WAVES.map(w => `h += ${w[3].toFixed(3)} * sin(${w[2].toFixed(3)} * dot(vec2(${w[0].toFixed(3)}, ${w[1].toFixed(3)}), p) - ${Math.sqrt(G * w[2]).toFixed(5)} * uTime + ${w[4].toFixed(3)});`).join('\n  ')}
+  for (int i = 0; i < 4; i++) { vec4 w = uWv[i]; float th = w.z * dot(w.xy, p) - uWph[i]; h += w.w * (sin(th) - 0.22 * cos(2.0 * th)); }
   return h * uAmp; }
 vec2 waveGrad(vec2 p){ vec2 g = vec2(0.0);
-  ${WAVES.map(w => `g += ${(w[3] * w[2]).toFixed(4)} * cos(${w[2].toFixed(3)} * dot(vec2(${w[0].toFixed(3)}, ${w[1].toFixed(3)}), p) - ${Math.sqrt(G * w[2]).toFixed(5)} * uTime + ${w[4].toFixed(3)}) * vec2(${w[0].toFixed(3)}, ${w[1].toFixed(3)});`).join('\n  ')}
+  for (int i = 0; i < 4; i++) { vec4 w = uWv[i]; float th = w.z * dot(w.xy, p) - uWph[i]; g += w.w * w.z * (cos(th) + 0.44 * sin(2.0 * th)) * w.xy; }
   return g * uAmp; }`;
 
 const RIP_GLSL = `
@@ -670,7 +685,7 @@ const canopyCanvas = document.createElement('canvas'); canopyCanvas.width = cano
 const canopyCtx = canopyCanvas.getContext('2d'); canopyCtx.fillStyle = '#000'; canopyCtx.fillRect(0, 0, CANOPY_N, CANOPY_N);
 const canopyTex = new THREE.CanvasTexture(canopyCanvas); canopyTex.colorSpace = THREE.NoColorSpace;
 
-const terrainU = { uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value: albArr }, tNrm: { value: nrmArr }, tOrh: { value: orhArr },
+const terrainU = { ...waveU, uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value: albArr }, tNrm: { value: nrmArr }, tOrh: { value: orhArr },
   tMacro: { value: macroTex }, tCanopy: { value: canopyTex } };
 const ashData = new Uint8Array(257 * 257), ashTex = new THREE.DataTexture(ashData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType);       // where volcanic ash and rock lie
 ashTex.minFilter = ashTex.magFilter = THREE.LinearFilter; ashTex.needsUpdate = true; terrainU.tAsh = { value: ashTex };
@@ -828,7 +843,7 @@ function updateWind(t) {
     : Math.PI + 0.35 * Math.sin(t * 0.013) + 0.15 * Math.sin(t * 0.051 + 2);                           // the cove's own offshore southerly, flowing toward -z
   wind.ms = L.ms * (1 + 0.2 * Math.sin(t * 0.21) * Math.sin(t * 0.077 + 1));
   wind.v.set(Math.sin(wind.ang) * wind.ms, 0, Math.cos(wind.ang) * wind.ms);
-  sea.amp += (L.amp - sea.amp) * 0.002;
+  sea.amp += (L.amp - sea.amp) * (1 - Math.exp(-(1 / 60) / (L.amp > sea.amp ? 45 : 22)));          // a sea takes a while to build and a while to go down
 }
 const beaufort = (kn) => { const t = [1, 4, 7, 11, 17, 22, 28, 34, 41, 48, 56, 64]; const i = t.findIndex(v => kn < v); return i < 0 ? 12 : i; };
 const bearing = (x, z) => ((Math.atan2(x, -z) * 180 / Math.PI) + 360) % 360;
@@ -1035,7 +1050,7 @@ function buildGrass() {
 
 /* ================================================================ water */
 const MAXFOAM = 32, MAXWAKE = 24;
-const waterU = { ...ripU, tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrainU.uAmp, tSky: { value: skyTex }, tH: { value: heightTex }, tN: { value: waterNTex },
+const waterU = { ...waveU, ...ripU, tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrainU.uAmp, tSky: { value: skyTex }, tH: { value: heightTex }, tN: { value: waterNTex },
   uSun: { value: sunDir }, uSunCol: { value: new THREE.Color(1.0, 0.85, 0.66) }, uWind: windU.uWind, uWindStr: windU.uWindStr, uBlow: windU.uBlow, uSkyTint: skyMat.uniforms.uTint,
   uFoam: { value: Array.from({ length: MAXFOAM }, () => new THREE.Vector4(0, 0, 0, 0)) },
   uWake: { value: Array.from({ length: MAXWAKE }, () => new THREE.Vector4(0, 0, 99, 0)) },
@@ -1043,9 +1058,11 @@ const waterU = { ...ripU, tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
   vertexShader: `${WAVE_GLSL}${RIP_GLSL}
-    varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow;
+    varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow, tH;
+    float terrH(vec2 p){ vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
+      return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz) * 2.6) * iv; vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1138,7 +1155,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
@@ -1165,22 +1182,22 @@ function makeFloater(body, o) {
 function applyBuoyancy(f, t, dt) {
   const b = f.body; let fsum = 0;
   if (b.sleepState === CANNON.Body.SLEEPING) {
-    if (waveH(b.position.x, b.position.z, t) > b.position.y - f.slab * 1.5 && heightAt(b.position.x, b.position.z) < b.position.y - 0.3) b.wakeUp(); else { f.wet = 0; return; }
+    if (Math.abs(waveH(b.position.x, b.position.z, t) - b.position.y) < f.slab * 2.5 + 0.4 && heightAt(b.position.x, b.position.z) < b.position.y - 0.3) b.wakeUp(); else { f.wet = 0; return; }          // only the surface reaching it wakes it: a sunk rock does not twitch under every wave
   }
   for (const lp of f.pts) {
     b.quaternion.vmult(lp, tR);
     const wx = b.position.x + tR.x, wy = b.position.y + tR.y, wz = b.position.z + tR.z;
-    const fr = clamp((waveH(wx, wz, t) - wy) / f.slab + 0.5, 0, 1);
+    const wsf = waveH(wx, wz, t), fr = clamp((wsf - wy) / f.slab + 0.5, 0, 1);
     if (fr <= 0) continue;
     fsum += fr;
     b.angularVelocity.cross(tR, tV); tV.vadd(b.velocity, tV);
-    waveVel(wx, wz, t, tWv);                                     // drag relative to the moving water, so things ride the swell
+    waveVel(wx, wz, t, tWv); { const att = wsf - wy > 10 ? 0 : Math.exp(-swell.k * Math.max(0, wsf - wy)); tWv.x *= att; tWv.y *= att; tWv.z *= att; }                                     // drag relative to the moving water, so things ride the swell, and the motion fades with depth
     const kk = (f.k ?? 1) * (1 - (f.list || 0) * Math.sign(lp.z) - (f.trim || 0) * Math.sign(lp.x));      // flooding, a list and a trim by the head weaken the lift
     tF.set(-f.kH * f.mi * fr * (tV.x - tWv.x), RHO_W * G * f.Vi * fr * kk - f.cv * fr * (tV.y - tWv.y), -f.kH * f.mi * fr * (tV.z - tWv.z));
     b.applyForce(tF, tR);
   }
   f.wet = fsum / f.pts.length;
-  if (f.wet > 0) { b.angularVelocity.scale(1 - Math.min(0.5, f.kA * f.wet * dt), b.angularVelocity); b.allowSleep = false; }
+  if (f.wet > 0) { b.angularVelocity.scale(1 - Math.min(0.5, f.kA * f.wet * dt), b.angularVelocity); b.allowSleep = (waveH(b.position.x, b.position.z, t) - b.position.y > f.slab * 2.5 + 0.4) && b.velocity.lengthSquared() < 0.02; }
   else b.allowSleep = true;
   windAt(b.position.x, b.position.z, tWin); const rx = tWin.x - b.velocity.x, rz = tWin.z - b.velocity.z, ry = -b.velocity.y, s = Math.hypot(rx, ry, rz);
   if (f.area > 0 && s > 0.01) {   // air drag on the dry part: wind push on the water, terminal velocity in the air
@@ -1515,7 +1532,7 @@ boats.forEach((b) => { b.anchor = b.body.position.clone(); });   // everyone sta
 let simT = 0;
 world.addEventListener('preStep', () => {
   const dt = world.dt || 1 / 60; simT += dt; const t = simT;
-  updateWind(t);
+  updateWind(t); advanceWaves(dt);
   for (const f of floaters) applyBuoyancy(f, t, dt);
   for (const bt of boats) { autopilot(bt, dt); boatForces(bt, isDriven(bt), dt); }
   for (const b of buoys) { const dx = b.body.position.x - b.anchor.x, dz = b.body.position.z - b.anchor.z; b.body.applyForce(F.set(-dx * 500, 0, -dz * 500), CANNON.Vec3.ZERO); }
@@ -3661,7 +3678,7 @@ function frame(now) {
   updateRings(t);
   if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size] * CELL); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
-  terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt;
+  terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt; syncWaveU();
   windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt); windU.uBlow.value += (clamp(wind.ms / 14, 0, 1) - windU.uBlow.value) * 0.05;
   grassU.uCam.value.set(focus.x, focus.z);
   grassU.uPatch.value = mode === 'god' ? clamp(god.dist * 0.7, 60, 140) : 60;
@@ -6117,7 +6134,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
