@@ -1622,6 +1622,7 @@ function brush(px, pz, dt) {
   land.dirty = true;
   land.x0 = Math.min(land.x0, px - R * CELL); land.x1 = Math.max(land.x1, px + R * CELL); land.z0 = Math.min(land.z0, pz - R * CELL); land.z1 = Math.max(land.z1, pz + R * CELL);
 }
+function lmDirtyMark() { LM.dirty = true; }
 function commitLand(full) {
   if (!land.dirty) return;
   climHDirty = true;
@@ -2334,7 +2335,7 @@ function dockBoat(bt, br) {
 const boatSettled = (bt, br) => Math.hypot(bt.body.velocity.x, bt.body.velocity.z) < 0.6 && Math.hypot(bt.body.position.x - br.C.x, bt.body.position.z - br.C.z) < Math.max(6, bt.sp.L * 0.25);
 
 /* ================================================================ people jobs: boarding, landing, picking up, carrying */
-const LIFT = { ball: 1, drum: 1, barrel: 2, crate: 4, ice: 4 };           // people needed; granite, ingots and containers are beyond what hands can do
+const LIFT = { ball: 1, drum: 1, barrel: 2, crate: 4, ice: 4, stone: 2, beam: 1, glass: 2 };           // people needed; granite, ingots and containers are beyond what hands can do
 const liftNeed = (o) => LIFT[o.c.id] ?? 99;
 function jitterNear(pt, i) { const a = i * 2.4, r = i ? 0.8 + 0.5 * Math.sqrt(i) : 0; return { x: pt.x + Math.cos(a) * r, z: pt.z + Math.sin(a) * r }; }
 function setFootOrder(p, x, z) {
@@ -5565,6 +5566,75 @@ function plantTree(x, z, sp) {
 function growProps(dt) { for (const pr of props) if (pr.grow) { pr.grow.t += dt; const u = Math.min(1, pr.grow.t / 120); pr.mesh.scale.setScalar(pr.sc0 * (0.3 + 0.7 * u)); if (u >= 1) pr.grow = null; } }
 /* ---- v8: people with objectives. Every person has a job and picks their own goals: tourists and photographers look for the best view, dock workers haul loose cargo to the yard, fishers fish, hikers climb, medics and firefighters help,
    lifeguards watch the water. What you put on the map shapes what they want to do; goals are checked every moment and dropped or replaced when the world changes under them. */
+/* ---- v8.5 NPC engine. Land map: a coarse 64 x 64 analysis of the terrain (slope, prominence, view extent, shore distance, flatness) that tells people where the good lookouts, cargo yards and
+   building sites actually are. It is rebuilt a slice at a time after the ground changes, so a new hill, a pile of rubble or a flood changes what people want. */
+const LM = { n: 64, step: 4, view: new Float32Array(64 * 64), prom: new Float32Array(64 * 64), slope: new Float32Array(64 * 64), shore: new Float32Array(64 * 64), h: new Float32Array(64 * 64), row: 0, dirty: true, ready: false, T: -99 };
+function lmRow(i) {
+  const N = LM.n, st = LM.step, gi = i * st + 2;
+  for (let j = 0; j < N; j++) {
+    const gj = j * st + 2, k = gi * TN + gj, h = HGT[k], c = i * N + j; LM.h[c] = h;
+    if (h < 0.3 || gj < 8 || gi < 8 || gj > TN - 9 || gi > TN - 9) { LM.view[c] = 0; LM.prom[c] = 0; LM.slope[c] = 9; LM.shore[c] = 0; continue; }
+    let sl = 0, mean = 0, nm = 0; for (let a = 0; a < 8; a++) { const ang = a * 0.785, dj = Math.round(Math.cos(ang) * 3), di = Math.round(Math.sin(ang) * 3); sl = Math.max(sl, Math.abs(HGT[k + di * TN + dj] - h) / (3 * CELL)); const dj2 = Math.round(Math.cos(ang) * 8), di2 = Math.round(Math.sin(ang) * 8); const q = HGT[k + di2 * TN + dj2]; mean += q; nm++; }
+    LM.slope[c] = sl; LM.prom[c] = h - mean / nm;
+    let seen = 0, tot = 0, wet = 0, shore = 99; const eye = h + 1.7;
+    for (let a = 0; a < 12; a++) { const ang = a * 0.5236, ux = Math.cos(ang), uz = Math.sin(ang); let maxA = -9;
+      for (let r = 1; r <= 22; r++) { const jj = Math.round(gj + ux * r * 2), ii = Math.round(gi + uz * r * 2); if (jj < 2 || ii < 2 || jj > TN - 3 || ii > TN - 3) break; const hh = HGT[ii * TN + jj], ang2 = (hh - eye) / (r * 2 * CELL); tot++; if (hh < 0.2 && shore === 99) shore = r * 2 * CELL; if (ang2 >= maxA) { maxA = ang2; seen++; if (hh < 0.2) wet++; } } }
+    LM.view[c] = tot ? seen / tot * (0.6 + 0.8 * wet / Math.max(1, seen)) : 0; LM.shore[c] = shore;
+  }
+}
+function lmStep() {
+  if (LM.ready && !LM.work && (simT - LM.T > 45 || (land.lastEdit || 0) > LM.T + 2)) { LM.dirty = true; LM.yardAuto = null; }                                         // a few rows a frame
+  if (!LM.ready) { for (let i = 0; i < LM.n; i++) lmRow(i); LM.ready = true; LM.dirty = false; LM.T = simT; return; }
+  if (LM.dirty) { LM.row = 0; LM.dirty = false; LM.work = true; }
+  if (LM.work) { for (let q = 0; q < 4 && LM.row < LM.n; q++) lmRow(LM.row++); if (LM.row >= LM.n) { LM.work = false; LM.T = simT; LM.lookouts = null; } }
+}
+function lmLookouts() {                                      // the best places to stand and look, well apart from each other
+  if (LM.lookouts) return LM.lookouts; const N = LM.n, c = [];
+  for (let i = 2; i < N - 2; i++) for (let j = 2; j < N - 2; j++) { const k = i * N + j; if (LM.h[k] < 1.5 || LM.slope[k] > 0.9 || LM.prom[k] < 1.2) continue; c.push({ k, sc: Math.min(1.6, LM.prom[k] / 8) * (0.35 + LM.view[k]) }); }
+  c.sort((a, b) => b.sc - a.sc); const out = [];
+  for (const q of c) { const x = G2W((q.k % N) * LM.step + 2), z = G2W(Math.floor(q.k / N) * LM.step + 2); if (out.every(o => Math.hypot(o.x - x, o.z - z) > 26 * CELL)) out.push({ x, z, sc: q.sc, h: LM.h[q.k] }); if (out.length >= 4) break; }
+  return LM.lookouts = out;
+}
+function lmBest(kind, near) {                                // kind 'yard': flat ground a short walk from the water; 'build': flat, firm ground with room
+  const N = LM.n; let best = null, bs = -1e9;
+  for (let i = 2; i < N - 2; i++) for (let j = 2; j < N - 2; j++) {
+    const k = i * N + j, h = LM.h[k]; if (h < 0.9 || h > 7 || LM.slope[k] > (kind === 'yard' ? 0.12 : 0.07)) continue; const x = G2W(j * LM.step + 2), z = G2W(i * LM.step + 2);
+    const gk = (i * LM.step + 2) * TN + j * LM.step + 2; if (GT[gk] > 60 || WD[gk] > 0.1 || LV[gk] > 0.01 || matData[gk * 4] > 0) continue; if (sites.some(q => Math.hypot(q.x - x, q.z - z) < 14 * CELL)) continue;
+    const sh = LM.shore[k]; let sc;
+    if (kind === 'yard') { if (sh < 3 || sh > 24 * CELL) continue; sc = 10 - Math.abs(sh - 8 * CELL) * 0.3 - LM.slope[k] * 40; if (pierInfo) sc -= Math.hypot(x - pierInfo.c.x, z - pierInfo.c.z) * 0.04; }
+    else { if (sh < 10 * CELL) continue; sc = 8 - LM.slope[k] * 40 - (near ? Math.hypot(x - near.x, z - near.z) * 0.05 : 0); }
+    if (sc > bs) { bs = sc; best = { x, z, sc }; }
+  }
+  return best;
+}
+const NPC = { goals: {}, ev: {}, T0: 0 };
+function npcStat(role, kind, what) { const o = NPC.goals[role + '|' + kind] || (NPC.goals[role + '|' + kind] = { start: 0, end: 0 }); o[what]++; }
+function npcEv(k, n = 1) { NPC.ev[k] = (NPC.ev[k] || 0) + n; }
+const BLOCKS = new Set(['stone']), RING = 9, COURSES = 2;
+const buildSlot = (st, i) => { const course = Math.floor(i / RING), idx = i % RING, ang = idx / RING * 6.283 + course * (Math.PI / RING), r = 2.3; return { x: st.x + Math.cos(ang) * r, z: st.z + Math.sin(ang) * r, ang, course }; };
+function freeBlocks() { return objects.filter(o => BLOCKS.has(o.c.id) && !o.placed && !o.gone); }
+function freeBlock(p, st) {
+  let best = null, bd = 1e9;
+  for (const o of freeBlocks()) { if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (standY(op.x, op.z) < 0.3 || Math.abs(op.y - standY(op.x, op.z)) > 1.6 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 0.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 110 && safeSpot(op.x, op.z)) { bd = d; best = o; } }
+  return best;
+}
+function startLift(p, o, role, goalExtra) {                    // the same team-lift the dock workers use, for any role
+  const need = liftNeed(o); const mates = need > 1 ? people.filter(q => q !== p && q.role === role && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 36) : [];
+  if (need > 1 && mates.length < need - 1) return false; const team = [p, ...mates.slice(0, need - 1)];
+  o.claimed = p; o.claimT = simT;
+  team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } });
+  p.ag.goal = { kind: 'haul', obj: o, t: 0, ...(goalExtra || {}) }; p.ag.intent = 'Going for the ' + o.c.name; return true;
+}
+function quarrySpot(p) {                                       // loose rock rubble heaped up by the sandbox is something builders can cut stone from
+  let best = null, bd = 70 * 70;
+  for (let i = 8; i < TN - 8; i += 2) for (let j = 8; j < TN - 8; j += 2) { const k = i * TN + j; if (!(MET[k] > 0 && MET[k] <= 200) || HGT[k] - BED[k] < 0.45) continue; const x = G2W(j), z = G2W(i), d = (x - p.x) ** 2 + (z - p.z) ** 2; if (d < bd && safeSpot(x, z)) { bd = d; best = { x, z, k }; } }
+  return best;
+}
+function placeBlock(st, o) {
+  const sl = buildSlot(st, st.stage), gy = standY(sl.x, sl.z), sz = o.size, b = o.body;
+  b.position.set(sl.x, gy + (sl.course + 0.5) * sz.y + 0.02, sl.z); b.quaternion.setFromEuler(0, -(sl.ang + Math.PI / 2), 0); b.velocity.set(0, 0, 0); b.angularVelocity.set(0, 0, 0); settle(b);
+  o.placed = true; o.site = st; (st.blocks || (st.blocks = [])).push(o); st.stage++;
+}
 const agentStat = { photos: 0, crates: 0, fish: 0, helped: 0, ferried: 0, planted: 0, built: 0 }, poiVisits = {};
 let poiT = -99, poiList = [], peak = null;
 const clipSeed = (n) => n;
@@ -5576,8 +5646,10 @@ function safeSpot(x, z) {
 function computePOIs() {
   const L = []; for (const m of LANDMARKS) L.push({ ...m });
   if (!peak || simT - (peak.t || 0) > 20) { let b = null; for (let i = 8; i < TN - 8; i += 3) for (let j = 8; j < TN - 8; j += 3) { const h = HGT[i * TN + j]; if (h > 3 && (!b || h > b.h)) b = { h, x: G2W(j), z: G2W(i) }; } peak = b ? { ...b, t: simT } : null; }
-  if (peak) L.push({ id: 'summit', name: 'the summit', x: peak.x, z: peak.z, appeal: 4, far: 7 });
-  sites.forEach((st, i) => { if (st.kind === 'view') L.push({ id: 'site' + i, name: 'the viewpoint', x: st.x, z: st.z, appeal: 6.5, far: 7 }); });
+  const storm = dis.lastStrike && simT - dis.lastStrike.t < 120 ? 0.12 : wx.rainAmt > 0.6 ? 0.45 : 1;
+  if (peak) L.push({ id: 'summit', name: 'the summit', x: peak.x, z: peak.z, appeal: 4 * storm, far: 7 });
+  if (LM.ready) lmLookouts().forEach((o, i) => { if (peak && Math.hypot(o.x - peak.x, o.z - peak.z) < 20) return; L.push({ id: 'look' + i, name: 'a lookout over the cove', x: o.x, z: o.z, appeal: (2.4 + 4 * o.sc) * storm, far: 6, look: true }); });
+  sites.forEach((st, i) => { if (st.kind === 'view') L.push({ id: 'site' + i, name: 'the viewpoint', x: st.x, z: st.z, appeal: 6.5 * storm, far: 7 }); });
   if (pierInfo) L.push({ id: 'pier', name: 'the pier', x: pierInfo.end.x, z: pierInfo.end.z, appeal: 2, far: 10 });
   if (lavaOn) { let sx = 0, sz = 0, n = 0; for (let i = lbx.z0; i <= lbx.z1; i += 2) for (let j = lbx.x0; j <= lbx.x1; j += 2) if (LV[i * TN + j] > 0.05) { sx += G2W(j); sz += G2W(i); n++; } if (n) L.push({ id: 'lava', name: 'the lava', x: sx / n, z: sz / n, appeal: 8, far: 20 }); }
   if (burning.length > 2) { let sx = 0, sz = 0; for (const t of burning) { sx += t.x; sz += t.z; } L.push({ id: 'fire', name: 'the fire', x: sx / burning.length, z: sz / burning.length, appeal: 5, far: 22 }); }
@@ -5603,15 +5675,16 @@ function pickPOI(p, ag) {
 }
 function freeCrate(p) {
   const yard = yardPt(p); let best = null, bd = 1e9;
-  for (const o of objects) { if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (liftNeed(o) > 2 || standY(op.x, op.z) < 0.3 || Math.abs(op.y - standY(op.x, op.z)) > 1.6) continue; if (Math.hypot(op.x - yard.x, op.z - yard.z) < 6 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 0.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 90 && safeSpot(op.x, op.z)) { bd = d; best = o; } }
+  for (const o of objects) { if (o.placed || (BLOCKS.has(o.c.id) && sites.some(q => q.kind === 'build' && !q.done && Math.hypot(q.x - o.body.position.x, q.z - o.body.position.z) < 16))) continue; if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (liftNeed(o) > 2 || standY(op.x, op.z) < 0.3 || Math.abs(op.y - standY(op.x, op.z)) > 1.6) continue; if (Math.hypot(op.x - yard.x, op.z - yard.z) < 6 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 0.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 90 && safeSpot(op.x, op.z)) { bd = d; best = o; } }
   return best;
 }
-function yardPt(p) { let best = null, bd = 1e9; for (const st of sites) if (st.kind === 'yard') { const d = p ? Math.hypot(st.x - p.x, st.z - p.z) : 0; if (d < bd) { bd = d; best = st; } } if (best) return { x: best.x, z: best.z }; if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
+function yardPt(p) { let best = null, bd = 1e9; for (const st of sites) if (st.kind === 'yard') { const d = p ? Math.hypot(st.x - p.x, st.z - p.z) : 0; if (d < bd) { bd = d; best = st; } } if (best) return { x: best.x, z: best.z, site: best }; if (LM.ready && !LM.yardAuto) LM.yardAuto = lmBest('yard'); if (LM.yardAuto) return { x: LM.yardAuto.x, z: LM.yardAuto.z }; if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
 let yardN = 0;
 function agentUnsafe(p) { const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); for (let a = -4; a <= 4; a += 2) for (let b = -4; b <= 4; b += 2) if (LV[k + a * TN + b] > 0.01 || GT[k + a * TN + b] > 330) return { dx: -b, dz: -a }; for (const t of burning) if (Math.hypot(t.x - p.x, t.z - p.z) < 7) return { dx: p.x - t.x, dz: p.z - t.z }; return null; }
 function think(p, ag) {
   const role = p.role;
-  if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4 }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
+  if (p.carry && p.role === 'Builder' && BLOCKS.has(p.carry.c.id)) { const st = sites.find(q => q.kind === 'build' && !q.done); if (st) { const sl = buildSlot(st, st.stage), ux = Math.cos(sl.ang), uz = Math.sin(sl.ang); ag.goal = { kind: 'deliver', x: sl.x + ux * 1.3, z: sl.z + uz * 1.3, site: st }; ag.intent = 'Carrying stone to the build site'; walkAgent(p, ag.goal.x, ag.goal.z); return; } }
+  if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4, yard: y.site }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
   if (role === 'Dock worker') { const o = freeCrate(p); if (o) { const need = liftNeed(o); if (need === 1 || people.some(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30)) { o.claimed = p; o.claimT = simT; const team = [p]; if (need > 1) { const m = people.find(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30); if (m) team.push(m); } if (team.length >= need) { team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } }); ag.goal = { kind: 'haul', obj: o, t: 0 }; ag.intent = 'Going for the ' + o.c.name; return; } } } }
   if (role === 'Forester') {
     const st = sites.find(q => q.kind === 'plant' && q.planted < 10);
@@ -5619,15 +5692,21 @@ function think(p, ag) {
     const dead = trees.find(t => t.dead && t.regrowAt && Math.hypot(t.x - p.x, t.z - p.z) < 80 && safeSpot(t.x, t.z)); if (dead) { ag.goal = { kind: 'plant', x: dead.x, z: dead.z, tree: dead, t: 0 }; ag.intent = 'Going to replant a burned tree'; walkAgent(p, dead.x, dead.z); return; }
   }
   if (role === 'Builder') {
-    const st = sites.find(q => q.kind === 'build' && !q.done);
-    if (st) { ag.goal = { kind: 'build', site: st, t: 0, x: st.x + 2.8, z: st.z }; ag.intent = 'Going to the build site'; walkAgent(p, st.x + 2.8, st.z); return; }
+    let st = sites.find(q => q.kind === 'build' && !q.done);
+    if (!st && sites.length < 12 && LM.ready && freeBlocks().length >= 5) { const y = yardPt(p), sp = lmBest('build', y); if (sp) { st = addSite('build', sp.x, sp.z, { auto: true }); if (st) { toast('Stone has amassed: builders have started a stone circle on level ground.'); npcEv('autoBuildSite'); } } }
+    if (st) {
+      const o = freeBlock(p, st); if (o && startLift(p, o, 'Builder', { forSite: st })) return;
+      const qs = !o && quarrySpot(p); if (qs) { ag.goal = { kind: 'quarry', x: qs.x, z: qs.z, k: qs.k, t: 0 }; ag.intent = 'Going to cut stone from the rubble'; walkAgent(p, qs.x, qs.z); return; }
+      if (Math.hypot(p.x - st.x, p.z - st.z) > 9) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Waiting for building stone'; walkAgent(p, st.x + 4.2, st.z); return; }
+      noteOnce('needstone', 'Builders need stone: put Stone blocks from the Cargo menu near a yard, or heap rock rubble for them to cut.'); ag.cool = 3; ag.intent = 'Waiting for building stone'; return;
+    }
     if (surge.level > 0.6 || (dis.deluge || 0) > 0 || dis.hurricane > 0) { for (let n = 0; n < 16; n++) { const cp = coastPoint(Math.random() * 6.283, 3); if (cp && heightAt(cp.x, cp.z) < 1.6 && safeSpot(cp.x, cp.z)) { ag.goal = { kind: 'wall', x: cp.x, z: cp.z, t: 0 }; ag.intent = 'Going to shore up the coast'; walkAgent(p, cp.x, cp.z); return; } } }
   }
   if (role === 'Medic') { let best = null, bd = 50; for (const q of people) { if (q === p || q.ride || q.fp || q.swim) continue; if (!(q.state === 'rag' || q.frozen || (q.cold || 0) > 0.6 || (q.heat || 0) > 0.8)) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { best = q; bd = d; } } if (best) { ag.goal = { kind: 'heal', who: best }; ag.intent = 'Going to help someone'; walkAgent(p, best.x, best.z); return; } }
   if (role === 'Firefighter') { let best = null, bd = 45; for (const t of burning) { const d = Math.hypot(t.x - p.x, t.z - p.z); if (d < bd) { best = t; bd = d; } } if (best) { ag.goal = { kind: 'extinguish', tree: best }; ag.intent = 'Heading for a fire'; walkAgent(p, best.x + (p.x - best.x) / Math.max(1, bd) * 2.5, best.z + (p.z - best.z) / Math.max(1, bd) * 2.5); return; } }
   if (role === 'Lifeguard') { const sw = people.find(q => !q.ride && (q.swim || (q.state === 'rag' && q.floating)) && Math.hypot(q.x - p.x, q.z - p.z) < 80); if (sw) { const bt = boats.find(b => !b.sunk && !b.abandoned && !b.raider && b.side !== 'hostile' && boatCrew(b).length && crewCount(b) < (b.sp.capacity || 4) && !b.rescue); if (bt) { bt.rescue = sw; orderTo(bt, sw.x, sw.z); bt.rescueOrder = bt.order; bt.status = 'Rescuing'; ag.goal = { kind: 'watch', t: 8 }; ag.intent = 'Signalling the ' + bt.sp.name + ' to a swimmer'; agentStat.helped++; return; } } }
   if (role === 'Fisher' || role === 'Lifeguard') { for (let n = 0; n < 16; n++) { const a = Math.random() * 6.283, cp = coastPoint(a, 3); if (cp && safeSpot(cp.x, cp.z) && heightAt(cp.x + Math.cos(a) * 5, cp.z + Math.sin(a) * 5) < -0.6) { ag.goal = { kind: 'fish', guard: role === 'Lifeguard', x: cp.x, z: cp.z, face: a, t: 0, dur: rnd(14, 34) * (role === 'Lifeguard' ? 2 : 1) }; ag.intent = role === 'Lifeguard' ? 'Walking to a lookout' : 'Walking to a fishing spot'; walkAgent(p, cp.x, cp.z); return; } } }
-  if (role === 'Hiker' && peak && Math.random() < 0.7) { const a = Math.random() * 6.283, d = rnd(2, 9), x = peak.x + Math.cos(a) * d, z = peak.z + Math.sin(a) * d; if (safeSpot(x, z)) { ag.goal = { kind: 'hike', x, z, t: 0, dur: rnd(8, 16) }; ag.intent = 'Climbing to the summit'; walkAgent(p, x, z); return; } }
+  if (role === 'Hiker' && peak && Math.random() < 0.7 * (dis.lastStrike && simT - dis.lastStrike.t < 120 ? 0.1 : 1)) { const lk = LM.ready ? lmLookouts() : [], tgt = lk.length && Math.random() < 0.6 ? lk[(Math.random() * lk.length) | 0] : peak; const a = Math.random() * 6.283, d = rnd(2, 9), x = tgt.x + Math.cos(a) * d, z = tgt.z + Math.sin(a) * d; if (safeSpot(x, z)) { ag.goal = { kind: 'hike', x, z, t: 0, dur: rnd(8, 16) }; ag.intent = 'Climbing to the summit'; walkAgent(p, x, z); return; } }
   if (role === 'Tourist' && Math.random() < 0.2 && pierInfo) { const bt = boats.find(b => !b.sunk && !b.abandoned && !b.raider && b.side !== 'hostile' && boatCrew(b).length && crewCount(b) < (b.sp.capacity || 4) && !b.order && !b.rescue && !b.ferry); if (bt) { ag.goal = { kind: 'hail', bt, t: 0 }; ag.intent = 'Waiting for the ' + bt.sp.name; walkAgent(p, pierInfo.c.x - pierInfo.dir.x * 2, pierInfo.c.z - pierInfo.dir.z * 2); return; } }
   if (role === 'Tourist' || role === 'Photographer' || role === 'Hiker' || role === 'Scout') { const poi = pickPOI(p, ag), spot = poi && viewSpot(p, poi); if (poi && spot) { ag.goal = { kind: 'photo', poi, x: spot.x, z: spot.z, shots: 0, want: 2 + Math.floor(Math.random() * 4), t: 0, started: false }; ag.intent = 'Heading to see ' + poi.name; walkAgent(p, spot.x, spot.z); return; } }
   if (role === 'Dock worker' && (pierInfo || sites.length)) { const y = yardPt(p); if (Math.hypot(p.x - y.x, p.z - y.z) > 10 && safeSpot(y.x, y.z)) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Waiting for cargo at the yard'; walkAgent(p, y.x + rnd(-3, 3), y.z + rnd(-3, 3)); return; } }
@@ -5662,7 +5741,7 @@ function updateAgents(dt) {
         g.shotT = (g.shotT || rnd(1.2, 2.6)) - dt; if (g.shotT <= 0) { g.shotT = 0; g.shotT = rnd(2, 4.5); g.shots++; p.ag.stats.photos = (p.ag.stats.photos || 0) + 1; agentStat.photos++; poiVisits[poi.id] = (poiVisits[poi.id] || 0) + 0.25; fxG.emit(p.x + Math.sin(p.heading) * 0.35, p.y + 1.5, p.z + Math.cos(p.heading) * 0.35, 0, 0.1, 0, 0.14, 0.32, 0, [1, 1, 1, 0.9]); }
         if (g.shots >= g.want) { poiVisits[poi.id] = (poiVisits[poi.id] || 0) + 0.5; ag.bad[g.poi.id] = simT + 40; ag.goal = null; ag.cool = rnd(1, 4); }
       }
-    } else if (g.kind === 'deliver') { if (!walking) { if (p.carry) { dropCarry(p); agentStat.crates++; p.ag.stats.crates = (p.ag.stats.crates || 0) + 1; } ag.goal = null; ag.cool = rnd(0.5, 1.5); } }
+    } else if (g.kind === 'deliver') { if (!walking) { if (p.carry) { const cid = p.carry.c.id; dropCarry(p); if (g.yard) g.yard.stock = g.yard.stock || {}, g.yard.stock[cid] = (g.yard.stock[cid] || 0) + 1; if (g.site && g.site.kind === 'build' && !g.site.done) { const ob = objects[objects.length - 1]; if (ob && BLOCKS.has(ob.c.id)) { placeBlock(g.site, ob); npcEv('blockPlaced'); agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (g.site.stage >= RING * COURSES) { g.site.done = true; g.site.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle from ' + RING * COURSES + ' blocks.'); npcEv('buildDone'); } } } agentStat.crates++; p.ag.stats.crates = (p.ag.stats.crates || 0) + 1; } ag.goal = null; ag.cool = rnd(0.5, 1.5); } }
     else if (g.kind === 'haul') { if (!p.job && p.carry) { ag.goal = null; ag.think = 0; } else if (g.t > 40 || !objects.includes(g.obj) && !p.carry) { if (g.obj) g.obj.claimed = null; ag.goal = null; } else ag.intent = 'Picking up the ' + (g.obj && g.obj.c ? g.obj.c.name : 'cargo'); }
     else if (g.kind === 'help') { if (!p.job) ag.goal = null; }
     else if (g.kind === 'heal') {
@@ -5677,10 +5756,12 @@ function updateAgents(dt) {
       } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'build') {
       const st = g.site; if (!st || !sites.includes(st) || st.done) { ag.goal = null; continue; }
-      if (!walking) {
+      if (false) {
         g.work = (g.work || 0) + dt; ag.intent = 'Building a stone circle (' + st.stage + ' of 8)';
         if (g.work > 7) { g.work = 0; const a = st.stage / 8 * 6.283, x = st.x + Math.cos(a) * 3.2, z = st.z + Math.sin(a) * 3.2; if (safeSpot(x, z)) { quietToasts = true; try { place(BUILD.find(i => i.id === 'rockb'), { x, z }); } catch (e) { } quietToasts = false; } st.stage++; agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (st.stage >= 8) { st.done = true; st.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle.'); ag.goal = null; } else walkAgent(p, st.x + Math.cos(a + 0.8) * 4.4, st.z + Math.sin(a + 0.8) * 4.4); }
       } else if (g.t > 50) ag.goal = null;
+    } else if (g.kind === 'quarry') {
+      if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Cutting stone from the rubble'; if (g.work > 6) { const k = g.k, loose = HGT[k] - BED[k], vol = 0.25; if (loose >= 0.3) { HGT[k] -= vol / (CELL * CELL); slumpArm(k % TN, Math.floor(k / TN), 3); land.dirty = true; spawn(CARGO.find(c => c.id === 'stone'), g.x + rnd(-0.6, 0.6), standY(g.x, g.z) + 0.8, g.z + rnd(-0.6, 0.6)); npcEv('quarried'); } ag.goal = null; ag.cool = 0.5; } } else if (g.t > 60) ag.goal = null;
     } else if (g.kind === 'wall') {
       if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Piling rock to hold the shore'; if (Math.random() < dt * 14) spawnGrain(g.x + rnd(-1.4, 1.4), Math.max(heightAt(g.x, g.z), 0) + 7, g.z + rnd(-1.4, 1.4), 0, 0, 0, 0.03, 4, 0.22); if (g.work > 12) { agentStat.built = (agentStat.built || 0) + 1; ag.goal = null; ag.cool = 2; } } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'fish') { if (!walking) { if (!g.set) { g.set = true; g.t = 0; } p.heading = g.face + Math.PI / 2 * 0; p.heading = Math.atan2(Math.cos(g.face), Math.sin(g.face)); ag.intent = g.guard ? 'Watching the water' : 'Fishing (' + (p.ag.stats.fish || 0) + ' caught)'; if (!safeSpot(p.x, p.z)) { ag.goal = null; continue; } g.catchT = (g.catchT === undefined ? rnd(5, 12) : g.catchT) - dt; if (g.catchT <= 0) { g.catchT = rnd(6, 16); if (!g.guard && Math.random() < 0.6) { p.ag.stats.fish = (p.ag.stats.fish || 0) + 1; agentStat.fish++; splash(p.x + Math.cos(g.face) * 4.5, p.z + Math.sin(g.face) * 4.5, 0.5); } } if (g.t > g.dur) { ag.goal = null; ag.cool = rnd(1, 3); } } }
@@ -5695,6 +5776,9 @@ function updateAgents(dt) {
     if (g.kind !== 'photo' && !ag.goal) ag.cool = ag.cool || rnd(0.5, 2);
     if (g.kind === 'photo' && ag.goal && !g.started) ag.intent = 'Heading to see ' + g.poi.name;
   }
+  for (const p of people) { const ag = p.ag; if (!ag) continue; if (ag.goal !== ag._g) { if (ag._g) npcStat(p.role, ag._g.kind, 'end'); if (ag.goal) npcStat(p.role, ag.goal.kind, 'start'); ag._g = ag.goal; } }
+  for (const k in poiVisits) poiVisits[k] = Math.max(0, poiVisits[k] - dt / 90);                // places recover: a view is fresh again after a while
+  lmStep();
   // a tourist that boarded a boat asks for a ride across
   for (const p of people) { const ag = p.ag; if (!ag || !p.ride || p.ride.boat.ferry || !ag.hailed) continue; }
 }
@@ -5832,7 +5916,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
