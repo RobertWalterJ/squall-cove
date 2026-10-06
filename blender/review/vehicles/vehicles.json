@@ -1,0 +1,1890 @@
+{
+ "ambulance": {
+  "root": "ambulance",
+  "size": {
+   "length": 6.0,
+   "width": 2.51,
+   "height": 2.8
+  },
+  "bounds": {
+   "min": [
+    -3.019,
+    -1.255,
+    0.0
+   ],
+   "max": [
+    2.981,
+    1.255,
+    2.8
+   ]
+  },
+  "tris": 1104,
+  "nodes": [
+   {
+    "name": "ambulance_body",
+    "parent": "ambulance",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 640,
+    "dims": [
+     6.0,
+     2.51,
+     2.44
+    ]
+   },
+   {
+    "name": "ambulance_wheel_FL",
+    "parent": "ambulance",
+    "pivot": [
+     1.75,
+     0.98,
+     0.4
+    ],
+    "tris": 116,
+    "dims": [
+     0.8,
+     0.36,
+     0.8
+    ]
+   },
+   {
+    "name": "ambulance_wheel_FR",
+    "parent": "ambulance",
+    "pivot": [
+     1.75,
+     -0.98,
+     0.4
+    ],
+    "tris": 116,
+    "dims": [
+     0.8,
+     0.36,
+     0.8
+    ]
+   },
+   {
+    "name": "ambulance_wheel_RL",
+    "parent": "ambulance",
+    "pivot": [
+     -1.75,
+     0.98,
+     0.4
+    ],
+    "tris": 116,
+    "dims": [
+     0.8,
+     0.36,
+     0.8
+    ]
+   },
+   {
+    "name": "ambulance_wheel_RR",
+    "parent": "ambulance",
+    "pivot": [
+     -1.75,
+     -0.98,
+     0.4
+    ],
+    "tris": 116,
+    "dims": [
+     0.8,
+     0.36,
+     0.8
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "ambulance_seat",
+    "parent": "ambulance",
+    "local": [
+     1.223,
+     0.45,
+     1.25
+    ],
+    "world_in_root": [
+     1.223,
+     0.45,
+     1.25
+    ]
+   },
+   {
+    "name": "ambulance_cargo",
+    "parent": "ambulance",
+    "local": [
+     -1.129,
+     0.0,
+     0.95
+    ],
+    "world_in_root": [
+     -1.129,
+     0.0,
+     0.95
+    ]
+   },
+   {
+    "name": "ambulance_hitch",
+    "parent": "ambulance",
+    "local": [
+     -3.009,
+     0.0,
+     0.5
+    ],
+    "world_in_root": [
+     -3.009,
+     0.0,
+     0.5
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "ambulance_wheel_FL",
+    "parent": "ambulance",
+    "centre": [
+     1.646,
+     0.98,
+     0.4
+    ],
+    "radius": 0.4,
+    "width": 0.28
+   },
+   {
+    "name": "ambulance_wheel_FR",
+    "parent": "ambulance",
+    "centre": [
+     1.646,
+     -0.98,
+     0.4
+    ],
+    "radius": 0.4,
+    "width": 0.28
+   },
+   {
+    "name": "ambulance_wheel_RL",
+    "parent": "ambulance",
+    "centre": [
+     -1.646,
+     0.98,
+     0.4
+    ],
+    "radius": 0.4,
+    "width": 0.28
+   },
+   {
+    "name": "ambulance_wheel_RR",
+    "parent": "ambulance",
+    "centre": [
+     -1.646,
+     -0.98,
+     0.4
+    ],
+    "radius": 0.4,
+    "width": 0.28
+   }
+  ]
+ },
+ "firetruck": {
+  "root": "firetruck",
+  "size": {
+   "length": 8.5,
+   "width": 2.87,
+   "height": 3.95
+  },
+  "bounds": {
+   "min": [
+    -4.365,
+    -1.435,
+    0.0
+   ],
+   "max": [
+    4.135,
+    1.435,
+    3.95
+   ]
+  },
+  "tris": 2056,
+  "nodes": [
+   {
+    "name": "firetruck_body",
+    "parent": "firetruck",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 1360,
+    "dims": [
+     8.5,
+     2.87,
+     3.55
+    ]
+   },
+   {
+    "name": "firetruck_wheel_FL",
+    "parent": "firetruck",
+    "pivot": [
+     2.8,
+     0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   },
+   {
+    "name": "firetruck_wheel_FR",
+    "parent": "firetruck",
+    "pivot": [
+     2.8,
+     -0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   },
+   {
+    "name": "firetruck_wheel_ML",
+    "parent": "firetruck",
+    "pivot": [
+     -1.4,
+     0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   },
+   {
+    "name": "firetruck_wheel_MR",
+    "parent": "firetruck",
+    "pivot": [
+     -1.4,
+     -0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   },
+   {
+    "name": "firetruck_wheel_RL",
+    "parent": "firetruck",
+    "pivot": [
+     -2.8,
+     0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   },
+   {
+    "name": "firetruck_wheel_RR",
+    "parent": "firetruck",
+    "pivot": [
+     -2.8,
+     -0.97,
+     0.52
+    ],
+    "tris": 116,
+    "dims": [
+     1.04,
+     0.45,
+     1.04
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "firetruck_seat",
+    "parent": "firetruck",
+    "local": [
+     2.757,
+     0.55,
+     1.65
+    ],
+    "world_in_root": [
+     2.757,
+     0.55,
+     1.65
+    ]
+   },
+   {
+    "name": "firetruck_cargo",
+    "parent": "firetruck",
+    "local": [
+     -1.378,
+     0.0,
+     3.0
+    ],
+    "world_in_root": [
+     -1.378,
+     0.0,
+     3.0
+    ]
+   },
+   {
+    "name": "firetruck_hitch",
+    "parent": "firetruck",
+    "local": [
+     -4.319,
+     0.0,
+     0.8
+    ],
+    "world_in_root": [
+     -4.319,
+     0.0,
+     0.8
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "firetruck_wheel_FL",
+    "parent": "firetruck",
+    "centre": [
+     2.573,
+     0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   },
+   {
+    "name": "firetruck_wheel_FR",
+    "parent": "firetruck",
+    "centre": [
+     2.573,
+     -0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   },
+   {
+    "name": "firetruck_wheel_ML",
+    "parent": "firetruck",
+    "centre": [
+     -1.286,
+     0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   },
+   {
+    "name": "firetruck_wheel_MR",
+    "parent": "firetruck",
+    "centre": [
+     -1.286,
+     -0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   },
+   {
+    "name": "firetruck_wheel_RL",
+    "parent": "firetruck",
+    "centre": [
+     -2.573,
+     0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   },
+   {
+    "name": "firetruck_wheel_RR",
+    "parent": "firetruck",
+    "centre": [
+     -2.573,
+     -0.97,
+     0.52
+    ],
+    "radius": 0.52,
+    "width": 0.38
+   }
+  ]
+ },
+ "forklift": {
+  "root": "forklift",
+  "size": {
+   "length": 3.25,
+   "width": 1.395,
+   "height": 2.45
+  },
+  "bounds": {
+   "min": [
+    -1.05,
+    -0.697,
+    0.0
+   ],
+   "max": [
+    2.2,
+    0.697,
+    2.45
+   ]
+  },
+  "tris": 1232,
+  "nodes": [
+   {
+    "name": "forklift_body",
+    "parent": "forklift",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 584,
+    "dims": [
+     2.1,
+     1.34,
+     1.97
+    ]
+   },
+   {
+    "name": "forklift_wheel_FL",
+    "parent": "forklift",
+    "pivot": [
+     0.7,
+     0.53,
+     0.34
+    ],
+    "tris": 100,
+    "dims": [
+     0.68,
+     0.33,
+     0.68
+    ]
+   },
+   {
+    "name": "forklift_wheel_FR",
+    "parent": "forklift",
+    "pivot": [
+     0.7,
+     -0.53,
+     0.34
+    ],
+    "tris": 100,
+    "dims": [
+     0.68,
+     0.33,
+     0.68
+    ]
+   },
+   {
+    "name": "forklift_wheel_RL",
+    "parent": "forklift",
+    "pivot": [
+     -0.7,
+     0.4,
+     0.24
+    ],
+    "tris": 100,
+    "dims": [
+     0.48,
+     0.27,
+     0.48
+    ]
+   },
+   {
+    "name": "forklift_wheel_RR",
+    "parent": "forklift",
+    "pivot": [
+     -0.7,
+     -0.4,
+     0.24
+    ],
+    "tris": 100,
+    "dims": [
+     0.48,
+     0.27,
+     0.48
+    ]
+   },
+   {
+    "name": "forklift_mast",
+    "parent": "forklift",
+    "pivot": [
+     1.05,
+     0.0,
+     0.5
+    ],
+    "tris": 104,
+    "dims": [
+     0.22,
+     0.84,
+     2.1
+    ]
+   },
+   {
+    "name": "forklift_forks",
+    "parent": "forklift_mast",
+    "pivot": [
+     1.2,
+     0.0,
+     0.05
+    ],
+    "tris": 144,
+    "dims": [
+     1.05,
+     0.9,
+     1.37
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "forklift_seat",
+    "parent": "forklift",
+    "local": [
+     -0.05,
+     0.0,
+     1.05
+    ],
+    "world_in_root": [
+     -0.05,
+     0.0,
+     1.05
+    ]
+   },
+   {
+    "name": "forklift_cargo",
+    "parent": "forklift_forks",
+    "local": [
+     0.5,
+     0.0,
+     0.05
+    ],
+    "world_in_root": [
+     1.7,
+     0.0,
+     0.1
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "forklift_wheel_FL",
+    "parent": "forklift",
+    "centre": [
+     0.7,
+     0.53,
+     0.34
+    ],
+    "radius": 0.34,
+    "width": 0.26
+   },
+   {
+    "name": "forklift_wheel_FR",
+    "parent": "forklift",
+    "centre": [
+     0.7,
+     -0.53,
+     0.34
+    ],
+    "radius": 0.34,
+    "width": 0.26
+   },
+   {
+    "name": "forklift_wheel_RL",
+    "parent": "forklift",
+    "centre": [
+     -0.7,
+     0.4,
+     0.24
+    ],
+    "radius": 0.24,
+    "width": 0.2
+   },
+   {
+    "name": "forklift_wheel_RR",
+    "parent": "forklift",
+    "centre": [
+     -0.7,
+     -0.4,
+     0.24
+    ],
+    "radius": 0.24,
+    "width": 0.2
+   }
+  ]
+ },
+ "cargotruck": {
+  "root": "cargotruck",
+  "size": {
+   "length": 7.62,
+   "width": 2.87,
+   "height": 3.4
+  },
+  "bounds": {
+   "min": [
+    -3.85,
+    -1.435,
+    0.0
+   ],
+   "max": [
+    3.77,
+    1.435,
+    3.4
+   ]
+  },
+  "tris": 1316,
+  "nodes": [
+   {
+    "name": "cargotruck_body",
+    "parent": "cargotruck",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 528,
+    "dims": [
+     7.62,
+     2.87,
+     3.01
+    ]
+   },
+   {
+    "name": "cargotruck_wheel_FL",
+    "parent": "cargotruck",
+    "pivot": [
+     2.1,
+     0.98,
+     0.5
+    ],
+    "tris": 116,
+    "dims": [
+     1.0,
+     0.44,
+     1.0
+    ]
+   },
+   {
+    "name": "cargotruck_wheel_FR",
+    "parent": "cargotruck",
+    "pivot": [
+     2.1,
+     -0.98,
+     0.5
+    ],
+    "tris": 116,
+    "dims": [
+     1.0,
+     0.44,
+     1.0
+    ]
+   },
+   {
+    "name": "cargotruck_wheel_RL",
+    "parent": "cargotruck",
+    "pivot": [
+     -2.1,
+     0.98,
+     0.5
+    ],
+    "tris": 116,
+    "dims": [
+     1.0,
+     0.49,
+     1.0
+    ]
+   },
+   {
+    "name": "cargotruck_wheel_RR",
+    "parent": "cargotruck",
+    "pivot": [
+     -2.1,
+     -0.98,
+     0.5
+    ],
+    "tris": 116,
+    "dims": [
+     1.0,
+     0.49,
+     1.0
+    ]
+   },
+   {
+    "name": "cargotruck_bed",
+    "parent": "cargotruck",
+    "pivot": [
+     -1.1,
+     0.0,
+     1.3
+    ],
+    "tris": 324,
+    "dims": [
+     4.7,
+     2.57,
+     1.34
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "cargotruck_cargo",
+    "parent": "cargotruck_bed",
+    "local": [
+     1.1,
+     0.0,
+     -1.3
+    ],
+    "world_in_root": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "name": "cargotruck_seat",
+    "parent": "cargotruck",
+    "local": [
+     2.3,
+     0.5,
+     1.75
+    ],
+    "world_in_root": [
+     2.3,
+     0.5,
+     1.75
+    ]
+   },
+   {
+    "name": "cargotruck_hitch",
+    "parent": "cargotruck",
+    "local": [
+     -3.7,
+     0.0,
+     0.9
+    ],
+    "world_in_root": [
+     -3.7,
+     0.0,
+     0.9
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "cargotruck_wheel_FL",
+    "parent": "cargotruck",
+    "centre": [
+     2.1,
+     0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.36
+   },
+   {
+    "name": "cargotruck_wheel_FR",
+    "parent": "cargotruck",
+    "centre": [
+     2.1,
+     -0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.36
+   },
+   {
+    "name": "cargotruck_wheel_RL",
+    "parent": "cargotruck",
+    "centre": [
+     -2.1,
+     0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.42
+   },
+   {
+    "name": "cargotruck_wheel_RR",
+    "parent": "cargotruck",
+    "centre": [
+     -2.1,
+     -0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.42
+   }
+  ]
+ },
+ "patrolcar": {
+  "root": "patrolcar",
+  "size": {
+   "length": 5.1,
+   "width": 2.27,
+   "height": 2.015
+  },
+  "bounds": {
+   "min": [
+    -2.55,
+    -1.135,
+    0.0
+   ],
+   "max": [
+    2.55,
+    1.135,
+    2.015
+   ]
+  },
+  "tris": 1164,
+  "nodes": [
+   {
+    "name": "patrolcar_body",
+    "parent": "patrolcar",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 700,
+    "dims": [
+     5.1,
+     2.27,
+     1.62
+    ]
+   },
+   {
+    "name": "patrolcar_wheel_FL",
+    "parent": "patrolcar",
+    "pivot": [
+     1.4,
+     0.86,
+     0.37
+    ],
+    "tris": 116,
+    "dims": [
+     0.74,
+     0.33,
+     0.74
+    ]
+   },
+   {
+    "name": "patrolcar_wheel_FR",
+    "parent": "patrolcar",
+    "pivot": [
+     1.4,
+     -0.86,
+     0.37
+    ],
+    "tris": 116,
+    "dims": [
+     0.74,
+     0.33,
+     0.74
+    ]
+   },
+   {
+    "name": "patrolcar_wheel_RL",
+    "parent": "patrolcar",
+    "pivot": [
+     -1.4,
+     0.86,
+     0.37
+    ],
+    "tris": 116,
+    "dims": [
+     0.74,
+     0.33,
+     0.74
+    ]
+   },
+   {
+    "name": "patrolcar_wheel_RR",
+    "parent": "patrolcar",
+    "pivot": [
+     -1.4,
+     -0.86,
+     0.37
+    ],
+    "tris": 116,
+    "dims": [
+     0.74,
+     0.33,
+     0.74
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "patrolcar_seat",
+    "parent": "patrolcar",
+    "local": [
+     0.85,
+     0.4,
+     1.0
+    ],
+    "world_in_root": [
+     0.85,
+     0.4,
+     1.0
+    ]
+   },
+   {
+    "name": "patrolcar_cargo",
+    "parent": "patrolcar",
+    "local": [
+     -1.5,
+     0.0,
+     1.1
+    ],
+    "world_in_root": [
+     -1.5,
+     0.0,
+     1.1
+    ]
+   },
+   {
+    "name": "patrolcar_hitch",
+    "parent": "patrolcar",
+    "local": [
+     -2.6,
+     0.0,
+     0.5
+    ],
+    "world_in_root": [
+     -2.6,
+     0.0,
+     0.5
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "patrolcar_wheel_FL",
+    "parent": "patrolcar",
+    "centre": [
+     1.4,
+     0.86,
+     0.37
+    ],
+    "radius": 0.37,
+    "width": 0.25
+   },
+   {
+    "name": "patrolcar_wheel_FR",
+    "parent": "patrolcar",
+    "centre": [
+     1.4,
+     -0.86,
+     0.37
+    ],
+    "radius": 0.37,
+    "width": 0.25
+   },
+   {
+    "name": "patrolcar_wheel_RL",
+    "parent": "patrolcar",
+    "centre": [
+     -1.4,
+     0.86,
+     0.37
+    ],
+    "radius": 0.37,
+    "width": 0.25
+   },
+   {
+    "name": "patrolcar_wheel_RR",
+    "parent": "patrolcar",
+    "centre": [
+     -1.4,
+     -0.86,
+     0.37
+    ],
+    "radius": 0.37,
+    "width": 0.25
+   }
+  ]
+ },
+ "tractor": {
+  "root": "tractor",
+  "size": {
+   "length": 7.29,
+   "width": 2.55,
+   "height": 3.122
+  },
+  "bounds": {
+   "min": [
+    -5.14,
+    -1.275,
+    -0.002
+   ],
+   "max": [
+    2.15,
+    1.275,
+    3.12
+   ]
+  },
+  "tris": 2164,
+  "nodes": [
+   {
+    "name": "tractor_body",
+    "parent": "tractor",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 544,
+    "dims": [
+     4.12,
+     2.55,
+     2.77
+    ]
+   },
+   {
+    "name": "tractor_wheel_FL",
+    "parent": "tractor",
+    "pivot": [
+     0.95,
+     0.7,
+     0.45
+    ],
+    "tris": 260,
+    "dims": [
+     0.9,
+     0.33,
+     0.9
+    ]
+   },
+   {
+    "name": "tractor_wheel_FR",
+    "parent": "tractor",
+    "pivot": [
+     0.95,
+     -0.7,
+     0.45
+    ],
+    "tris": 260,
+    "dims": [
+     0.9,
+     0.33,
+     0.9
+    ]
+   },
+   {
+    "name": "tractor_wheel_RL",
+    "parent": "tractor",
+    "pivot": [
+     -0.95,
+     1.0,
+     0.75
+    ],
+    "tris": 284,
+    "dims": [
+     1.5,
+     0.54,
+     1.5
+    ]
+   },
+   {
+    "name": "tractor_wheel_RR",
+    "parent": "tractor",
+    "pivot": [
+     -0.95,
+     -1.0,
+     0.75
+    ],
+    "tris": 284,
+    "dims": [
+     1.5,
+     0.54,
+     1.5
+    ]
+   },
+   {
+    "name": "tractor_trailer",
+    "parent": "tractor",
+    "pivot": [
+     -1.95,
+     0.0,
+     0.58
+    ],
+    "tris": 316,
+    "dims": [
+     3.25,
+     1.82,
+     0.93
+    ]
+   },
+   {
+    "name": "tractor_trailer_wheel_ML",
+    "parent": "tractor_trailer",
+    "pivot": [
+     -3.9,
+     0.98,
+     0.5
+    ],
+    "tris": 108,
+    "dims": [
+     0.97,
+     0.33,
+     1.0
+    ]
+   },
+   {
+    "name": "tractor_trailer_wheel_MR",
+    "parent": "tractor_trailer",
+    "pivot": [
+     -3.9,
+     -0.98,
+     0.5
+    ],
+    "tris": 108,
+    "dims": [
+     0.97,
+     0.33,
+     1.0
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "tractor_cargo",
+    "parent": "tractor_trailer",
+    "local": [
+     -1.8,
+     0.0,
+     0.29
+    ],
+    "world_in_root": [
+     -3.75,
+     0.0,
+     0.87
+    ]
+   },
+   {
+    "name": "tractor_seat",
+    "parent": "tractor",
+    "local": [
+     -0.8,
+     0.0,
+     1.3
+    ],
+    "world_in_root": [
+     -0.8,
+     0.0,
+     1.3
+    ]
+   },
+   {
+    "name": "tractor_hitch",
+    "parent": "tractor",
+    "local": [
+     -1.95,
+     0.0,
+     0.58
+    ],
+    "world_in_root": [
+     -1.95,
+     0.0,
+     0.58
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "tractor_wheel_FL",
+    "parent": "tractor",
+    "centre": [
+     0.95,
+     0.7,
+     0.45
+    ],
+    "radius": 0.45,
+    "width": 0.26
+   },
+   {
+    "name": "tractor_wheel_FR",
+    "parent": "tractor",
+    "centre": [
+     0.95,
+     -0.7,
+     0.45
+    ],
+    "radius": 0.45,
+    "width": 0.26
+   },
+   {
+    "name": "tractor_wheel_RL",
+    "parent": "tractor",
+    "centre": [
+     -0.95,
+     1.0,
+     0.75
+    ],
+    "radius": 0.75,
+    "width": 0.46
+   },
+   {
+    "name": "tractor_wheel_RR",
+    "parent": "tractor",
+    "centre": [
+     -0.95,
+     -1.0,
+     0.75
+    ],
+    "radius": 0.75,
+    "width": 0.46
+   },
+   {
+    "name": "tractor_trailer_wheel_ML",
+    "parent": "tractor_trailer",
+    "centre": [
+     -3.9,
+     0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.26
+   },
+   {
+    "name": "tractor_trailer_wheel_MR",
+    "parent": "tractor_trailer",
+    "centre": [
+     -3.9,
+     -0.98,
+     0.5
+    ],
+    "radius": 0.5,
+    "width": 0.26
+   }
+  ]
+ },
+ "quadbike": {
+  "root": "quadbike",
+  "size": {
+   "length": 2.147,
+   "width": 1.395,
+   "height": 1.231
+  },
+  "bounds": {
+   "min": [
+    -1.067,
+    -0.698,
+    -0.001
+   ],
+   "max": [
+    1.08,
+    0.698,
+    1.23
+   ]
+  },
+  "tris": 1420,
+  "nodes": [
+   {
+    "name": "quadbike_body",
+    "parent": "quadbike",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 540,
+    "dims": [
+     2.15,
+     1.3,
+     1.01
+    ]
+   },
+   {
+    "name": "quadbike_wheel_FL",
+    "parent": "quadbike",
+    "pivot": [
+     0.62,
+     0.54,
+     0.28
+    ],
+    "tris": 220,
+    "dims": [
+     0.56,
+     0.32,
+     0.56
+    ]
+   },
+   {
+    "name": "quadbike_wheel_FR",
+    "parent": "quadbike",
+    "pivot": [
+     0.62,
+     -0.54,
+     0.28
+    ],
+    "tris": 220,
+    "dims": [
+     0.56,
+     0.32,
+     0.56
+    ]
+   },
+   {
+    "name": "quadbike_wheel_RL",
+    "parent": "quadbike",
+    "pivot": [
+     -0.62,
+     0.54,
+     0.28
+    ],
+    "tris": 220,
+    "dims": [
+     0.56,
+     0.32,
+     0.56
+    ]
+   },
+   {
+    "name": "quadbike_wheel_RR",
+    "parent": "quadbike",
+    "pivot": [
+     -0.62,
+     -0.54,
+     0.28
+    ],
+    "tris": 220,
+    "dims": [
+     0.56,
+     0.32,
+     0.56
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "quadbike_seat",
+    "parent": "quadbike",
+    "local": [
+     -0.2,
+     0.0,
+     1.0
+    ],
+    "world_in_root": [
+     -0.2,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "name": "quadbike_cargo",
+    "parent": "quadbike",
+    "local": [
+     -0.75,
+     0.0,
+     0.9
+    ],
+    "world_in_root": [
+     -0.75,
+     0.0,
+     0.9
+    ]
+   },
+   {
+    "name": "quadbike_hitch",
+    "parent": "quadbike",
+    "local": [
+     -1.05,
+     0.0,
+     0.45
+    ],
+    "world_in_root": [
+     -1.05,
+     0.0,
+     0.45
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "quadbike_wheel_FL",
+    "parent": "quadbike",
+    "centre": [
+     0.62,
+     0.54,
+     0.28
+    ],
+    "radius": 0.28,
+    "width": 0.24
+   },
+   {
+    "name": "quadbike_wheel_FR",
+    "parent": "quadbike",
+    "centre": [
+     0.62,
+     -0.54,
+     0.28
+    ],
+    "radius": 0.28,
+    "width": 0.24
+   },
+   {
+    "name": "quadbike_wheel_RL",
+    "parent": "quadbike",
+    "centre": [
+     -0.62,
+     0.54,
+     0.28
+    ],
+    "radius": 0.28,
+    "width": 0.24
+   },
+   {
+    "name": "quadbike_wheel_RR",
+    "parent": "quadbike",
+    "centre": [
+     -0.62,
+     -0.54,
+     0.28
+    ],
+    "radius": 0.28,
+    "width": 0.24
+   }
+  ]
+ },
+ "handcart": {
+  "root": "handcart",
+  "size": {
+   "length": 1.82,
+   "width": 1.145,
+   "height": 0.966
+  },
+  "bounds": {
+   "min": [
+    -0.88,
+    -0.572,
+    -0.002
+   ],
+   "max": [
+    0.94,
+    0.572,
+    0.965
+   ]
+  },
+  "tris": 520,
+  "nodes": [
+   {
+    "name": "handcart_body",
+    "parent": "handcart",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 320,
+    "dims": [
+     1.82,
+     0.95,
+     0.97
+    ]
+   },
+   {
+    "name": "handcart_wheel_ML",
+    "parent": "handcart",
+    "pivot": [
+     0.0,
+     0.5,
+     0.3
+    ],
+    "tris": 100,
+    "dims": [
+     0.6,
+     0.14,
+     0.6
+    ]
+   },
+   {
+    "name": "handcart_wheel_MR",
+    "parent": "handcart",
+    "pivot": [
+     0.0,
+     -0.5,
+     0.3
+    ],
+    "tris": 100,
+    "dims": [
+     0.6,
+     0.14,
+     0.6
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "handcart_seat",
+    "parent": "handcart",
+    "local": [
+     -0.8,
+     0.0,
+     0.95
+    ],
+    "world_in_root": [
+     -0.8,
+     0.0,
+     0.95
+    ]
+   },
+   {
+    "name": "handcart_cargo",
+    "parent": "handcart",
+    "local": [
+     0.1,
+     0.0,
+     0.55
+    ],
+    "world_in_root": [
+     0.1,
+     0.0,
+     0.55
+    ]
+   },
+   {
+    "name": "handcart_hitch",
+    "parent": "handcart",
+    "local": [
+     -0.85,
+     0.0,
+     0.9
+    ],
+    "world_in_root": [
+     -0.85,
+     0.0,
+     0.9
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "handcart_wheel_ML",
+    "parent": "handcart",
+    "centre": [
+     0.0,
+     0.5,
+     0.3
+    ],
+    "radius": 0.3,
+    "width": 0.07
+   },
+   {
+    "name": "handcart_wheel_MR",
+    "parent": "handcart",
+    "centre": [
+     0.0,
+     -0.5,
+     0.3
+    ],
+    "radius": 0.3,
+    "width": 0.07
+   }
+  ]
+ },
+ "cranetruck": {
+  "root": "cranetruck",
+  "size": {
+   "length": 10.867,
+   "width": 4.05,
+   "height": 6.286
+  },
+  "bounds": {
+   "min": [
+    -4.9,
+    -2.025,
+    0.0
+   ],
+   "max": [
+    5.967,
+    2.025,
+    6.286
+   ]
+  },
+  "tris": 1956,
+  "nodes": [
+   {
+    "name": "cranetruck_body",
+    "parent": "cranetruck",
+    "pivot": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "tris": 972,
+    "dims": [
+     9.67,
+     4.05,
+     3.57
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_FL",
+    "parent": "cranetruck",
+    "pivot": [
+     3.0,
+     0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_FR",
+    "parent": "cranetruck",
+    "pivot": [
+     3.0,
+     -0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_ML",
+    "parent": "cranetruck",
+    "pivot": [
+     -1.6,
+     0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_MR",
+    "parent": "cranetruck",
+    "pivot": [
+     -1.6,
+     -0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_RL",
+    "parent": "cranetruck",
+    "pivot": [
+     -3.0,
+     0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_wheel_RR",
+    "parent": "cranetruck",
+    "pivot": [
+     -3.0,
+     -0.98,
+     0.6
+    ],
+    "tris": 116,
+    "dims": [
+     1.2,
+     0.47,
+     1.2
+    ]
+   },
+   {
+    "name": "cranetruck_boom",
+    "parent": "cranetruck",
+    "pivot": [
+     -0.9,
+     0.0,
+     2.8
+    ],
+    "tris": 112,
+    "dims": [
+     7.31,
+     0.8,
+     3.98
+    ],
+    "rest_rotation_y_deg": -25.0
+   },
+   {
+    "name": "cranetruck_cable",
+    "parent": "cranetruck",
+    "pivot": [
+     5.625,
+     0.0,
+     5.843
+    ],
+    "tris": 16,
+    "dims": [
+     0.06,
+     0.05,
+     1.0
+    ]
+   },
+   {
+    "name": "cranetruck_hook",
+    "parent": "cranetruck",
+    "pivot": [
+     5.625,
+     0.0,
+     3.643
+    ],
+    "tris": 160,
+    "dims": [
+     0.42,
+     0.34,
+     0.85
+    ]
+   }
+  ],
+  "empties": [
+   {
+    "name": "cranetruck_seat",
+    "parent": "cranetruck",
+    "local": [
+     3.2,
+     0.55,
+     2.1
+    ],
+    "world_in_root": [
+     3.2,
+     0.55,
+     2.1
+    ]
+   },
+   {
+    "name": "cranetruck_cargo",
+    "parent": "cranetruck",
+    "local": [
+     -1.35,
+     0.0,
+     1.73
+    ],
+    "world_in_root": [
+     -1.35,
+     0.0,
+     1.73
+    ]
+   },
+   {
+    "name": "cranetruck_hitch",
+    "parent": "cranetruck",
+    "local": [
+     -4.8,
+     0.0,
+     1.0
+    ],
+    "world_in_root": [
+     -4.8,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "wheels": [
+   {
+    "name": "cranetruck_wheel_FL",
+    "parent": "cranetruck",
+    "centre": [
+     3.0,
+     0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   },
+   {
+    "name": "cranetruck_wheel_FR",
+    "parent": "cranetruck",
+    "centre": [
+     3.0,
+     -0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   },
+   {
+    "name": "cranetruck_wheel_ML",
+    "parent": "cranetruck",
+    "centre": [
+     -1.6,
+     0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   },
+   {
+    "name": "cranetruck_wheel_MR",
+    "parent": "cranetruck",
+    "centre": [
+     -1.6,
+     -0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   },
+   {
+    "name": "cranetruck_wheel_RL",
+    "parent": "cranetruck",
+    "centre": [
+     -3.0,
+     0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   },
+   {
+    "name": "cranetruck_wheel_RR",
+    "parent": "cranetruck",
+    "centre": [
+     -3.0,
+     -0.98,
+     0.6
+    ],
+    "radius": 0.6,
+    "width": 0.4
+   }
+  ]
+ }
+}

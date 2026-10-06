@@ -448,7 +448,7 @@ def lava_misc():
     def lhw(i):
         r = rng(seed_of('lhw', i)); d = 2.6; n = n_of(d); t = np.arange(n) / SR
         env = (1 - np.exp(-t / .06)) * np.exp(-np.maximum(0, t - .2) / 1.2)
-        y = S.tv_filter(noise(n, 'white', r), 1200 + 5000 * (1 - np.exp(-t / .4)), 'hp', 2) * env * .7
+        y = S.tv_filter(noise(n, 'white', r), 700 + 3000 * (1 - np.exp(-t / .4)), 'hp', 2) * env * .7
         y += bubble_cloud(d, 150, 900, 130, .7, r, 1.8) * .6
         put(y, sweep(90, 40, .5, tau=.2), 0, 1.0); put(y, burst(r, .05, 400, 6000, .012), 0, 1)
         y += lp(noise(n, 'pink', r), 500) * env * .3
@@ -487,11 +487,13 @@ def lava_misc():
 
     def quake(i):
         r = rng(seed_of('qc', i)); d = 1.8; out = Z(d)
-        put(out, sweep(80, 28, .7, tau=.25), 0, 1.0)
-        put(out, burst(r, .03, 200, 5000, .006), .0, .8)
-        put(out, resonator(noise(n_of(1.2), 'white', r), jit(r, 140, .2), 2.5) * edec(n_of(1.2), .35), .02, .8)
-        put(out, ticks(1.2, lambda t: 40 * math.exp(-t / .5), r, 400, 3500, 0.008), .05, .7)
-        put(out, impact('stone', jit(r, 240, .3), 2.0, .5, .6, i + 2300, thump=.8), .25, .6)
+        sh = r.uniform(0, .12)
+        put(out, sweep(jit(r, 80, .3), jit(r, 30, .3), jit(r, .7, .3), tau=jit(r, .25, .4)), sh, r.uniform(.5, .9))
+        put(out, burst(r, .03, 200, 5000, .006), sh, .8)
+        put(out, resonator(noise(n_of(1.2), 'white', r), jit(r, 140, .5), 2.5) * edec(n_of(1.2), jit(r, .35, .4)), sh + .02, .8)
+        put(out, ticks(1.2, lambda t: r.uniform(20, 70) * math.exp(-t / .5), r, 400, 3500, 0.008), sh + r.uniform(.03, .2), .7)
+        for k in range(r.integers(2, 5)):
+            put(out, impact('stone', r.uniform(120, 700), r.uniform(1, 2.5), .5, .6, int(r.integers(1e9)), thump=r.uniform(.2, .9)), r.uniform(.05, 1.0), r.uniform(.25, .6))
         return out
     V('quake_crack', 4, quake, peak=-3, weight=8, max_dist=240, meta=mat_meta('ground', 'xl', (0, 5), dict(note='ground fractures during a quake')))
 

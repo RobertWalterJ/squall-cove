@@ -67,20 +67,20 @@ def crack(seed, dur):
     x[:int(0.0006 * SR)] += 1.0                         # the strike click
     k = int(0.03 * SR)
     cr = hp(r.standard_normal(k), 1500, SR, 2) * np.exp(-np.arange(k) / (k * 0.2))
-    x[:k] += cr * 1.3
+    x[:k] += cr * 3.0
     for _ in range(int(r.integers(14, 26))):            # tearing pops along the channel
         t0 = r.exponential(0.14); k = int(r.uniform(0.003, 0.02) * SR)
         b = bp(r.standard_normal(k), r.uniform(900, 2500), r.uniform(3000, 7000), SR, 2) * np.exp(-np.arange(k) / (k * 0.3))
         i0 = int(t0 * SR)
         if i0 + k < n:
-            x[i0:i0 + k] += b * r.uniform(0.15, 0.7) * math.exp(-t0 / 0.25)
+            x[i0:i0 + k] += b * r.uniform(0.3, 1.2) * math.exp(-t0 / 0.25)
     # body boom and tail
     bd = tv_filter(noise(n, 'pink', r), 100 + 1400 * np.exp(-t / 0.18), 'lp', 2, SR, 256) * np.exp(-t / 0.45) * np.minimum(1, t / 0.004)
-    x += bd * 0.9 / (np.std(bd) + 1e-9) * 0.25
-    th = np.sin(TWO_PI * (62 - 20 * (1 - np.exp(-t / 0.4))) * t) * np.exp(-t / 0.3) * 0.5
+    x += bd / (np.std(bd) + 1e-9) * 0.12
+    th = np.sin(TWO_PI * (62 - 20 * (1 - np.exp(-t / 0.4))) * t) * np.exp(-t / 0.3) * 0.15
     x += th
     tl = lp(noise(n, 'brown', r), 220, SR, 2) * np.exp(-t / 0.9) * np.minimum(1, t / 0.08)
-    x += tl / (np.std(tl) + 1e-9) * 0.2
+    x += tl / (np.std(tl) + 1e-9) * 0.08
     x = lp(x, 14000, SR, 1)
     return _taper(S.soft_clip(x * 0.8, 1.2), 0.3)
 

@@ -15,7 +15,9 @@ def save(name, x, **kw):
     kw.setdefault('weight', 1.0); kw.setdefault('quality', 4)
     bus = kw.pop('bus', 'ppl'); sr = kw.pop('sr', SR)
     if sr == 32000:
-        x = C.r32(x)
+        x = C.r32_circ(x) if kw.get('loop') else C.r32(x)
+    if kw.get('loop'):
+        x = C.seal(x)
     return S.save(name, x, bus, sr=sr, **kw)
 
 
@@ -33,7 +35,7 @@ def _thud(n, f, tau, level, r):
 
 def tap_sand(r, s):
     n = S.n_of(0.2)
-    x = S.bp(S.noise(n, 'white', r), 500, 3800, SR, 2) * S.env_exp(n, 0.045) * S.env_attack(n, 0.008)
+    x = S.bp(S.noise(n, 'white', r), 400, 2800, SR, 2) * S.env_exp(n, 0.045) * S.env_attack(n, 0.008)
     g = S.grains(0.12, lambda t: 260 * math.exp(-t * 8), lambda rr, i: C.tick(0.006, 1200, 4200, rr) * rr.uniform(0.2, 0.8), r)
     y = x * 0.8 + C.fit(g, n) * 0.9 + _thud(n, 90, 0.04, 0.35, r)
     return y * s
@@ -47,7 +49,7 @@ def tap_grass(r, s):
 
 def tap_gravel(r, s):
     n = S.n_of(0.25)
-    g = S.grains(0.2, lambda t: 650 * math.exp(-t * 7) + 60, lambda rr, i: C.tick(0.009, 1500, 8000, rr) * rr.uniform(0.3, 1.0), r)
+    g = S.grains(0.2, lambda t: 650 * math.exp(-t * 7) + 60, lambda rr, i: C.tick(0.009, 1000, 6000, rr) * rr.uniform(0.3, 1.0), r)
     return (C.fit(g, n) * 1.0 + _thud(n, 110, 0.04, 0.4, r)) * s
 
 
@@ -61,8 +63,8 @@ def tap_wood(r, s):
 
 def tap_rock(r, s):
     n = S.n_of(0.15)
-    y = S.modal(r.uniform(900, 1400), 'stone', 0.15, 0.5, bright=1.0, r=r) * 0.5
-    tr = S.hp(S.noise(n, 'white', r), 1800, SR) * S.env_exp(n, 0.004)
+    y = S.modal(r.uniform(1300, 2000), 'stone', 0.15, 0.5, bright=1.2, r=r) * 0.5
+    tr = S.hp(S.noise(n, 'white', r), 3000, SR, 3) * S.env_exp(n, 0.004)
     return (y + tr * 0.9 + _thud(n, 130, 0.015, 0.4, r)) * s
 
 
@@ -224,7 +226,7 @@ def murmur(L, rate, seed, speakers):
         s = C.syllable(f0, d, vows[int(r.integers(len(vows)))], r, breath=0.12, glide=r.uniform(-0.12, 0.1))
         idx = min(n - 1, int(t * SR))
         C.place(y, s, t, r.uniform(0.35, 1.0) * (0.15 + sp_env[sp][idx]))
-    y = S.lp(y, 3300, SR, 2)
+    y = S.hp(S.lp(y, 3300, SR, 2), 170, SR, 2)
     y = y + 0.05 * np.std(y) * S.lp(S.noise(n, 'pink', r), 800, SR)
     return S.make_loop(y, xf)
 
@@ -401,7 +403,7 @@ def seq(items, total, kind='bell', r_wet=0.0, rt=1.2, seed=1):
         C.place(y, C.soft_note(HZ(m), d, k, v), t0)
     if r_wet > 0:
         y = C.echo(y, rt, r_wet, seed, 0.7, 0.6)
-    return y
+    return C.trim(y, total, min(0.5, total * 0.3))
 
 
 def render_npc():
@@ -429,7 +431,7 @@ def render_npc():
         for j in range(int(r.integers(2, 4))):
             m = S.n_of(0.28)
             sw = S.lp(S.hp(S.noise(m, 'white', r), 500, SR), 3500, SR) * np.sin(np.pi * np.linspace(0, 1, m)) ** 1.3
-            sw += S.grains(0.25, lambda tt: 150, lambda rr, k: C.tick(0.006, 1000, 4000, rr) * rr.uniform(0.2, 0.7), r)[:m]
+            sw += C.fit(S.grains(0.25, lambda tt: 150, lambda rr, k: C.tick(0.006, 1000, 4000, rr) * rr.uniform(0.2, 0.7), r), m)
             C.place(y, sw, t0, 0.6); t0 += r.uniform(0.17, 0.25)
         C.place(y, _thud(S.n_of(0.1), 100, 0.03, 0.5, r), t0 + 0.05)
         return y
@@ -483,7 +485,7 @@ def render_npc():
     d = seq([(0, 50, 2.6, 'bell', 0.8), (0.1, 55, 2.4, 'bell', 0.5), (0.2, 57, 2.4, 'bell', 0.5)], 3.0)
     d *= 0.75 + 0.25 * np.sin(TWO_PI * 5.5 * t)
     d += 0.5 * np.sin(TWO_PI * HZ(38) * t) * np.minimum(1, t / 0.8) * np.exp(-t / 1.8)
-    save('npc_disaster_alert', C.echo(d, 1.4, 0.25, 32, 0.7, 0.7), **N(sr=32000))
+    save('npc_disaster_alert', C.trim(C.echo(d, 1.4, 0.25, 32, 0.7, 0.7), 2.6, 0.6), **N(sr=32000))
 
 
 def render():
@@ -493,7 +495,7 @@ def render():
     fam('ppl_grunt_topple', 4, grunt, max_dist=40, weight=2.0, sr=32000, tags=['voice'])
     fam('ppl_shout_boat', 3, shout_boat, max_dist=120, weight=3.0, sr=32000, tags=['voice'])
     fam('ppl_shout_help', 3, shout_help, max_dist=120, weight=3.0, sr=32000, tags=['voice'])
-    fam('ppl_whistle_lifeguard', 3, whistle, max_dist=150, weight=3.0, sr=32000, tags=['voice'])
+    fam('ppl_whistle_lifeguard', 3, whistle, max_dist=150, weight=3.0, sr=32000, peak=-14, tags=['voice'])
     fam('ppl_laugh_small', 3, laugh, max_dist=30, weight=1.0, sr=32000, tags=['voice'])
     fam('ppl_cough', 3, cough, max_dist=25, weight=1.0, sr=32000, tags=['voice'])
     save('ppl_shiver', shiver(), loop=True, target_lufs=-30, max_dist=15, weight=0.5, sr=32000, quality=3, tags=['voice'])
@@ -510,7 +512,7 @@ def render():
     fam('ppl_haul_grunt', 4, haul, max_dist=40, weight=1.5, sr=32000, tags=['voice'])
     fam('ppl_drum_slosh', 4, slosh, max_dist=40, weight=1.5, sr=32000, tags=['action'])
     fam('ppl_radio_click', 4, radio_click, max_dist=25, weight=1.0, sr=32000, tags=['radio'])
-    fam('ppl_radio_squelch', 4, radio_squelch, max_dist=25, weight=1.0, sr=32000, tags=['radio'])
+    fam('ppl_radio_squelch', 4, radio_squelch, max_dist=25, weight=1.0, sr=32000, peak=-9, tags=['radio'])
     save('ppl_radio_chatter_loop', radio_chatter(), loop=True, target_lufs=-30, max_dist=20, weight=1.0, sr=32000, quality=3, tags=['radio'])
     save('ppl_binocular_click', binoc(), max_dist=20, weight=0.5, sr=32000, tags=['action'])
     fam('ppl_fishing_cast', 4, cast, max_dist=40, weight=1.5, sr=32000, tags=['action'])

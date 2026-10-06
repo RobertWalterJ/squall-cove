@@ -448,5 +448,257 @@
    "kind": "snow",
    "note": "play with snowfall or snow cover; very quiet"
   }
+ },
+ "amb_fire_bed": {
+  "id": "amb_fire_bed",
+  "file": "audio/amb_fire_bed.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -29.1,
+  "lufs": -26.2,
+  "seamDb": -109.8,
+  "tags": [],
+  "meta": {
+   "kind": "fire",
+   "note": "scale level and rate with burning count; rate 0.9-1.1"
+  }
+ },
+ "amb_lava_bubble": {
+  "id": "amb_lava_bubble",
+  "file": "audio/amb_lava_bubble.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -8.4,
+  "rmsDb": -28.4,
+  "lufs": -26.0,
+  "seamDb": -90.6,
+  "tags": [],
+  "meta": {
+   "kind": "lava",
+   "note": "level from lava cells near camera"
+  }
+ },
+ "amb_steam_hiss": {
+  "id": "amb_steam_hiss",
+  "file": "audio/amb_steam_hiss.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 10.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -15.5,
+  "rmsDb": -30.9,
+  "lufs": -26.0,
+  "seamDb": -73.8,
+  "tags": [],
+  "meta": {
+   "kind": "steam",
+   "note": "lava meeting water, geysers"
+  }
+ },
+ "amb_birds_day": {
+  "id": "amb_birds_day",
+  "file": "audio/amb_birds_day.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "core",
+  "dur": 22.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -9.6,
+  "rmsDb": -30.8,
+  "lufs": -26.0,
+  "seamDb": -65.3,
+  "tags": [],
+  "meta": {
+   "kind": "birds",
+   "note": "day, fair weather only; fade out by wind > 8 m/s and any rain"
+  }
+ },
+ "amb_gulls": {
+  "id": "amb_gulls",
+  "file": "audio/amb_gulls.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "core",
+  "dur": 20.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -7.6,
+  "rmsDb": -30.0,
+  "lufs": -26.0,
+  "seamDb": -96.7,
+  "tags": [],
+  "meta": {
+   "kind": "gulls",
+   "note": "near the shore, day"
+  }
+ },
+ "amb_crickets_night": {
+  "id": "amb_crickets_night",
+  "file": "audio/amb_crickets_night.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "core",
+  "dur": 16.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -10.1,
+  "rmsDb": -30.8,
+  "lufs": -26.0,
+  "seamDb": -106.2,
+  "tags": [],
+  "meta": {
+   "kind": "crickets",
+   "note": "night, calm, dry, land side"
+  }
+ },
+ "amb_forest_air": {
+  "id": "amb_forest_air",
+  "file": "audio/amb_forest_air.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "core",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -29.4,
+  "lufs": -26.0,
+  "seamDb": -73.4,
+  "tags": [],
+  "meta": {
+   "kind": "forest",
+   "note": "under trees, any weather; rate 0.9-1.1"
+  }
+ },
+ "amb_harbour_far": {
+  "id": "amb_harbour_far",
+  "file": "audio/amb_harbour_far.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": true,
+  "group": "core",
+  "dur": 20.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -13.0,
+  "rmsDb": -28.5,
+  "lufs": -26.0,
+  "seamDb": -100.1,
+  "tags": [],
+  "meta": {
+   "kind": "harbour",
+   "note": "scale by pier/boat/people counts"
+  }
+ },
+ "amb_underwater": {
+  "id": "amb_underwater",
+  "file": "audio/amb_underwater.ogg",
+  "bus": "amb",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 160,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 12.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -13.6,
+  "rmsDb": -28.1,
+  "lufs": -26.0,
+  "seamDb": -71.1,
+  "tags": [],
+  "meta": {
+   "kind": "underwater",
+   "note": "replaces everything when camera below water"
+  }
  }
 }

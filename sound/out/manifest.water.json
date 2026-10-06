@@ -1793,10 +1793,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -14.0,
+  "peakDb": -13.9,
   "rmsDb": -27.0,
   "lufs": -26.0,
-  "seamDb": -36.3,
+  "seamDb": -54.0,
   "tags": [],
   "meta": {
    "drive": "pour flow rate -> gain (0..1), rate 0.9..1.15"
@@ -1820,10 +1820,10 @@
   "dur": 5.0,
   "ch": 2,
   "sr": 44100,
-  "peakDb": -14.4,
-  "rmsDb": -28.7,
+  "peakDb": -15.3,
+  "rmsDb": -29.0,
   "lufs": -26.0,
-  "seamDb": -28.1,
+  "seamDb": -42.4,
   "tags": [],
   "meta": {
    "drive": "hull speed (m/s): gain 0..1 over 0..12, lowpass opens with speed, rate 0.85..1.3"
@@ -2012,7 +2012,7 @@
   "peakDb": -12.7,
   "rmsDb": -27.0,
   "lufs": -26.0,
-  "seamDb": -31.4,
+  "seamDb": -62.8,
   "tags": [],
   "meta": {
    "drive": "hot water / lava contact; gain by hot cell count"
@@ -2147,7 +2147,7 @@
   "peakDb": -9.3,
   "rmsDb": -29.5,
   "lufs": -28.0,
-  "seamDb": -28.3,
+  "seamDb": -77.0,
   "tags": [],
   "meta": {
    "drive": "flowing water cell count near camera"

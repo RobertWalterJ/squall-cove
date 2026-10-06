@@ -13,9 +13,13 @@ HZ = C.hz
 def save(name, x, **kw):
     kw.setdefault('lazy', False); kw.setdefault('group', 'core'); kw.setdefault('max_dist', 0)
     kw.setdefault('weight', 1.0); kw.setdefault('quality', 4)
-    bus = kw.pop('bus', 'ui'); sr = kw.pop('sr', SR); circ = kw.pop('circ', False)
+    bus = kw.pop('bus', 'ui'); sr = kw.pop('sr', SR); circ = kw.pop('circ', False); maxdur = kw.pop('maxdur', None)
+    if maxdur:
+        x = C.trim(x, maxdur, min(0.2, maxdur * 0.3))
     if sr == 32000:
-        x = C.r32_circ(x) if circ else C.r32(x)
+        x = C.r32_circ(x) if (circ or kw.get('loop')) else C.r32(x)
+    if kw.get('loop'):
+        x = C.seal(x)
     return S.save(name, x, bus, sr=sr, **kw)
 
 
@@ -41,7 +45,7 @@ def swish(r, d, f0, f1, level=0.25):
 
 
 def render_ui():
-    U = dict(peak=-10, sr=32000, rate=(0.97, 1.03), tags=['ui'])
+    U = dict(peak=-10, sr=32000, rate=(0.97, 1.03), tags=['ui'], maxdur=0.7)
     r = rng(3000)
     save('ui_tap', seq([(0, 74, 0.14, 'marimba', 0.9)], 0.16, 0.3, 1), **U)
     save('ui_select', seq([(0, 69, 0.18, 'marimba', 0.8), (0.045, 74, 0.2, 'marimba', 0.9)], 0.28, 0.25, 2), **U)
@@ -285,9 +289,9 @@ def render_layers():
          tags=['music'], meta=dict(note='mix over a pad in storms; tie level to wind/rain'))
 
 
-def sting_stereo(x, rt=1.6, wet=0.3, seed=40):
+def sting_stereo(x, rt=1.6, wet=0.3, seed=40, total=3.5):
     ir = S.reverb_ir(rt, 0.7, 0.7, SR, seed, 0.015, stereo=True)
-    return S.convolve(x, ir, wet)
+    return C.trim(S.convolve(x, ir, wet), total, 0.8)
 
 
 def render_stings():
@@ -299,16 +303,16 @@ def render_stings():
         return y
     y = sq([(0, 77, 1.8, 'bell', 0.7), (0.16, 81, 1.8, 'bell', 0.7), (0.32, 86, 2.4, 'bell', 0.8), (0.32, 74, 2.4, 'bell', 0.35)], 2.8)
     sh = S.hp(S.noise(S.n_of(2.8), 'white', rng(41)), 3000, SR) * np.exp(-np.arange(S.n_of(2.8)) / (0.5 * SR)) * 0.02
-    save('mus_sting_discovery', sting_stereo(S.lp(y + sh, 7000, SR, 2), 2.0, 0.35, 41), **M)
+    save('mus_sting_discovery', sting_stereo(S.lp(y + sh, 7000, SR, 2), 2.0, 0.35, 41, 3.2), **M)
     y = sq([(0, 62, 0.5, 'marimba', 0.8), (0.18, 69, 0.5, 'marimba', 0.8), (0.36, 74, 0.5, 'marimba', 0.8), (0.54, 77, 0.6, 'marimba', 0.8),
             (0.8, 74, 2.4, 'bell', 0.7), (0.8, 77, 2.4, 'bell', 0.6), (0.8, 81, 2.4, 'bell', 0.55), (0.8, 84, 2.4, 'bell', 0.35), (0.8, 50, 2.4, 'tri', 0.3)], 3.4)
-    save('mus_sting_success', sting_stereo(y, 2.0, 0.3, 42), **M)
+    save('mus_sting_success', sting_stereo(y, 2.0, 0.3, 42, 3.8), **M)
     y = sq([(0, 62, 0.8, 'tri', 0.8), (0.5, 57, 0.8, 'tri', 0.8), (1.0, 53, 0.9, 'tri', 0.8), (1.5, 50, 1.8, 'tri', 0.9), (1.5, 38, 2.0, 'bell', 0.7), (1.5, 45, 2.0, 'bell', 0.35)], 3.6)
-    save('mus_sting_loss', sting_stereo(y, 2.5, 0.35, 43), **M)
+    save('mus_sting_loss', sting_stereo(y, 2.5, 0.35, 43, 4.0), **M)
     n = S.n_of(3.6); t = np.arange(n) / SR
     pad = sum(swell(HZ(m), 3.6, 0.9, 1.4) * a for m, a in [(57, 0.6), (62, 0.8), (65, 0.5)])
     y = pad * 0.5 + sq([(0.9, 69, 1.6, 'bell', 0.8), (1.15, 74, 2.2, 'bell', 0.8)], 3.6)
-    save('mus_sting_arrival', sting_stereo(y, 2.2, 0.35, 44), **M)
+    save('mus_sting_arrival', sting_stereo(y, 2.2, 0.35, 44, 3.8), **M)
 
 
 def render():

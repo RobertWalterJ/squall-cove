@@ -2504,9 +2504,9 @@
   "ch": 1,
   "sr": 44100,
   "peakDb": -6.0,
-  "rmsDb": -27.2,
-  "lufs": -28.1,
-  "seamDb": -9.4,
+  "rmsDb": -28.7,
+  "lufs": -28.2,
+  "seamDb": -37.5,
   "tags": [],
   "meta": {
    "drive": "boulder speed -> gain and rate 0.8..1.4"
@@ -3825,7 +3825,7 @@
   "peakDb": -12.6,
   "rmsDb": -27.9,
   "lufs": -26.0,
-  "seamDb": -24.2,
+  "seamDb": -100.3,
   "tags": [],
   "meta": {
    "drive": "chain speed (links/s) -> rate 0.7..1.6 and gain"
@@ -5923,10 +5923,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -11.2,
+  "peakDb": -11.1,
   "rmsDb": -30.0,
   "lufs": -28.0,
-  "seamDb": -42.9,
+  "seamDb": -83.1,
   "tags": [],
   "meta": {
    "drive": "flow rate -> gain; lowpass opens with fall height; rate 0.9..1.1"
@@ -5950,10 +5950,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -9.0,
-  "rmsDb": -26.6,
+  "peakDb": -8.9,
+  "rmsDb": -26.9,
   "lufs": -27.0,
-  "seamDb": -24.2,
+  "seamDb": -41.1,
   "tags": [],
   "meta": {
    "drive": "flow rate -> gain"
@@ -5977,10 +5977,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -6.2,
+  "peakDb": -6.3,
   "rmsDb": -27.4,
   "lufs": -26.0,
-  "seamDb": -28.8,
+  "seamDb": -83.3,
   "tags": [],
   "meta": {
    "drive": "flow rate -> gain and rate"
@@ -6007,7 +6007,7 @@
   "peakDb": -13.8,
   "rmsDb": -30.0,
   "lufs": -28.0,
-  "seamDb": -23.2,
+  "seamDb": -95.1,
   "tags": [],
   "meta": {
    "drive": "flow rate -> gain"
@@ -6291,10 +6291,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -10.8,
-  "rmsDb": -24.8,
+  "peakDb": -11.8,
+  "rmsDb": -25.3,
   "lufs": -26.0,
-  "seamDb": -29.2,
+  "seamDb": -42.7,
   "tags": [],
   "meta": {
    "drive": "sliding mass speed -> gain, lowpass, rate"
@@ -6888,6 +6888,875 @@
     8
    ],
    "note": "whole sequence; skip if you animate bounces yourself and use mat_thud_soft"
+  }
+ },
+ "lava_flow_loop": {
+  "id": "lava_flow_loop",
+  "file": "audio/lava_flow_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.4,
+  "rmsDb": -25.4,
+  "lufs": -26.0,
+  "seamDb": -43.0,
+  "tags": [],
+  "meta": {
+   "drive": "lava cell count within 40 m -> gain; flow speed -> rate"
+  }
+ },
+ "lava_crust_crack_01": {
+  "id": "lava_crust_crack_01",
+  "file": "audio/lava_crust_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -30.4,
+  "lufs": -30.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava-crust",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "lava_crust_crack_02": {
+  "id": "lava_crust_crack_02",
+  "file": "audio/lava_crust_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -28.0,
+  "lufs": -28.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava-crust",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "lava_crust_crack_03": {
+  "id": "lava_crust_crack_03",
+  "file": "audio/lava_crust_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -31.2,
+  "lufs": -31.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava-crust",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "lava_crust_crack_04": {
+  "id": "lava_crust_crack_04",
+  "file": "audio/lava_crust_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -28.7,
+  "lufs": -28.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava-crust",
+   "sizeClass": "m",
+   "impactSpeed": [
+    0,
+    2
+   ]
+  }
+ },
+ "lava_hit_water_hiss_01": {
+  "id": "lava_hit_water_hiss_01",
+  "file": "audio/lava_hit_water_hiss_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -20.7,
+  "lufs": -19.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava+water",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    4
+   ],
+   "note": "steam explosion burst; scale gain with lava mass"
+  }
+ },
+ "lava_hit_water_hiss_02": {
+  "id": "lava_hit_water_hiss_02",
+  "file": "audio/lava_hit_water_hiss_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -20.6,
+  "lufs": -19.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava+water",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    4
+   ],
+   "note": "steam explosion burst; scale gain with lava mass"
+  }
+ },
+ "lava_hit_water_hiss_03": {
+  "id": "lava_hit_water_hiss_03",
+  "file": "audio/lava_hit_water_hiss_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -20.8,
+  "lufs": -19.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava+water",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    4
+   ],
+   "note": "steam explosion burst; scale gain with lava mass"
+  }
+ },
+ "lava_hit_water_hiss_04": {
+  "id": "lava_hit_water_hiss_04",
+  "file": "audio/lava_hit_water_hiss_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 140,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.3,
+  "lufs": -19.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "lava+water",
+   "sizeClass": "l",
+   "impactSpeed": [
+    0,
+    4
+   ],
+   "note": "steam explosion burst; scale gain with lava mass"
+  }
+ },
+ "glass_form_ping_01": {
+  "id": "glass_form_ping_01",
+  "file": "audio/glass_form_ping_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -26.4,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "sand fuses into glass: soft warm ping"
+  }
+ },
+ "glass_form_ping_02": {
+  "id": "glass_form_ping_02",
+  "file": "audio/glass_form_ping_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -26.0,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "sand fuses into glass: soft warm ping"
+  }
+ },
+ "glass_form_ping_03": {
+  "id": "glass_form_ping_03",
+  "file": "audio/glass_form_ping_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -25.2,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "sand fuses into glass: soft warm ping"
+  }
+ },
+ "glass_form_ping_04": {
+  "id": "glass_form_ping_04",
+  "file": "audio/glass_form_ping_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -26.3,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "glass",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "sand fuses into glass: soft warm ping"
+  }
+ },
+ "furnace_roar_loop": {
+  "id": "furnace_roar_loop",
+  "file": "audio/furnace_roar_loop.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 3,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.5,
+  "rmsDb": -24.0,
+  "lufs": -25.0,
+  "seamDb": -36.6,
+  "tags": [],
+  "meta": {
+   "drive": "furnace heat -> gain, lowpass"
+  }
+ },
+ "seed_scatter_patter_01": {
+  "id": "seed_scatter_patter_01",
+  "file": "audio/seed_scatter_patter_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -42.2,
+  "lufs": -40.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "seed",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "Seed tool scatter"
+  }
+ },
+ "seed_scatter_patter_02": {
+  "id": "seed_scatter_patter_02",
+  "file": "audio/seed_scatter_patter_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -40.9,
+  "lufs": -38.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "seed",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "Seed tool scatter"
+  }
+ },
+ "seed_scatter_patter_03": {
+  "id": "seed_scatter_patter_03",
+  "file": "audio/seed_scatter_patter_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -41.8,
+  "lufs": -39.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "seed",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "Seed tool scatter"
+  }
+ },
+ "seed_scatter_patter_04": {
+  "id": "seed_scatter_patter_04",
+  "file": "audio/seed_scatter_patter_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -40.0,
+  "lufs": -38.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "seed",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    1
+   ],
+   "note": "Seed tool scatter"
+  }
+ },
+ "sprout_chime_01": {
+  "id": "sprout_chime_01",
+  "file": "audio/sprout_chime_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -28.8,
+  "lufs": -28.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "chime",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "sapling sprouts; soft and rare"
+  }
+ },
+ "sprout_chime_02": {
+  "id": "sprout_chime_02",
+  "file": "audio/sprout_chime_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.4,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "chime",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "sapling sprouts; soft and rare"
+  }
+ },
+ "sprout_chime_03": {
+  "id": "sprout_chime_03",
+  "file": "audio/sprout_chime_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.3,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "chime",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "sapling sprouts; soft and rare"
+  }
+ },
+ "sprout_chime_04": {
+  "id": "sprout_chime_04",
+  "file": "audio/sprout_chime_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 1,
+  "lazy": true,
+  "group": "mat",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -29.3,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "chime",
+   "sizeClass": "s",
+   "impactSpeed": [
+    0,
+    0
+   ],
+   "note": "sapling sprouts; soft and rare"
+  }
+ },
+ "quake_crack_01": {
+  "id": "quake_crack_01",
+  "file": "audio/quake_crack_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.4,
+  "lufs": -20.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ground",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    5
+   ],
+   "note": "ground fractures during a quake"
+  }
+ },
+ "quake_crack_02": {
+  "id": "quake_crack_02",
+  "file": "audio/quake_crack_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.5,
+  "lufs": -21.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ground",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    5
+   ],
+   "note": "ground fractures during a quake"
+  }
+ },
+ "quake_crack_03": {
+  "id": "quake_crack_03",
+  "file": "audio/quake_crack_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.8,
+  "lufs": -21.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ground",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    5
+   ],
+   "note": "ground fractures during a quake"
+  }
+ },
+ "quake_crack_04": {
+  "id": "quake_crack_04",
+  "file": "audio/quake_crack_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 8,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.3,
+  "lufs": -21.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "material": "ground",
+   "sizeClass": "xl",
+   "impactSpeed": [
+    0,
+    5
+   ],
+   "note": "ground fractures during a quake"
+  }
+ },
+ "rubble_rain": {
+  "id": "rubble_rain",
+  "file": "audio/rubble_rain.ogg",
+  "bus": "mat",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "mat",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.4,
+  "rmsDb": -28.3,
+  "lufs": -27.0,
+  "seamDb": -61.6,
+  "tags": [],
+  "meta": {
+   "drive": "falling debris count -> gain"
   }
  }
 }

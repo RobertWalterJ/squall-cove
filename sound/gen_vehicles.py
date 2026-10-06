@@ -14,6 +14,8 @@ def save(name, x, **kw):
     kw.setdefault('bus', 'veh'); kw.setdefault('lazy', True); kw.setdefault('group', 'boats')
     kw.setdefault('max_dist', 200); kw.setdefault('weight', 3.0); kw.setdefault('quality', 4)
     bus = kw.pop('bus')
+    if kw.get('loop'):
+        x = C.seal(x)
     return S.save(name, x, bus, **kw)
 
 
@@ -29,19 +31,19 @@ LOOP_L = 5.0
 XF = 0.4
 
 ENGINES = {
-    'tug': dict(cyl=3, stroke=4, rpm=(750, 1200, 1750), rng=(600, 1800), load=(0.85, 0.85, 0.9), rough=0.30, exh=1.0,
+    'tug': dict(tilt=3.5, cyl=3, stroke=4, rpm=(750, 1200, 1750), rng=(600, 1800), load=(0.85, 0.85, 0.9), rough=0.30, exh=1.0,
                 lpc=(650, 1000, 1500), body=[(90, 1.5, 7), (170, 2, 4), (420, 2, 2)], knock=0.30, core=True, seed=100,
                 desc='3-cyl diesel chug'),
-    'lifeboat': dict(cyl=6, stroke=4, rpm=(1000, 2000, 3200), rng=(800, 3400), load=(0.6, 0.7, 0.85), rough=0.12, exh=0.8,
+    'lifeboat': dict(tilt=3.0, cyl=6, stroke=4, rpm=(1000, 2000, 3200), rng=(800, 3400), load=(0.6, 0.7, 0.85), rough=0.12, exh=0.8,
                      lpc=(900, 1500, 2400), body=[(110, 1.5, 4), (300, 2, 3), (900, 2, 2)], knock=0.2, core=False, seed=200,
                      desc='6-cyl fast diesel'),
-    'patrol': dict(cyl=6, stroke=4, rpm=(900, 1500, 2300), rng=(700, 2500), load=(0.7, 0.75, 0.85), rough=0.14, exh=0.9,
+    'patrol': dict(tilt=3.0, cyl=6, stroke=4, rpm=(900, 1500, 2300), rng=(700, 2500), load=(0.7, 0.75, 0.85), rough=0.14, exh=0.9,
                    lpc=(700, 1100, 1700), body=[(70, 1.5, 6), (140, 2, 4), (320, 2, 2)], knock=0.2, core=False, seed=300,
                    twin=1.011, desc='twin diesel, detuned'),
-    'icebreaker': dict(cyl=6, stroke=2, rpm=(90, 140, 195), rng=(70, 200), load=(0.95, 0.95, 1.0), rough=0.45, exh=1.0,
+    'icebreaker': dict(tilt=1.5, cyl=6, stroke=2, rpm=(90, 140, 195), rng=(70, 200), load=(0.95, 0.95, 1.0), rough=0.45, exh=1.0,
                        lpc=(300, 420, 600), body=[(45, 1.2, 8), (85, 1.5, 6), (120, 2, 4)], knock=0.15, core=False, seed=400,
                        desc='heavy slow 2-stroke diesel'),
-    'outboard': dict(cyl=2, stroke=2, rpm=(2000, 3500, 5500), rng=(1500, 6000), load=(0.75, 0.8, 0.85), rough=0.28, exh=0.7,
+    'outboard': dict(tilt=2.0, cyl=2, stroke=2, rpm=(2000, 3500, 5500), rng=(1500, 6000), load=(0.75, 0.8, 0.85), rough=0.28, exh=0.7,
                      lpc=(2600, 3800, 5000), body=[(300, 2, 3), (1200, 3, 4), (2400, 3, 3)], knock=0.0, core=True, seed=500,
                      desc='small 2-stroke buzz'),
 }
@@ -69,6 +71,7 @@ def _aligned_layer(cfg, i, r, f_target=None, count=None, seed=0):
 
 def _shape(y, ph, cfg, i, r):
     y = S.lp(y, cfg['lpc'][i], SR, 2)
+    y = S.spectral_tilt(y, cfg['tilt'])
     for f, q, g in cfg['body']:
         y = S.peak_eq(y, f, q, g)
     if cfg['knock'] > 0:
@@ -312,14 +315,18 @@ def render_weapons():
 
     def hit_l(i):
         r = rng(930 + i)
-        y = S.impact('plank', r.uniform(150, 230), 0.7, 0.45, 0.7, seed=930 + i, thump=0.6)
+        y = S.impact('plank', r.uniform(150, 230), 0.7, 0.45, 0.7, seed=930 + i, thump=0.0)
+        tb = np.arange(len(y)) / SR
+        y += 0.6 * np.sin(TWO_PI * r.uniform(60, 95) * tb + r.uniform(0, 6.28)) * np.exp(-tb / r.uniform(0.05, 0.1))
         return y
     fam('veh_hull_hit_light', 4, hit_l, weight=4, tags=['hull'])
 
     def hit_h(i):
         r = rng(940 + i)
-        y = S.impact('wood', r.uniform(70, 110), 2.2, 0.35, 1.5, seed=940 + i, thump=1.6)
-        n = len(y); cr = S.bp(S.noise(n, 'white', r), 200, 1800, SR, 1) * np.exp(-np.arange(n) / (0.08 * SR))
+        y = S.impact('wood', r.uniform(70, 110), 2.2, 0.35, 1.5, seed=940 + i, thump=0.0)
+        n = len(y); tb = np.arange(n) / SR
+        y += 1.6 * np.sin(TWO_PI * r.uniform(42, 70) * tb * (1 - 0.3 * np.exp(-tb * 25)) + r.uniform(0, 6.28)) * np.exp(-tb / r.uniform(0.12, 0.25))
+ cr = S.bp(S.noise(n, 'white', r), 200, 1800, SR, 1) * np.exp(-np.arange(n) / (0.08 * SR))
         return y + 0.5 * cr
     fam('veh_hull_hit_heavy', 4, hit_h, weight=6, tags=['hull'])
 

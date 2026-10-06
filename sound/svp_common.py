@@ -242,3 +242,26 @@ def winch_loop(dur, r, clicks_per_s=12, motor=90.0, level=1.0):
         circ_place(y, c, tk, r.uniform(0.7, 1.0))
     rumble = pnoise(n, band_shape(60, 600, -3), r) * 0.25
     return (y * 0.9 + saw * 0.55 + rumble) * level
+
+
+def seal(x):
+    """Rotate a (seamless, circular) loop so that its first and last samples both sit near zero at a flat spot.
+    The loop is continuous across the rotation point (it is circular), and the file-level seam (last vs first sample)
+    becomes tiny, which also keeps the 20 Hz high-pass start-up transient in synthlib.normalize negligible."""
+    x = np.asarray(x, dtype=np.float64)
+    x = x - x.mean(axis=0)
+    a = np.abs(x / (x.std(axis=0) + 1e-12))
+    if a.ndim == 2:
+        a = a.max(axis=1)
+    cost = a + np.roll(a, 1)
+    s = int(np.argmin(cost))
+    return np.roll(x, -s, axis=0)
+
+
+def trim(x, dur, fade=0.15, sr=SR):
+    """Crop to dur seconds with a smooth fade-out over the last `fade` seconds."""
+    n = S.n_of(dur, sr)
+    x = np.asarray(x, dtype=np.float64)[:n]
+    k = min(S.n_of(fade, sr), len(x))
+    e = np.ones(len(x)); e[len(x) - k:] = np.cos(np.linspace(0, math.pi / 2, k)) ** 2
+    return x * (e[:, None] if x.ndim == 2 else e)

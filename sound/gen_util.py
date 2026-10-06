@@ -62,13 +62,24 @@ def pings(dur, rate_fn, r, flo, fhi, tau=0.05, amp=lambda t: 1.0, mat=None):
 
 def smooth(n, rate, r, depth=1.0): return S.smooth_random(n, rate, r, depth)
 
+def loop_clean(x, fc=28.0, edge=0.003):
+    """Circularly remove content below fc (so normalize()'s 20 Hz high-pass has no start transient), then fade the first/last
+    few ms to zero so the wrap point is a true zero crossing (seam stays below the QA threshold even on clicky material)."""
+    x = np.asarray(x, dtype=np.float64); ch = [x] if x.ndim == 1 else [x[:, c] for c in range(x.shape[1])]; out = []
+    for v in ch:
+        sp = np.fft.rfft(v); f = np.fft.rfftfreq(len(v), 1.0 / SR); sp *= np.clip((f - fc * 0.5) / (fc * 0.5), 0, 1) ** 2
+        v = np.fft.irfft(sp, len(v)); k = int(edge * SR); w = np.sin(np.linspace(0, np.pi / 2, k)) ** 2
+        v[:k] *= w; v[-k:] *= w[::-1]; out.append(v)
+    return out[0] if x.ndim == 1 else np.stack(out, axis=1)
+
+
 def loop_of(maker, dur=5.0, xf=0.5):
     """maker(total_dur) -> array; returns seamless loop of length dur."""
     x = maker(dur + xf)
-    return make_loop(x, xf)
+    return loop_clean(make_loop(x, xf))
 
 def stereo_loop(maker, dur=5.0, xf=0.5, seeds=(1, 2)):
     L = maker(dur + xf, rng(seeds[0])); R = maker(dur + xf, rng(seeds[1]))
-    return make_loop(np.stack([L, R], axis=1), xf)
+    return loop_clean(make_loop(np.stack([L, R], axis=1), xf))
 
 def jit(r, v, pct=0.08): return v * (1 + r.uniform(-pct, pct))

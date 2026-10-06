@@ -144,7 +144,7 @@ def render():
         y *= (0.5 + 0.5 * smooth(n, 1.5, r))
         y += hp(noise(n, 'white', r), 6000) * 0.01
         return y
-    L('elec_spark_crackle', loop_of(lambda d: spark(d, rng(seed_of('spark')))), lufs=-29, peak=-8, weight=2, max_dist=55, meta=dict(drive='electrified area / charge -> gain and rate'))
+    L('elec_spark_crackle', loop_of(lambda d: spark(d, rng(seed_of('spark')))), lufs=-29, peak=-3, weight=2, max_dist=55, meta=dict(drive='electrified area / charge -> gain and rate'))
 
     def shock(i):
         r = rng(seed_of('shock', i)); d = .5; n = n_of(d); out = np.zeros(n)
