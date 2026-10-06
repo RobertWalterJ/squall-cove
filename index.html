@@ -1045,7 +1045,7 @@ const waterMat = new THREE.ShaderMaterial({
   vertexShader: `${WAVE_GLSL}${RIP_GLSL}
     varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow;
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz)) * iv; vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz) * 2.6) * iv; vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1138,7 +1138,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz)) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += (waveH(wp.xz) + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
@@ -2436,13 +2436,13 @@ function dropCarry(p) {
   const cr = p.carry; if (!cr) return;
   const team = cr.team || [p], lead = cr.lead || p, yw = personWorldYaw(lead);
   const x = lead.x + Math.sin(yw) * 0.9, z = lead.z + Math.cos(yw) * 0.9, y = lead.y + 1.15;
-  spawn(cr.c, x, y, z);
+  spawn(cr.c, x, y, z); if (cr.contraband) objects[objects.length - 1].contraband = true;
   for (const q of team) { q.carry = null; if (q.carryMesh) { q.carryMesh.parent && q.carryMesh.parent.remove(q.carryMesh); q.carryMesh = null; } q.carryK = 0; }
   updateCount();
 }
 function liftObject(j) {
   const o = j.obj; if (!objects.includes(o)) return; const team = j.team, lead = team[0];
-  const info = { c: o.c, pr: o.pr, mass: o.body.mass };
+  const info = { c: o.c, pr: o.pr, mass: o.body.mass, contraband: !!o.contraband };
   removeObj(o); updateCount();
   for (const q of team) q.carry = { ...info, team, lead };
   attachCarry(lead);
@@ -5474,11 +5474,103 @@ function updateTreeFire(dt) {
 }
 let treeLavaT = 0, plantT = 0;
 /* ---- threats: optional smugglers and raiders. Nobody is hurt on screen: crews are knocked out of the fight and collected by medics, theirs by their own medic boat. */
+/* ---- v8.5 NPC engine, part 2: factions, deception and information.
+   Smugglers do not arrive as pirates: they come as an ordinary civilian boat with a fisher's crew, toss sealed drums ashore at the quietest stretch of coast, and send a courier dressed as a dock worker to hide them.
+   What gives them away is what people SEE (a drop in view of a fisher, a photographer, a hiker), what those people REPORT (informants take time to walk it to the Coast Guard, and a hidden smuggler agent can sell a false tip),
+   and what the Coast Guard CHECKS (spot inspections that sometimes stop an innocent boat and cost the public's trust). Dock workers hauling loose cargo can pick the drums up and seize them by accident. */
+const FACTIONS = { 'Civilian': { 'Coast Guard': 0.6, 'Port': 0.5, 'Raiders': -0.9, 'Smugglers': 0 }, 'Coast Guard': { 'Civilian': 0.6, 'Port': 0.7, 'Raiders': -1, 'Smugglers': -0.9 },
+  'Port': { 'Civilian': 0.5, 'Coast Guard': 0.7, 'Raiders': -0.8, 'Smugglers': -0.5 }, 'Raiders': { 'Civilian': -0.9, 'Coast Guard': -1, 'Port': -0.8, 'Smugglers': -0.3 }, 'Smugglers': { 'Civilian': 0, 'Coast Guard': -0.9, 'Port': -0.5, 'Raiders': -0.3 } };
+const rel = (a, b) => a === b ? 1 : ((FACTIONS[a] || {})[b] ?? 0);
+const ECON = { trust: 0.7, rumours: [], events: [], stashed: 0, seized: 0, falseTips: 0, falsePos: 0, unmasked: 0 };
+function logEvent(kind, x, z, extra) { ECON.events.push({ kind, x, z, t: simT, seen: new Set(), ...(extra || {}) }); if (ECON.events.length > 24) ECON.events.shift(); }
+function los(x0, z0, y0, x1, z1, y1) { for (let i = 1; i < 12; i++) { const u = i / 12, x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * u, y = y0 + (y1 - y0) * u; if (heightAt(x, z) > y) return false; } return true; }
+function watchers() { const w = []; if (pierInfo) w.push(pierInfo.end, pierInfo.c); if (LM.ready) for (const o of lmLookouts()) w.push(o); for (const st of sites) w.push(st); for (const p of people) if (!p.ride && p.trueRole !== 'Courier' && p.trueRole !== 'Agent') w.push({ x: p.x, z: p.z }); return w; }
+function landingSpot() {                                          // the quietest bit of coast: furthest from the pier, the lookouts, the sites and anyone walking about
+  const w = watchers(); let best = null, bs = -1;
+  for (let n = 0; n < 60; n++) { const a = Math.random() * 6.283, cp = coastPoint(a, 2), sea = coastPoint(a, -10); if (!cp || !sea || !safeSpot(cp.x, cp.z) || heightAt(sea.x, sea.z) > -2) continue; let md = 1e9; for (const q of w) md = Math.min(md, Math.hypot(q.x - cp.x, q.z - cp.z)); if (md > bs) { bs = md; best = { cp, sea, a, md }; } }
+  return best;
+}
+function stashSpot(from) {
+  const w = watchers(); let best = null, bs = -1;
+  for (let n = 0; n < 50; n++) { const a = Math.random() * 6.283, d = rnd(18, 46), x = from.x + Math.cos(a) * d, z = from.z + Math.sin(a) * d; if (!safeSpot(x, z) || heightAt(x, z) < 1) continue; let md = 1e9; for (const q of w) md = Math.min(md, Math.hypot(q.x - x, q.z - z)); if (md > bs) { bs = md; best = { x, z }; } }
+  return best || { x: from.x, z: from.z };
+}
+function spawnSmuggler() {
+  if (boats.some(b => b.disguise && !b.disguise.dropped) || boats.length > 16) return false; const e = edgeSpot(), L = landingSpot(); if (!e || !L) return false;
+  const bt = makeBoat('bollard', null, null, e.x, e.z, Math.atan2(-e.z, -e.x)); crewOn(bt, 2); bt.anchor = null; bt.disguise = { susp: 0.05, landing: L, dropped: false, t0: simT };
+  for (const q of people) if (q.ride && q.ride.boat === bt) { q.role = 'Fisher'; q.trueRole = 'Smuggler'; }
+  orderTo(bt, L.sea.x, L.sea.z); bt.order.r = 8; npcEv('smugglerRun');
+  if (Math.random() < 0.6 && people.length < MAX_PEOPLE - 3) { for (let n = 0; n < 30; n++) { const cp = coastPoint(Math.random() * 6.283, 3); if (cp && safeSpot(cp.x, cp.z) && Math.hypot(cp.x - L.cp.x, cp.z - L.cp.z) > 60) { const a = makePerson(Math.floor(Math.random() * 16), cp.x, cp.z); a.y = standY(cp.x, cp.z); a.role = 'Fisher'; a.trueRole = 'Agent'; npcEv('agentPlaced'); break; } } }
+  return true;
+}
+function spawnCourier(L) {
+  npcEv('courierCalled'); if (people.length >= MAX_PEOPLE) { npcEv('courierBlocked'); return; } npcEv('courierSpawned'); const bx = L.cp.x - Math.cos(L.a) * 6, bz = L.cp.z - Math.sin(L.a) * 6, p = makePerson(Math.floor(Math.random() * 16), safeSpot(bx, bz) ? bx : L.cp.x, safeSpot(bx, bz) ? bz : L.cp.z); p.y = standY(p.x, p.z); p.role = 'Dock worker'; p.trueRole = 'Courier'; p.courier = { landing: L, stash: stashSpot(L.cp), t0: simT };
+}
+function courierThink(p, ag) {
+  const c = p.courier; if (!c) { p.trueRole = null; return; }
+  if (p.carry) { ag.goal = { kind: 'stash', x: c.stash.x, z: c.stash.z, t: 0 }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, c.stash.x, c.stash.z); return; }
+  let best = null, bd = 1e9; for (const o of objects) { if (!o.contraband || o.stashed) continue; if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (standY(op.x, op.z) < 0.12 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 1.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 60) { bd = d; best = o; } }
+  if (best && startLift(p, best, 'Dock worker')) { ag.intent = 'Waiting for cargo at the yard'; return; }
+  if (simT - c.t0 > 45 || (!best && ECON.stashed >= 2)) { const cp = coastPoint(Math.random() * 6.283, 3); if (cp) { ag.goal = { kind: 'depart', t: 0 }; ag.intent = 'Strolling'; walkAgent(p, cp.x, cp.z); return; } }
+  ag.cool = 2; ag.intent = 'Waiting for cargo at the yard';
+}
+function unmask(bt) {
+  const d = bt.disguise; if (!d) return; bt.disguise = null; bt.side = 'hostile'; bt.threat = 'smuggler'; bt.dropped = true;
+  for (const q of people) if (q.ride && q.ride.boat === bt) q.fromHostile = true;
+  ECON.trust = Math.min(1, ECON.trust + 0.08); ECON.unmasked++; npcEv('unmasked'); toast('The Coast Guard unmasked a smuggler: that fishing boat was running contraband.'); const e = edgeSpot(); if (e) orderTo(bt, e.x * 1.1, e.z * 1.1);
+}
+let obsT = 0;
+function observe(dt) {
+  obsT -= dt; if (obsT > 0) return; obsT = 1.5; ECON.trust = Math.min(0.9, ECON.trust + 0.0015 * 1.5);
+  for (const e of ECON.events) {
+    if (simT - e.t > 25) continue;
+    for (const p of people) {
+      if (p.ride || p.state === 'rag' || e.seen.has(p.id) || p.trueRole === 'Courier' || p.trueRole === 'Smuggler') continue; const r = p.role; if (!(r === 'Fisher' || r === 'Photographer' || r === 'Tourist' || r === 'Hiker' || r === 'Lifeguard' || r === 'Dock worker' || r === 'Forester')) continue;
+      const d = Math.hypot(p.x - e.x, p.z - e.z); if (d > 55 * (r === 'Photographer' ? 1.3 : 1) || !los(p.x, p.z, p.y + 1.6, e.x, e.z, standY(e.x, e.z) + 1)) continue;
+      e.seen.add(p.id); npcEv('witness'); if (e.boat && e.boat.disguise) e.boat.disguise.susp = Math.min(1, e.boat.disguise.susp + 0.25);
+      if (!p.pendingReport && (p.trueRole === 'Agent' || Math.random() < 0.35 + 0.65 * ECON.trust)) p.pendingReport = { e, at: simT + 8 + d / 1.4, fake: p.trueRole === 'Agent' };
+    }
+  }
+  for (const p of people) if (p.pendingReport && simT >= p.pendingReport.at) {
+    const pr = p.pendingReport; p.pendingReport = null; let x = pr.e.x, z = pr.e.z;
+    if (pr.fake) { const cp = coastPoint(Math.random() * 6.283, 2); if (cp && Math.hypot(cp.x - x, cp.z - z) > 80) { x = cp.x; z = cp.z; } else continue; }
+    ECON.rumours.push({ x, z, t: simT, kind: pr.e.kind, fake: !!pr.fake, src: p.id }); npcEv(pr.fake ? 'falseTipFiled' : 'report'); noteOnce('report' + p.id, pr.fake ? 'Someone filed a report with the Coast Guard.' : 'A witness reported what they saw to the Coast Guard.');
+  }
+  ECON.rumours = ECON.rumours.filter(q => !q.done && simT - q.t < 160);
+}
+function cgCheck(bt, me, pos, step) {                                        // true when the Coast Guard boat is busy with a report or an inspection
+  if (me.inspect) {
+    const t = me.inspect.boat; if (!t || t.sunk || !boats.includes(t) || !t.body) { me.inspect = null; return false; }
+    const d = Math.hypot(t.body.position.x - pos.x, t.body.position.z - pos.z); me.mission = 'Inspecting the ' + t.sp.name;
+    if (d > 26) { me.inspect.t += step; if (me.inspect.t > 50) { (me.skip || (me.skip = {}))[t.id] = simT + 160; me.inspect = null; } else if (!bt.order) aiGo(bt, t.body.position.x, t.body.position.z, 14); return true; }
+    me.inspect.t += step; me.inspect.w = (me.inspect.w || 0) + step; if (me.inspect.w < 7) return true;
+    if (t.disguise) { if (Math.random() < 0.35 + 0.6 * t.disguise.susp) unmask(t); else { me.pause = 8; } }
+    else { ECON.trust = Math.max(0.05, ECON.trust - 0.06); ECON.falsePos++; npcEv('falsePositive'); noteOnce('fp' + t.id, 'The Coast Guard stopped an innocent boat. Civilians trust them a little less.'); }
+    me.inspect = null; me.pause = Math.max(me.pause, 12); return true;
+  }
+  const rum = ECON.rumours.filter(q => !q.done && Math.hypot(q.x - pos.x, q.z - pos.z) < 450).sort((a, b) => Math.hypot(a.x - pos.x, a.z - pos.z) - Math.hypot(b.x - pos.x, b.z - pos.z))[0];
+  if (rum) {
+    const d = Math.hypot(rum.x - pos.x, rum.z - pos.z); me.mission = 'Investigating a report';
+    if (d > 38 && simT - (rum.go || (rum.go = simT)) < 45) { if (!bt.order) aiGo(bt, rum.x, rum.z, 24); return true; }          // a report on a stretch of coast the boat cannot get close to is given 45 s, then checked from where it is
+    rum.done = true; let found = 0;
+    for (const o of boats) if (o.disguise && Math.hypot(o.body.position.x - rum.x, o.body.position.z - rum.z) < 90 && Math.random() < 0.55 + o.disguise.susp * 0.4) { unmask(o); found++; }
+    for (const q of people.slice()) if (q.trueRole === 'Courier' && Math.hypot(q.x - rum.x, q.z - rum.z) < 60) { removePerson(q); found++; toast('The Coast Guard caught a courier.'); npcEv('courierCaught'); }
+    for (const o of objects) if (o.contraband && Math.hypot(o.body.position.x - rum.x, o.body.position.z - rum.z) < 60) { o.contraband = false; ECON.seized++; found++; npcEv('drumsSeized'); }
+    if (!found) { ECON.falseTips++; npcEv(rum.fake ? 'wildGooseChase' : 'emptyReport'); me.pause = 6; }
+    return true;
+  }
+  me.chkT = (me.chkT === undefined ? rnd(8, 25) : me.chkT) - step;
+  if (me.chkT <= 0) {
+    me.chkT = rnd(30, 60); const cands = boats.filter(o => o !== bt && !o.sunk && !isCG(o) && !isHostile(o) && o.body && !(me.skip && me.skip[o.id] > simT) && boatCrew(o).length && Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z) < 170);
+    if (cands.length) { cands.sort((a, b) => ((b.disguise ? b.disguise.susp : 0.04) + Math.random() * 0.15) - ((a.disguise ? a.disguise.susp : 0.04) + Math.random() * 0.15)); me.inspect = { boat: cands[0], t: 0 }; me.mission = 'Heading to inspect the ' + cands[0].sp.name; return true; }
+  }
+  return false;
+}
 let threatT = 40, roleT = 0;
 const hostiles = () => boats.filter(b => (b.side === 'hostile' || b.raider) && !b.sunk);
 function edgeSpot() { for (let n = 0; n < 60; n++) { const a = Math.random() * 6.28, x = Math.cos(a) * (EXT - 4), z = Math.sin(a) * (EXT - 4); if (heightAt(x, z) < -4) return { x, z, a }; } return null; }
 function spawnThreat() {
-  const e = edgeSpot(); if (!e) return; const kind = Math.random() < 0.6 ? 'smuggler' : 'raider';
+  const e = edgeSpot(); if (!e) return; const kind = Math.random() < 0.6 ? 'smuggler' : 'raider'; if (kind === 'smuggler' && spawnSmuggler()) return;
   const bt = makeBoat('bay', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(bt, 2); bt.side = 'hostile'; bt.threat = kind; bt.anchor = null;
   let spot = null; for (let n = 0; n < 200 && !spot; n++) { const a = Math.random() * 6.28, cp = coastPoint(a, -9); if (cp && heightAt(cp.x, cp.z) < -2) spot = cp; }
   if (spot) orderTo(bt, spot.x, spot.z);
@@ -5486,8 +5578,18 @@ function spawnThreat() {
 }
 function updateThreats(dt) {
   if (prefs.gentle || !(prefs.threats === 'some' || prefs.threats === 'busy')) { threatT = 40; }
-  else { threatT -= dt; if (threatT <= 0) { threatT = (prefs.threats === 'busy' ? 50 : 110) * (0.7 + Math.random() * 0.6); if (hostiles().length < 2 && boats.length < 14) spawnThreat(); } }
+  else { threatT -= dt; if (threatT <= 0) { threatT = (prefs.threats === 'busy' ? 50 : 110) * (0.7 + Math.random() * 0.6); if (hostiles().length < 2 && boats.length < 14 && !boats.some(b => b.disguise)) spawnThreat(); } }
   roleT -= dt; if (roleT > 0) return; roleT = 1.2;
+  for (const bt of boats.slice()) {
+    const d = bt.disguise; if (!d || bt.sunk) continue; const pos = bt.body.position;
+    const slow = Math.hypot(bt.body.velocity.x, bt.body.velocity.z) < 0.3; if (!d.dropped) d.still = slow ? (d.still || 0) + 1.2 : 0;
+    if (!d.dropped && (!bt.order || d.still > 25)) {
+      d.dropped = true; d.still = 0; const L = d.landing; for (let i = 0; i < 2; i++) { const x = L.cp.x - Math.cos(L.a) * 3.5 - Math.sin(L.a) * (i - 0.5) * 1.4, z = L.cp.z - Math.sin(L.a) * 3.5 + Math.cos(L.a) * (i - 0.5) * 1.4; spawn(CARGO.find(c => c.id === 'drum'), x, standY(x, z) + 0.6, z); objects[objects.length - 1].contraband = true; }
+      logEvent('drop', L.cp.x, L.cp.z, { boat: bt }); d.susp += 0.2; npcEv('drumsLanded', 2); d.courierAt = simT + 4; orderTo(bt, L.sea.x + Math.cos(L.a) * 130, L.sea.z + Math.sin(L.a) * 130);
+      const ag = people.find(q => q.trueRole === 'Agent' && !q.pendingReport); if (ag) ag.pendingReport = { e: { x: L.cp.x, z: L.cp.z, kind: 'drop' }, at: simT + 9, fake: true };            // a decoy tip, to draw the Coast Guard the wrong way
+    } else if (d.dropped) { if (d.courierAt && simT >= d.courierAt) { d.courierAt = 0; spawnCourier(d.landing); } d.still = Math.hypot(bt.body.velocity.x, bt.body.velocity.z) < 0.3 ? (d.still || 0) + 1.2 : 0; if (!d.courierAt && (Math.hypot(pos.x, pos.z) > EXT - 10 || Math.hypot(pos.x - d.landing.sea.x, pos.z - d.landing.sea.z) > 110 || d.still > 30)) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); npcEv('smugglerGone'); } }
+    else if (!d.dropped && Math.hypot(pos.x - d.landing.sea.x, pos.z - d.landing.sea.z) < 30) d.susp = Math.min(1, d.susp + 0.01);          // loitering off a quiet shore looks wrong
+  }
   for (const bt of hostiles().slice()) {                                                  // a smuggler that reaches the shore leaves its cargo and goes home
     if (bt.threat === 'smuggler' && !bt.dropped && bt.order === null && bt.status !== 'Sinking') { bt.dropped = true; const p = bt.body.position; for (let i = 0; i < 2; i++) spawn(CARGO[0], p.x + (i - 0.5) * 2, p.y + 2, p.z); const e = edgeSpot(); if (e) orderTo(bt, e.x * 1.1, e.z * 1.1); }
     if (bt.dropped && Math.hypot(bt.body.position.x, bt.body.position.z) > EXT - 10 && !bt.sunk) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); }
@@ -5535,6 +5637,7 @@ function updateFleet(dt) {
       let tx = null; for (let n = 0; n < 24; n++) { const a = Math.random() * 6.283, r = 10 + Math.random() * 60, x = pierInfo.end.x + Math.cos(a) * r, z = pierInfo.end.z + Math.sin(a) * r; if (heightAt(x, z) < -2 && seaIceAt(x, z) > 0.18) { tx = { x, z }; break; } }
       if (tx) { me.mission = 'Breaking ice near the harbour'; if (!bt.order || bt.status === 'Beset in ice') aiGo(bt, tx.x, tx.z); continue; }
     }
+    if (cgCheck(bt, me, pos, step)) continue;
     me.wpT -= step;
     if (!bt.order && me.wpT <= 0) { const cp = coastPoint(Math.random() * 6.283, -(28 + Math.random() * 30)); if (cp && heightAt(cp.x, cp.z) < -4) { aiGo(bt, cp.x, cp.z); me.wpT = 8 + Math.random() * 14; me.mission = 'Patrolling the coast'; } }
     else if (!bt.order) me.mission = 'On station';
@@ -5542,7 +5645,7 @@ function updateFleet(dt) {
 }
 function openFleet() {
   const rows = boats.map(bt => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); l.textContent = bt.sp.name + ' · ' + factionOf(bt); t.textContent = (bt.sunk ? 'Sinking' : (bt.ai && bt.ai.mission) || bt.status || 'At anchor') + (bt.hpMax ? ' · hull ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectBoat(bt); camFlyTo(bt.body.position.x, bt.body.position.z, Math.max(50, bt.sp.L * 4)); }); return b; });
-  openMenu([menuHead('Fleets and what they are doing'), ...rows]);
+  openMenu([menuHead('Fleets and what they are doing · civilians trust the Coast Guard ' + Math.round(ECON.trust * 100) + '%'), ...rows]);
 }
 /* ---- v8: work sites. Markers you place to shape what people want to do. */
 const sites = [], SITE_INFO = { plant: ['Plant site', 'foresters plant trees here', 0x5fbf4a], build: ['Build site', 'builders raise a stone circle here', 0xe0883a], yard: ['Cargo yard', 'dock workers stack cargo here', 0xa8794a], view: ['Viewpoint', 'visitors come to look at this', 0xa98be0] };
@@ -5683,6 +5786,7 @@ let yardN = 0;
 function agentUnsafe(p) { const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); for (let a = -4; a <= 4; a += 2) for (let b = -4; b <= 4; b += 2) if (LV[k + a * TN + b] > 0.01 || GT[k + a * TN + b] > 330) return { dx: -b, dz: -a }; for (const t of burning) if (Math.hypot(t.x - p.x, t.z - p.z) < 7) return { dx: p.x - t.x, dz: p.z - t.z }; return null; }
 function think(p, ag) {
   const role = p.role;
+  if (p.trueRole === 'Courier') { courierThink(p, ag); return; }
   if (p.carry && p.role === 'Builder' && BLOCKS.has(p.carry.c.id)) { const st = sites.find(q => q.kind === 'build' && !q.done); if (st) { const sl = buildSlot(st, st.stage), ux = Math.cos(sl.ang), uz = Math.sin(sl.ang); ag.goal = { kind: 'deliver', x: sl.x + ux * 1.3, z: sl.z + uz * 1.3, site: st }; ag.intent = 'Carrying stone to the build site'; walkAgent(p, ag.goal.x, ag.goal.z); return; } }
   if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4, yard: y.site }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
   if (role === 'Dock worker') { const o = freeCrate(p); if (o) { const need = liftNeed(o); if (need === 1 || people.some(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30)) { o.claimed = p; o.claimT = simT; const team = [p]; if (need > 1) { const m = people.find(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30); if (m) team.push(m); } if (team.length >= need) { team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } }); ag.goal = { kind: 'haul', obj: o, t: 0 }; ag.intent = 'Going for the ' + o.c.name; return; } } } }
@@ -5741,7 +5845,7 @@ function updateAgents(dt) {
         g.shotT = (g.shotT || rnd(1.2, 2.6)) - dt; if (g.shotT <= 0) { g.shotT = 0; g.shotT = rnd(2, 4.5); g.shots++; p.ag.stats.photos = (p.ag.stats.photos || 0) + 1; agentStat.photos++; poiVisits[poi.id] = (poiVisits[poi.id] || 0) + 0.25; fxG.emit(p.x + Math.sin(p.heading) * 0.35, p.y + 1.5, p.z + Math.cos(p.heading) * 0.35, 0, 0.1, 0, 0.14, 0.32, 0, [1, 1, 1, 0.9]); }
         if (g.shots >= g.want) { poiVisits[poi.id] = (poiVisits[poi.id] || 0) + 0.5; ag.bad[g.poi.id] = simT + 40; ag.goal = null; ag.cool = rnd(1, 4); }
       }
-    } else if (g.kind === 'deliver') { if (!walking) { if (p.carry) { const cid = p.carry.c.id; dropCarry(p); if (g.yard) g.yard.stock = g.yard.stock || {}, g.yard.stock[cid] = (g.yard.stock[cid] || 0) + 1; if (g.site && g.site.kind === 'build' && !g.site.done) { const ob = objects[objects.length - 1]; if (ob && BLOCKS.has(ob.c.id)) { placeBlock(g.site, ob); npcEv('blockPlaced'); agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (g.site.stage >= RING * COURSES) { g.site.done = true; g.site.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle from ' + RING * COURSES + ' blocks.'); npcEv('buildDone'); } } } agentStat.crates++; p.ag.stats.crates = (p.ag.stats.crates || 0) + 1; } ag.goal = null; ag.cool = rnd(0.5, 1.5); } }
+    } else if (g.kind === 'deliver') { if (!walking) { if (p.carry) { const cid = p.carry.c.id, wasC = p.carry.contraband; dropCarry(p); if (wasC) { objects[objects.length - 1].contraband = false; ECON.seized++; npcEv('drumsSeized'); noteOnce('seized', 'Dock workers found contraband in the cargo and handed it over.'); } if (g.yard) g.yard.stock = g.yard.stock || {}, g.yard.stock[cid] = (g.yard.stock[cid] || 0) + 1; if (g.site && g.site.kind === 'build' && !g.site.done) { const ob = objects[objects.length - 1]; if (ob && BLOCKS.has(ob.c.id)) { placeBlock(g.site, ob); npcEv('blockPlaced'); agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (g.site.stage >= RING * COURSES) { g.site.done = true; g.site.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle from ' + RING * COURSES + ' blocks.'); npcEv('buildDone'); } } } agentStat.crates++; p.ag.stats.crates = (p.ag.stats.crates || 0) + 1; } ag.goal = null; ag.cool = rnd(0.5, 1.5); } }
     else if (g.kind === 'haul') { if (!p.job && p.carry) { ag.goal = null; ag.think = 0; } else if (g.t > 40 || !objects.includes(g.obj) && !p.carry) { if (g.obj) g.obj.claimed = null; ag.goal = null; } else ag.intent = 'Picking up the ' + (g.obj && g.obj.c ? g.obj.c.name : 'cargo'); }
     else if (g.kind === 'help') { if (!p.job) ag.goal = null; }
     else if (g.kind === 'heal') {
@@ -5760,6 +5864,9 @@ function updateAgents(dt) {
         g.work = (g.work || 0) + dt; ag.intent = 'Building a stone circle (' + st.stage + ' of 8)';
         if (g.work > 7) { g.work = 0; const a = st.stage / 8 * 6.283, x = st.x + Math.cos(a) * 3.2, z = st.z + Math.sin(a) * 3.2; if (safeSpot(x, z)) { quietToasts = true; try { place(BUILD.find(i => i.id === 'rockb'), { x, z }); } catch (e) { } quietToasts = false; } st.stage++; agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (st.stage >= 8) { st.done = true; st.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle.'); ag.goal = null; } else walkAgent(p, st.x + Math.cos(a + 0.8) * 4.4, st.z + Math.sin(a + 0.8) * 4.4); }
       } else if (g.t > 50) ag.goal = null;
+    } else if (g.kind === 'stash') {
+      if (!walking) { if (p.carry) { dropCarry(p); const ob = objects[objects.length - 1]; ob.contraband = true; ob.stashed = true; ECON.stashed++; npcEv('drumsStashed'); logEvent('stash', p.x, p.z); } ag.goal = null; ag.cool = 1; } else if (g.t > 70) ag.goal = null;
+    } else if (g.kind === 'depart') { if (!walking || g.t > 80) { npcEv('courierLeft'); removePerson(p); continue; }
     } else if (g.kind === 'quarry') {
       if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Cutting stone from the rubble'; if (g.work > 6) { const k = g.k, loose = HGT[k] - BED[k], vol = 0.25; if (loose >= 0.3) { HGT[k] -= vol / (CELL * CELL); slumpArm(k % TN, Math.floor(k / TN), 3); land.dirty = true; spawn(CARGO.find(c => c.id === 'stone'), g.x + rnd(-0.6, 0.6), standY(g.x, g.z) + 0.8, g.z + rnd(-0.6, 0.6)); npcEv('quarried'); } ag.goal = null; ag.cool = 0.5; } } else if (g.t > 60) ag.goal = null;
     } else if (g.kind === 'wall') {
@@ -5778,7 +5885,7 @@ function updateAgents(dt) {
   }
   for (const p of people) { const ag = p.ag; if (!ag) continue; if (ag.goal !== ag._g) { if (ag._g) npcStat(p.role, ag._g.kind, 'end'); if (ag.goal) npcStat(p.role, ag.goal.kind, 'start'); ag._g = ag.goal; } }
   for (const k in poiVisits) poiVisits[k] = Math.max(0, poiVisits[k] - dt / 90);                // places recover: a view is fresh again after a while
-  lmStep();
+  lmStep(); observe(dt);
   // a tourist that boarded a boat asks for a ride across
   for (const p of people) { const ag = p.ag; if (!ag || !p.ride || p.ride.boat.ferry || !ag.hailed) continue; }
 }
@@ -5916,7 +6023,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
