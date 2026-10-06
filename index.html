@@ -402,7 +402,7 @@ function vnoise(x, z) { const i = Math.floor(x), j = Math.floor(z), fx = x - i, 
 
 /* ================================================================ renderer, sky */
 const canvas = $('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
@@ -3112,7 +3112,7 @@ $('bJoin').addEventListener('click', () => enterFP(selPerson || null));
 function setQuality(q) {
   quality = q; try { localStorage.setItem('sc-quality', q); } catch (e) {}
   $('bQual').textContent = 'Quality: ' + (q === 'high' ? 'High' : 'Low');
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, q === 'high' ? 2 : 1.25));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, q === 'high' ? 2.5 : 2));    // phones render at up to 2x so edges stay crisp; Low only trims shadows and trees
   sunLight.shadow.mapSize.set(q === 'high' ? 2048 : 1024, q === 'high' ? 2048 : 1024);
   if (sunLight.shadow.map) { sunLight.shadow.map.dispose(); sunLight.shadow.map = null; }
   terrainMat.defines.TRIPLANAR = q === 'high' ? 'true' : 'false'; terrainMat.needsUpdate = true;
@@ -4503,15 +4503,25 @@ function buildHeli() {
 }
 const groundTop = (x, z) => Math.max(heightAt(x, z), waveH(x, z, simT));
 const fallenOrAfield = (q) => !q.ride && !q.fp && !q.hoist;
+/* the helicopter only lifts people who are hurt, cold, in the water or in the path of a hazard: healthy people ashore are left alone */
+function needsRescue(q) {
+  if (!fallenOrAfield(q)) return false;
+  if (q.state === 'rag' || q.swim || q.floating || q.frozen || (q.cold || 0) > 0.35 || (q.heat || 0) > 0.6) return true;
+  if (lakeWet > 0 && lakeDepth(q.x, q.z) > 0.45) return true;                                                   // standing in a flood
+  if (dis.tsunami || dis.hurricane || surge.level > 0.8) { if (heightAt(q.x, q.z) < 4) return true; }
+  if (lavaOn) { const gx = Math.round(q.x + TH), gz = Math.round(q.z + TH); for (let a = -6; a <= 6; a += 2) for (let b = -6; b <= 6; b += 2) { const k = (gz + a) * TN + gx + b; if (k > 0 && k < TN * TN && LV[k] > 0.05) return true; } }
+  for (const t of burning) if (t && Math.hypot(t.x - q.x, t.z - q.z) < 9) return true;                          // fire close by
+  return false;
+}
 function callHeli() {
   if (heli.on) { if (heli.state !== 'depart') { heli.state = 'depart'; toast('Helicopter recalled.'); } return; }
-  const targets = people.filter(fallenOrAfield); if (!targets.length) { toast('Nobody to rescue. People aboard boats stay with their boats.'); return; }
+  const targets = people.filter(needsRescue); if (!targets.length) { toast('Nobody needs rescuing. The helicopter only lifts people who are hurt, cold, in the water or in danger.'); return; }
   if (!heli.g) { if (!D.glb.aircraft && !airFail) { toast('Calling the helicopter'); ensureAircraft().then(() => callHeli()).catch(() => { airFail = true; callHeli(); }); return; } buildHeli(); }
   heli.on = true; heli.state = 'inbound'; heli.saved = 0; heli.pos.set(-215, 80, -170); heli.vel.set(0, 0, 0); heli.g.position.copy(heli.pos); heli.g.visible = true; heli.cluster = []; $('mHeli').textContent = 'Recall helicopter';
-  toast('Search and rescue helicopter is inbound. It will take everyone off the land and water.');
+  toast('Search and rescue helicopter is inbound. It lifts people who are hurt, in the water or in danger.');
 }
 function pickCluster() {
-  const left = people.filter(fallenOrAfield); if (!left.length) return [];
+  const left = people.filter(needsRescue); if (!left.length) return [];
   let best = left[0], bd = 1e9; for (const q of left) { const d = Math.hypot(q.x - heli.pos.x, q.z - heli.pos.z); if (d < bd) { best = q; bd = d; } }
   const c = [best]; for (const q of left) if (q !== best && c.length < 3 && Math.hypot(q.x - best.x, q.z - best.z) < 7) c.push(q); return c;
 }
@@ -4523,7 +4533,7 @@ function updateHeli(dt, t) {
   if (!heli.on) return;
   const g = heli.g; heli.rotor.rotation.y += 36 * dt; heli.tail.rotation.z += 50 * dt;
   // choose who to collect next
-  if (['inbound', 'transit'].includes(heli.state)) { heli.cluster = heli.cluster.filter(q => people.includes(q) && fallenOrAfield(q)); if (!heli.cluster.length) heli.cluster = pickCluster(); if (!heli.cluster.length) heli.state = 'depart'; }
+  if (['inbound', 'transit'].includes(heli.state)) { heli.cluster = heli.cluster.filter(q => people.includes(q) && (fallenOrAfield(q) && (needsRescue(q) || q.hoist || heli.state === 'lower' || heli.state === 'lift'))); if (!heli.cluster.length) heli.cluster = pickCluster(); if (!heli.cluster.length) heli.state = 'depart'; }
   let des = null;
   const cl = heli.cluster; let cx = 0, cz = 0; if (cl.length) { for (const q of cl) { cx += q.state === 'rag' && q.rag ? q.rag.bodies.pelvis.position.x : q.x; cz += q.state === 'rag' && q.rag ? q.rag.bodies.pelvis.position.z : q.z; } cx /= cl.length; cz /= cl.length; }
   if (heli.state === 'depart') des = new THREE.Vector3(230, 85, 190);
