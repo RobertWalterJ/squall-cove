@@ -3201,6 +3201,8 @@ function renderTray(force = true) {
     [['Off', 0], ['Ground', 1], ['Aloft', 2]].forEach(([n, v]) => tray.append(chip(n, v === 1 ? 'near the ground' : v === 2 ? 'high up' : '', null, windView === v, () => setWindView(v), 'chip mini')));
     tray.append(sep('Warm layer aloft'));
     [['Off', 0], ['Weak', 5], ['Strong', 10]].forEach(([n, v]) => tray.append(chip(n, v ? '+' + v + ' C' : 'none', null, clim.nose === v, () => { clim.nose = v; renderTray(true); toast(v ? 'A warm layer sits above the ground. Cold ground under it makes freezing rain.' : 'No warm layer'); }, 'chip mini')));
+    tray.append(sep('Try'));
+    for (const [n, d] of TOYS) tray.append(chip(n, d[0], null, false, () => applyToy(n), 'chip mini'));
     tray.append(sep('Disasters'));
     tray.append(chip('Disasters', prefs.gentle ? 'off in gentle mode' : 'pick one', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
     tray.append(chip('Calm all', 'clear it all', null, false, () => { calm(); renderTray(); }, 'chip'));
@@ -3994,7 +3996,50 @@ function stepLava(dt) {
     if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(34, HGT[k] + v * (sea ? 1.1 : 0.75)); LV[k] = 0; LT[k] = 0; if (ashData[k] < (sea ? 255 : 235)) ashData[k] = sea ? 255 : 235; BED[k] = HGT[k]; lavaSolid = true; continue; }
     LV[k] = Math.min(8, v); LT[k] = temp; live++; if (j < mx0) mx0 = j; if (j > mx1) mx1 = j; if (i < mz0) mz0 = i; if (i > mz1) mz1 = i;
   }
-  if (live) lbx = { x0: mx0, x1: mx1, z0: mz0, z1: mz1 }; else { lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; }
+  if (live) lbx = { x0: mx0, x1: mx1, z0: mz0, z1: mz1 }; else { lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; lavaData.fill(0); lavaTex.needsUpdate = true; lavaMesh.visible = false; }
+}
+/* ---- v8: the lava surface. It stands above the ground at its real thickness, flows visibly downhill, and cools from white-yellow through orange to a cracked black crust. */
+const lavaData = new Float32Array(TN * TN * 4), lavaTex = new THREE.DataTexture(lavaData, TN, TN, THREE.RGBAFormat, THREE.FloatType);
+lavaTex.minFilter = lavaTex.magFilter = THREE.NearestFilter; lavaTex.needsUpdate = true;
+const lavaMat = new THREE.ShaderMaterial({
+  uniforms: { tL: { value: lavaTex }, tN: { value: waterNTex }, uTime: waterU.uTime, ...THREE.UniformsLib.fog }, fog: true,
+  vertexShader: `uniform sampler2D tL; varying vec3 vW;
+    #include <fog_pars_vertex>
+    void main(){ ivec2 i = ivec2(floor(position.xz + 128.5)); vec4 d = texelFetch(tL, i, 0); vec3 p = position; p.y = d.x + 0.05; vec4 wp = modelMatrix * vec4(p, 1.0); vW = wp.xyz;
+      vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
+      #include <fog_vertex>
+    }`,
+  fragmentShader: `uniform sampler2D tL, tN; uniform float uTime; varying vec3 vW;
+    #include <common>
+    #include <fog_pars_fragment>
+    void main(){
+      vec2 u = vW.xz + 128.0; ivec2 i0 = ivec2(floor(u)); vec2 f = u - floor(u);
+      vec4 d00 = texelFetch(tL, i0, 0), d10 = texelFetch(tL, i0 + ivec2(1, 0), 0), d01 = texelFetch(tL, i0 + ivec2(0, 1), 0), d11 = texelFetch(tL, i0 + ivec2(1, 1), 0);
+      vec4 d = mix(mix(d00, d10, f.x), mix(d01, d11, f.x), f.y);                                                              // bilinear, so the edge of the flow is smooth and not a staircase
+      if (d.y < 0.03) discard;
+      float hx = d10.x - d00.x + d11.x - d01.x, hz = d01.x - d00.x + d11.x - d10.x;
+      vec2 flow = -vec2(hx, hz) * 0.25; float spd = min(1.0, length(flow) * 2.0);                                           // downhill, faster on a steep slope
+      float t = d.z * smoothstep(0.03, 0.22, d.y), th = d.y;                                                                 // the thin leading edge has already cooled
+      vec2 uv = vW.xz * 0.11 - flow * uTime * (0.35 + 0.8 * t);
+      float n1 = texture2D(tN, uv).x, n2 = texture2D(tN, uv * 2.3 + 0.37 - flow * uTime * 0.2).y;
+      float net = n1 * 0.62 + n2 * 0.38;
+      float crust = smoothstep(0.62, 0.12, t * 0.85 + (net - 0.5) * 0.85 + th * 0.04);                                              // cooler lava crusts over, thin lava crusts first
+      float crack = smoothstep(0.50, 0.72, net) * (1.0 - 0.3 * crust);
+      vec3 hot = mix(vec3(1.0, 0.30, 0.04), vec3(1.0, 0.72, 0.22), smoothstep(0.55, 1.0, t));
+      vec3 dark = vec3(0.045, 0.038, 0.036) + vec3(0.10, 0.025, 0.01) * n2;
+      vec3 glow = hot * (0.45 + 0.7 * t);
+      vec3 col = mix(glow * (0.62 + 0.55 * crack), dark, crust * (1.0 - crack * 0.85 * smoothstep(0.0, 0.5, t + 0.15)));
+      col += vec3(1.0, 0.25, 0.03) * crack * crust * t * 0.9;                                                                 // glowing cracks in the crust
+      gl_FragColor = vec4(col, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+      #include <fog_fragment>
+    }`,
+});
+const lavaMesh = new THREE.Mesh(new THREE.PlaneGeometry(TN - 1, TN - 1, TN - 1, TN - 1).rotateX(-Math.PI / 2), lavaMat); lavaMesh.frustumCulled = false; lavaMesh.visible = false; lavaMesh.renderOrder = 2; scene.add(lavaMesh);
+function syncLavaTex(x0, x1, z0, z1) {
+  for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) { const k = i * TN + j, o = k * 4, v = LV[k]; lavaData[o] = HGT[k] + v * 0.9; lavaData[o + 1] = v > 0.003 ? v : 0; lavaData[o + 2] = LT[k]; }
+  lavaTex.needsUpdate = true; lavaMesh.visible = true;
 }
 function updateLava(dt) {
   lavaAcc += dt; if (lavaAcc >= 1 / 8) { const step = Math.min(lavaAcc, 0.25); lavaAcc = 0; stepLava(step); }
@@ -4003,7 +4048,7 @@ function updateLava(dt) {
     if (lavaTexT <= 0) {
       lavaTexT = 0.2; const x0 = Math.max(0, lbx.x0 - 2), x1 = Math.min(TN - 1, lbx.x1 + 2), z0 = Math.max(0, lbx.z0 - 2), z1 = Math.min(TN - 1, lbx.z1 + 2);
       for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) { const k = i * TN + j, v = LV[k]; hotData[k * 4] = v > 0.003 ? Math.min(255, 70 + v * 300) : 0; hotData[k * 4 + 1] = v > 0.003 ? Math.min(255, LT[k] * 255) : 0; }
-      hotTex.needsUpdate = true;
+      hotTex.needsUpdate = true; syncLavaTex(x0, x1, z0, z1);
       for (let n = 0; n < 4; n++) { const j = x0 + Math.floor(Math.random() * (x1 - x0 + 1)), i = z0 + Math.floor(Math.random() * (z1 - z0 + 1)), k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(j - TH, HGT[k] + LV[k] + 0.3, i - TH, rnd(-0.3, 0.3), rnd(0.5, 1.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(0.5, 1), 0.1, [1, rnd(0.3, 0.5), 0.1, 0.9]); }
     }
     lavaHaz -= dt;
@@ -4017,7 +4062,7 @@ function updateLava(dt) {
     if (lavaSolid) { lavaSolidT -= dt; if (lavaSolidT <= 0) { lavaSolidT = 0.5; lavaSolid = false; land.x0 = lbx.x0 - TH - 3; land.x1 = lbx.x1 - TH + 3; land.z0 = lbx.z0 - TH - 3; land.z1 = lbx.z1 - TH + 3; land.dirty = true; ashTex.needsUpdate = true; } }
   }
 }
-function clearLava() { LV.fill(0); LT.fill(0); lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; }
+function clearLava() { LV.fill(0); LT.fill(0); lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; lavaData.fill(0); lavaTex.needsUpdate = true; lavaMesh.visible = false; }
 /* ---- the Deluge: rain that floods the land */
 function startDeluge() { dis.deluge = 150; stormUp(2, 1, 3); toast('Deluge. The land will flood and the water will run to the sea.'); }
 
@@ -4169,6 +4214,20 @@ function openInspector(d) {
 function closeInspector() { try { insp = null; if (insp_) insp_.hidden = true; for (const q of devices) q.ring.visible = false; } catch (e) { } }
 $('iClose').addEventListener('click', closeInspector);
 $('iRemove').addEventListener('click', () => { if (insp) { removeDevice(insp); toast('Removed'); } });
+const TOYS = [
+  ['Heat wave', ['hot and dry', [{ x: 0, z: 0, t: 60, r: 90 }, { x: 0, z: 0, h: -45, r: 90 }]]],
+  ['Ice age', ['freeze it all', [{ x: 0, z: 0, t: -100, r: 90 }, { x: -70, z: 60, t: -100, r: 80 }, { x: 70, z: 60, t: -100, r: 80 }]]],
+  ['Super storm', ['low, wet, windy', [{ x: 0, z: 30, p: -90, h: 90, t: 20, r: 90 }]]],
+  ['Fog bank', ['cool and damp', [{ x: 0, z: 0, h: 85, t: -15, r: 90 }]]],
+  ['Boil the sea', ['heat over water', [{ x: -70, z: 70, t: 100, h: 40, r: 80 }, { x: 70, z: 70, t: 100, h: 40, r: 80 }]]],
+  ['Clear and calm', ['high pressure', [{ x: 0, z: 0, p: 90, h: -30, r: 90 }]]],
+  ['Clear devices', ['remove all', []]],
+];
+function applyToy(name) {
+  const toy = TOYS.find(q => q[0] === name); if (!toy) return; clearDevices(); closeInspector();
+  for (const o of toy[1][1]) addDevice(o);
+  toast(toy[1][1].length ? name + ': ' + toy[1][1].length + (toy[1][1].length === 1 ? ' device' : ' devices') + ' placed. Tap one in Command to change it.' : 'All devices removed');
+}
 function placeClimate(item, p) {
   if (item.climate === 'dry') {
     let got = 0; for (let i = 0; i < CN; i++) for (let j = 0; j < CN; j++) { const x = j * 4 - TH + 2, z = i * 4 - TH + 2, d = Math.hypot(x - p.x, z - p.z); if (d > 40) continue; const c = i * CN + j, take = CH[c] * (1 - d / 40) * 0.9, tc = CC[c] * (1 - d / 40) * 0.9; CH[c] -= take; CC[c] -= tc; got += take + tc; }
@@ -4187,6 +4246,7 @@ const sandSrc = [], rods = [], furnaces = [];
 const boxTouch = (b, j, i, r) => b ? { x0: Math.min(b.x0, j - r), x1: Math.max(b.x1, j + r), z0: Math.min(b.z0, i - r), z1: Math.max(b.z1, i + r) } : { x0: j - r, x1: j + r, z0: i - r, z1: i + r };
 const isSand = (k) => matData[k * 4 + 1] > 0, isGlass = (k) => matData[k * 4] > 0;
 function addSand(x, z, vol, R, kind) {
+  if (!kind || kind === 'earth' || kind === 'sand') { dumpGrains(x, z, vol, R, kind === 'earth' ? 3 : 1); return; }
   const gx = Math.round(x + TH), gz = Math.round(z + TH), A = vol / (1.2 * R * R);
   for (let i = -R - 1; i <= R + 1; i++) for (let j = -R - 1; j <= R + 1; j++) {
     const d = Math.hypot(i, j), cx = gx + j, cz = gz + i; if (cx < 3 || cz < 3 || cx > TN - 4 || cz > TN - 4) continue; const k = cz * TN + cx;
@@ -4224,6 +4284,49 @@ function stepGround(dt) {
   if (glow) hotTex.needsUpdate = true;
   if (!hot) { tbx = null; for (let k = 0; k < TN * TN; k++) if (hotData[k * 4 + 2]) hotData[k * 4 + 2] = 0; hotTex.needsUpdate = true; }
 }
+/* ---- v8: grains. Dumped sand and earth fall, splash into the sea, bounce and settle as particles. A grain only becomes part of the ground when it comes to rest, and slides spill grains downhill. */
+const GRN = 3200, gP = new Float32Array(GRN * 3), gV = new Float32Array(GRN * 3), gM = new Float32Array(GRN), gK = new Uint8Array(GRN), gS = new Float32Array(GRN), gB = new Uint8Array(GRN); let ng = 0;
+const grainMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0 }), GRN);
+grainMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(GRN * 3), 3); grainMesh.frustumCulled = false; grainMesh.count = 0; scene.add(grainMesh);
+const GCOL = { 1: [0.88, 0.78, 0.54], 3: [0.33, 0.23, 0.15], 4: [0.5, 0.48, 0.45] }, grainQ = [];
+function depositGrain(x, z, vol, kind) {
+  const j = Math.round(x + TH), i = Math.round(z + TH); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4 || vol <= 0) return; const k = i * TN + j;
+  HGT[k] = Math.min(34, HGT[k] + vol); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
+  slumpArm(j, i, 3); matTex.needsUpdate = true;
+}
+function spawnGrain(x, y, z, vx, vy, vz, vol, kind, size) {
+  if (ng >= GRN) { if (vol > 0) depositGrain(x, z, vol, kind); return; }
+  const n = ng++, c = GCOL[kind] || GCOL[1], sh = 0.85 + Math.random() * 0.3; gP[n * 3] = x; gP[n * 3 + 1] = y; gP[n * 3 + 2] = z; gV[n * 3] = vx; gV[n * 3 + 1] = vy; gV[n * 3 + 2] = vz; gM[n] = vol; gK[n] = kind; gS[n] = size || 0.2; gB[n] = 0;
+  const ca = grainMesh.instanceColor.array; ca[n * 3] = c[0] * sh; ca[n * 3 + 1] = c[1] * sh; ca[n * 3 + 2] = c[2] * sh;
+}
+function dumpGrains(x, z, vol, R, kind) { const n = Math.min(300, Math.round(vol * 1.5 + 40)); grainQ.push({ x, z, R, kind, v: vol / n, left: n }); }
+function updateGrains(dt) {
+  for (const q of grainQ) {                                                                    // a dump pours over a second or two instead of appearing
+    const emit = Math.min(q.left, Math.max(1, Math.round(240 * dt)));
+    for (let e = 0; e < emit; e++) { const a = Math.random() * 6.283, r = q.R * Math.sqrt(Math.random()), lx = q.x + Math.cos(a) * r, lz = q.z + Math.sin(a) * r, y0 = Math.max(heightAt(lx, lz), 0) + 14 + Math.random() * 9, T = Math.sqrt(2 * 14 / 9.8) + 0.4, sx = q.x + rnd(-0.8, 0.8), sz = q.z + rnd(-0.8, 0.8); spawnGrain(sx, y0, sz, (lx - sx) / T, 0, (lz - sz) / T, q.v, q.kind, 0.16 + Math.random() * 0.14); }
+    q.left -= emit;
+  }
+  for (let i = grainQ.length - 1; i >= 0; i--) if (grainQ[i].left <= 0) grainQ.splice(i, 1);
+  const arr = grainMesh.instanceMatrix.array, ca = grainMesh.instanceColor.array;
+  for (let i = ng - 1; i >= 0; i--) {
+    const i3 = i * 3; let x = gP[i3], y = gP[i3 + 1], z = gP[i3 + 2], vx = gV[i3], vy = gV[i3 + 1], vz = gV[i3 + 2];
+    const gh = heightAt(x, z), sea = gh < -0.05, wl = sea ? waveH(x, z, simT) : -99, inWater = sea && y < wl;
+    if (inWater) { const d = Math.exp(-dt * 5); vx *= d; vz *= d; vy = Math.max(vy * d - 3 * dt, -2.2); if (gB[i] === 0) { gB[i] = 1; if (Math.random() < 0.35) splash(x, z, 0.25); } } else vy -= 9.82 * dt;
+    x += vx * dt; y += vy * dt; z += vz * dt;
+    const g2 = heightAt(x, z);
+    let dead = false;
+    if (y <= g2 + 0.05) {
+      if (gM[i] === 0) { if (vy < -2 && gB[i] < 1) { vy *= -0.3; vx *= 0.7; vz *= 0.7; y = g2 + 0.06; gB[i] = 1; } else dead = true; }                // a spilled grain rolls and stops
+      else if (vy < -3.5 && gB[i] === 0 && Math.random() < 0.3) { vy *= -0.22; vx += rnd(-0.8, 0.8); vz += rnd(-0.8, 0.8); y = g2 + 0.06; gB[i] = 1; }
+      else { depositGrain(x, z, gM[i], gK[i]); if (Math.random() < 0.04) puffSmoke(x, Math.max(g2, 0) + 0.2, z, 1, false, 0.5); dead = true; }
+    }
+    if (dead || Math.abs(x) > 126 || Math.abs(z) > 126 || y < -12) { ng--; if (i !== ng) { const n3 = ng * 3; gP[i3] = gP[n3]; gP[i3 + 1] = gP[n3 + 1]; gP[i3 + 2] = gP[n3 + 2]; gV[i3] = gV[n3]; gV[i3 + 1] = gV[n3 + 1]; gV[i3 + 2] = gV[n3 + 2]; gM[i] = gM[ng]; gK[i] = gK[ng]; gS[i] = gS[ng]; gB[i] = gB[ng]; ca[i3] = ca[n3]; ca[i3 + 1] = ca[n3 + 1]; ca[i3 + 2] = ca[n3 + 2]; } continue; }
+    gP[i3] = x; gP[i3 + 1] = y; gP[i3 + 2] = z; gV[i3] = vx; gV[i3 + 1] = vy; gV[i3 + 2] = vz;
+  }
+  for (let i = 0; i < ng; i++) { const o = i * 16, sz = gS[i]; arr[o] = sz; arr[o + 1] = 0; arr[o + 2] = 0; arr[o + 3] = 0; arr[o + 4] = 0; arr[o + 5] = sz; arr[o + 6] = 0; arr[o + 7] = 0; arr[o + 8] = 0; arr[o + 9] = 0; arr[o + 10] = sz; arr[o + 11] = 0; arr[o + 12] = gP[i * 3]; arr[o + 13] = gP[i * 3 + 1]; arr[o + 14] = gP[i * 3 + 2]; arr[o + 15] = 1; }
+  grainMesh.count = ng; grainMesh.instanceMatrix.needsUpdate = true; grainMesh.instanceColor.needsUpdate = true;
+}
+function slideGrains(j, i, n, dir) { if (ng > GRN - 400) return; const k = i * TN + j; for (let c = 0; c < n; c++) spawnGrain(j - TH + rnd(-0.4, 0.4), HGT[k] + 0.15, i - TH + rnd(-0.4, 0.4), dir[0] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), rnd(0.3, 1.2), dir[1] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), 0, matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 4, 0.12 + Math.random() * 0.1); }
 function slumpArm(j, i, r) { sbx = boxTouch(sbx, j, i, r); sandQuiet = 0; matDirty = true; }
 /* every loose cell (anything above the original bedrock) slides downhill once it is steeper than its angle of repose:
    dry sand about 35 degrees, earth steeper, plain fill steeper still, and wet ground sags at a gentler angle. Bedrock never moves. */
@@ -4238,7 +4341,7 @@ function stepSand() {
       const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;
       const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(34, HGT[n] + m);
       if (ch && !matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
-      moved += m; if (n % TN <= sbx.x0) sbx.x0--; if (n % TN >= sbx.x1) sbx.x1++; const nz = (n - n % TN) / TN; if (nz <= sbx.z0) sbx.z0--; if (nz >= sbx.z1) sbx.z1++;
+      moved += m; if (m > 0.012 && Math.random() < 0.18) slideGrains(j, i, 1, [N[q] === 1 ? 1 : N[q] === -1 ? -1 : 0, N[q] === TN ? 1 : N[q] === -TN ? -1 : 0]); if (n % TN <= sbx.x0) sbx.x0--; if (n % TN >= sbx.x1) sbx.x1++; const nz = (n - n % TN) / TN; if (nz <= sbx.z0) sbx.z0--; if (nz >= sbx.z1) sbx.z1++;
     }
   }
   if (wind.ms > 5) {                                                                              // wind lifts dry sand off exposed faces and drops it downwind: dunes creep
@@ -4284,8 +4387,9 @@ function fulguriteAt(x, z) {
   hbx = boxTouch(hbx, gx, gz, 16); sparks(x, Math.max(heightAt(x, z), 0) + 0.5, z, 20);
 }
 function updateMaterials(dt) {
-  for (const s of sandSrc) { const j = Math.round(s.x + TH), i = Math.round(s.z + TH), k = i * TN + j; if (j < 4 || i < 4 || j > TN - 5 || i > TN - 5) continue; HGT[k] = Math.min(34, HGT[k] + s.rate * dt); matData[k * 4 + (s.kind === 'earth' ? 3 : 1)] = 255; sbx = boxTouch(sbx, j, i, 4); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true; }
+  for (const s of sandSrc) { s.acc = (s.acc || 0) + dt * 44; const n = Math.floor(s.acc); s.acc -= n; const y0 = Math.max(standY(s.x, s.z), 0) + 2.3, kind = s.kind === 'earth' ? 3 : 1; for (let e = 0; e < n; e++) { const a = Math.random() * 6.283, sp = rnd(0.6, 2.4); spawnGrain(s.x, y0, s.z, Math.cos(a) * sp, rnd(2.5, 5.5), Math.sin(a) * sp, s.rate / 44, kind, 0.14 + Math.random() * 0.12); } }
   for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); heatGT(f.x, f.z, 6, 950); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
+  updateGrains(dt);
   sandAcc += dt; if (sandAcc >= 1 / 12) { sandAcc = 0; stepSand(); }
   heatAcc += dt; if (heatAcc >= 1 / 8) { const s = heatAcc; heatAcc = 0; stepHeat(s); }
   gtAcc += dt; if (gtAcc >= 0.25) { const sg = gtAcc; gtAcc = 0; stepGround(sg); }
@@ -4314,7 +4418,7 @@ function placeMaterial(item, p) {
     g.add(pole, tip); g.position.set(p.x, y, p.z); scene.add(g); rods.push({ x: p.x, z: p.z, mesh: g }); toast('Lightning rod: strikes aim for it.'); return;
   }
 }
-function clearMaterials() { for (const l of [sandSrc, rods, furnaces]) { for (const o of l) scene.remove(o.mesh); l.length = 0; } GT.fill(0); tbx = null; MH.fill(0); MOLT.fill(0); sbx = null; hbx = null; }
+function clearMaterials() { ng = 0; grainQ.length = 0; for (const l of [sandSrc, rods, furnaces]) { for (const o of l) scene.remove(o.mesh); l.length = 0; } GT.fill(0); tbx = null; MH.fill(0); MOLT.fill(0); sbx = null; hbx = null; }
 
 /* ================================================================ v5.3: Calm all, Gentle mode, effect limits, restore */
 /* ---- sandbox settings, kept on this phone */
@@ -4913,7 +5017,8 @@ function placeLavaThing(item, p) {
   g.position.set(p.x, Math.max(standY(p.x, p.z), 0), p.z); scene.add(g); lavaVents.push({ x: p.x, z: p.z, rate: 2.6, mesh: g, glow }); toast('Lava vent: it keeps pouring until you remove it.');
 }
 function updateLavaVents(dt) {
-  for (const v of lavaVents) { const gx = Math.round(v.x + TH), gz = Math.round(v.z + TH); for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) addLava(gx + dj, gz + di, v.rate * dt / 9); v.glow.material.color.setRGB(1, 0.3 + 0.2 * Math.sin(simT * 5 + v.x), 0.05); }
+  for (const v of lavaVents) { if (Math.random() < dt * 14) { const y0 = Math.max(standY(v.x, v.z), 0) + 1.3; for (let b = 0; b < 2; b++) fxG.emit(v.x + rnd(-0.3, 0.3), y0, v.z + rnd(-0.3, 0.3), rnd(-2.2, 2.2), rnd(6, 12), rnd(-2.2, 2.2), rnd(0.9, 1.5), rnd(0.35, 0.7), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.95], 9.8, 0.05); }
+    const gx = Math.round(v.x + TH), gz = Math.round(v.z + TH); for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) addLava(gx + dj, gz + di, v.rate * dt / 9); v.glow.material.color.setRGB(1, 0.3 + 0.2 * Math.sin(simT * 5 + v.x), 0.05); }
 }
 function clearLavaVents() { for (const v of lavaVents) scene.remove(v.mesh); lavaVents.length = 0; }
 /* ---- earth: soil and gravel dumped on land or in the water build up and settle at their own angle */
@@ -5125,7 +5230,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, updateRoles, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, updateRoles, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
