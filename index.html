@@ -4372,7 +4372,7 @@ let sbx = null, hbx = null, sandAcc = 0, heatAcc = 0, matCommitT = 0, matDirty =
 const sandSrc = [], rods = [], furnaces = [];
 /* v8.5: what the ground is made of matters. rho kg/m3, cp relative specific heat, k conduction, rep angle of repose (m of drop per cell), sink m/s in water.
    A cell's heat capacity is rho * cp, so dense rock and metal take more energy to warm, and wet ground (water cp is 4x) takes much more. Metal conducts best. */
-const MATP = { 0: { rho: 2400, cp: 0.85, k: 0.16, rep: 1.5, sink: 4 }, 1: { rho: 1600, cp: 0.8, k: 0.1, rep: 0.7, sink: 1.6 }, 3: { rho: 1500, cp: 1.0, k: 0.14, rep: 1.05, sink: 1.0 }, 4: { rho: 2700, cp: 0.85, k: 0.16, rep: 1.5, sink: 4.5 }, 5: { rho: 7800, cp: 0.45, k: 0.6, rep: 1.25, sink: 6 } };
+const MATP = { 0: { rho: 2400, cp: 0.85, k: 0.16, rep: 1.5, sink: 4 }, 1: { rho: 1600, cp: 0.8, k: 0.1, rep: 0.7, sink: 1.6 }, 3: { rho: 1500, cp: 1.0, k: 0.14, rep: 1.05, sink: 1.0 }, 4: { rho: 2700, cp: 0.85, k: 0.16, rep: 0.85, sink: 4.5 }, 5: { rho: 7800, cp: 0.45, k: 0.6, rep: 0.95, sink: 6 } };
 const kindAt = (k) => MET[k] > 200 ? 5 : MET[k] > 0 ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0;
 const capAt = (k) => { const m = MATP[kindAt(k)]; return Math.max(0.5, m.rho * m.cp / 1800 * (1 + 1.6 * Math.min(1, SM[k]))); };
 const boxTouch = (b, j, i, r) => b ? { x0: Math.min(b.x0, j - r), x1: Math.max(b.x1, j + r), z0: Math.min(b.z0, i - r), z1: Math.max(b.z1, i + r) } : { x0: j - r, x1: j + r, z0: i - r, z1: i + r };
@@ -4532,7 +4532,7 @@ function stepSand() {
   for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
     const k = i * TN + j; if (HGT[k] < BED[k]) BED[k] = HGT[k];
     let loose = HGT[k] - BED[k]; if (loose < 0.012) { if (MET[k] && loose < 0.004) unflagMat(k); continue; } if (matData[k * 4] > 0) continue;
-    const fl = MET[k], ch = fl > 200 ? 5 : fl ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = MATP[ch].rep - (ch >= 4 || ch === 0 ? 0 : 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1));
+    const fl = MET[k], ch = fl > 200 ? 5 : fl ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = (MATP[ch].rep - (ch >= 4 || ch === 0 ? 0 : 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1))) * CELL;
     for (let q = 0; q < 4; q++) {
       const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;
       const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(34, HGT[n] + m);
