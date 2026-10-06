@@ -208,6 +208,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button><button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
+  <button id="mTry" type="button">Things to try</button>
   <button id="mSandbox" type="button">Sandbox settings</button>
   <button class="go" id="mClose" type="button">Close</button>
 </div></div>
@@ -618,7 +619,7 @@ terrainMat.onBeforeCompile = (sh) => {
       alb = mix(alb, vec3(0.86, 0.76, 0.55) * (0.85 + 0.3 * macro.g), mt.g * 0.9); rough = mix(rough, 0.92, mt.g);
       alb = mix(alb, vec3(0.30, 0.21, 0.14) * (0.8 + 0.4 * macro.g), mt4.a * 0.9); rough = mix(rough, 0.95, mt4.a);
       alb = mix(alb, vec3(0.34, 0.62, 0.54), mt.r * 0.85); rough = mix(rough, 0.05, mt.r);
-      vec2 snv = texture2D(tSnow, (vWPos.xz + 128.5) / 257.0).rg; float snw = snv.r; alb = mix(alb, vec3(0.93, 0.95, 0.98), snw * 0.93); rough = mix(rough, 0.6, snw);
+      vec3 snv = texture2D(tSnow, (vWPos.xz + 128.5) / 257.0).rgb; float snw = snv.r; float wetg = snv.b * step(0.15, vWPos.y); alb *= 1.0 - 0.38 * wetg; rough = mix(rough, 0.35, wetg * 0.6); alb = mix(alb, vec3(0.93, 0.95, 0.98), snw * 0.93); rough = mix(rough, 0.6, snw);
       alb = mix(alb, vec3(0.70, 0.83, 0.90), snv.g * 0.5 * (1.0 - snw)); rough = mix(rough, 0.07, snv.g * (1.0 - snw));
       float under = smoothstep(0.0, -3.0, y);                              // underwater: darker, cooler
       alb = mix(alb, alb * vec3(0.55, 0.72, 0.72), under);
@@ -992,6 +993,9 @@ const waterMat = new THREE.ShaderMaterial({
 });
 const water = new THREE.Mesh(new THREE.PlaneGeometry(460, 460, 230, 230).rotateX(-Math.PI / 2), waterMat);
 water.renderOrder = 2; scene.add(water);
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += waveH(wp.xz) * iv; vG = waveGrad(wp.xz) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
+const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000, 1, 1).rotateX(-Math.PI / 2), farMat);
+farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
 function settle(b) { b.previousPosition.copy(b.position); b.interpolatedPosition.copy(b.position); b.previousQuaternion.copy(b.quaternion); b.interpolatedQuaternion.copy(b.quaternion); }
 
@@ -1153,6 +1157,7 @@ function carveIce(x, z, r, left) {
     if (SIf[k] > left) { SIf[k] = left; snowData[k * 4 + 2] = Math.round(left * 170); ch = true; }
   }
   if (ch) snowTex.needsUpdate = true;
+  if (ch && left <= 0.02) tried('breaker');
 }
 
 /* ================================================================ harbour */
@@ -1388,8 +1393,9 @@ function brush(px, pz, dt) {
     else if (land.op === 'sand') { h += rate * w; if (w > 0.15 && !matData[k * 4]) { matData[k * 4 + 1] = 255; sbx = boxTouch(sbx, j, i, 3); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true; } }
     else if (land.op === 'flatten') h += (land.flatH - h) * Math.min(1, 5 * dt * w);
     else { const a = (snap[k - 1] + snap[k + 1] + snap[k - TN] + snap[k + TN]) / 4; h += (a - h) * Math.min(1, 6 * dt * w); }
-    HGT[k] = clamp(h, -9.2, 34);
+    HGT[k] = clamp(h, -9.2, 34); if (HGT[k] < BED[k]) BED[k] = HGT[k];
   }
+  slumpArm(Math.round(px + TH), Math.round(pz + TH), Math.ceil(R) + 4); land.lastEdit = simT;
   land.dirty = true;
   land.x0 = Math.min(land.x0, px - R); land.x1 = Math.max(land.x1, px + R); land.z0 = Math.min(land.z0, pz - R); land.z1 = Math.max(land.z1, pz + R);
 }
@@ -1412,14 +1418,40 @@ function commitLand(full) {
   }
   touched.forEach(i => i.instanceMatrix.needsUpdate = true);
   for (const pr of props) if (inBox(pr.x, pr.z)) { pr.mesh.position.y = heightAt(pr.x, pr.z) + pr.dy; if (pr.body) pr.body.position.y = pr.mesh.position.y + pr.by; }
-  for (const b of world.bodies) if (b.mass > 0 && inBox(b.position.x, b.position.z)) b.wakeUp();
+  for (const b of world.bodies) if (b.mass > 0 && inBox(b.position.x, b.position.z)) {
+    b.wakeUp(); const gy = heightAt(b.position.x, b.position.z);
+    if (gy > 0.2 && b.position.y < gy - 0.2 && b.collisionFilterGroup !== 4) { b.position.y = gy + 0.6; b.velocity.y = Math.max(b.velocity.y, 0.5); }       // nothing stays buried: loose things are lifted onto the new surface
+  }
+  for (const t of trees) if (!t.dead && inBox(t.x, t.z)) {                                                                                           // plants are smothered by a slide and drowned by a flood or lava
+    const k = Math.round(t.z + TH) * TN + Math.round(t.x + TH), g0 = heightAt(t.x, t.z);
+    if (g0 - t.h > 1.6 || (lakeWet > 0 && lakeDepth(t.x, t.z) > 1.6) || LV[k] > 0.1) { hideTree(t); puffSmoke(t.x, g0 + 1, t.z, 2, false, 1.2); }
+  }
   land.dirty = false; land.x0 = land.z0 = 1e9; land.x1 = land.z1 = -1e9;
 }
 
 /* terraform history: one snapshot per stroke, so any digging can be taken back */
+const TRIES = [
+  ['slide', 'Dig out the foot of a sand or earth pile and watch it slide'],
+  ['soak', 'Pour water on sand or earth and watch it soak in'],
+  ['steam', 'Run lava into the sea or a pool: steam, cloud, then rain'],
+  ['melt', 'Melt snow or ice with lava, a furnace or warm air: the meltwater runs downhill'],
+  ['glass', 'Melt sand into glass with a furnace or a lightning strike'],
+  ['ice', 'Freeze the sea until a boat is stuck in it'],
+  ['breaker', 'Cut a channel through thick ice with an icebreaker'],
+  ['rain', 'Let the weather make its own rain from hot, wet air'],
+  ['fire', 'Start a forest fire and watch it spread'],
+];
+let triedSet = {}; try { triedSet = JSON.parse(localStorage.getItem('squall-cove-tried') || '{}'); } catch (e) { }
+function tried(key) {
+  if (triedSet[key]) return; const t = TRIES.find(q => q[0] === key); if (!t) return; triedSet[key] = 1;
+  try { localStorage.setItem('squall-cove-tried', JSON.stringify(triedSet)); } catch (e) { }
+  toast('Done: ' + t[1].charAt(0).toLowerCase() + t[1].slice(1) + ' (' + Object.keys(triedSet).length + ' of ' + TRIES.length + ' in Things to try)');
+}
 const HGT0 = HGT.slice();
+const BED = HGT.slice();                       // bedrock: the ground that was here to begin with. Anything above it is loose material that slumps, soaks and slides.
+const SM = new Float32Array(257 * 257);        // soil moisture 0..1 (drawn through the B channel of the snow texture on land)
 function landMark() { land.undo.push(HGT.slice()); if (land.undo.length > 12) land.undo.shift(); if (tool === 'land') renderTray(true); }
-function landRestore(src, msg) { HGT.set(src); land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true); renderTray(true); toast(msg); }
+function landRestore(src, msg) { HGT.set(src); if (src === HGT0) BED.set(HGT0); else for (let k = 0; k < HGT.length; k++) if (HGT[k] < BED[k]) BED[k] = HGT[k]; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true); renderTray(true); toast(msg); }
 function landUndo() { const u = land.undo.pop(); if (!u) { toast('Nothing to undo'); return; } landRestore(u, 'Undone'); }
 function landReset() { landMark(); landRestore(HGT0, 'Land reset to the start'); }
 const sculptBtn = $('sculpt'), sculptStart = (e) => { e.preventDefault(); if (land.holding) return; const c = hoverPt; land.holding = true; landMark(); land.flatH = c ? groundAt(c.x, c.z) : 0; sculptBtn.setPointerCapture(e.pointerId); sculptBtn.classList.add('on'); };
@@ -3211,7 +3243,7 @@ function frame(now) {
     camera.position.y = Math.max(camera.position.y, heightAt(camera.position.x, camera.position.z) + 4);
     camera.lookAt(god.tgt);
   }
-  camera.far = mode === 'god' ? 4000 : 3000; camera.updateProjectionMatrix();
+  camera.far = mode === 'god' ? 6000 : 4000; camera.near = mode === 'god' ? 0.6 : 0.1; camera.updateProjectionMatrix();
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(...o.pos); camera.lookAt(new THREE.Vector3(...o.look)); }
   const focus = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
   // markers
@@ -3222,7 +3254,7 @@ function frame(now) {
   windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt); windU.uBlow.value += (clamp(wind.ms / 14, 0, 1) - windU.uBlow.value) * 0.05;
   grassU.uCam.value.set(focus.x, focus.z);
   grassU.uPatch.value = mode === 'god' ? clamp(god.dist * 0.7, 60, 140) : 60;
-  water.position.set(Math.round(camera.position.x / 2) * 2, surge.level, Math.round(camera.position.z / 2) * 2);
+  water.position.set(Math.round(camera.position.x / 2) * 2, surge.level, Math.round(camera.position.z / 2) * 2); farWater.position.set(camera.position.x, surge.level - 0.06, camera.position.z);
   if (mode === 'god') water.position.set(Math.round(focus.x / 2) * 2, surge.level, Math.round(focus.z / 2) * 2);
   skyDome.position.copy(camera.position);
   const shadowR = mode === 'god' ? clamp(god.dist * 0.75, 48, 200) : 48;
@@ -3333,7 +3365,7 @@ async function loadWorld(slot) {
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
     clearWater(); calm0(); if (d.clim) { clim.nose = d.clim.nose || 0; if (d.clim.cw) CW.set(d.clim.cw); clim.T = d.clim.T; CT.set(d.clim.ct); CH.set(d.clim.ch); CC.set(d.clim.cc); for (const h of d.clim.src || []) addSource(h.x, h.z, h.k); }
-    if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true; for (let q = 0; q < SIf.length; q++) SIf[q] = snowData[q * 4 + 2] / 170; iceAny = true; }
+    if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true; for (let q = 0; q < SIf.length; q++) SIf[q] = HGT[q] < -0.05 ? snowData[q * 4 + 2] / 170 : 0; for (let q = 0; q < SM.length; q++) SM[q] = HGT[q] >= -0.05 ? snowData[q * 4 + 2] / 255 : 0; soilWet = true; iceAny = true; }
     matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
     if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
@@ -3539,7 +3571,7 @@ const lakeMat = new THREE.ShaderMaterial({
 const lakeMesh = new THREE.Mesh(new THREE.PlaneGeometry(TN - 1, TN - 1, TN - 1, TN - 1).rotateX(-Math.PI / 2), lakeMat);
 lakeMesh.frustumCulled = false; lakeMesh.renderOrder = 2; scene.add(lakeMesh);
 const LD = new Float32Array(TN * TN);
-let lakeAcc = 0, lakeTexT = 0;
+let lakeAcc = 0, lakeTexT = 0, soilWet = false, soilAcc = 0;
 function stepLake(dt) {
   for (const s of springs) { const j = Math.round(s.x + TH), i = Math.round(s.z + TH); if (j < 2 || i < 2 || j > TN - 3 || i > TN - 3) continue; const k = i * TN + j; if (s.rate > 0) WD[k] = Math.min(30, WD[k] + s.rate * dt * (s.geyser ? (geyserBurst(s) ? 1 : 0.03) : 1)); else for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) WD[k + di * TN + dj] = Math.max(0, WD[k + di * TN + dj] + s.rate * dt * 0.3); }
   const raining = wx.rainAmt > 0.05;
@@ -3559,12 +3591,31 @@ function stepLake(dt) {
     const out = Math.min(w * 0.95, tot * 0.25), f = out / tot;
     LD[k] -= out; LD[n0] += d0 * f; LD[n1] += d1 * f; LD[n2] += d2 * f; LD[n3] += d3 * f;
   }
-  for (let k = 0; k < TN * TN; k++) { let w = WD[k] + LD[k] + (rr && HGT[k] >= 0 ? rr : 0); if (w > 0) w = Math.max(0, w - 0.00005 * dt); if (w < 0) w = 0; if (HGT[k] < 0) w = 0; WD[k] = w; if (w > 0.04) wet++; }
+  for (let k = 0; k < TN * TN; k++) {
+    let w = WD[k] + LD[k] + (rr && HGT[k] >= 0 ? rr : 0); if (w > 0) w = Math.max(0, w - 0.00005 * dt);
+    if (w > 0.002 && HGT[k] >= 0) {                                                      // water soaks into loose ground: sand fast, earth slower, bare rock hardly at all, glass never
+      const mk = k * 4, rate = matData[mk] > 0 ? 0 : matData[mk + 1] ? 0.1 : matData[mk + 3] ? 0.04 : HGT[k] - BED[k] > 0.05 ? 0.05 : 0.01, room = 1 - SM[k];
+      if (rate && room > 0.002 && snowData[mk + 1] < 100) { const sk = Math.min(w, rate * dt * (0.3 + room)); w -= sk; SM[k] = Math.min(1, SM[k] + sk * 3); soilWet = true; if (sk > 0.002 && (matData[mk + 1] || matData[mk + 3])) tried('soak'); }
+    }
+     if (w < 0) w = 0; if (HGT[k] < 0) w = 0; WD[k] = w; if (w > 0.04) wet++;
+  }
   for (let a = 0; a < TN; a++) { WD[a] = 0; WD[(TN - 1) * TN + a] = 0; WD[a * TN] = 0; WD[a * TN + TN - 1] = 0; }
   lakeWet = wet;
 }
+/* soil moisture dries out on a warm day and evaporates into the air grid, which can feed cloud; it does not dry while frozen */
+function updateSoil(dt) {
+  if (!soilWet) return; let any = false, changed = false; const ev = new Float32Array(CK);
+  for (let i = 1; i < TN - 1; i++) for (let j = 1; j < TN - 1; j++) {
+    const k = i * TN + j; let m = SM[k]; if (HGT[k] < -0.05) continue;
+    if (m > 0) { const c = (i >> 2) * CN + (j >> 2), T = CT[c]; if (T > 0 && !(snowData[k * 4] > 20)) { const d = Math.min(m, (0.0015 + Math.max(0, T) * 0.00022) * dt * (matData[k * 4 + 1] ? 1.6 : 1)); m -= d; ev[c] += d; } SM[k] = m; any = m > 0.002 || any; }
+    const bv = Math.round(m * 255); if (bv !== snowData[k * 4 + 2]) { snowData[k * 4 + 2] = bv; changed = true; }
+  }
+  for (let c = 0; c < CK; c++) if (ev[c] > 0) CH[c] = Math.min(160, CH[c] + ev[c] * 0.03);
+  if (changed) snowTex.needsUpdate = true; soilWet = any;
+}
 function updateLake(dt) {
   if (dis.deluge > 0) dis.deluge -= dt;
+  soilAcc += dt; if (soilAcc >= 0.5) { const sd = soilAcc; soilAcc = 0; updateSoil(sd); }
   lakeAcc += dt; let n = 0; while (lakeAcc >= 1 / 15 && n < 2) { lakeAcc -= 1 / 15; n++; stepLake(1 / 15); } if (lakeAcc > 0.2) lakeAcc = 0;
   lakeTexT -= dt;
   if ((lakeWet > 0 || lakeMesh.visible) && lakeTexT <= 0) {
@@ -3714,7 +3765,7 @@ function reshape(v) {
     const dx = j - VR, dz = i - VR, r = Math.hypot(dx, dz); if (r > VR) continue;
     const prof = VPEAK * Math.pow(1 - r / VR, 1.4) + (r < 7 ? 1.2 * (1 - r / 7) : 0), val = -14 + (prof + 14) * pp - (r < 6 ? 4.5 * cr * (1 - r / 6) ** 2 : 0);
     const k = (v.gz - VR + i) * TN + v.gx - VR + j, o = v.orig[i * v.n + j], h = Math.max(o, val);
-    HGT[k] = Math.min(34, Math.max(-9.2, h));
+    HGT[k] = Math.min(34, Math.max(-9.2, h)); BED[k] = HGT[k];
     if (h > o + 0.05 || val > -3) { const a = Math.min(1, (1 - r / VR) * 3.2 + 0.1) * 255; if (a > ashData[k]) ashData[k] = a; }
   }
   ashTex.needsUpdate = true;
@@ -3800,8 +3851,8 @@ function stepLava(dt) {
     const k = i * TN + j; let v = LV[k] + LDl[k]; if (v < 0.003) { LV[k] = 0; LT[k] = 0; continue; }
     let temp = LT[k] - dt * (0.010 + 0.012 / Math.max(0.15, v));
     const sea = HGT[k] < -0.1, wet = WD[k] > 0.02;
-    if (sea || wet) { temp -= dt * 0.5; if (wet) WD[k] = Math.max(0, WD[k] - dt * 0.4); if (lavaPuffs < 5 && Math.random() < 0.25) { lavaPuffs++; puffSmoke(j - TH, Math.max(HGT[k], 0) + 0.6, i - TH, 2, false, 1.5); if (sea && Math.random() < 0.3) splash(j - TH, i - TH, 0.8); } }
-    if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(34, HGT[k] + v * 0.75); LV[k] = 0; LT[k] = 0; if (ashData[k] < 235) ashData[k] = 235; lavaSolid = true; continue; }
+    if (sea || wet) { temp -= dt * 0.5; if (wet) WD[k] = Math.max(0, WD[k] - dt * 0.4); { const c = (i >> 2) * CN + (j >> 2); if (c >= 0 && c < CK) { CH[c] = Math.min(160, CH[c] + 0.9 * dt); CT[c] = Math.min(90, CT[c] + 0.5 * dt); } tried('steam'); } if (lavaPuffs < 6 && Math.random() < 0.3) { lavaPuffs++; puffSmoke(j - TH, Math.max(HGT[k], 0) + 0.8, i - TH, 3, false, 2.4); if (sea && Math.random() < 0.3) splash(j - TH, i - TH, 0.8); } }
+    if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(34, HGT[k] + v * (sea ? 1.1 : 0.75)); LV[k] = 0; LT[k] = 0; if (ashData[k] < (sea ? 255 : 235)) ashData[k] = sea ? 255 : 235; BED[k] = HGT[k]; lavaSolid = true; continue; }
     LV[k] = Math.min(8, v); LT[k] = temp; live++; if (j < mx0) mx0 = j; if (j > mx1) mx1 = j; if (i < mz0) mz0 = i; if (i > mz1) mz1 = i;
   }
   if (live) lbx = { x0: mx0, x1: mx1, z0: mz0, z1: mz1 }; else { lavaOn = false; hotData.fill(0); hotTex.needsUpdate = true; }
@@ -3819,6 +3870,7 @@ function updateLava(dt) {
     lavaHaz -= dt;
     if (lavaHaz <= 0) {                                              // what lava touches: people fall, boats near the shore burn
       lavaHaz = 0.5;
+      for (let n = 0; n < 40; n++) { const j = lbx.x0 + Math.floor(Math.random() * (lbx.x1 - lbx.x0 + 1)), i = lbx.z0 + Math.floor(Math.random() * (lbx.z1 - lbx.z0 + 1)), k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.3) meltAround(j, i, 2, 1); }
       for (const q of people) { if (q.state === 'rag' || q.fp) continue; const k = Math.round(q.z + TH) * TN + Math.round(q.x + TH); if (LV[k] > 0.05) topple(q, new CANNON.Vec3(rnd(-2, 2), 3, rnd(-2, 2))); }
       for (const bt of boats) { if (bt.sunk) continue; const k = Math.round(bt.body.position.z + TH) * TN + Math.round(bt.body.position.x + TH); let hot = 0; for (const o of [0, 1, -1, TN, -TN]) if (LV[k + o] > 0.08) hot = 1; if (hot) { damageBoat(bt, 4, bt.body.position.x, bt.body.position.y + 1, bt.body.position.z, null, 'mg'); if (bt.fire < 0.2 && Math.random() < 0.3) { bt.fire = 0.3; bt.fireT = rnd(25, 50); } } }
     }
@@ -3886,7 +3938,7 @@ function stepClimate(dt) {
   clim.mean = tSum / CK; clim.hum = hSum / CK; clim.cloud = cSum / CK; clim.hotCells = hot; clim.mid = wSum / CK; clim.p = ptypeFrac(clim.mean, clim.mid);
   // the sky follows the clouds
   const lvl = clim.cloud > 1.1 ? 2 : clim.cloud > 0.45 ? 1 : 0;
-  if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; if (!wx.imp.rain) wx.rain = lvl; if (!wx.imp.fog) { if (lvl > 0 && wx.fog === 0 && clim.mean > 3) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; } if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
+  if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; if (!wx.imp.rain) { wx.rain = lvl; if (lvl > 0 && clim.mean > 4) tried('rain'); } if (!wx.imp.fog) { if (lvl > 0 && wx.fog === 0 && clim.mean > 3) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; } if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
   // an imposed rain setting drives the model instead of fighting it: the air is loaded with cloud (or cleared of it) to match
   if (wx.imp.rain) { const tgt = [0, 0.7, 1.6][wx.rain], kc = 1 - Math.exp(-dt / 12); for (let c = 0; c < CK; c++) { CC[c] += (tgt - CC[c]) * kc; if (wx.rain) CH[c] = Math.max(CH[c], qsat(aloft(CT[c])) * 0.9); } }
 }
@@ -3938,18 +3990,24 @@ function addSand(x, z, vol, R, kind) {
   }
   sbx = boxTouch(sbx, gx, gz, R + 3); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true;
 }
+function slumpArm(j, i, r) { sbx = boxTouch(sbx, j, i, r); sandQuiet = 0; matDirty = true; }
+/* every loose cell (anything above the original bedrock) slides downhill once it is steeper than its angle of repose:
+   dry sand about 35 degrees, earth steeper, plain fill steeper still, and wet ground sags at a gentler angle. Bedrock never moves. */
 function stepSand() {
   if (!sbx) return;
   const x0 = Math.max(2, sbx.x0), x1 = Math.min(TN - 3, sbx.x1), z0 = Math.max(2, sbx.z0), z1 = Math.min(TN - 3, sbx.z1); let moved = 0; const N = [1, -1, TN, -TN];
   for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
-    const k = i * TN + j, ch = matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0; if (!ch) continue; const rep = ch === 1 ? 0.7 : 1.05;           // sand slides at about 35 degrees, earth holds a steeper slope
+    const k = i * TN + j; if (HGT[k] < BED[k]) BED[k] = HGT[k];
+    let loose = HGT[k] - BED[k]; if (loose < 0.012 || matData[k * 4] > 0) continue;
+    const ch = matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = (ch === 1 ? 0.7 : ch === 3 ? 1.05 : 1.5) - 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1);
     for (let q = 0; q < 4; q++) {
-      const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;                      // slides when steeper than about 35 degrees
-      const m = (dh - rep) * 0.22; HGT[k] -= m; HGT[n] = Math.min(34, HGT[n] + m); if (!matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
+      const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;
+      const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(34, HGT[n] + m);
+      if (ch && !matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
       moved += m; if (n % TN <= sbx.x0) sbx.x0--; if (n % TN >= sbx.x1) sbx.x1++; const nz = (n - n % TN) / TN; if (nz <= sbx.z0) sbx.z0--; if (nz >= sbx.z1) sbx.z1++;
     }
   }
-  if (moved > 0.01) { matDirty = true; sandQuiet = 0; } else if (++sandQuiet > 24) sbx = null;
+  if (moved > 0.01) { matDirty = true; sandQuiet = 0; if (moved > 0.4 && simT - (land.lastEdit || -99) < 10) tried('slide'); } else if (++sandQuiet > 24) sbx = null;
 }
 function heatGround(x, z, r, power) {
   const gx = Math.round(x + TH), gz = Math.round(z + TH), R = Math.ceil(r);
@@ -3964,7 +4022,7 @@ function stepHeat(dt) {
     if (!MOLT[k] && matData[k * 4 + 1] && m >= 1) MOLT[k] = 1;
     if (MOLT[k]) {
       matData[k * 4 + 2] = Math.min(255, 90 + m * 110); ch = true;
-      if (m < 0.55) { MOLT[k] = 0; matData[k * 4] = 255; matData[k * 4 + 1] = 0; matData[k * 4 + 2] = 0; HGT[k] -= 0.07; matDirty = true; glassMade++; }
+      if (m < 0.55) { tried('glass'); MOLT[k] = 0; matData[k * 4] = 255; matData[k * 4 + 1] = 0; matData[k * 4 + 2] = 0; HGT[k] -= 0.07; matDirty = true; glassMade++; }
       else if (Math.random() < 0.02) fxG.emit(j - TH, HGT[k] + 0.3, i - TH, rnd(-0.3, 0.3), rnd(0.4, 1.2), rnd(-0.3, 0.3), rnd(0.6, 1.4), rnd(0.3, 0.6), 0.1, [1, rnd(0.4, 0.6), 0.1, 0.9]);
     }
     MH[k] = Math.max(0, m - dt * 0.16);
@@ -3983,7 +4041,7 @@ function fulguriteAt(x, z) {
 }
 function updateMaterials(dt) {
   for (const s of sandSrc) { const j = Math.round(s.x + TH), i = Math.round(s.z + TH), k = i * TN + j; if (j < 4 || i < 4 || j > TN - 5 || i > TN - 5) continue; HGT[k] = Math.min(34, HGT[k] + s.rate * dt); matData[k * 4 + (s.kind === 'earth' ? 3 : 1)] = 255; sbx = boxTouch(sbx, j, i, 4); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true; }
-  for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
+  for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); meltAround(Math.round(f.x + TH), Math.round(f.z + TH), 6, 0.8); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
   sandAcc += dt; if (sandAcc >= 1 / 12) { sandAcc = 0; stepSand(); }
   heatAcc += dt; if (heatAcc >= 1 / 8) { const s = heatAcc; heatAcc = 0; stepHeat(s); }
   if (lavaOn) { lavaSandT = (lavaSandT || 0) - dt; if (lavaSandT <= 0) { lavaSandT = 0.5; for (let i = lbx.z0; i <= lbx.z1; i++) for (let j = lbx.x0; j <= lbx.x1; j++) { const k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.5 && (matData[k * 4 + 1] || MOLT[k])) { MH[k] = Math.max(MH[k], 1.3); hbx = boxTouch(hbx, j, i, 1); } } } }
@@ -4070,6 +4128,7 @@ function disastersSheet() {
   openMenu(rows);
 }
 $('mSandbox').addEventListener('click', sandboxSheet);
+$('mTry').addEventListener('click', () => openMenu([menuHead('Things to try: ' + Object.keys(triedSet).length + ' of ' + TRIES.length), ...TRIES.map(([k, t]) => menuBtn((triedSet[k] ? 'Done  ' : '') + t, triedSet[k] ? 'You have made this happen' : 'Not yet', () => { }))]));
 const calmBtn = $('calmBtn');
 calmBtn.addEventListener('click', () => calm());
 function updateGuards() { const on = effectsCount() > 0 || Math.abs(surge.level) > 0.3; calmBtn.hidden = !on || mode === 'fp'; }
@@ -4077,6 +4136,14 @@ function updateGuards() { const on = effectsCount() > 0 || Math.abs(surge.level)
 /* ================================================================ v5.4: freezing, snow, and what heat and cold do to people and boats */
 let iceAcc = 0, iceActive = false, iceTexT = 0, envAcc = 0, noteT = {};
 const ICEBREAKERS = ['louis', 'arpatuuq', 'terry', 'radisson', 'molly', 'martha', 'donjek', 'franklin'];
+function meltAround(j, i, r, power) {
+  let any = false;
+  for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) {
+    const k = (i + a) * TN + j + b; if (k < 0 || k >= TN * TN) continue; const sn = snowData[k * 4], ic = snowData[k * 4 + 1];
+    if (sn > 0 || ic > 0) { const ms = Math.min(sn, 160 * power), mi = Math.min(ic, 160 * power); snowData[k * 4] = sn - ms; snowData[k * 4 + 1] = ic - mi; if (HGT[k] >= 0) { WD[k] += (ms + mi) / 255 * 0.12; lakeWet = Math.max(lakeWet, 1); } any = true; }
+  }
+  if (any) { snowTex.needsUpdate = true; iceActive = true; tried('melt'); }
+}
 function stepIce(dt) {
   let tmin = 99; for (let c = 0; c < CK; c++) if (CT[c] < tmin) tmin = CT[c];
   if (tmin > 1 && !iceActive) return;
@@ -4090,7 +4157,7 @@ function stepIce(dt) {
       if (T < -2.5) th += (-T - 1.8) * 0.00019 / (0.15 + th) * (th > 0.08 ? 1 : Math.max(0, 1 - sea.amp * 1.6)) * dt;
       else if (th > 0 && T > -0.8) th = Math.max(0, th - (T + 0.8) * 0.0035 * dt - (sea.amp > 0.45 ? 0.002 * dt : 0));
       if (th !== SIf[k]) { SIf[k] = th; const bb = Math.min(255, Math.round(th * 170)); if (bb !== snowData[k * 4 + 2]) { snowData[k * 4 + 2] = bb; changed = true; } }
-      if (th > 0.004) { any++; seaN++; }
+      if (th > 0.004) { any++; seaN++; if (th > 0.2) tried('ice'); }
     }
     if (surfaceWater) { if (T < -1) ic = Math.min(255, ic + (-T) * dt * 7); else if (T > 0.5) ic = Math.max(0, ic - T * dt * 16); } else if (ic && T > 0.5) ic = Math.max(0, ic - T * dt * 18);
     const pr = CC[c] > 0.3 || wx.rain > 0, Tw = CW[c];
@@ -4098,7 +4165,7 @@ function stepIce(dt) {
       if (pr && T <= 0.5 && Tw <= 0) sn = Math.min(255, sn + (1.5 - T) * dt * 3 * Math.min(1.5, CC[c] + (wx.rain ? 0.6 : 0)));            // snow
       else if (pr && T <= 0 && T > -8 && Tw > 0) ic = Math.min(255, ic + dt * 16);                                                     // freezing rain glazes the ground
       else if (pr && T <= -8 && Tw > 0) sn = Math.min(255, sn + dt * 1.5);                                                              // sleet piles up slowly
-      else if (T > 1 && sn) sn = Math.max(0, sn - T * dt * 14);
+      else if (T > 1 && sn) { const ms = Math.min(sn, T * dt * 14); sn -= ms; if (ms > 0.2) { WD[k] += ms / 255 * 0.1; lakeWet = Math.max(lakeWet, 1); } }
     } else if (sn) sn = Math.max(0, sn - dt * 60);
     if (sn !== s0 || ic !== i0) { snowData[k * 4] = sn; snowData[k * 4 + 1] = ic; changed = true; }
     if (sn > 0 || ic > 0) any++;
@@ -4613,7 +4680,7 @@ function placeEarth(item, p) {
 /* ---- fire in the trees */
 const burning = [], m4t = new THREE.Matrix4(), pT = new THREE.Vector3(), qT = new THREE.Quaternion(), sT = new THREE.Vector3();
 function hideTree(t) { t.dead = true; for (const r of t.refs || []) { r.inst.getMatrixAt(r.i, m4t); m4t.decompose(pT, qT, sT); sT.set(0.001, 0.001, 0.001); m4t.compose(pT, qT, sT); r.inst.setMatrixAt(r.i, m4t); r.inst.instanceMatrix.needsUpdate = true; } }
-function igniteTree(t, dur) { if (t.dead || t.burn > 0) return; t.burn = dur || rnd(7, 13); burning.push(t); }
+function igniteTree(t, dur) { if (t.dead || t.burn > 0) return; t.burn = dur || rnd(7, 13); burning.push(t); if (burning.length >= 4) tried('fire'); }
 function igniteTreesNear(x, z, r) { for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < r) igniteTree(t); }
 function clearTreesNear(x, z, r) { for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < r) hideTree(t); }
 function updateTreeFire(dt) {
@@ -4736,7 +4803,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

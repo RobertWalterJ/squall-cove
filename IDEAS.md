@@ -82,3 +82,7 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 - Burnt trees that leave charred stumps, and ground that regrows.
 - Fire that spreads over grass, and fire breaks you can dig.
 - Fire boats and the helicopter water-bombing a forest fire.
+
+## Done in v7.0.0 (Merge and shift)
+- Loose ground: anything above the original bedrock slumps, slides and soaks; digging under a pile makes it slide.
+- Soil moisture (wet ground darkens, dries, evaporates into the air grid), lava + water makes steam/cloud/rain and obsidian, meltwater from snow and ice, horizon sea, Things to try card.
