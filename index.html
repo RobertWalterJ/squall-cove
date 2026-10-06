@@ -61,8 +61,8 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
- #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(150px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
-#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(158px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
+ #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(var(--bh,140px) + 22px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
+#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(var(--bh,140px) + 30px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
 #landUndo[hidden],#turnBtn[hidden],#placeBtn[hidden]{display:none}
 #objective{position:fixed;left:12px;bottom:calc(172px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
 #objective button{min-height:36px;padding:6px 12px}
@@ -117,9 +117,10 @@ body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camP
 .pad button{min-width:58px;height:58px;font-size:15px;padding-inline:10px}
 .pad .big{font-size:22px}
 @media (pointer:coarse){ body[data-mode="helm"] .helm{display:flex} }
+#selFloat{position:fixed;left:16px;bottom:calc(var(--bh,140px) + 24px + var(--safe-b));min-height:52px;padding:0 20px;border-radius:26px;background:rgba(214,75,44,.92);color:#fff;border:2px solid #fff3;font:700 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;z-index:6;box-shadow:0 4px 16px #0008}#selFloat[hidden]{display:none}
 #cats{padding-bottom:2px}#cats[hidden]{display:none}
 #cats .chip{padding:7px 12px}#cats .chip .nm{font-size:13px}
-#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(168px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;gap:9px;z-index:12}
+#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 24px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;gap:9px;z-index:12}
 #inspector[hidden]{display:none}
 #inspector .ihead{display:flex;align-items:center;gap:10px}#inspector .ihead b{font:600 17px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
 #inspector #iNote{flex:1;font:500 11.5px/1.35 var(--f-mono);color:var(--brass)}
@@ -230,7 +231,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
   <div class="mhead">Help on the way</div>
   <div class="mgrid">
     <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button>
-    <button id="mPeople" type="button">People<small>who is doing what</small></button>
+    <button id="mPeople" type="button">People<small>who is doing what</small></button><button id="mFleet" type="button">Fleets<small>missions at sea</small></button>
   </div>
   <div class="mhead">Settings</div>
   <div class="mgrid">
@@ -311,6 +312,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div id="iBody"></div>
     <div class="ifoot"><div id="iPresets"></div><button id="iRemove" type="button">Remove</button></div>
   </div>
+  <button id="selFloat" type="button" hidden>Deselect</button>
   <div id="notes" role="status" aria-live="polite"></div>
   <div class="loading" id="loading"><div class="lcard"><div class="brand">Squall Cove</div><div id="loadMsg">Loading the cove</div><div class="bar"><span id="loadBar"></span></div></div></div>
   <div class="help" id="help">
@@ -1604,6 +1606,12 @@ const BUILD = [
   { cat: 'People', id: 'p-hiker', name: 'Hiker', note: 'climbs for the view', person: 1, role: 'Hiker', sw: '#7da35a' },
   { cat: 'People', id: 'p-medic', name: 'Medic', note: 'helps anyone hurt or cold', person: 1, role: 'Medic', sw: '#e6e6e6' },
   { cat: 'People', id: 'p-fire', name: 'Firefighter', note: 'puts out fires', person: 1, role: 'Firefighter', sw: '#d53b2e' },
+  { cat: 'People', id: 'p-forest', name: 'Forester', note: 'plants and replants trees', person: 1, role: 'Forester', sw: '#4f9a3a' },
+  { cat: 'People', id: 'p-build', name: 'Builder', note: 'builds at build sites', person: 1, role: 'Builder', sw: '#c9743a' },
+  { cat: 'Sites', id: 'site-plant', name: 'Plant site', note: 'foresters plant here', site: 'plant', sw: '#5fbf4a' },
+  { cat: 'Sites', id: 'site-build', name: 'Build site', note: 'builders raise a stone circle', site: 'build', sw: '#e0883a' },
+  { cat: 'Sites', id: 'site-yard', name: 'Cargo yard', note: 'dock workers stack cargo here', site: 'yard', sw: '#a8794a' },
+  { cat: 'Sites', id: 'site-view', name: 'Viewpoint', note: 'visitors come to look', site: 'view', sw: '#a98be0' },
   { cat: 'People', id: 'p-guard', name: 'Lifeguard', note: 'watches the water', person: 1, role: 'Lifeguard', sw: '#f0c21c' },
   { cat: 'Water', id: 'volcano', name: 'Volcano', note: 'builds an island', volcano: true, sw: '#c8431b' },
   { cat: 'Materials', id: 'sandpile', name: 'Sand pile', note: 'one pour', mat: 'pile', sw: '#d8c08a' },
@@ -1635,6 +1643,7 @@ function place(item, p) {
   const x = p.x, z = p.z, h = groundAt(x, z);
   if (item.erase) return erase(p);
   if (item.hold) { applyHold(item.hold, x, z, 0.5, 0.4); return; }
+  if (item.site) { if (h < 0.2 && item.site !== 'view') { toast(item.name + ' goes on dry land'); return; } if (addSite(item.site, x, z)) toast(item.name + ' placed: ' + SITE_INFO[item.site][1] + '.'); return; }
   if (item.water) return placeWater(item, p);
   if (item.volcano) return startVolcano(p);
   if (item.device) return placeDevice(item, p);
@@ -1652,7 +1661,6 @@ function place(item, p) {
     const sp = { ...SPECS[item.boat], ...FM[item.boat] };
     if (h > -(sp.D - sp.fb) - 0.4) { toast('Too shallow for the ' + sp.name); return; }
     for (const o of boats) if (Math.hypot(o.body.position.x - x, o.body.position.z - z) < (o.sp.L + sp.L) * 0.42) { toast('Too close to the ' + o.sp.name); return; }   // overlapping hulls would fling each other apart
-    if (boats.length >= 14) { toast('That is a full harbour: 14 boats'); return; }
     const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2 + buildRot);
     nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; ensureSkipper(nb); selectBoat(nb); toast(sp.name + ' launched'); return;
   }
@@ -1697,6 +1705,7 @@ function erase(p) {
   for (const o of sandSrc) consider(Math.hypot(o.x - p.x, o.z - p.z) - 1.5, () => { scene.remove(o.mesh); sandSrc.splice(sandSrc.indexOf(o), 1); toast('Removed'); });
   for (const o of rods) consider(Math.hypot(o.x - p.x, o.z - p.z) - 1.5, () => { scene.remove(o.mesh); rods.splice(rods.indexOf(o), 1); toast('Removed'); });
   for (const o of furnaces) consider(Math.hypot(o.x - p.x, o.z - p.z) - 1.8, () => { scene.remove(o.mesh); furnaces.splice(furnaces.indexOf(o), 1); const hi = heatSrc.findIndex(h => h.fur === o); if (hi >= 0) { scene.remove(heatSrc[hi].mesh); heatSrc.splice(hi, 1); } toast('Removed'); });
+  for (const st of sites) consider(Math.hypot(st.x - p.x, st.z - p.z) - 2, () => { removeSite(st); toast('Removed'); });
   for (const dv of devices) consider(Math.hypot(dv.x - p.x, dv.z - p.z) - 2, () => { removeDevice(dv); toast('Removed'); });
   for (const hs of heatSrc) consider(Math.hypot(hs.x - p.x, hs.z - p.z) - 1.5, () => { scene.remove(hs.mesh); heatSrc.splice(heatSrc.indexOf(hs), 1); toast('Removed'); });
   for (const sp of springs) consider(Math.hypot(sp.x - p.x, sp.z - p.z) - 1.5, () => { scene.remove(sp.mesh); springs.splice(springs.indexOf(sp), 1); toast('Spring removed'); });
@@ -1710,7 +1719,7 @@ function erase(p) {
    jointed bodies that float. */
 const people = []; let personSeq = 0, selPerson = null;
 const MAX_PEOPLE = isTouch ? 30 : 60, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
-const PERSON_ROLES = ['Tourist', 'Dock worker', 'Hiker', 'Photographer', 'Fisher', 'Medic', 'Tourist', 'Dock worker', 'Firefighter', 'Photographer', 'Hiker', 'Fisher', 'Dock worker', 'Lifeguard', 'Tourist', 'Hiker'];
+const PERSON_ROLES = ['Tourist', 'Dock worker', 'Hiker', 'Photographer', 'Fisher', 'Medic', 'Forester', 'Dock worker', 'Firefighter', 'Builder', 'Hiker', 'Fisher', 'Dock worker', 'Lifeguard', 'Tourist', 'Builder'];
 const GR_PERSON = 2, GR_RAG = 16;
 /* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
    Each frame: put the bones I touch back to the clean animated pose, let the mixer run, snapshot, then layer on top. */
@@ -3055,6 +3064,7 @@ addEventListener('keydown', (e) => {
   else if (k === 'tab') { e.preventDefault(); nextBoat(); }
   else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); }
   if (k === 'r') squall(); else if (k === 'c') clearCargo();
+  else if (k === 'escape' && mode === 'god' && (sel.length || insp)) { if (insp) closeInspector(); else { setSel([]); toast('Deselected'); } }
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
 });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
@@ -3136,6 +3146,7 @@ function rightBoat() {
 
 /* ================================================================ HUD */
 const tray = $('tray'), tabs = $('tabs'), cats = $('cats');
+{ const bt_ = document.querySelector('.bottom'); const sync = () => document.documentElement.style.setProperty('--bh', Math.round(bt_.getBoundingClientRect().height + 10) + 'px'); if (typeof ResizeObserver !== 'undefined') new ResizeObserver(sync).observe(bt_); sync(); }
 /* the tray scrolls sideways: let the mouse wheel and a mouse drag do it too (touch already swipes) */
 tray.addEventListener('wheel', (e) => { if (tray.scrollWidth <= tray.clientWidth) return; e.preventDefault(); tray.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; }, { passive: false });
 { let down = null;
@@ -3159,6 +3170,7 @@ const PLACE_CATS = [
   { id: 'cargo', name: 'Cargo', test: it => it.cat === 'Cargo' },
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
   { id: 'hold', name: 'Hold to apply', test: it => it.cat === 'Elements' },
+  { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
   { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
   { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
   { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump'].includes(it.id) },
@@ -3182,6 +3194,7 @@ function renderTray(force = true) {
   cats.innerHTML = ''; cats.hidden = !(T === 'build' && mode !== 'helm');
   if (!cats.hidden) for (const c of PLACE_CATS) cats.append(chip(c.name, '', null, c.id === placeCat, () => { placeCat = c.id; const i = BUILD.findIndex(it => !it.erase && c.test(it)); if (i >= 0) buildSel = i; renderTray(true); }, 'chip mini'));
   if (T === 'select') {
+    if (sel.length) tray.append(chip('Deselect', sel.length + ' selected', '#d64b2c', false, () => { setSel([]); toast('Deselected'); }, 'chip'));
     tray.append(sep('Select'));
     tray.append(chip('Box', boxMode ? 'on: drag' : 'off', null, boxMode, () => { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }, 'chip mini'));
     tray.append(chip('Fire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
@@ -3266,7 +3279,7 @@ function refreshPanel() {
   $('bMode').textContent = mode === 'helm' ? 'Overview' : 'Take the helm';
   $('bMode').disabled = god_ && !(bt && !bt.sunk && bs.length <= 1);
   $('bStop').hidden = !(god_ && bs.length); $('bDel').hidden = !(god_ && bs.length && boats.length > 1);
-  $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length); $('bHeli').hidden = !(god_ && ps.length); $('bDesel').hidden = !(god_ && sel.length);
+  $('bTopple').hidden = !(god_ && ps.length); $('bDelP').hidden = !(god_ && ps.length); $('bHeli').hidden = !(god_ && ps.length); $('bDesel').hidden = !(god_ && sel.length); { const f = $('selFloat'); f.hidden = !(god_ && sel.length && tool === 'select'); f.textContent = 'Deselect (' + sel.length + ')'; }
   if (ps.length) { $('bTopple').textContent = ps.every(q => q.state === 'rag') ? 'Stand up' : 'Topple'; $('bDelP').textContent = ps.length > 1 ? 'Remove people' : 'Remove person'; }
   $('bDrop').hidden = !(god_ && ps.some(q => q.carry));
   $('bJoin').hidden = !god_; $('bZoom').hidden = !(god_ && sel.length); $('bCenter').hidden = !(god_ && !sel.length); $('bFollow').hidden = !(god_ && bs.length === 1); if (bs.length === 1) $('bFollow').textContent = god.follow === bs[0] ? 'Stop following' : 'Follow';
@@ -3388,7 +3401,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateAgents(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3506,6 +3519,7 @@ const closeMenu = () => { menuSheet.hidden = true; menuBody.replaceChildren(); m
 $('bMenu').addEventListener('click', () => openMenu());
 $('bLog').addEventListener('click', () => openLog());
 $('mPeople').addEventListener('click', () => openPeople());
+$('mFleet').addEventListener('click', () => openFleet());
 $('mClose').addEventListener('click', closeMenu);
 menuSheet.addEventListener('pointerdown', (e) => { if (e.target === menuSheet) closeMenu(); });
 const menuBtn = (label, sub, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), s = document.createElement('span'); l.textContent = label; s.textContent = sub || ''; b.append(l, s); b.addEventListener('click', fn); return b; };
@@ -3526,7 +3540,7 @@ function snapshotWorld() {
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
     bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
-    clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) }, devs: devices.map(d => ({ x: d.x, z: d.z, t: d.t, p: d.p, h: d.h, r: d.r })), ocean: ocean.lvl, oceanRef: ocean.ref,
+    clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) }, devs: devices.map(d => ({ x: d.x, z: d.z, t: d.t, p: d.p, h: d.h, r: d.r })), sites: sites.map(q => ({ kind: q.kind, x: q.x, z: q.z, stage: q.stage, done: q.done })), ocean: ocean.lvl, oceanRef: ocean.ref,
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { imp: { ...wx.imp }, sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
@@ -3548,6 +3562,7 @@ async function loadWorld(slot) {
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
     clearWater(); calm0(); if (d.clim) { clim.nose = d.clim.nose || 0; if (d.clim.cw) CW.set(d.clim.cw); clim.T = d.clim.T; CT.set(d.clim.ct); CH.set(d.clim.ch); CC.set(d.clim.cc); for (const h of d.clim.src || []) addDevice({ x: h.x, z: h.z, t: h.k * 28, r: 26 }); }
+    clearSites(); for (const q of d.sites || []) { const st = addSite(q.kind, q.x, q.z, { stage: q.stage || 0, done: !!q.done }); if (st && st.done) st.flag.material.color.setHex(0x8a8f94); }
     clearDevices(); ocean.lvl = d.ocean || 0; ocean.ref = d.oceanRef === undefined ? null : d.oceanRef; for (const q of d.devs || []) addDevice(q);
     if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true;  }
     matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
@@ -4535,7 +4550,7 @@ function clearMaterials() { MET.fill(0); metN = 0; for (let q = 0; q < TN * TN; 
 
 /* ================================================================ v5.3: Calm all, Gentle mode, effect limits, restore */
 /* ---- sandbox settings, kept on this phone */
-const prefs = { gentle: false, limit: 'some', threats: 'off' };
+const prefs = { gentle: false, limit: 'some', threats: 'off', autoMissions: true };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}')); } catch (e) { }
 const savePrefs = () => { try { localStorage.setItem('squall-cove-prefs', JSON.stringify(prefs)); } catch (e) { } };
 const LIMITS = { few: 2, some: 4, lots: 8 };
@@ -4552,6 +4567,7 @@ function sandboxSheet() {
     row('Gentle mode', 'Turns off disasters. Good for young players.', prefs.gentle, () => { prefs.gentle = !prefs.gentle; if (prefs.gentle) calm(); }),
     menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
     menuBtn('Threats: ' + { off: 'Off', some: 'Now and then', busy: 'Busy' }[prefs.threats || 'off'], 'Smugglers and raiders sometimes come. Armed boats deal with them. Tap to change.', () => { prefs.threats = { off: 'some', some: 'busy', busy: 'off' }[prefs.threats || 'off']; savePrefs(); sandboxSheet(); }),
+    menuBtn('Coast Guard missions: ' + (prefs.autoMissions === false ? 'Off' : 'On'), 'The Coast Guard patrols, answers raiders and fights fires by itself.', () => { prefs.autoMissions = prefs.autoMissions === false; savePrefs(); sandboxSheet(); }),
     menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
 }
 /* ---- disasters sheet, with a way back */
@@ -5116,6 +5132,7 @@ $('mHeli').addEventListener('click', () => { closeMenu(); callHeli(); });
 $('bHeli').addEventListener('click', () => callHeli());
 
 $('bDesel').addEventListener('click', () => { setSel([]); toast('Deselected'); });
+$('selFloat').addEventListener('click', () => { setSel([]); toast('Deselected'); });
 boats.forEach(ensureSkipper);
 
 /* ================================================================ v6.0: a Nature menu, earth you can dump, lava vents, geysers, and fire in the trees */
@@ -5156,7 +5173,7 @@ function updatePerf(dt) {                                                       
   const f = 1 / perf.ema; const want = f < 18 ? 0.35 : f < 26 ? 0.6 : 1; if (want < perf.k || (want > perf.k && f > 50)) { perf.k = want; grainMesh.count = Math.min(grainMesh.count, Math.floor(GRN * perf.k)); }
 }
 function updateTreeFire(dt) {
-  updateDevices(dt); updatePerf(dt); updateHold(dt);
+  growProps(dt); updateDevices(dt); updatePerf(dt); updateHold(dt);
   for (let i = burning.length - 1; i >= 0; i--) {
     const t = burning[i]; t.burn -= dt * (wx.rainAmt > 0.3 ? 3 : 1); const gy = Math.max(heightAt(t.x, t.z), 0);
     if (Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5), t.z + rnd(-0.6, 0.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1.1), rnd(0.7, 1.4), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]);
@@ -5205,9 +5222,74 @@ function updateThreats(dt) {
   if (med) { const aboard = people.filter(q => q.ride && q.ride.boat === med).length; if (aboard > 1 && !med.leaving) { med.leaving = true; const e = edgeSpot(); if (e) orderTo(med, e.x * 1.1, e.z * 1.1); } if (med.leaving && Math.hypot(med.body.position.x, med.body.position.z) > 118) { people.filter(q => q.ride && q.ride.boat === med).forEach(removePerson); removeBoat(med); } }
   for (const q of people) if (q.ride && (q.ride.boat.side === 'hostile' || q.ride.boat.raider)) q.fromHostile = true;
 }
+/* ---- v8: fleets. The Coast Guard has standing missions of its own: it patrols, answers hostile boats, fights fires on the water, breaks ice. Raiders hunt, smugglers run for the shore.
+   Whatever you order yourself comes first, and they carry on with their own missions again once they have arrived. */
+const isCG = (b) => b.sp.glb === 'ccg' || b.sp.glb === 'ccgfleet';
+const isHostile = (b) => b.side === 'hostile' || !!b.raider;
+const factionOf = (b) => isHostile(b) ? (b.medic ? 'Their medics' : b.threat === 'smuggler' ? 'Smugglers' : 'Raiders') : isCG(b) ? 'Coast Guard' : 'Civilian';
+let fleetT = 0;
+function aiGo(bt, x, z, r) { orderTo(bt, x, z); if (r) bt.order.r = r; bt.ai.myOrder = bt.order; }
+function updateFleet(dt) {
+  fleetT -= dt; if (fleetT > 0) return; const step = 1.2; fleetT = step;
+  for (const bt of boats) {
+    if (bt.sunk || bt.abandoned) continue; const me = bt.ai || (bt.ai = { mission: '', pause: 0, myOrder: null, wpT: 0 }), hostile = isHostile(bt), cg = isCG(bt) && !hostile;
+    if (!cg && !hostile) { me.mission = bt.ferry ? 'Ferrying visitors' : (bt.order ? 'Under way' : 'At anchor'); continue; }
+    if (cg && prefs.autoMissions === false) { me.mission = 'Waiting for orders'; continue; }
+    if (!boatCrew(bt).length) { me.mission = 'No crew'; continue; }
+    if (mode === 'helm' && boats[activeIdx] === bt) { me.mission = 'At the helm'; continue; }
+    if (bt.rescue) { me.mission = 'Rescuing someone from the water'; continue; }
+    if (cg && bt.order && bt.order !== me.myOrder) { me.pause = 25; me.mission = 'Following your order'; continue; }
+    if (me.pause > 0) { me.pause -= step; continue; }
+    const pos = bt.body.position, armed = bt.mounts && bt.mounts.length, range = armed ? Math.max(...bt.mounts.map(m => m.w.range)) : 0;
+    if (hostile) {
+      if (bt.medic || bt.threat === 'smuggler') { me.mission = bt.medic ? 'Collecting their people' : bt.dropped ? 'Making their escape' : 'Running contraband to the shore'; continue; }
+      let prey = null, bd = 260; for (const o of boats) { if (o.sunk || isHostile(o)) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z) * (o.mounts && o.mounts.length ? 1.3 : 1); if (d < bd) { bd = d; prey = o; } }
+      if (prey) { me.mission = 'Raiding the ' + prey.sp.name + ' (' + factionOf(prey) + ')'; const d = Math.hypot(prey.body.position.x - pos.x, prey.body.position.z - pos.z); if (!bt.order || d > range * 0.6) aiGo(bt, prey.body.position.x, prey.body.position.z, Math.max(12, range * 0.5)); }
+      else me.mission = 'Hunting for a victim';
+      continue;
+    }
+    // Coast Guard, in order of importance
+    let foe = null, fd = 230; for (const o of boats) { if (o.sunk || !isHostile(o) || o.medic) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < fd) { fd = d; foe = o; } }
+    for (const o of boats) if (!o.sunk && !isHostile(o) && o !== bt && o.lastHitBy && isHostile(o.lastHitBy) && simT - o.lastHitT < 25 && !o.lastHitBy.sunk) { foe = o.lastHitBy; fd = Math.hypot(foe.body.position.x - pos.x, foe.body.position.z - pos.z); break; }          // someone is under attack: go to their aid
+    if (foe && armed) { me.mission = 'Intercepting the ' + foe.sp.name + ' (' + factionOf(foe) + ')'; if (!bt.target) bt.target = foe; if (!bt.order || fd > range * 0.7) aiGo(bt, foe.body.position.x, foe.body.position.z, Math.max(14, range * 0.55)); continue; }
+    const burn = boats.find(o => o !== bt && !o.sunk && !isHostile(o) && o.fire > 0.25 && Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z) < 260);
+    if (burn && isFireboat(bt)) { me.mission = 'Fighting the fire on the ' + burn.sp.name; const sp = ffSpec(bt), d = Math.hypot(burn.body.position.x - pos.x, burn.body.position.z - pos.z); if (!bt.order && d > sp.range * 0.7) aiGo(bt, burn.body.position.x, burn.body.position.z, sp.range * 0.5); continue; }
+    if (iceAny && ICEBREAKERS.includes(bt.key) && pierInfo) {
+      let tx = null; for (let n = 0; n < 24; n++) { const a = Math.random() * 6.283, r = 10 + Math.random() * 60, x = pierInfo.end.x + Math.cos(a) * r, z = pierInfo.end.z + Math.sin(a) * r; if (heightAt(x, z) < -2 && seaIceAt(x, z) > 0.18) { tx = { x, z }; break; } }
+      if (tx) { me.mission = 'Breaking ice near the harbour'; if (!bt.order || bt.status === 'Beset in ice') aiGo(bt, tx.x, tx.z); continue; }
+    }
+    me.wpT -= step;
+    if (!bt.order && me.wpT <= 0) { const cp = coastPoint(Math.random() * 6.283, -(28 + Math.random() * 30)); if (cp && heightAt(cp.x, cp.z) < -4) { aiGo(bt, cp.x, cp.z); me.wpT = 8 + Math.random() * 14; me.mission = 'Patrolling the coast'; } }
+    else if (!bt.order) me.mission = 'On station';
+  }
+}
+function openFleet() {
+  const rows = boats.map(bt => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); l.textContent = bt.sp.name + ' · ' + factionOf(bt); t.textContent = (bt.sunk ? 'Sinking' : (bt.ai && bt.ai.mission) || bt.status || 'At anchor') + (bt.hpMax ? ' · hull ' + Math.round(100 * bt.hp / bt.hpMax) + '%' : ''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectBoat(bt); camFlyTo(bt.body.position.x, bt.body.position.z, Math.max(50, bt.sp.L * 4)); }); return b; });
+  openMenu([menuHead('Fleets and what they are doing'), ...rows]);
+}
+/* ---- v8: work sites. Markers you place to shape what people want to do. */
+const sites = [], SITE_INFO = { plant: ['Plant site', 'foresters plant trees here', 0x5fbf4a], build: ['Build site', 'builders raise a stone circle here', 0xe0883a], yard: ['Cargo yard', 'dock workers stack cargo here', 0xa8794a], view: ['Viewpoint', 'visitors come to look at this', 0xa98be0] };
+function addSite(kind, x, z, extra) {
+  if (sites.length >= 12) { toast('Twelve work sites is plenty. Remove one first.'); return null; }
+  const col = SITE_INFO[kind][2], g = new THREE.Group(), pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 3, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); pole.position.y = 1.5;
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.9), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide })); flag.position.set(0.7, 2.5, 0);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(kind === 'view' ? 1.4 : 5.6, kind === 'view' ? 1.6 : 6, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.6, depthWrite: false })); ring.position.y = 0.25;
+  g.add(pole, flag, ring); g.position.set(x, Math.max(heightAt(x, z), 0), z); scene.add(g);
+  const st = { kind, x, z, mesh: g, flag, stage: 0, planted: 0, done: false, ...(extra || {}) }; sites.push(st); return st;
+}
+function removeSite(st) { scene.remove(st.mesh); const i = sites.indexOf(st); if (i >= 0) sites.splice(i, 1); }
+function clearSites() { for (const st of sites.slice()) removeSite(st); }
+function plantTree(x, z) {
+  if (props.filter(p => p.item && p.item.land).length >= 70) return false;
+  const h = heightAt(x, z), id = h < 3.2 ? 'palm' : h > 11 ? 'pine' : Math.random() < 0.5 ? 'broad' : 'pine', item = BUILD.find(i => i.id === id); if (!item) return false;
+  quietToasts = true; try { place(item, { x, z }); } catch (e) { } quietToasts = false;
+  const pr = props[props.length - 1]; if (!pr || pr.item !== item) return false; pr.sc0 = pr.mesh.scale.x; pr.mesh.scale.setScalar(pr.sc0 * 0.3); pr.grow = { t: 0 };
+  const k = Math.round(z + TH) * TN + Math.round(x + TH); SM[k] = Math.max(SM[k], 0.4); soilWet = true; return true;
+}
+function growProps(dt) { for (const pr of props) if (pr.grow) { pr.grow.t += dt; const u = Math.min(1, pr.grow.t / 120); pr.mesh.scale.setScalar(pr.sc0 * (0.3 + 0.7 * u)); if (u >= 1) pr.grow = null; } }
 /* ---- v8: people with objectives. Every person has a job and picks their own goals: tourists and photographers look for the best view, dock workers haul loose cargo to the yard, fishers fish, hikers climb, medics and firefighters help,
    lifeguards watch the water. What you put on the map shapes what they want to do; goals are checked every moment and dropped or replaced when the world changes under them. */
-const agentStat = { photos: 0, crates: 0, fish: 0, helped: 0, ferried: 0 }, poiVisits = {};
+const agentStat = { photos: 0, crates: 0, fish: 0, helped: 0, ferried: 0, planted: 0, built: 0 }, poiVisits = {};
 let poiT = -99, poiList = [], peak = null;
 const clipSeed = (n) => n;
 function safeSpot(x, z) {
@@ -5219,6 +5301,7 @@ function computePOIs() {
   const L = []; for (const m of LANDMARKS) L.push({ ...m });
   if (!peak || simT - (peak.t || 0) > 20) { let b = null; for (let i = 8; i < TN - 8; i += 3) for (let j = 8; j < TN - 8; j += 3) { const h = HGT[i * TN + j]; if (h > 3 && (!b || h > b.h)) b = { h, x: j - TH, z: i - TH }; } peak = b ? { ...b, t: simT } : null; }
   if (peak) L.push({ id: 'summit', name: 'the summit', x: peak.x, z: peak.z, appeal: 4, far: 7 });
+  sites.forEach((st, i) => { if (st.kind === 'view') L.push({ id: 'site' + i, name: 'the viewpoint', x: st.x, z: st.z, appeal: 6.5, far: 7 }); });
   if (pierInfo) L.push({ id: 'pier', name: 'the pier', x: pierInfo.end.x, z: pierInfo.end.z, appeal: 2, far: 10 });
   if (lavaOn) { let sx = 0, sz = 0, n = 0; for (let i = lbx.z0; i <= lbx.z1; i += 2) for (let j = lbx.x0; j <= lbx.x1; j += 2) if (LV[i * TN + j] > 0.05) { sx += j - TH; sz += i - TH; n++; } if (n) L.push({ id: 'lava', name: 'the lava', x: sx / n, z: sz / n, appeal: 8, far: 20 }); }
   if (burning.length > 2) { let sx = 0, sz = 0; for (const t of burning) { sx += t.x; sz += t.z; } L.push({ id: 'fire', name: 'the fire', x: sx / burning.length, z: sz / burning.length, appeal: 5, far: 22 }); }
@@ -5243,17 +5326,27 @@ function pickPOI(p, ag) {
   return best;
 }
 function freeCrate(p) {
-  const yard = yardPt(); let best = null, bd = 1e9;
+  const yard = yardPt(p); let best = null, bd = 1e9;
   for (const o of objects) { if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (liftNeed(o) > 2 || standY(op.x, op.z) < 0.3 || Math.abs(op.y - standY(op.x, op.z)) > 1.6) continue; if (Math.hypot(op.x - yard.x, op.z - yard.z) < 6 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 0.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 90 && safeSpot(op.x, op.z)) { bd = d; best = o; } }
   return best;
 }
-function yardPt() { if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
+function yardPt(p) { let best = null, bd = 1e9; for (const st of sites) if (st.kind === 'yard') { const d = p ? Math.hypot(st.x - p.x, st.z - p.z) : 0; if (d < bd) { bd = d; best = st; } } if (best) return { x: best.x, z: best.z }; if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
 let yardN = 0;
 function agentUnsafe(p) { const k = Math.round(p.z + TH) * TN + Math.round(p.x + TH); for (let a = -4; a <= 4; a += 2) for (let b = -4; b <= 4; b += 2) if (LV[k + a * TN + b] > 0.01 || GT[k + a * TN + b] > 330) return { dx: -b, dz: -a }; for (const t of burning) if (Math.hypot(t.x - p.x, t.z - p.z) < 7) return { dx: p.x - t.x, dz: p.z - t.z }; return null; }
 function think(p, ag) {
   const role = p.role;
-  if (p.carry) { const y = yardPt(), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4 }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
+  if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4 }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
   if (role === 'Dock worker') { const o = freeCrate(p); if (o) { const need = liftNeed(o); if (need === 1 || people.some(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30)) { o.claimed = p; o.claimT = simT; const team = [p]; if (need > 1) { const m = people.find(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30); if (m) team.push(m); } if (team.length >= need) { team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } }); ag.goal = { kind: 'haul', obj: o, t: 0 }; ag.intent = 'Going for the ' + o.c.name; return; } } } }
+  if (role === 'Forester') {
+    const st = sites.find(q => q.kind === 'plant' && q.planted < 10);
+    if (st) { for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = rnd(1.5, 8), x = st.x + Math.cos(a) * d, z = st.z + Math.sin(a) * d; if (safeSpot(x, z) && !trees.some(t => !t.dead && Math.hypot(t.x - x, t.z - z) < 2.4) && !props.some(q => Math.hypot(q.x - x, q.z - z) < 2.4)) { ag.goal = { kind: 'plant', x, z, site: st, t: 0 }; ag.intent = 'Going to plant a tree'; walkAgent(p, x, z); return; } } }
+    const dead = trees.find(t => t.dead && t.regrowAt && Math.hypot(t.x - p.x, t.z - p.z) < 80 && safeSpot(t.x, t.z)); if (dead) { ag.goal = { kind: 'plant', x: dead.x, z: dead.z, tree: dead, t: 0 }; ag.intent = 'Going to replant a burned tree'; walkAgent(p, dead.x, dead.z); return; }
+  }
+  if (role === 'Builder') {
+    const st = sites.find(q => q.kind === 'build' && !q.done);
+    if (st) { ag.goal = { kind: 'build', site: st, t: 0, x: st.x + 2.8, z: st.z }; ag.intent = 'Going to the build site'; walkAgent(p, st.x + 2.8, st.z); return; }
+    if (surge.level > 0.6 || (dis.deluge || 0) > 0 || dis.hurricane > 0) { for (let n = 0; n < 16; n++) { const cp = coastPoint(Math.random() * 6.283, 3); if (cp && heightAt(cp.x, cp.z) < 1.6 && safeSpot(cp.x, cp.z)) { ag.goal = { kind: 'wall', x: cp.x, z: cp.z, t: 0 }; ag.intent = 'Going to shore up the coast'; walkAgent(p, cp.x, cp.z); return; } } }
+  }
   if (role === 'Medic') { let best = null, bd = 50; for (const q of people) { if (q === p || q.ride || q.fp || q.swim) continue; if (!(q.state === 'rag' || q.frozen || (q.cold || 0) > 0.6 || (q.heat || 0) > 0.8)) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { best = q; bd = d; } } if (best) { ag.goal = { kind: 'heal', who: best }; ag.intent = 'Going to help someone'; walkAgent(p, best.x, best.z); return; } }
   if (role === 'Firefighter') { let best = null, bd = 45; for (const t of burning) { const d = Math.hypot(t.x - p.x, t.z - p.z); if (d < bd) { best = t; bd = d; } } if (best) { ag.goal = { kind: 'extinguish', tree: best }; ag.intent = 'Heading for a fire'; walkAgent(p, best.x + (p.x - best.x) / Math.max(1, bd) * 2.5, best.z + (p.z - best.z) / Math.max(1, bd) * 2.5); return; } }
   if (role === 'Lifeguard') { const sw = people.find(q => !q.ride && (q.swim || (q.state === 'rag' && q.floating)) && Math.hypot(q.x - p.x, q.z - p.z) < 80); if (sw) { const bt = boats.find(b => !b.sunk && !b.abandoned && !b.raider && b.side !== 'hostile' && boatCrew(b).length && crewCount(b) < (b.sp.capacity || 4) && !b.rescue); if (bt) { bt.rescue = sw; orderTo(bt, sw.x, sw.z); bt.rescueOrder = bt.order; bt.status = 'Rescuing'; ag.goal = { kind: 'watch', t: 8 }; ag.intent = 'Signalling the ' + bt.sp.name + ' to a swimmer'; agentStat.helped++; return; } } }
@@ -5261,7 +5354,7 @@ function think(p, ag) {
   if (role === 'Hiker' && peak && Math.random() < 0.7) { const a = Math.random() * 6.283, d = rnd(2, 9), x = peak.x + Math.cos(a) * d, z = peak.z + Math.sin(a) * d; if (safeSpot(x, z)) { ag.goal = { kind: 'hike', x, z, t: 0, dur: rnd(8, 16) }; ag.intent = 'Climbing to the summit'; walkAgent(p, x, z); return; } }
   if (role === 'Tourist' && Math.random() < 0.2 && pierInfo) { const bt = boats.find(b => !b.sunk && !b.abandoned && !b.raider && b.side !== 'hostile' && boatCrew(b).length && crewCount(b) < (b.sp.capacity || 4) && !b.order && !b.rescue && !b.ferry); if (bt) { ag.goal = { kind: 'hail', bt, t: 0 }; ag.intent = 'Waiting for the ' + bt.sp.name; walkAgent(p, pierInfo.c.x - pierInfo.dir.x * 2, pierInfo.c.z - pierInfo.dir.z * 2); return; } }
   if (role === 'Tourist' || role === 'Photographer' || role === 'Hiker' || role === 'Scout') { const poi = pickPOI(p, ag), spot = poi && viewSpot(p, poi); if (poi && spot) { ag.goal = { kind: 'photo', poi, x: spot.x, z: spot.z, shots: 0, want: 2 + Math.floor(Math.random() * 4), t: 0, started: false }; ag.intent = 'Heading to see ' + poi.name; walkAgent(p, spot.x, spot.z); return; } }
-  if (role === 'Dock worker' && pierInfo) { const y = yardPt(); if (Math.hypot(p.x - y.x, p.z - y.z) > 10 && safeSpot(y.x, y.z)) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Waiting for cargo at the yard'; walkAgent(p, y.x + rnd(-3, 3), y.z + rnd(-3, 3)); return; } }
+  if (role === 'Dock worker' && (pierInfo || sites.length)) { const y = yardPt(p); if (Math.hypot(p.x - y.x, p.z - y.z) > 10 && safeSpot(y.x, y.z)) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Waiting for cargo at the yard'; walkAgent(p, y.x + rnd(-3, 3), y.z + rnd(-3, 3)); return; } }
   // nothing pressing: wander a little
   const a = Math.random() * 6.283, d = rnd(5, 18), x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d; if (safeSpot(x, z)) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Strolling'; walkAgent(p, x, z); } else ag.cool = 2;
 }
@@ -5301,6 +5394,19 @@ function updateAgents(dt) {
       const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < 2.6) { q.cold = Math.min(q.cold || 0, 0.3); q.heat = Math.min(q.heat || 0, 0.3); q.frozen = false; if (q.state === 'rag' && standY(q.x, q.z) > 0.2) standUp(q); agentStat.helped++; p.ag.stats.helped = (p.ag.stats.helped || 0) + 1; ag.intent = 'Helped someone up'; ag.goal = null; ag.cool = 2; } else if (!walking && g.t > 3) walkAgent(p, q.x, q.z);
     } else if (g.kind === 'extinguish') {
       const t = g.tree; if (!t || !(t.burn > 0)) { ag.goal = null; continue; } const d = Math.hypot(t.x - p.x, t.z - p.z); if (d < 3.6) { extinguishTree(t); puffSmoke(t.x, Math.max(heightAt(t.x, t.z), 0) + 2, t.z, 3, false, 1.5); agentStat.helped++; p.ag.stats.helped = (p.ag.stats.helped || 0) + 1; ag.intent = 'Put out a fire'; ag.goal = null; ag.cool = 0.5; } else if (!walking) walkAgent(p, t.x + (p.x - t.x) / Math.max(1, d) * 2.5, t.z + (p.z - t.z) / Math.max(1, d) * 2.5);
+    } else if (g.kind === 'plant') {
+      if (!walking) {
+        g.work = (g.work || 0) + dt; ag.intent = 'Planting'; p.heading = p.heading;
+        if (g.work > 3) { if (g.tree) { g.tree.regrowAt = simT; const k = Math.round(g.tree.z + TH) * TN + Math.round(g.tree.x + TH); SM[k] = Math.max(SM[k], 0.4); soilWet = true; } else if (plantTree(g.x, g.z)) { if (g.site) g.site.planted++; } agentStat.planted = (agentStat.planted || 0) + 1; p.ag.stats.planted = (p.ag.stats.planted || 0) + 1; ag.goal = null; ag.cool = rnd(0.5, 1.5); }
+      } else if (g.t > 50) ag.goal = null;
+    } else if (g.kind === 'build') {
+      const st = g.site; if (!st || !sites.includes(st) || st.done) { ag.goal = null; continue; }
+      if (!walking) {
+        g.work = (g.work || 0) + dt; ag.intent = 'Building a stone circle (' + st.stage + ' of 8)';
+        if (g.work > 7) { g.work = 0; const a = st.stage / 8 * 6.283, x = st.x + Math.cos(a) * 3.2, z = st.z + Math.sin(a) * 3.2; if (safeSpot(x, z)) { quietToasts = true; try { place(BUILD.find(i => i.id === 'rockb'), { x, z }); } catch (e) { } quietToasts = false; } st.stage++; agentStat.built = (agentStat.built || 0) + 1; p.ag.stats.built = (p.ag.stats.built || 0) + 1; if (st.stage >= 8) { st.done = true; st.flag.material.color.setHex(0x8a8f94); toast('Builders finished a stone circle.'); ag.goal = null; } else walkAgent(p, st.x + Math.cos(a + 0.8) * 4.4, st.z + Math.sin(a + 0.8) * 4.4); }
+      } else if (g.t > 50) ag.goal = null;
+    } else if (g.kind === 'wall') {
+      if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Piling rock to hold the shore'; if (Math.random() < dt * 14) spawnGrain(g.x + rnd(-1.4, 1.4), Math.max(heightAt(g.x, g.z), 0) + 7, g.z + rnd(-1.4, 1.4), 0, 0, 0, 0.03, 4, 0.22); if (g.work > 12) { agentStat.built = (agentStat.built || 0) + 1; ag.goal = null; ag.cool = 2; } } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'fish') { if (!walking) { if (!g.set) { g.set = true; g.t = 0; } p.heading = g.face + Math.PI / 2 * 0; p.heading = Math.atan2(Math.cos(g.face), Math.sin(g.face)); ag.intent = g.guard ? 'Watching the water' : 'Fishing (' + (p.ag.stats.fish || 0) + ' caught)'; if (!safeSpot(p.x, p.z)) { ag.goal = null; continue; } g.catchT = (g.catchT === undefined ? rnd(5, 12) : g.catchT) - dt; if (g.catchT <= 0) { g.catchT = rnd(6, 16); if (!g.guard && Math.random() < 0.6) { p.ag.stats.fish = (p.ag.stats.fish || 0) + 1; agentStat.fish++; splash(p.x + Math.cos(g.face) * 4.5, p.z + Math.sin(g.face) * 4.5, 0.5); } } if (g.t > g.dur) { ag.goal = null; ag.cool = rnd(1, 3); } } }
     else if (g.kind === 'hike') { if (!walking) { ag.intent = 'Enjoying the view from the summit'; if (g.t > g.dur) { ag.goal = null; ag.cool = rnd(0.5, 2); } } }
     else if (g.kind === 'hail') {
@@ -5324,8 +5430,8 @@ function stepFerry(p, ag, dt) {
   } else if (f.t > 60) { bt.ferry = null; ag.goal = null; }
 }
 function openPeople() {
-  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
-  openMenu([menuHead('People: ' + people.length + '. Photos taken ' + agentStat.photos + ', crates hauled ' + agentStat.crates + ', fish caught ' + agentStat.fish + ', people helped ' + agentStat.helped), ...(rows.length ? rows : [menuHead('Nobody here yet. Place some people.')])]);
+  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.planted ? ' · ' + st.planted + ' planted' : '', st.built ? ' · ' + st.built + ' built' : '', st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
+  openMenu([menuHead('People: ' + people.length + '. Photos taken ' + agentStat.photos + ', crates hauled ' + agentStat.crates + ', fish caught ' + agentStat.fish + ', people helped ' + agentStat.helped + ', trees planted ' + agentStat.planted + ', things built ' + agentStat.built), ...(rows.length ? rows : [menuHead('Nobody here yet. Place some people.')])]);
 }
 /* ---- plants grow back where it is wet and warm enough, starting as saplings */
 function updatePlants(dt) {
@@ -5450,7 +5556,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

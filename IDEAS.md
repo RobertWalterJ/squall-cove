@@ -93,3 +93,8 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 ## Done in v7.2.0 (New worlds)
 - Seeded maps: Archipelago, Atoll, Fjord, Volcano island, River valley, Barrier coast (Menu, New world; seed shown and typeable), aged coasts, distant islands on the horizon, Bay class lifeboat remodelled, challenge cards (Stop the lava, Free the frozen harbour), optional Threats with medic boats, people with roles (medic, firefighter) who step away from lava and fire.
 - Not done: Large 512 m map (needs CELL refactor), crane/net/mine defences, fisher/builder/scout roles.
+
+## Done in v8.4.0
+- Floating buttons follow the height of the bottom stack (no overlap on phones), visible Deselect button and chip, Esc deselects.
+- Fleets: Coast Guard missions (patrol, intercept raiders, defend attacked boats, fight boat fires, break ice), raiders hunt, smugglers run, Fleets sheet.
+- Work sites (plant, build, cargo yard, viewpoint), foresters plant and replant, builders raise stone circles and shore up the coast in storms.
