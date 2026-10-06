@@ -326,7 +326,7 @@ def render_weapons():
         y = S.impact('wood', r.uniform(70, 110), 2.2, 0.35, 1.5, seed=940 + i, thump=0.0)
         n = len(y); tb = np.arange(n) / SR
         y += 1.6 * np.sin(TWO_PI * r.uniform(42, 70) * tb * (1 - 0.3 * np.exp(-tb * 25)) + r.uniform(0, 6.28)) * np.exp(-tb / r.uniform(0.12, 0.25))
- cr = S.bp(S.noise(n, 'white', r), 200, 1800, SR, 1) * np.exp(-np.arange(n) / (0.08 * SR))
+        cr = S.bp(S.noise(n, 'white', r), 200, 1800, SR, 1) * np.exp(-np.arange(n) / (0.08 * SR))
         return y + 0.5 * cr
     fam('veh_hull_hit_heavy', 4, hit_h, weight=6, tags=['hull'])
 

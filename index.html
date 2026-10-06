@@ -406,7 +406,7 @@ const Snd = (() => {
     A.applyVol();
     fetch('audio/manifest.json').then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
-      A.ready = true; A.group('core');
+      A.ready = true; A.group('core').then(() => A.loadRest());
     }).catch(() => { });
   };
   A.group = async (g) => {
@@ -415,7 +415,11 @@ const Snd = (() => {
     await Promise.all([worker(), worker(), worker(), worker()]);
   };
   const entry = (id) => A.man && A.man[id];
-  A.pick = (stem) => { const ids = A.fam[stem]; if (!ids) return null; const ok = ids.filter(id => A.bufs[id]); if (!ok.length) { const e = entry(ids[0]); if (e && !A.grp[e.group]) A.group(e.group); return null; } let id = ok[(Math.random() * ok.length) | 0]; if (ok.length > 1 && id === A.lastVar[stem]) id = ok[(ok.indexOf(id) + 1) % ok.length]; A.lastVar[stem] = id; return id; };
+  A.loadRest = async () => { if (touch) return; for (const g of ['water', 'mat', 'fx', 'people', 'boats', 'weather', 'music', 'aircraft', 'weapons']) { await A.group(g); await new Promise(r => setTimeout(r, 600)); } };        // desktop: the rest arrives in the background; phones fetch a family when it is first needed
+  A.loadStem = (stem) => { const ids = (A.fam[stem] || []).filter(id => !A.bufs[id] && !A.pend[id]); for (const id of ids) { A.pend[id] = 1; fetch(A.man[id].file).then(r => r.ok ? r.arrayBuffer() : null).then(ab => ab && A.ctx.decodeAudioData(ab)).then(b => { if (b) { A.bufs[id] = b; A.stats.loaded++; } delete A.pend[id]; }).catch(() => { delete A.pend[id]; }); } };
+  A.used = {};
+  A.sweep = () => { if (!touch) return; for (const id in A.bufs) { const e = entry(id); if (e && e.group !== 'core' && A.T - (A.used[id] || 0) > 180) delete A.bufs[id]; } };
+  A.pick = (stem) => { const ids = A.fam[stem]; if (!ids) return null; const ok = ids.filter(id => A.bufs[id]); if (!ok.length) { A.loadStem(stem); return null; } let id = ok[(Math.random() * ok.length) | 0]; if (ok.length > 1 && id === A.lastVar[stem]) id = ok[(ok.indexOf(id) + 1) % ok.length]; A.lastVar[stem] = id; A.used[id] = A.T; return id; };
   const spat = (o, e) => {
     let g = 1, f = 20000, pan = 0, d = 0;
     if (o && o.x !== undefined) { const L = A.L, dx = o.x - L.x, dz = o.z - L.z, dy = (o.y !== undefined ? o.y - L.y : 0), len = Math.hypot(dx, dz) || 1; d = Math.hypot(dx, dz, dy * 0.5); const ref = 7 + 4 * (e.weight || 1); g = ref / (ref + d * 0.9); f = Math.max(800, 17000 / (1 + d / 50)); pan = cl((dx * L.rx + dz * L.rz) / len * Math.min(1, len / 10), -0.9, 0.9); }
@@ -427,7 +431,7 @@ const Snd = (() => {
     if (now - (A.last[stem] || -9) < (o.gap !== undefined ? o.gap : 0.045)) { A.stats.culled++; return null; } A.last[stem] = now;
     const sp = spat(x !== undefined ? { x, z, y: o.y } : null, e); if (x !== undefined && sp.d > (e.maxDist || 160) * (o.far || 1)) { A.stats.culled++; return null; }
     let gain = (o.gain !== undefined ? o.gain : 1) * (e.gain || 1) * sp.g * (10 ** ((Math.random() * 3 - 1.5) / 20)); if (gain < 0.004) { A.stats.culled++; return null; }
-    if (A.voices >= A.max) { if ((e.weight || 1) < 3 && gain < 0.35) { A.stats.culled++; return null; } }
+    if (A.voices >= A.max * 1.4 || (A.voices >= A.max && (e.weight || 1) < 3 && gain < 0.35)) { A.stats.culled++; return null; }          // a hard ceiling: heavy events may exceed the soft limit a little, nothing exceeds 1.4 times it
     const c = A.ctx, src = c.createBufferSource(); src.buffer = A.bufs[id]; const rr = e.rate || [0.95, 1.05]; src.playbackRate.value = (rr[0] + Math.random() * (rr[1] - rr[0])) * (o.rate || 1);
     const g = c.createGain(); g.gain.value = gain; let node = src.connect(g);
     if (sp.f < 16000) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = sp.f; node = node.connect(f); }
@@ -522,7 +526,7 @@ const Snd = (() => {
   };
   A.frame = (dt) => {
     A.T += dt; if (!A.ready) return; A.listen(); A.tickT -= dt; if (A.tickT <= 0) { A.tickT = 0.1; A.tick(); }
-    A.stepT = (A.stepT || 0) - dt; if (A.stepT <= 0) { A.stepT = 0.08; A.steps(0.08); }
+    A.stepT = (A.stepT || 0) - dt; if (A.stepT <= 0) { A.stepT = 0.08; A.steps(0.08); } A.swT = (A.swT || 0) - dt; if (A.swT <= 0) { A.swT = 30; A.sweep(); }
   };
   A.stats2 = () => ({ ready: A.ready, ctx: A.ctx && A.ctx.state, voices: A.voices, insts: Object.keys(A.inst).length, loaded: Object.keys(A.bufs).length, ...A.stats });
   return A;
@@ -6092,7 +6096,7 @@ function lmLookouts() {                                      // the best places 
 function lmBest(kind, near) {                                // kind 'yard': flat ground a short walk from the water; 'build': flat, firm ground with room
   const N = LM.n; let best = null, bs = -1e9;
   for (let i = 2; i < N - 2; i++) for (let j = 2; j < N - 2; j++) {
-    const k = i * N + j, h = LM.h[k]; if (h < 0.9 || h > 7 || LM.slope[k] > (kind === 'yard' ? 0.12 : 0.07)) continue; const x = G2W(j * LM.step + 2), z = G2W(i * LM.step + 2);
+    const k = i * N + j, h = LM.h[k]; if (h < 0.9 || h > 12 || LM.slope[k] > (kind === 'yard' ? 0.14 : 0.1)) continue; const x = G2W(j * LM.step + 2), z = G2W(i * LM.step + 2);
     const gk = (i * LM.step + 2) * TN + j * LM.step + 2; if (GT[gk] > 60 || WD[gk] > 0.1 || LV[gk] > 0.01 || matData[gk * 4] > 0) continue; if (sites.some(q => Math.hypot(q.x - x, q.z - z) < 14 * CELL)) continue;
     const sh = LM.shore[k]; let sc;
     if (kind === 'yard') { if (sh < 3 || sh > 24 * CELL) continue; sc = 10 - Math.abs(sh - 8 * CELL) * 0.3 - LM.slope[k] * 40; if (pierInfo) sc -= Math.hypot(x - pierInfo.c.x, z - pierInfo.c.z) * 0.04; }
