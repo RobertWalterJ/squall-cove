@@ -1878,12 +1878,87 @@ const personStatus1 = (p) => (p.frozen ? 'Frozen. ' : p.cold > 0.5 ? 'Cold. ' : 
 const personStatus0 = (p) => p.state === 'rag' ? (p.floating ? 'Floating' : 'Fallen') : p.hop ? 'Climbing' : p.job ? ({ board: 'Boarding', unload: 'Landing', pickup: 'Picking up' }[p.job.type] || 'Busy') + (p.job.phase === 'wait' ? ' (waiting)' : '') : p.fp ? 'You' : p.carry ? 'Carrying ' + p.carry.c.name : p.swim ? 'Swimming' : p.ride ? (p.aim > 0.3 ? 'Firing' : 'Aboard ' + p.ride.boat.sp.name) : p.order ? 'Walking' : p.wk > 0.5 ? 'Waving' : 'Standing';
 
 function updatePersonPanel(pe) { $('boatName').innerHTML = `${pe.role}<small>${personStatus1(pe)}${pe.ag && pe.ag.intent ? ' · ' + pe.ag.intent : ''}</small>`; $('bTopple').textContent = pe.state === 'rag' ? 'Stand up' : 'Topple'; }
+/* ---- v8.5: role uniforms. Each role has its own clothing colours and kit, attached to the skeleton so it moves with the person.
+   Person frame: origin at the feet, +y up, +z forward, +x the person's left. Kit is placed in that frame and re-expressed in each bone's rest space. */
+const KM = (c, r = 0.8, m = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m }), KMs = {};
+const kmat = (c, r, m) => { const k = c + r + m; return KMs[k] || (KMs[k] = KM(c, r, m)); };
+const kBox = (w, h, d, c, r, m) => { const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), kmat(c, r, m)); q.castShadow = true; return q; };
+const kCyl = (rt, rb, h, c, seg = 10, r, m) => { const q = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), kmat(c, r, m)); q.castShadow = true; return q; };
+const kSph = (rad, c, ws = 12, hs = 8, ps = 0, pl = Math.PI * 2, ts = 0, tl = Math.PI) => { const q = new THREE.Mesh(new THREE.SphereGeometry(rad, ws, hs, ps, pl, ts, tl), kmat(c, 0.7, 0)); q.castShadow = true; return q; };
+const kGrp = (...a) => { const g = new THREE.Group(); g.add(...a); return g; };
+const at = (m, x, y, z, rx = 0, ry = 0, rz = 0) => { m.position.set(x, y, z); m.rotation.set(rx, ry, rz); return m; };
+const KITS = {
+  hardhat: (c) => kGrp(at(kSph(0.125, c, 14, 8, 0, 6.283, 0, 1.5708), 0, 0, 0), at(kCyl(0.15, 0.15, 0.012, c, 16), 0, 0, 0.0), at(kBox(0.13, 0.012, 0.09, c), 0, 0, 0.14), at(kBox(0.026, 0.02, 0.2, c), 0, 0.12, 0)),
+  firehelmet: (c) => kGrp(at(kSph(0.13, c, 14, 8, 0, 6.283, 0, 1.5708), 0, 0, 0), at(kCyl(0.14, 0.14, 0.012, c, 16), 0, 0, 0), at(kBox(0.24, 0.012, 0.1, c), 0, -0.01, -0.15, 0.4), at(kBox(0.12, 0.012, 0.05, '#e9d34a'), 0, 0.06, 0.125, -0.5), at(kBox(0.2, 0.05, 0.03, '#e9d34a'), 0, 0.03, 0.12)),
+  sunhat: (c) => kGrp(at(kSph(0.12, c, 14, 8, 0, 6.283, 0, 1.5708), 0, 0, 0), at(kCyl(0.27, 0.27, 0.008, c, 20), 0, -0.005, 0)),
+  cap: (c, band) => kGrp(at(kSph(0.122, c, 14, 8, 0, 6.283, 0, 1.5708), 0, 0, 0), at(kBox(0.12, 0.01, 0.1, c), 0, -0.012, 0.15), at(kCyl(0.123, 0.123, 0.028, band || c, 14), 0, -0.01, 0)),
+  bucket: (c) => kGrp(at(kCyl(0.11, 0.125, 0.1, c, 14), 0, 0.04, 0), at(kCyl(0.2, 0.2, 0.008, c, 18), 0, -0.005, 0)),
+  beanie: (c) => kGrp(at(kSph(0.123, c, 14, 8, 0, 6.283, 0, 1.75), 0, 0, 0)),
+  stripes: (w, d, cs) => kGrp(...cs.map((y) => kBox(w, 0.035, d, '#dfe3e6', 0.25, 0.5).translateY(y))),
+  camera: (big) => kGrp(at(kBox(big ? 0.15 : 0.1, big ? 0.1 : 0.07, big ? 0.09 : 0.06, '#25272b', 0.5, 0.3), 0, 0, 0), at(kCyl(big ? 0.045 : 0.028, big ? 0.05 : 0.032, big ? 0.14 : 0.05, '#17181b', 12, 0.3, 0.4), 0, 0, big ? 0.115 : 0.055, 1.5708, 0, 0)),
+  backpack: (c, h = 0.36) => kGrp(at(kBox(0.27, h, 0.14, c), 0, 0, 0), at(kBox(0.2, h * 0.5, 0.06, c), 0, -h * 0.1, -0.1), at(kCyl(0.06, 0.06, 0.26, '#d9d3c4', 8), 0, h * 0.5 + 0.04, 0, 0, 0, 1.5708)),
+  rod: () => kGrp(at(kCyl(0.007, 0.012, 2.1, '#2b2f33', 6), 0, 0, 1.0, 1.5708 - 0.55, 0, 0), at(kCyl(0.025, 0.025, 0.05, '#bfc4c8', 8), 0, 0, 0)),
+  axe: () => kGrp(at(kCyl(0.017, 0.02, 0.85, '#8a5a32', 6), 0, -0.2, 0), at(kBox(0.03, 0.12, 0.17, '#9aa1a6', 0.3, 0.8), 0, 0.2, 0.06)),
+  bag: () => kGrp(at(kBox(0.26, 0.2, 0.12, '#cf2a22'), 0, 0, 0), at(kBox(0.1, 0.03, 0.125, '#f4f4f0'), 0, 0.03, 0), at(kBox(0.03, 0.1, 0.125, '#f4f4f0'), 0, 0.03, 0)),
+  cross: () => kGrp(at(kBox(0.12, 0.035, 0.02, '#c8281f'), 0, 0, 0), at(kBox(0.035, 0.12, 0.02, '#c8281f'), 0, 0, 0)),
+  belt: () => kGrp(at(kBox(0.33, 0.06, 0.2, '#6b4a2e'), 0, 0, 0), at(kBox(0.07, 0.12, 0.05, '#4a4f55'), 0.14, -0.08, 0.09), at(kCyl(0.015, 0.015, 0.3, '#8a5a32', 6), -0.15, -0.14, 0.1)),
+  tank: () => kGrp(at(kCyl(0.09, 0.09, 0.5, '#b9bfc4', 12, 0.3, 0.7), 0, 0, 0), at(kBox(0.3, 0.42, 0.06, '#222428'), 0, 0, -0.07)),
+  tube: () => kGrp(at(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 8, 20), kmat('#e3382d', 0.6, 0)), 0, 0, 0, 1.5708 - 0.35, 0.4, 0)),
+  pfd: (c) => kGrp(at(kBox(0.37, 0.34, 0.24, c), 0, 0, 0), at(kBox(0.375, 0.035, 0.245, '#dfe3e6', 0.25, 0.5), 0, 0.06, 0)),
+  scarf: (c) => kGrp(at(kBox(0.2, 0.1, 0.17, c), 0, 0, 0)),
+  vest: (c) => kGrp(at(kBox(0.355, 0.4, 0.22, c, 0.7), 0, 0, 0), at(kBox(0.36, 0.035, 0.225, '#dfe3e6', 0.25, 0.5), 0, 0.02, 0), at(kBox(0.36, 0.035, 0.225, '#dfe3e6', 0.25, 0.5), 0, -0.1, 0), at(kBox(0.04, 0.4, 0.225, '#dfe3e6', 0.25, 0.5), 0.09, 0, 0), at(kBox(0.04, 0.4, 0.225, '#dfe3e6', 0.25, 0.5), -0.09, 0, 0)),
+};
+/* role -> clothing colours and kit: [kit name, bone, [x, y, z], [rx, ry, rz], arg...] in the person frame */
+const HEAD = [0, 1.535, 0.0], CHEST = [0, 1.1, 0.0];
+const ROLE_KIT = {
+  'Tourist':      { top: '#e8704f', bottom: '#c9b48a', kit: [['sunhat', 'head', HEAD, [0, 0, 0], '#d9c38a'], ['camera', 'chest', [0.0, 1.06, 0.14], [0, 0, 0], false]] },
+  'Photographer': { top: '#2a2d33', bottom: '#3a3d44', kit: [['camera', 'chest', [0.0, 1.06, 0.15], [0, 0, 0], true], ['cap', 'head', HEAD, [0, 0, 0], '#25272b']] },
+  'Dock worker':  { top: '#e8892a', bottom: '#2e3547', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#f2c12e'], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.1, -0.04]]] },
+  'Fisher':       { top: '#c9a227', bottom: '#4b5a3a', kit: [['bucket', 'head', HEAD, [0, 0, 0], '#2d3b4a'], ['rod', 'hand.R', [-0.27, 0.78, 0.04], [0, 0, 0]]] },
+  'Hiker':        { top: '#d6532b', bottom: '#5b5f4a', kit: [['cap', 'head', HEAD, [0, 0, 0], '#3a4a2a'], ['backpack', 'chest', [0, 1.1, -0.16], [0, 0, 0], '#2f5d86']] },
+  'Medic':        { top: '#eef0ee', bottom: '#26323f', kit: [['cross', 'chest', [0.07, 1.16, 0.115], [0, 0, 0]], ['bag', 'hand.R', [-0.3, 0.62, 0.02], [0, 0, 0]]] },
+  'Forester':     { top: '#c9d82a', bottom: '#5a4632', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#e86a1c'], ['axe', 'hand.R', [-0.28, 0.75, 0.03], [0.2, 0, 0]]] },
+  'Firefighter':  { top: '#2b2d31', bottom: '#2b2d31', kit: [['firehelmet', 'head', HEAD, [0, 0, 0], '#c83228'], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.05, -0.05]], ['tank', 'chest', [0, 1.08, -0.15], [0, 0, 0]]] },
+  'Builder':      { top: '#e8c21a', bottom: '#3b4a6a', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#f1f1ec'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
+  'Lifeguard':    { top: '#d8342a', bottom: '#d8342a', kit: [['cap', 'head', HEAD, [0, 0, 0], '#f2f2ee', '#d8342a'], ['tube', 'chest', [0, 1.15, 0.02], [0, 0, 0]]] },
+  'Skipper':      { top: '#1d2a44', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1d2a44', '#e3e0d4'], ['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
+  'Villager':     { top: '#8a7a5a', bottom: '#5a5040', kit: [] },
+  'Survivor':     { top: '#ee7a1c', bottom: '#3a4a5a', kit: [['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
+};
+const HEADKIT = new Set(['hardhat', 'firehelmet', 'sunhat', 'cap', 'bucket', 'beanie']);
+function headBox(p) {                                     // where this person's head really is, from the vertices weighted to the head bone (hair included)
+  const o = p.obj; o.updateMatrixWorld(true); let x0 = 9, x1 = -9, y0 = 9, y1 = -9, z0 = 9, z1 = -9, n = 0; const v = new THREE.Vector3();
+  o.traverse(m => { if (!m.isSkinnedMesh) return; const hi = m.skeleton.bones.findIndex(b => (b.userData.name || b.name) === 'head'); if (hi < 0) return; const g = m.geometry, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, ps = g.attributes.position;
+    for (let i = 0; i < ps.count; i++) { let w = 0; for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hi) w += sw.getComponent(i, k); if (w < 0.5) continue; v.fromBufferAttribute(ps, i).applyMatrix4(m.matrixWorld); o.worldToLocal(v); if (v.y < p.height * 0.78) continue; n++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); } });
+  return n > 20 ? { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, top: y1, bot: y0, rx: (x1 - x0) / 2, rz: (z1 - z0) / 2 } : null;
+}
+function dressPerson(p) {
+  const kit = ROLE_KIT[p.role], sms = []; p.obj.traverse(m => { if (m.isSkinnedMesh) sms.push(m); });
+  if (!p.matBase) { p.matBase = new Map(); for (const m of sms) { const arr = Array.isArray(m.material) ? m.material : [m.material], cl = arr.map(k => { const c = k.clone(); p.matBase.set(c, { color: c.color.clone(), map: c.map }); return c; }); m.material = Array.isArray(m.material) ? cl : cl[0]; } }
+  for (const [c, b] of p.matBase) { c.color.copy(b.color); c.map = b.map; c.needsUpdate = true; }                                   // back to the person's own clothes
+  for (const q of p.kitMeshes || []) if (q.parent) q.parent.remove(q); p.kitMeshes = [];
+  if (!kit) return;
+  for (const [c] of p.matBase) {
+    const n = c.name || ''; let col = null;
+    if (n.startsWith('pp_top')) col = kit.top; else if (n.startsWith('pp_bottom')) col = kit.bottom;
+    if (col) { c.color.set(col); c.map = null; c.needsUpdate = true; }
+  }
+  for (const [name, bone, pos, rot, ...args] of kit.kit) {
+    const g = name === 'stripes' ? kGrp(...args[2].map(y => at(kBox(args[0], 0.035, args[1], '#dfe3e6', 0.25, 0.5), 0, y, 0))) : KITS[name](...args), b = p.bones[bone]; if (!b) continue;
+    const hsc = Math.max(0.8, Math.min(1.25, p.height / 1.6)), hb = HEADKIT.has(name) ? (p.hb || (p.hb = headBox(p))) : null;
+    if (hb) { const rad = Math.max(hb.rx, hb.rz) * 1.1, hs = Math.max(0.75, Math.min(1.35, rad / 0.115)); g.scale.setScalar(hs); g.position.set(hb.cx, hb.top - 0.085 * hs, hb.cz); }
+    else { g.scale.setScalar(hsc); g.position.set(pos[0] * hsc, pos[1] * hsc, pos[2] * hsc); }
+    g.rotation.set(rot[0], rot[1], rot[2]); g.updateMatrix();
+    const L = p.restW[bone].clone().invert().multiply(g.matrix); g.matrixAutoUpdate = false; g.matrix.copy(L); b.add(g); p.kitMeshes.push(g);
+  }
+}
 function makePerson(variant, x, z, ride) {
   const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
   const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
   obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
   const B = (n) => p.bones[bnName(n)];
-  obj.updateMatrixWorld(true);
+  obj.updateMatrixWorld(true); p.restW = {}; { const io = obj.matrixWorld.clone().invert(); for (const n of Object.keys(p.bones)) p.restW[n] = io.clone().multiply(p.bones[n].matrixWorld); }
+  { let _role = p.role; Object.defineProperty(p, 'role', { get: () => _role, set: (v) => { if (v !== _role) { _role = v; if (p.kitReady) dressPerson(p); } }, enumerable: true, configurable: true }); }
   // rest data: each bone's rest rotation and its parent's rest rotation in the person's own frame (the person is still unrotated here)
   for (const n of Object.keys(p.bones)) {
     const b = p.bones[n], Wp = new THREE.Quaternion(); if (b.parent) b.parent.getWorldQuaternion(Wp);
@@ -1917,6 +1992,7 @@ function makePerson(variant, x, z, ride) {
   p.mixer = new THREE.AnimationMixer(obj);
   const clip = D.glb.people.animations[variant] || D.glb.people.animations[0];   // clip i is bound to person i's own bone names
   if (clip) { const a = p.mixer.clipAction(clip); a.play(); a.time = Math.random() * clip.duration; }
+  p.kitReady = true; dressPerson(p);
   scene.add(obj); people.push(p);
   if (!p.ride) giveBody(p);
   return p;
@@ -5756,7 +5832,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
