@@ -179,7 +179,9 @@ button:disabled{opacity:.45;cursor:default}
 .fpPrompt:empty{display:none}
 body.touch .fpPrompt{bottom:calc(172px + var(--safe-b));max-width:84vw;pointer-events:none}
 .fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
-.fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px}
+.fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px;z-index:5}
+.fpTop button{min-height:46px;padding:0 16px;font-weight:700}
+#fpStick::after{content:"";position:absolute;inset:-46px}
 #fpLook{position:absolute;right:0;top:0;bottom:0;width:62%;touch-action:none;background:transparent}
 #fpStick{position:absolute;left:18px;bottom:calc(24px + var(--safe-b));width:132px;height:132px;border-radius:50%;background:rgba(12,26,32,.45);border:1px solid var(--line);touch-action:none}
 #fpKnob{position:absolute;left:46px;top:46px;width:40px;height:40px;border-radius:50%;background:rgba(227,169,72,.75);pointer-events:none}
@@ -266,7 +268,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="xh"></div>
     <div class="fpPrompt" id="fpPrompt"></div>
     <div class="fpHint" id="fpHint"></div>
-    <div class="fpTop"><button id="fpExit" type="button">Overview</button></div>
+    <div class="fpTop"><button id="fpExit" type="button">Leave first person</button></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
     <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
@@ -349,11 +351,14 @@ let climHDirty = true;                              // set whenever the ground c
 const tWin = { x: 0, y: 0, z: 0 };                 // scratch: the wind at one place
 const surge = { level: 0 };                       // storm surge or tsunami: the whole sea rises and falls together
 const WD = new Float32Array(257 * 257); let lakeWet = 0;    // water lying on the land (springs, pours), one depth per terrain cell
+/* sea ice: thickness in metres per terrain cell (also stored in the B channel of the snow texture so the water shader can draw it) */
+const SIf = new Float32Array(257 * 257); let iceAny = false;
+function seaIceAt(x, z) { const fx = Math.min(255.999, Math.max(0, x + 128)), fz = Math.min(255.999, Math.max(0, z + 128)), j = Math.floor(fx), i = Math.floor(fz); const a = fx - j, b = fz - i, k = i * 257 + j; return (SIf[k] * (1 - a) + SIf[k + 1] * a) * (1 - b) + (SIf[k + 257] * (1 - a) + SIf[k + 258] * a) * b; }
 function lakeDepth(x, z) { const fx = x + TH, fz = z + TH, j = Math.floor(fx), i = Math.floor(fz); if (j < 0 || i < 0 || j >= TN - 1 || i >= TN - 1) return 0; const a = fx - j, b = fz - i, k = i * TN + j; return (WD[k] * (1 - a) + WD[k + 1] * a) * (1 - b) + (WD[k + TN] * (1 - a) + WD[k + TN + 1] * a) * b; }
 function waveH(x, z, t) {
   let h = 0;
   for (const w of WAVES) h += w[3] * Math.sin(w[2] * (w[0] * x + w[1] * z) - Math.sqrt(G * w[2]) * t + w[4]);
-  h = h * sea.amp + surge.level;
+  h = h * sea.amp * (iceAny ? 1 - Math.min(1, seaIceAt(x, z) / 0.25) : 1) + surge.level;     // pack ice flattens the sea
   if (lakeWet > 0) { const d = lakeDepth(x, z); if (d > 0.05) return heightAt(x, z) + d + 0.012 * Math.sin(t * 2 + x * 1.3 + z * 0.9); }
   return h;
 }
@@ -903,9 +908,9 @@ const waterU = { tSnow: { value: snowTex }, uTime: terrainU.uTime, uAmp: terrain
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
   vertexShader: `${WAVE_GLSL}
-    varying vec3 vW; varying vec2 vG;
+    varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow;
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); wp.y += waveH(wp.xz); vG = waveGrad(wp.xz); vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz + 128.5) / 257.0).b * 6.0, 0.0, 1.0); wp.y += waveH(wp.xz) * iv; vG = waveGrad(wp.xz) * iv; vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -961,11 +966,24 @@ const waterMat = new THREE.ShaderMaterial({
         wake += k.w * exp(-d * d / (wdt * wdt)) * (1.0 - k.z / 8.0); }
       float cap = crest * smoothstep(0.42, 0.78, texture2D(tN, vW.xz * 0.9 - uWind * uTime * 0.05).y) * (0.5 + 0.5 * uBlow);        // small white caps on the crests
       float foam = clamp(clamp(shore * 0.9 + streak * 0.8 + ring + wake * 0.7, 0.0, 1.0) * foamN + cap, 0.0, 1.0);
-      col = mix(col, vec3(0.92, 0.95, 0.94) * (uSunCol * 0.7 + 0.35), foam);
+      foam *= 1.0 - smoothstep(0.02, 0.12, texture2D(tSnow, (vW.xz + 128.5) / 257.0).b * 1.5); col = mix(col, vec3(0.92, 0.95, 0.94) * (uSunCol * 0.7 + 0.35), foam);
       float alpha = clamp(1.0 - exp(-path * 0.55), 0.0, 1.0);
       alpha = clamp(max(alpha, fres) + foam, 0.0, 1.0);
       alpha *= smoothstep(-0.05, 0.08, depth + 0.05);
-      float iceW = texture2D(tSnow, (vW.xz + 128.5) / 257.0).g; col = mix(col, vec3(0.80, 0.90, 0.94) * (uSunCol * 0.5 + 0.4), iceW * 0.9); alpha = mix(alpha, 0.97, iceW);
+      vec4 sv = texture2D(tSnow, (vW.xz + 128.5) / 257.0); float iceW = sv.g;
+      float th = sv.b * 1.5;                                   // sea ice thickness in metres
+      float cover = smoothstep(0.012, 0.1, th), pack = smoothstep(0.15, 0.6, th);
+      if (cover > 0.0) {
+        float cr1 = texture2D(tN, vW.xz * 0.035 + 0.3).x, cr2 = texture2D(tN, vW.xz * 0.09 + 0.7).y;
+        float crack = (1.0 - smoothstep(0.0, 0.06, abs(cr1 - 0.5))) * 0.8 + (1.0 - smoothstep(0.0, 0.05, abs(cr2 - 0.52))) * 0.5;
+        float plate = texture2D(tN, vW.xz * 0.02).z;
+        vec3 nilas = vec3(0.07, 0.15, 0.18) * (uSunCol * 0.5 + 0.35);                      // thin, dark, glassy new ice
+        vec3 white = vec3(0.86, 0.92, 0.95) * (uSunCol * 0.55 + 0.4) * (0.9 + 0.12 * plate);   // thick pack
+        vec3 ic = mix(nilas, white, pack); ic = mix(ic, vec3(0.16, 0.30, 0.40), clamp(crack, 0.0, 1.0) * pack * 0.85); ic *= 0.9 + 0.2 * smoothstep(0.3, 0.7, texture2D(tN, vW.xz * 0.006).x);
+        ic += uSunCol * pow(max(dot(vec3(0.0, 1.0, 0.0), Hh), 0.0), 60.0) * 0.18 * (1.0 - pack);
+        col = mix(col, ic, cover); alpha = mix(alpha, 0.98, cover);
+      }
+      col = mix(col, vec3(0.80, 0.90, 0.94) * (uSunCol * 0.5 + 0.4), iceW * 0.9); alpha = mix(alpha, 0.97, iceW);
       gl_FragColor = vec4(col, alpha);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -1073,7 +1091,7 @@ function makeBoat(key, glb, meta, x, z, heading) {
   return bt;
 }
 function boatForces(bt, active, dt) {
-  const b = bt.body, sp = bt.sp, wet = Math.min(1, bt.fl.wet * 2.5);
+  const b = bt.body, sp = bt.sp, wet = Math.min(1, bt.fl.wet * 2.5); if (iceAny) iceResist(bt, dt);
   b.quaternion.conjugate(qInv); qInv.vmult(b.velocity, vL); qInv.vmult(b.angularVelocity, wL);
   const fx = -(sp.cx * vL.x * Math.abs(vL.x) + sp.cx * 0.4 * vL.x) * wet;
   const fz = -(sp.cz * vL.z * Math.abs(vL.z) + sp.cz * 0.15 * vL.z) * wet;
@@ -1110,6 +1128,31 @@ function boatForces(bt, active, dt) {
     const dx = b.position.x - bt.anchor.x, dz = b.position.z - bt.anchor.z;
     b.applyForce(F.set(-dx * sp.mass * 0.08 - b.velocity.x * sp.mass * 0.4, 0, -dz * sp.mass * 0.08 - b.velocity.z * sp.mass * 0.4), CANNON.Vec3.ZERO);
   }
+}
+
+/* ---- sea ice and boats: thin ice is broken and slows a boat, thick ice holds it, and icebreakers (or a fast run at it) cut a channel */
+function iceResist(bt, dt) {
+  if (bt.sunk) return; const b = bt.body, p = b.position, f = boatFwd(bt), L = bt.sp.L;
+  const th = Math.max(seaIceAt(p.x, p.z), seaIceAt(p.x + f.x * L * 0.4, p.z + f.z * L * 0.4));
+  if (th < 0.03) { if (bt.beset) { bt.beset = 0; if (bt.status === 'Beset in ice') bt.status = bt.order ? 'Under way' : 'Anchored'; } return; }
+  const brk = ICEBREAKERS.includes(bt.key), sp = Math.hypot(b.velocity.x, b.velocity.z);
+  const pow = (brk ? 1.1 : Math.min(0.32, 0.05 + L * 0.016 * (bt.sp.kind === 'motor' ? 1 : 0.4))) * (1 + Math.min(sp, 6) / 6 * (brk ? 0.9 : 0.4));
+  const c = th < pow ? 0.2 + 2.2 * th / pow : 5;
+  b.velocity.x *= Math.exp(-dt * c); b.velocity.z *= Math.exp(-dt * c); b.angularVelocity.y *= Math.exp(-dt * c * 0.5);
+  if (th < pow) {
+    bt.beset = 0; bt.carveT = (bt.carveT || 0) - dt;
+    if (sp > 0.35 && bt.carveT <= 0) { bt.carveT = 0.12; carveIce(p.x + f.x * L * 0.25, p.z + f.z * L * 0.25, Math.max(1, bt.sp.B * 0.65), brk ? 0.01 : 0.05); }
+  } else {
+    bt.beset = (bt.beset || 0) + dt; bt.status = 'Beset in ice'; noteOnce('beset' + bt.id, 'The ' + bt.sp.name + ' is stuck in the ice. ' + (brk ? 'Back off and ram it.' : 'Send an icebreaker, or wait for a thaw.'));
+  }
+}
+function carveIce(x, z, r, left) {
+  const ci = Math.round(z + 128), cj = Math.round(x + 128), R = Math.ceil(r); let ch = false;
+  for (let i = ci - R; i <= ci + R; i++) for (let j = cj - R; j <= cj + R; j++) {
+    if (i < 0 || j < 0 || i > 256 || j > 256 || Math.hypot(i - ci, j - cj) > r) continue; const k = i * 257 + j;
+    if (SIf[k] > left) { SIf[k] = left; snowData[k * 4 + 2] = Math.round(left * 170); ch = true; }
+  }
+  if (ch) snowTex.needsUpdate = true;
 }
 
 /* ================================================================ harbour */
@@ -2408,7 +2451,7 @@ function updateSunkObjects(dt, t) {
 }
 
 /* ================================================================ first person: walk, jump, swim, ride, pick things up, board, take the helm */
-const fp = { on: false, p: null, yaw: 0, pitch: 0, vy: 0, air: false, locked: false, sx: 0, sy: 0, jump: false, betaPrev: 0, bob: 0, prompt: null, scanT: 0, drag: null, helm: null, lookId: null, lastX: 0, lastY: 0 };
+const fp = { vx: 0, vz: 0, spd: 0, jumpBuf: 0, coyote: 0, land: 0, fov: 52, on: false, p: null, yaw: 0, pitch: 0, vy: 0, air: false, locked: false, sx: 0, sy: 0, jump: false, betaPrev: 0, bob: 0, prompt: null, scanT: 0, drag: null, helm: null, lookId: null, lastX: 0, lastY: 0 };
 scene.add(camera);                                                // so a carried crate can ride on the camera
 const fpEye = (p) => p.height - 0.1;
 const lockPointer = () => { try { const r = canvas.requestPointerLock && canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} };   // some embedded views refuse it: drag-to-look still works
@@ -2428,13 +2471,13 @@ function enterFP(p) {
   fp.on = true; fp.p = p; p.fp = true; p.obj.visible = false; fp.yaw = personWorldYaw(p); fp.pitch = 0; fp.vy = 0; fp.air = false; fp.helm = null;
   if (p.ride) fp.betaPrev = boatYaw(p.ride.boat);
   mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
-  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm, Esc leaves.';
+  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm. Esc (press twice if the mouse is captured) or the button leaves.';
   if (!isTouch) lockPointer();
   toast('First person'); refreshPanel();
 }
 function exitFP() {
   if (!fp.on) return; const p = fp.p;
-  fp.on = false; fp.p = null; fp.helm = null; $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
+  fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   if (p && people.includes(p)) {
     p.fp = false; p.obj.visible = true; p.fpMoving = false; if (p.swim) { p.swim = false; topple(p, null); }
     if (p.carry && p.carry.lead === p && p.carryMesh) attachCarry(p);
@@ -2490,7 +2533,7 @@ function fpOverboard() {
 function fpHelm() {
   const p = fp.p; if (!p || !p.ride || p.hop) return; const bt = p.ride.boat; if (bt.sunk) return;
   fp.helm = bt; activeIdx = boats.indexOf(bt); bt.order = null; bt.anchor = null; bt.docked = null; bt.dockH = undefined; if (bt.marker) bt.marker.visible = false;
-  mode = 'helm'; camS.dist = bt.sp.dist; camS.lastDrag = -10; $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
+  mode = 'helm'; camera.fov = 52; camera.updateProjectionMatrix(); camS.dist = bt.sp.dist; camS.lastDrag = -10; $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   fwdV_(bt); document.body.dataset.mode = 'helm'; refreshPanel(); refreshHelm(); renderTray(true); toast('At the helm of ' + bt.sp.name + '. Esc to go back to your feet');
 }
 function fwdV_(bt) { bt.body.quaternion.vmult(fwdV.set(1, 0, 0), fwdV); camS.yaw = Math.atan2(-fwdV.x, -fwdV.z); camS.tgt.copy(bt.group.position); }
@@ -2502,33 +2545,40 @@ function updateFP(dt, t) {
   const p = fp.p; if (!p || !people.includes(p)) { if (fp.on) exitFP(); return; }
   if (p.state === 'rag') { fp.air = false; $('fpPrompt').textContent = (isTouch ? 'Tap Jump' : 'Space') + ': get up'; return; }
   if (p.hop) { p.fpMoving = true; return; }
-  // move
+  // move: quick to respond, brisk to walk, with a little inertia so it feels like a body and not a cursor
   let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy;
   let r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
-  const len = Math.hypot(f, r); if (len > 1) { f /= len; r /= len; }
-  const run = keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.92, spd = (run ? 3.4 : 1.9) * (p.carry ? 0.8 : 1) * (p.swim ? 0.7 : 1);
-  const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw), dx = (fx_ * f + (-fz_) * r) * spd * dt, dz = (fz_ * f + fx_ * r) * spd * dt;
-  p.fpMoving = len > 0.05; if (p.fpMoving) fp.bob += dt * (run ? 11 : 7);
+  let len = Math.hypot(f, r); if (len > 1) { f /= len; r /= len; len = 1; }
+  if (len < 0.1) { f = r = len = 0; }                                                  // dead zone on the stick
+  const run = keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.82, top = (run ? 6.4 : 3.3) * (p.carry ? 0.8 : 1) * (p.swim ? 0.6 : 1);
+  const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw), want = top * (run ? 1 : Math.min(1, 0.35 + len * 0.8)) * (len ? 1 : 0);
+  const tvx = (fx_ * f + (-fz_) * r) / (len || 1) * want, tvz = (fz_ * f + fx_ * r) / (len || 1) * want;
+  const kk = 1 - Math.exp(-dt * (len ? (fp.air ? 3 : 12) : (fp.air ? 0.6 : 15)));
+  fp.vx += (tvx - fp.vx) * kk; fp.vz += (tvz - fp.vz) * kk;
+  const dx = fp.vx * dt, dz = fp.vz * dt; fp.spd = Math.hypot(fp.vx, fp.vz);
+  p.fpMoving = fp.spd > 0.3; if (p.fpMoving && !fp.air) fp.bob += dt * (3.2 + fp.spd * 1.55);
+  fp.jumpBuf = Math.max(0, fp.jumpBuf - dt); if (fp.jump) { fp.jumpBuf = 0.18; fp.jump = false; }
+  fp.coyote = fp.air ? Math.max(0, fp.coyote - dt) : 0.1; fp.land = Math.max(0, fp.land - dt * 5);
   if (p.ride) {
     const bt = p.ride.boat, beta = boatYaw(bt); fp.yaw += wrap(beta - fp.betaPrev); fp.betaPrev = beta;
-    const c = Math.cos(beta), s = Math.sin(beta), lx = dx * c - dz * s, lz = dx * s + dz * c, q = deckClamp(bt, p.ride.lx + lx, p.ride.lz + lz);
-    p.ride.lx = q[0]; p.ride.lz = q[1]; p.ride.rel = fp.yaw - beta; p.ride.order = null;
-    if (fp.jump) fp.jump = false;
+    const c = Math.cos(beta), s2 = Math.sin(beta), lx = dx * c - dz * s2, lz = dx * s2 + dz * c, q = deckClamp(bt, p.ride.lx + lx, p.ride.lz + lz);
+    p.ride.lx = q[0]; p.ride.lz = q[1]; p.ride.rel = fp.yaw - beta; p.ride.order = null; fp.jumpBuf = 0;
   } else {
-    let nx = p.x + dx, nz = p.z + dz;
-    for (const tr of trees) { const ex = nx - tr.x, ez = nz - tr.z, rr = (tr.kind === 'shrub' ? 0.35 : 0.5) * tr.sc, d2 = ex * ex + ez * ez; if (d2 < rr * rr && d2 > 1e-6 && Math.abs(tr.h - p.y) < 3) { const d = Math.sqrt(d2); nx = tr.x + ex / d * rr; nz = tr.z + ez / d * rr; } }
+    const trip = (nx, nz) => { for (const tr of trees) { const ex = nx - tr.x, ez = nz - tr.z, rr = (tr.kind === 'shrub' ? 0.35 : 0.5) * tr.sc, d2 = ex * ex + ez * ez; if (d2 < rr * rr && d2 > 1e-6 && Math.abs(tr.h - p.y) < 3) { const d = Math.sqrt(d2); nx = tr.x + ex / d * rr; nz = tr.z + ez / d * rr; } } return [nx, nz]; };
+    const steep = (nx, nz) => !p.swim && standY(nx, nz) - p.y > 0.6 && !fp.air;
+    let [nx, nz] = trip(p.x + dx, p.z + dz);
+    if (steep(nx, nz)) { const [ax, az] = trip(p.x + dx, p.z); if (!steep(ax, az)) { nx = ax; nz = az; } else { const [bx, bz] = trip(p.x, p.z + dz); if (!steep(bx, bz)) { nx = bx; nz = bz; } else { nx = p.x; nz = p.z; fp.vx = fp.vz = 0; } } }      // slide along a cliff or wall instead of stopping dead
     const gy = standY(nx, nz);
     if (!p.swim && gy < -0.3 && !fp.air) { p.swim = true; }
     else if (p.swim && gy > -0.25) { p.swim = false; }
-    if (!p.swim && gy - p.y > 0.6 && !fp.air) { nx = p.x; nz = p.z; }
     p.x = nx; p.z = nz; p.heading = fp.yaw;
-    if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jump = false; }
+    if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
       const g2 = standY(p.x, p.z);
-      if (fp.jump && !fp.air) { fp.vy = 3.6; fp.air = true; }
-      fp.jump = false;
-      if (fp.air) { fp.vy -= 9.82 * dt; p.y += fp.vy * dt; if (p.y <= g2) { p.y = g2; fp.vy = 0; fp.air = false; } }
-      else p.y += (g2 - p.y) * Math.min(1, 18 * dt);
+      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; }
+      if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; }               // walked off a ledge
+      if (fp.air) { fp.vy -= 9.82 * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) fp.land = Math.min(1, -fp.vy / 8); p.y = g2; fp.vy = 0; fp.air = false; } }
+      else p.y += (g2 - p.y) * Math.min(1, 22 * dt);
     }
   }
   fp.scanT -= dt; if (fp.scanT <= 0) { fp.scanT = 0.12; fpScan(); }
@@ -2537,12 +2587,13 @@ function fpCamera(dt, t) {
   const p = fp.p; if (!p) return;
   let px = p.x, py = p.y + fpEye(p), pz = p.z;
   if (p.state === 'rag' && p.rag) { const hd = p.rag.bodies.head.interpolatedPosition; px = hd.x; py = hd.y + 0.12; pz = hd.z; }
-  else if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob) * 0.035;
+  else { if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob * 2) * 0.012 * Math.min(1.6, fp.spd / 2.5) + Math.abs(Math.sin(fp.bob)) * 0.03 * Math.min(1.6, fp.spd / 3); py -= fp.land * 0.12; }
+  const fov = 62 + Math.min(1, Math.max(0, (fp.spd - 3.4) / 3)) * 9; fp.fov += (fov - fp.fov) * Math.min(1, dt * 6); if (Math.abs(camera.fov - fp.fov) > 0.05) { camera.fov = fp.fov; camera.updateProjectionMatrix(); }
   camera.position.set(px, py, pz);
   const cp = Math.cos(fp.pitch); camera.lookAt(px + Math.sin(fp.yaw) * cp, py + Math.sin(fp.pitch), pz + Math.cos(fp.yaw) * cp);
 }
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
-document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Click the view to look around again. Esc leaves first person.'; });
+document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
 addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
 canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { passive: false });
 { // touch: stick and look pad
@@ -2553,7 +2604,7 @@ canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { pa
   const sEnd = (e) => { if (e.pointerId !== sid) return; sid = null; fp.sx = fp.sy = 0; kn.style.transform = ''; };
   st.addEventListener('pointerup', sEnd); st.addEventListener('pointercancel', sEnd);
   lk.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') return; lid = e.pointerId; lk.setPointerCapture(e.pointerId); lx = e.clientX; ly = e.clientY; });
-  lk.addEventListener('pointermove', (e) => { if (e.pointerId !== lid) return; fp.yaw -= (e.clientX - lx) * 0.0055; fp.pitch = clamp(fp.pitch - (e.clientY - ly) * 0.0055, -1.45, 1.45); lx = e.clientX; ly = e.clientY; });
+  lk.addEventListener('pointermove', (e) => { if (e.pointerId !== lid) return; fp.yaw -= (e.clientX - lx) * 0.0068; fp.pitch = clamp(fp.pitch - (e.clientY - ly) * 0.0068, -1.45, 1.45); lx = e.clientX; ly = e.clientY; });
   const lEnd = (e) => { if (e.pointerId === lid) lid = null; }; lk.addEventListener('pointerup', lEnd); lk.addEventListener('pointercancel', lEnd);
 }
 function fpJumpOrGetUp() {
@@ -2567,7 +2618,7 @@ addEventListener('keydown', (e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
-  else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab') { exitFP(); e.preventDefault(); }
+  else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
 
 combatReady = true; boats.forEach(setupBoatCombat);
@@ -2581,7 +2632,7 @@ const SKIES = {
   night:  { envI: 0.28, el: 38, az: 1.8,  sun: 0xa9bcff, sunI: 0.95, hemiI: 0.38, exp: 1.0, tint: [0.16, 0.2, 0.34], fog: [0.14, 0.18, 0.3] },
 };
 const sky0 = { az: Math.atan2(sunDir.z, sunDir.x) };
-const wx = { sky: 'golden', rain: 0, fog: 0, dirMode: 'auto', base: Math.PI, cur: { ...SKIES.golden }, rainAmt: 0 };
+const wx = { sky: 'golden', rain: 0, fog: 0, dirMode: 'auto', base: Math.PI, cur: { ...SKIES.golden }, rainAmt: 0, imp: { rain: false, fog: false } };   // imp: the player has imposed rain or fog; otherwise the climate model decides
 const FOG0 = FOG.clone();
 const cA = new THREE.Color(), cB = new THREE.Color();
 function stepWeather(dt) {
@@ -2991,9 +3042,11 @@ function renderTray(force = true) {
     tray.append(sep('Sky'));
     [['dawn', 'Dawn'], ['day', 'Day'], ['golden', 'Golden'], ['dusk', 'Dusk'], ['night', 'Night']].forEach(([k, n]) => tray.append(chip(n, '', null, wx.sky === k, () => { wx.sky = k; renderTray(); }, 'chip mini')));
     tray.append(sep('Rain'));
-    ['Dry', 'Showers', 'Downpour'].forEach((n, i) => tray.append(chip(n, '', null, wx.rain === i, () => { wx.rain = i; renderTray(); }, 'chip mini')));
+    tray.append(chip('Auto', 'from the air', null, !wx.imp.rain, () => { wx.imp.rain = false; wx.rain = clim.rainLvl; renderTray(); toast('Rain now follows the air and the clouds'); }, 'chip mini'));
+    ['Dry', 'Showers', 'Downpour'].forEach((n, i) => tray.append(chip(n, '', null, wx.imp.rain && wx.rain === i, () => { wx.imp.rain = true; wx.rain = i; clim.rainLvl = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Fog'));
-    ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.fog === i, () => { wx.fog = i; renderTray(); }, 'chip mini')));
+    tray.append(chip('Auto', 'from the air', null, !wx.imp.fog, () => { wx.imp.fog = false; renderTray(); toast('Fog now follows the air and the clouds'); }, 'chip mini'));
+    ['Clear', 'Haze', 'Fog'].forEach((n, i) => tray.append(chip(n, '', null, wx.imp.fog && wx.fog === i, () => { wx.imp.fog = true; wx.fog = i; renderTray(); }, 'chip mini')));
     tray.append(sep('Air'));
     [['Freezing', -15], ['Cold', 2], ['Cool', 10], ['Mild', 18], ['Warm', 28], ['Hot', 38], ['Scorching', 48]].forEach(([n, T]) => tray.append(chip(n, T + ' C', null, Math.abs(clim.T - T) < 5, () => setAirTemp(T), 'chip mini')));
     tray.append(sep('Map'));
@@ -3260,7 +3313,7 @@ function snapshotWorld() {
     sn: snowData.slice(), mat: matData.slice(), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
     clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) },
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
-    wx: { sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
+    wx: { imp: { ...wx.imp }, sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
 }
 let saving = false, loading = false, noAutosave = false;
@@ -3280,11 +3333,11 @@ async function loadWorld(slot) {
     for (const b of buoys.filter(q => q.nm)) { scene.remove(b.mesh); world.removeBody(b.body); floaters.splice(floaters.indexOf(b.fl), 1); buoys.splice(buoys.indexOf(b), 1); }
     boats.slice().forEach(removeBoat);
     clearWater(); calm0(); if (d.clim) { clim.nose = d.clim.nose || 0; if (d.clim.cw) CW.set(d.clim.cw); clim.T = d.clim.T; CT.set(d.clim.ct); CH.set(d.clim.ch); CC.set(d.clim.cc); for (const h of d.clim.src || []) addSource(h.x, h.z, h.k); }
-    if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true; }
+    if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true; for (let q = 0; q < SIf.length; q++) SIf[q] = snowData[q * 4 + 2] / 170; iceAny = true; }
     matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
     if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); land.undo = []; land.dirty = true; land.x0 = land.z0 = -TH; land.x1 = land.z1 = TH; commitLand(true);
-    const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wind.level = W.wind ?? wind.level;
+    const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wx.imp = { rain: !!(W.imp && W.imp.rain), fog: !!(W.imp && W.imp.fog) }; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
     const nb = [];
     for (const b of d.boats) { if (!SPECS[b.key]) continue; const bt = makeBoat(b.key, null, null, b.x, b.z, b.yaw); bt.hp = b.hp ?? bt.hp; bt.flood = b.flood || 0; bt.anchor = bt.body.position.clone(); bt.status = 'Anchored'; nb.push(bt); }
@@ -3407,7 +3460,7 @@ function scnBoat(key, x, z, yaw, crew) { const bt = makeBoat(key, null, null, x,
 const SCENARIOS = [
   { id: 'storm', name: 'Storm rescue', note: 'Five hikers are stranded on a beach in a gale. Ferry them to the pier.',
     setup(s) {
-      wx.sky = 'dusk'; wx.rain = 2; wx.fog = 1; wind.level = 3;
+      wx.sky = 'dusk'; wx.rain = 2; wx.fog = 1; wx.imp.rain = wx.imp.fog = true; wind.level = 3;
       const f = nearFleet(), spot = findSpot(f.x, f.z, 30, 100, shoreSpot); if (!spot) { toast('No beach found. Try again'); scn = null; return; }
       s.people = []; for (let i = 0; i < 5 && people.length < MAX_PEOPLE; i++) { const x = spot.x + (i % 3) * 1.6 - 1.6, z = spot.z + Math.floor(i / 3) * 1.6; const p = makePerson(i * 3 + 1, x, z); p.y = standY(x, z); p.role = 'Hiker'; s.people.push(p); }
       god.tgt.set(spot.x, 0, spot.z); god.follow = null; god.dist = 90; setTool('select');
@@ -3543,12 +3596,12 @@ function placeWater(item, p) {
 const dis = { tornados: [], bolts: [], quake: 0, meteors: [], flashes: 0, surgeT: null, hurricane: 0, light: 0, lightNext: 2 };
 const aimPt = () => reticlePt() || { x: god.tgt.x, z: god.tgt.z };
 const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math.max(1, body.mass)); body.velocity.x += ax * m * dt; body.velocity.y += ay * m * dt; body.velocity.z += az * m * dt; };
-function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wind.level = level; }
+function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wx.imp.rain = wx.imp.fog = true; wind.level = level; }
 function calm() {
   dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
   dis.deluge = 0; clim.T = 18; CC.fill(0); clim.rainLvl = 0;
   for (const v of volcanoes) if (v.state !== 'dormant') { v.state = 'dormant'; v.t = 0; v.p = Math.max(v.p, 0.0); }
-  wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
+  wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wx.imp.rain = wx.imp.fog = false; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
 }
 function startTornado(p) {
   const g = new THREE.Group(), segs = [];
@@ -3572,7 +3625,7 @@ function startQuake() {
   for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(x + TH) + j, gz = Math.round(z + TH) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, 34); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
   land.dirty = true; commitLand(true); toast('Earthquake');
 }
-function startTsunami() { dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; toast('The sea is pulling back from the shore'); }
+function startTsunami() { dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
 function startHurricane() { dis.hurricane = 150; stormUp(2, 1, 4); toast('Hurricane. Storm surge is coming.'); }
 function startMeteor(p) { dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
 function impactMeteor(m) {
@@ -3833,7 +3886,9 @@ function stepClimate(dt) {
   clim.mean = tSum / CK; clim.hum = hSum / CK; clim.cloud = cSum / CK; clim.hotCells = hot; clim.mid = wSum / CK; clim.p = ptypeFrac(clim.mean, clim.mid);
   // the sky follows the clouds
   const lvl = clim.cloud > 1.1 ? 2 : clim.cloud > 0.45 ? 1 : 0;
-  if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; wx.rain = lvl; if (lvl > 0 && wx.fog === 0 && clim.mean > 3) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
+  if (lvl !== clim.rainLvl && (lvl < clim.rainLvl ? clim.cloud < [0, 0.3, 0.8][clim.rainLvl] : true)) { clim.rainLvl = lvl; if (!wx.imp.rain) wx.rain = lvl; if (!wx.imp.fog) { if (lvl > 0 && wx.fog === 0 && clim.mean > 3) wx.fog = 1; if (lvl === 0 && wx.fog === 1) wx.fog = 0; } if (lvl === 2 && wx.sky === 'day') wx.sky = 'dusk'; renderTray(true); }
+  // an imposed rain setting drives the model instead of fighting it: the air is loaded with cloud (or cleared of it) to match
+  if (wx.imp.rain) { const tgt = [0, 0.7, 1.6][wx.rain], kc = 1 - Math.exp(-dt / 12); for (let c = 0; c < CK; c++) { CC[c] += (tgt - CC[c]) * kc; if (wx.rain) CH[c] = Math.max(CH[c], qsat(aloft(CT[c])) * 0.9); } }
 }
 function updateClimate(dt) {
   clim.acc += dt; if (clim.acc >= 0.33) { const s = Math.min(0.7, clim.acc); clim.acc = 0; stepClimate(s); updateMapOverlay(); }
@@ -4025,11 +4080,18 @@ const ICEBREAKERS = ['louis', 'arpatuuq', 'terry', 'radisson', 'molly', 'martha'
 function stepIce(dt) {
   let tmin = 99; for (let c = 0; c < CK; c++) if (CT[c] < tmin) tmin = CT[c];
   if (tmin > 1 && !iceActive) return;
-  let any = 0, changed = false;
+  let any = 0, changed = false, seaN = 0;
   for (let i = 1; i < TN - 1; i++) for (let j = 1; j < TN - 1; j++) {
     const k = i * TN + j, c = (i >> 2) * CN + (j >> 2), T = CT[c], h = HGT[k];
     let sn = snowData[k * 4], ic = snowData[k * 4 + 1]; const s0 = sn, i0 = ic;
     const surfaceWater = (h >= 0 && WD[k] > 0.04) || (h < 0 && h > -3.5);
+    if (h < -0.05) {                                                       // sea ice: grows by Stefan's law (slower as it thickens), is hindered by waves, melts and breaks up when it is warm
+      let th = SIf[k];
+      if (T < -2.5) th += (-T - 1.8) * 0.00019 / (0.15 + th) * (th > 0.08 ? 1 : Math.max(0, 1 - sea.amp * 1.6)) * dt;
+      else if (th > 0 && T > -0.8) th = Math.max(0, th - (T + 0.8) * 0.0035 * dt - (sea.amp > 0.45 ? 0.002 * dt : 0));
+      if (th !== SIf[k]) { SIf[k] = th; const bb = Math.min(255, Math.round(th * 170)); if (bb !== snowData[k * 4 + 2]) { snowData[k * 4 + 2] = bb; changed = true; } }
+      if (th > 0.004) { any++; seaN++; }
+    }
     if (surfaceWater) { if (T < -1) ic = Math.min(255, ic + (-T) * dt * 7); else if (T > 0.5) ic = Math.max(0, ic - T * dt * 16); } else if (ic && T > 0.5) ic = Math.max(0, ic - T * dt * 18);
     const pr = CC[c] > 0.3 || wx.rain > 0, Tw = CW[c];
     if (h >= 0 && !surfaceWater) {
@@ -4041,7 +4103,11 @@ function stepIce(dt) {
     if (sn !== s0 || ic !== i0) { snowData[k * 4] = sn; snowData[k * 4 + 1] = ic; changed = true; }
     if (sn > 0 || ic > 0) any++;
   }
-  iceActive = any > 0 || tmin <= 1;
+  for (let q = 0; q < TN; q++) for (const [d, sr] of [[0, 1], [TN - 1, TN - 2]]) {     // the open sea runs on past the edge of the grid, so the border cells copy their neighbours
+    const a1 = d * TN + q, b1 = sr * TN + q, a2 = q * TN + d, b2 = q * TN + sr;
+    SIf[a1] = SIf[b1]; snowData[a1 * 4 + 2] = snowData[b1 * 4 + 2]; SIf[a2] = SIf[b2]; snowData[a2 * 4 + 2] = snowData[b2 * 4 + 2];
+  }
+  iceActive = any > 0 || tmin <= 1; iceAny = seaN > 0;
   if (changed) snowTex.needsUpdate = true;
   if (!any) { iceActive = tmin <= 1; }
 }
@@ -4070,7 +4136,7 @@ function updateIce(dt) {
   iceAcc += dt; if (iceAcc >= 0.25) { const s = iceAcc; iceAcc = 0; stepIce(s); }
   envAcc += dt; if (envAcc >= 0.25) { const s = envAcc; envAcc = 0; stepEnv(s); updateBoatIce(s); }
 }
-function clearIce() { snowData.fill(0); snowTex.needsUpdate = true; iceActive = false; for (const p of people) { p.cold = 0; p.heat = 0; p.frozen = false; } }
+function clearIce() { snowData.fill(0); SIf.fill(0); iceAny = false; snowTex.needsUpdate = true; iceActive = false; for (const p of people) { p.cold = 0; p.heat = 0; p.frozen = false; } }
 
 /* ================================================================ v5.5: layered air (surface, warm layer aloft), precipitation types, snowflakes */
 const snowfall = (() => {
@@ -4660,7 +4726,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

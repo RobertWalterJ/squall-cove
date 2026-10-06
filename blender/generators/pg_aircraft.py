@@ -144,15 +144,15 @@ def wheel(x, y, z, r, w, material, name='wheel'):
 
 # ---------------------------------------------------------------- CH-149 Cormorant
 def lofted_sponson(s, material):
-    return loft([dict(x=-1.4, zt=0.42, zb=-0.38, w=0.3), dict(x=-0.4, zt=0.55, zb=-0.5, w=0.72), dict(x=2.0, zt=0.58, zb=-0.55, w=0.8), dict(x=3.4, zt=0.52, zb=-0.46, w=0.68), dict(x=4.1, zt=0.3, zb=-0.28, w=0.3)],
-                lambda zt, zb, w: ring_round(zt, zb, w, 3.0, 24), material, 'sponson', off=(s * 1.68, 1.55))
+    return loft([dict(x=-3.7, zt=0.32, zb=-0.3, w=0.3), dict(x=-2.7, zt=0.5, zb=-0.46, w=0.68), dict(x=-0.5, zt=0.55, zb=-0.5, w=0.78), dict(x=1.1, zt=0.5, zb=-0.46, w=0.66), dict(x=1.9, zt=0.3, zb=-0.26, w=0.3)],
+                lambda zt, zb, w: ring_round(zt, zb, w, 3.0, 24), material, 'sponson', off=(s * 1.5, 1.32))
 
 def cormorant(name='cormorant_hull'):
     ANIM.clear()
     Y, RED, DARK, GREY, WHITE = '#efb81c', '#c8262b', '#11171f', '#6d747b', '#f1efe9'
     my, mr, md, mg, mw = mat('sar_yellow', Y, 0.38), mat('sar_red', RED, 0.42), mat('sar_dark', DARK, 0.18, 0.2), mat('sar_grey', GREY, 0.5, 0.3), mat('sar_white', WHITE, 0.45)
-    st = [dict(x=8.9, zt=2.7, zb=1.9, w=0.5), dict(x=8.4, zt=3.25, zb=1.55, w=1.0), dict(x=7.5, zt=3.58, zb=1.28, w=1.34), dict(x=6.0, zt=3.78, zb=1.05, w=1.47), dict(x=4.2, zt=3.88, zb=0.97, w=1.56),
-          dict(x=0.0, zt=3.92, zb=0.95, w=1.6), dict(x=-4.0, zt=3.86, zb=1.0, w=1.52), dict(x=-6.2, zt=3.7, zb=1.3, w=1.28), dict(x=-8.0, zt=3.78, zb=2.1, w=0.85), dict(x=-9.6, zt=4.2, zb=3.2, w=0.45), dict(x=-10.3, zt=4.7, zb=3.8, w=0.3)]
+    st = [dict(x=8.6, zt=2.55, zb=1.75, w=0.55), dict(x=8.2, zt=3.15, zb=1.45, w=0.95), dict(x=7.4, zt=3.55, zb=1.2, w=1.2), dict(x=6.0, zt=3.78, zb=1.0, w=1.32), dict(x=4.2, zt=3.85, zb=0.95, w=1.4),
+          dict(x=0.0, zt=3.88, zb=0.95, w=1.42), dict(x=-4.0, zt=3.84, zb=1.05, w=1.36), dict(x=-6.2, zt=3.72, zb=1.4, w=1.14), dict(x=-8.0, zt=3.85, zb=2.3, w=0.78), dict(x=-9.6, zt=4.35, zb=3.3, w=0.42), dict(x=-10.3, zt=4.8, zb=3.9, w=0.3)]
     parts = []
     fus = loft(st, lambda zt, zb, w: ring_round(zt, zb, w, 4.4, 34), my, 'fus')
     fine_nose(fus, 6.0); cut(fus, [(2, 2.0), (2, 2.45), (2, 2.85), (2, 3.5), (0, 5.7), (0, 7.4), (0, 8.1)])
@@ -173,36 +173,38 @@ def cormorant(name='cormorant_hull'):
         parts.append(box((0.5, 0.06, 0.55), (dx, s * (W(dx) + 0.02), 2.75), material=md, bevel=0.07, name='doorwin'))
     for s in (1, -1):                                                                                            # red sponsons with the main gear
         parts.append(lofted_sponson(s, mr))
-        parts.append(cyl(0.12, 0.12, 0.65, 8, loc=(0.9, s * 1.8, 0.7), material=mg, name='strut'))
-        parts.append(wheel(0.9, s * 1.8, 0.62, 0.62, 0.36, md, 'mainwheel')); parts.append(wheel(0.9, s * 1.8, 0.62, 0.3, 0.42, mg, 'hub'))
-        parts.append(cyl(0.5, 0.5, 0.04, 20, loc=(1.2, s * 2.3, 1.7), rot=(-math.pi / 2, 0, 0), material=mw, name='roundel'))
-    parts.append(cyl(0.1, 0.1, 0.9, 8, loc=(7.0, 0, 0.55), material=mg, name='nosestrut')); parts.append(wheel(7.0, 0, 0.45, 0.43, 0.3, md, 'nosewheel')); parts.append(wheel(7.0, 0, 0.45, 0.2, 0.34, mg, 'nosehub'))
+        parts.append(cyl(0.12, 0.12, 0.7, 8, loc=(-1.6, s * 1.5, 0.75), material=mg, name='strut'))                                   # twin main wheels under the rear of each sponson
+        for dx_ in (-0.3, 0.3):
+            parts.append(wheel(-1.6 + dx_, s * 1.5, 0.45, 0.45, 0.3, md, 'mainwheel')); parts.append(wheel(-1.6 + dx_, s * 1.5, 0.45, 0.22, 0.34, mg, 'hub'))
+        parts.append(cyl(0.38, 0.38, 0.04, 20, loc=(-0.6, s * 2.3, 1.38), rot=(-math.pi / 2, 0, 0), material=mw, name='roundel'))
+    parts.append(cyl(0.1, 0.1, 0.9, 8, loc=(6.9, 0, 0.55), material=mg, name='nosestrut'))
+    for dy_ in (-0.26, 0.26): parts.append(wheel(6.9, dy_, 0.4, 0.4, 0.2, md, 'nosewheel'))
     parts.append(ico(0.34, 2, (8.15, 0, 1.45), md, 'sensor'))                                                   # electro-optical turret
     parts.append(box((0.9, 0.03, 0.03), (8.0, 0, 3.45), material=mg, name='wirecutter'))
-    parts.append(box((5.4, 1.5, 0.5), (-1.2, 0, 4.1), material=my, bevel=0.2, name='doghouse'))                   # gearbox fairing and two engines with intakes
-    for s in (1, -1):
-        parts.append(loft([dict(x=-3.6, zt=0.26, zb=-0.28, w=0.24), dict(x=-2.5, zt=0.38, zb=-0.34, w=0.42), dict(x=-0.4, zt=0.42, zb=-0.36, w=0.5), dict(x=0.9, zt=0.38, zb=-0.36, w=0.48), dict(x=1.4, zt=0.32, zb=-0.3, w=0.42)],
-                          lambda zt, zb, w: ring_round(zt, zb, w, 3.0, 24), my, 'engine', off=(s * 0.82, 4.2)))
-        parts.append(box((0.08, 0.46, 0.4), (1.4, s * 0.82, 4.2), material=md, name='intake'))
-        parts.append(cyl(0.15, 0.15, 0.7, 10, loc=(-4.0, s * 0.62, 4.24), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))
-    parts.append(cyl(0.16, 0.16, 0.9, 10, loc=(-3.7, 0, 3.98), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))
+    parts.append(loft([dict(x=3.2, zt=4.35, zb=3.7, w=0.6), dict(x=2.7, zt=4.9, zb=3.6, w=0.95), dict(x=1.2, zt=5.15, zb=3.6, w=1.05), dict(x=-2.2, zt=5.05, zb=3.6, w=1.05), dict(x=-3.8, zt=4.7, zb=3.6, w=0.8), dict(x=-4.4, zt=4.3, zb=3.7, w=0.45)],
+                      lambda zt, zb, w: ring_round(zt, zb, w, 4.2, 30), my, 'doghouse'))                                  # one tall rounded housing over the gearbox and the engines
+    for s_ in (1, -1):
+        parts.append(box((0.5, 0.42, 0.85), (2.55, s_ * 1.05, 4.35), material=md, bevel=0.12, name='intake'))              # big square engine inlet on each forward side
+        parts.append(box((0.12, 0.46, 0.8), (2.82, s_ * 1.05, 4.35), material=mg, bevel=0.04, name='intakelip'))
+        parts.append(cyl(0.24, 0.24, 0.75, 14, loc=(-3.9, s_ * 0.95, 4.3), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))     # silver exhausts aft of the housing
+    parts.append(cyl(0.2, 0.2, 0.7, 12, loc=(-4.0, 0, 4.05), rot=(0, math.pi / 2, 0), material=mg, name='exhaust'))
     parts.append(box((0.55, 0.6, 0.5), (1.4, -1.5, 3.95), material=mg, bevel=0.1, name='hoistbox')); parts.append(rod((1.4, -1.55, 3.7), (1.4, -2.3, 3.7), 0.09, 8, mg, 'hoistarm'))     # the rescue hoist
-    parts.append(fin_loft([dict(z=3.8, xle=-8.4, chord=2.2, t=0.1), dict(z=4.6, xle=-9.4, chord=1.95, t=0.1), dict(z=5.4, xle=-10.3, chord=1.5, t=0.09), dict(z=6.05, xle=-10.9, chord=1.05, t=0.08)], my, 'fin'))
+    parts.append(fin_loft([dict(z=3.8, xle=-8.0, chord=2.6, t=0.11), dict(z=4.6, xle=-9.2, chord=2.15, t=0.1), dict(z=5.4, xle=-10.2, chord=1.6, t=0.09), dict(z=6.05, xle=-10.9, chord=1.1, t=0.08)], my, 'fin'))
     parts.append(cyl(0.22, 0.22, 0.5, 10, loc=(-10.4, -0.12, 5.45), rot=(-math.pi / 2, 0, 0), material=mg, name='tgb'))
-    parts.append(wing_loft([dict(y=-1.7, xle=-9.0, chord=1.0, t=0.1, z=3.75), dict(y=1.7, xle=-9.0, chord=1.0, t=0.1, z=3.75)], my, 'tailplane'))
+    parts.append(wing_loft([dict(y=-1.9, xle=-9.0, chord=1.15, t=0.1, z=3.7), dict(y=1.9, xle=-9.0, chord=1.15, t=0.1, z=3.7)], my, 'tailplane'))
     parts.append(box((0.04, 2.2, 0.04), (-6.4, 0, 1.25), material=mg, name='rampline'))
     for (ax, az, bx, bz) in ((2.6, 3.9, 2.25, 4.45), (-2.0, 3.85, -2.5, 4.35), (6.6, 3.6, 6.35, 3.95)): parts.append(rod((ax, 0, az), (bx, 0, bz), 0.03, 4, md, 'aerial'))
-    parts.append(cyl(0.27, 0.34, 1.55, 12, loc=(-0.8, 0, 4.35), material=mg, name='mast')); parts.append(cyl(0.5, 0.5, 0.26, 16, loc=(-0.8, 0, 5.8), material=md, name='hub'))
+    parts.append(cyl(0.27, 0.34, 1.55, 12, loc=(-0.8, 0, 4.35), material=mg, name='mast')); parts.append(cyl(0.5, 0.5, 0.26, 16, loc=(-0.8, 0, 5.8), material=md, name='hub')); parts.append(cyl(0.34, 0.5, 0.3, 16, loc=(-0.8, 0, 6.05), material=mr, name='hubcap'))
     for i in range(5):                                                                                          # the five blade sleeves on the hub
         a = i * 2 * math.pi / 5; parts.append(rod((-0.8, 0, 5.93), (-0.8 + math.cos(a) * 0.9, math.sin(a) * 0.9, 5.93), 0.1, 6, md, 'sleeve'))
     hull = join(parts, name)
     blades = []                                                                                                  # five blades with the swept, broadened tip, red tips
     for i in range(5):
         a = i * 2 * math.pi / 5
-        bl = prism([(0.9, -0.2), (7.9, -0.28), (8.6, -0.33), (9.2, -0.44), (9.35, 0.0), (9.0, 0.36), (8.6, 0.33), (7.9, 0.28), (0.9, 0.2)], -0.025, 0.025, md, 'blade')
-        paint(bl, mr, lambda x, y, z, nx, ny, nz: x > 8.5)
+        bl = prism([(0.9, -0.17), (7.9, -0.22), (8.6, -0.26), (9.2, -0.4), (9.35, 0.0), (9.0, 0.34), (8.6, 0.26), (7.9, 0.22), (0.9, 0.17)], -0.025, 0.025, md, 'blade')
+        paint(bl, mat('sar_tip', '#e9a21a', 0.4), lambda x, y, z, nx, ny, nz: x > 8.5)
         bl.data.transform(Matrix.Rotation(a, 4, 'Z')); blades.append(bl)
-    blades.append(cyl(9.35, 9.35, 0.01, 48, loc=(0, 0, -0.005), material=mat('rotordisc', '#ffffff', 0.5, alpha=0.1), name='disc'))
+    blades.append(cyl(9.35, 9.35, 0.01, 48, loc=(0, 0, -0.005), material=mat('rotordisc', '#ffffff', 0.5, alpha=0.05), name='disc'))
     place_part(join(blades, 'rotor'), (-0.8, 0, 6.05), 'cormorant_rotor0')
     tb = []                                                                                                      # tail rotor: four blades, 4.0 m across, turning about the lateral axis
     for i in range(4):
@@ -263,6 +265,6 @@ def cl415(name='cl415_hull'):
         bl = []
         for i in range(4):
             a = i * math.pi / 2; b = prism([(-0.1, 0.17), (0.1, 0.24), (0.1, -0.1), (-0.1, -0.16)], 0.34, 1.97, md, 'pb'); b.data.transform(Matrix.Rotation(a, 4, 'X')); bl.append(b)
-        sp = lathe([(0.0, 0.0), (0.32, 0.05), (0.34, 0.4), (0.14, 0.82), (0.0, 0.95)], 16, mw, 'spinner', smooth=True); sp.data.transform(Matrix.Rotation(math.pi / 2, 4, 'Y')); bl.append(sp); bl.append(cyl(1.98, 1.98, 0.01, 32, loc=(0.0, 0, 0), rot=(0, math.pi / 2, 0), material=mat('propdisc', '#ffffff', 0.5, alpha=0.1), name='disc'))
+        sp = lathe([(0.0, 0.0), (0.32, 0.05), (0.34, 0.4), (0.14, 0.82), (0.0, 0.95)], 16, mw, 'spinner', smooth=True); sp.data.transform(Matrix.Rotation(math.pi / 2, 4, 'Y')); bl.append(sp); bl.append(cyl(1.98, 1.98, 0.01, 32, loc=(0.0, 0, 0), rot=(0, math.pi / 2, 0), material=mat('propdisc', '#ffffff', 0.5, alpha=0.06), name='disc'))
         place_part(join(bl, 'prop'), (4.75, s * 3.6, 5.15), f'cl415_prop{k}')
     return hull
