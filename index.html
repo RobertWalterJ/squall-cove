@@ -701,7 +701,7 @@ terrainMat.onBeforeCompile = (sh) => {
       vec4 hot4 = texture2D(tHot, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0); vec3 hot = hot4.rgb;
       float ash = texture2D(tAsh, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0).r;
       alb = mix(alb, vec3(0.05, 0.045, 0.045) * (0.6 + 0.8 * macro.g) + vec3(0.03, 0.025, 0.02) * macro2.r, ash * 0.92); rough = mix(rough, 0.95, ash);
-      alb = mix(alb, vec3(0.03, 0.025, 0.025), hot.r * 0.85); alb = mix(alb, vec3(0.06, 0.04, 0.035), hot.b * 0.6); alb = mix(alb, vec3(0.58, 0.61, 0.66), hot4.a * 0.92); rough = mix(rough, 0.3, hot4.a * 0.85);
+      alb = mix(alb, vec3(0.03, 0.025, 0.025), hot.r * 0.85); alb = mix(alb, vec3(0.06, 0.04, 0.035), hot.b * 0.6); float mtl = smoothstep(0.7, 0.85, hot4.a), rbl = (1.0 - mtl) * smoothstep(0.2, 0.4, hot4.a); alb = mix(alb, vec3(0.58, 0.61, 0.66), mtl * 0.92); alb = mix(alb, vec3(0.43, 0.41, 0.38), rbl * 0.85); rough = mix(rough, 0.3, mtl * 0.85); rough = mix(rough, 0.95, rbl * 0.8);
       vec4 mt4 = texture2D(tMat, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0); vec3 mt = mt4.rgb;
       alb = mix(alb, vec3(0.86, 0.76, 0.55) * (0.85 + 0.3 * macro.g), mt.g * 0.9); rough = mix(rough, 0.92, mt.g);
       alb = mix(alb, vec3(0.30, 0.21, 0.14) * (0.8 + 0.4 * macro.g), mt4.a * 0.9); rough = mix(rough, 0.95, mt4.a);
@@ -1622,7 +1622,10 @@ const BUILD = [
   { cat: 'Materials', id: 'rod', name: 'Lightning rod', note: 'draws strikes', mat: 'rod', sw: '#9aa1a8' },
   { cat: 'Materials', id: 'earthpile', name: 'Earth pile', note: 'builds land', mat: 'earthpile', sw: '#5c4129' },
   { cat: 'Materials', id: 'earthfount', name: 'Earth fountain', note: 'pours endlessly', mat: 'earthfount', sw: '#6b4a2e' },
-  { cat: 'Materials', id: 'rockdump', name: 'Rock dump', note: 'piles up steeply', mat: 'rockdump', sw: '#7a746c' },
+  { cat: 'Materials', id: 'rockdump', name: 'Rock dump', note: 'heavy, piles steeply', mat: 'rockdump', sw: '#7a746c' },
+  { cat: 'Materials', id: 'rockfount', name: 'Rock fountain', note: 'pours endlessly', mat: 'rockfount', sw: '#6a655e' },
+  { cat: 'Materials', id: 'scrap', name: 'Scrap metal', note: 'dense, conducts', mat: 'scrap', sw: '#9aa6b4' },
+  { cat: 'Materials', id: 'scrapfount', name: 'Scrap fountain', note: 'pours endlessly', mat: 'scrapfount', sw: '#7f8b99' },
   { cat: 'Lava', id: 'lavavent', name: 'Lava vent', note: 'keeps pouring', lava: 'vent', sw: '#e8541c' },
   { cat: 'Lava', id: 'lavapour', name: 'Lava pour', note: 'one big pour', lava: 'pour', sw: '#c8431b' },
   { cat: 'Water', id: 'geyser', name: 'Geyser', note: 'erupts now and then', water: 'geyser', sw: '#9fd0f0' },
@@ -1652,6 +1655,9 @@ function place(item, p) {
   if (item.climate) return placeClimate(item, p);
   if (item.lava) return placeLavaThing(item, p);
   if (item.mat === 'earthpile' || item.mat === 'rockdump' || item.mat === 'earthfount') return placeEarth(item, p);
+  if (item.mat === 'scrap') { landMark(); addSand(p.x, p.z, 120, 3, 'metal'); toast('Scrap metal poured. It heaps up, conducts current and heats quickly.'); return; }
+  if (item.mat === 'scrapfount') return placePourSrc('metal', p);
+  if (item.mat === 'rockfount') return placePourSrc('rock', p);
   if (item.mat) return placeMaterial(item, p);
   if (item.person) return placePeople(item.person, p, item.role);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, waveH(x, z, simT)) + 1.3, z); return; }       // it appears right at the ring, just above the ground or the water
@@ -3166,8 +3172,10 @@ function setTool(t) {
   if (t === 'elements') t = 'build'; tool = t; if (t === 'build') syncCat(); if (t !== 'select') closeInspector();
   [...tabs.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === t))); brushRing.visible = false; renderTray(); refreshPanel();
 }
+const BIGSHIPS = ['louis', 'arpatuuq', 'terry', 'radisson', 'molly', 'martha', 'donjek', 'franklin'];      // ships over 60 m live in their own menu: they are as big as the island
 const PLACE_CATS = [
-  { id: 'boats', name: 'Boats', test: it => it.cat === 'Boats' || it.cat === 'Coast Guard' },
+  { id: 'boats', name: 'Boats', test: it => (it.cat === 'Boats' || it.cat === 'Coast Guard') && !BIGSHIPS.includes(it.id) },
+  { id: 'big', name: 'Big ships', test: it => BIGSHIPS.includes(it.id) },
   { id: 'people', name: 'People', test: it => it.cat === 'People' },
   { id: 'cargo', name: 'Cargo', test: it => it.cat === 'Cargo' },
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
@@ -3175,7 +3183,7 @@ const PLACE_CATS = [
   { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
   { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
   { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
-  { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump'].includes(it.id) },
+  { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump', 'rockfount', 'scrap', 'scrapfount'].includes(it.id) },
   { id: 'devices', name: 'Devices', test: it => it.cat === 'Devices' || it.id === 'furnace' || it.id === 'rod' },
 ];
 let placeCat = 'boats';
@@ -3215,7 +3223,7 @@ function renderTray(force = true) {
       if (mode === 'helm' && it.cargo === undefined) return;
       if (mode !== 'helm' && (it.erase || !curCat.test(it))) return;
       if (mode !== 'helm' && curCat.id === 'boats' && it.cat !== cat) { cat = it.cat; tray.append(sep(cat === 'Coast Guard' ? 'Coast Guard' : 'Yachts and tugs')); }
-      tray.append(chip(it.name, it.note, it.sw, i === buildSel, () => { buildSel = i; renderTray(); if (it.hold) noteOnce('holdtip', 'Press and hold on the map to apply ' + it.name.toLowerCase() + '. Drag while holding to move it. A quick tap gives one puff.'); }));
+      tray.append(chip(it.name, (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note, it.sw, i === buildSel, () => { buildSel = i; renderTray(); if (it.hold) noteOnce('holdtip', 'Press and hold on the map to apply ' + it.name.toLowerCase() + '. Drag while holding to move it. A quick tap gives one puff.'); }));
     });
     if (mode !== 'helm') { const ei = BUILD.findIndex(it => it.erase); tray.append(sep('')); tray.append(chip('Remove', 'tap a thing', '#d64b2c', buildSel === ei, () => { buildSel = ei; renderTray(); }, 'chip mini')); }
     if (mode === 'helm' || curCat.id === 'cargo') {
@@ -3541,7 +3549,7 @@ function snapshotWorld() {
     objects: objects.map(o => ({ cid: CARGO.indexOf(o.c), x: o.body.position.x, y: o.body.position.y, z: o.body.position.z })),
     props: props.map(pr => ({ id: pr.item.id, x: pr.x, z: pr.z, ry: pr.mesh.rotation.y, sc: pr.mesh.scale.x })),
     buoys: buoys.filter(b => b.nm).map(b => ({ nm: b.nm, x: b.body.position.x, z: b.body.position.z })),
-    bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
+    bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), met: MET.slice(), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
     clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) }, devs: devices.map(d => ({ x: d.x, z: d.z, t: d.t, p: d.p, h: d.h, r: d.r })), sites: sites.map(q => ({ kind: q.kind, x: q.x, z: q.z, stage: q.stage, done: q.done })), ocean: ocean.lvl, oceanRef: ocean.ref,
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
     wx: { imp: { ...wx.imp }, sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
@@ -3567,7 +3575,7 @@ async function loadWorld(slot) {
     clearSites(); for (const q of d.sites || []) { const st = addSite(q.kind, q.x, q.z, { stage: q.stage || 0, done: !!q.done }); if (st && st.done) st.flag.material.color.setHex(0x8a8f94); }
     clearDevices(); ocean.lvl = d.ocean || 0; ocean.ref = d.oceanRef === undefined ? null : d.oceanRef; for (const q of d.devs || []) addDevice(q);
     if (d.sn) { snowData.set(d.sn); snowTex.needsUpdate = true; iceActive = true;  }
-    matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
+    matData.fill(0); if (d.mat) matData.set(d.mat); matTex.needsUpdate = true; MET.fill(0); metN = 0; if (d.met) MET.set(d.met); for (let q = 0; q < TN * TN; q++) { hotData[q * 4 + 3] = MET[q]; if (MET[q]) metN++; } hotTex.needsUpdate = true; if (d.mats) { for (const o of d.mats.src) { if (o.kind === 'earth') placeEarth({ mat: 'earthfount' }, o); else if (o.kind === 'rock' || o.kind === 'metal') placePourSrc(o.kind, o); else placeMaterial({ mat: 'fountain' }, o); } for (const o of d.mats.vents || []) placeLavaThing({ lava: 'vent' }, o); for (const o of d.mats.fur) placeMaterial({ mat: 'furnace' }, o); for (const o of d.mats.rods) placeMaterial({ mat: 'rod' }, o); }
     if (d.ash) { ashData.set(d.ash); ashTex.needsUpdate = true; } if (d.lv && d.lt) { LV.set(d.lv); LT.set(d.lt); lavaOn = true; lbx = { x0: 2, x1: TN - 3, z0: 2, z1: TN - 3 }; } if (d.wd) { WD.set(d.wd); lakeWet = 1; } for (const sp of d.springs || []) addSpring(sp.x, sp.z, sp.rate);
     HGT.set(d.hgt); if (d.bed) BED.set(d.bed); else for (let q = 0; q < BED.length; q++) BED[q] = Math.min(HGT0[q], HGT[q]);
     for (let q = 0; q < SIf.length; q++) { SIf[q] = HGT[q] < -0.05 ? snowData[q * 4 + 2] / 170 : 0; SM[q] = HGT[q] >= -0.05 ? snowData[q * 4 + 2] / 255 : 0; } soilWet = true; iceAny = true;
@@ -4357,10 +4365,15 @@ function clearClimate() { CW.fill(16); clim.nose = 0; clim.p = { rain: 1, snow: 
 const MH = new Float32Array(TN * TN), MOLT = new Uint8Array(TN * TN);          // material heat (1 = sand melts), molten flag
 let sbx = null, hbx = null, sandAcc = 0, heatAcc = 0, matCommitT = 0, matDirty = false, sandQuiet = 0, glassMade = 0;
 const sandSrc = [], rods = [], furnaces = [];
+/* v8.5: what the ground is made of matters. rho kg/m3, cp relative specific heat, k conduction, rep angle of repose (m of drop per cell), sink m/s in water.
+   A cell's heat capacity is rho * cp, so dense rock and metal take more energy to warm, and wet ground (water cp is 4x) takes much more. Metal conducts best. */
+const MATP = { 0: { rho: 2400, cp: 0.85, k: 0.16, rep: 1.5, sink: 4 }, 1: { rho: 1600, cp: 0.8, k: 0.1, rep: 0.7, sink: 1.6 }, 3: { rho: 1500, cp: 1.0, k: 0.14, rep: 1.05, sink: 1.0 }, 4: { rho: 2700, cp: 0.85, k: 0.16, rep: 1.5, sink: 4.5 }, 5: { rho: 7800, cp: 0.45, k: 0.6, rep: 1.25, sink: 6 } };
+const kindAt = (k) => MET[k] > 200 ? 5 : MET[k] > 0 ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0;
+const capAt = (k) => { const m = MATP[kindAt(k)]; return Math.max(0.5, m.rho * m.cp / 1800 * (1 + 1.6 * Math.min(1, SM[k]))); };
 const boxTouch = (b, j, i, r) => b ? { x0: Math.min(b.x0, j - r), x1: Math.max(b.x1, j + r), z0: Math.min(b.z0, i - r), z1: Math.max(b.z1, i + r) } : { x0: j - r, x1: j + r, z0: i - r, z1: i + r };
 const isSand = (k) => matData[k * 4 + 1] > 0, isGlass = (k) => matData[k * 4] > 0;
 function addSand(x, z, vol, R, kind) {
-  if (!kind || kind === 'earth' || kind === 'sand') { dumpGrains(x, z, vol, R, kind === 'earth' ? 3 : 1); return; }
+  if (!kind || kind === 'earth' || kind === 'sand' || kind === 'rock' || kind === 'metal') { dumpGrains(x, z, vol, R, { earth: 3, rock: 4, metal: 5 }[kind] || 1); return; }
   const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)), A = vol / (1.2 * R * R);
   for (let i = -R - 1; i <= R + 1; i++) for (let j = -R - 1; j <= R + 1; j++) {
     const d = Math.hypot(i, j), cx = gx + j, cz = gz + i; if (cx < 3 || cz < 3 || cx > TN - 4 || cz > TN - 4) continue; const k = cz * TN + cx;
@@ -4374,7 +4387,7 @@ function addSand(x, z, vol, R, kind) {
 const GT = new Float32Array(TN * TN), GTn = new Float32Array(TN * TN); let tbx = null, gtAcc = 0;
 function heatGT(x, z, r, val) {
   const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)), R_ = Math.ceil(r);
-  for (let i = -R_; i <= R_; i++) for (let j = -R_; j <= R_; j++) { const d = Math.hypot(i, j); if (d > r) continue; const cx = gx + j, cz = gz + i; if (cx < 2 || cz < 2 || cx > TN - 3 || cz > TN - 3) continue; const k = cz * TN + cx; GT[k] = Math.max(GT[k], val * (1 - 0.5 * d / r)); }
+  for (let i = -R_; i <= R_; i++) for (let j = -R_; j <= R_; j++) { const d = Math.hypot(i, j); if (d > r) continue; const cx = gx + j, cz = gz + i; if (cx < 2 || cz < 2 || cx > TN - 3 || cz > TN - 3) continue; const k = cz * TN + cx; GT[k] = Math.max(GT[k], val * (1 - 0.5 * d / r) / capAt(k)); }
   tbx = boxTouch(tbx, gx, gz, R_ + 3);
 }
 function stepGround(dt) {
@@ -4382,12 +4395,12 @@ function stepGround(dt) {
   const x0 = Math.max(2, tbx.x0), x1 = Math.min(TN - 3, tbx.x1), z0 = Math.max(2, tbx.z0), z1 = Math.min(TN - 3, tbx.z1); let hot = false, glow = false, magma = 0, steam = 0;
   for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
     const k = i * TN + j, T = GT[k]; if (T < 0.5 && GT[k - 1] < 0.5 && GT[k + 1] < 0.5 && GT[k - TN] < 0.5 && GT[k + TN] < 0.5) { GTn[k] = 0; continue; }
-    const avg = (GT[k - 1] + GT[k + 1] + GT[k - TN] + GT[k + TN]) / 4, cond = MET[k] ? 0.6 : matData[k * 4 + 1] ? 0.1 : snowData[k * 4] > 40 ? 0.05 : 0.16;
+    const avg = (GT[k - 1] + GT[k + 1] + GT[k - TN] + GT[k + TN]) / 4, cap = capAt(k), cond = snowData[k * 4] > 40 ? 0.05 : MATP[kindAt(k)].k;
     let n = T + (avg - T) * Math.min(0.9, cond * dt * 4);
     const wetq = HGT[k] < 0 ? 1.2 : WD[k] > 0.03 ? 0.9 : 0.04 + 0.25 * SM[k];             // wet ground and water carry the heat away
-    n -= n * Math.min(1, wetq * dt) + dt * 2; if (n < 0.3) n = 0; GTn[k] = n;
+    n -= (n * Math.min(1, wetq * dt) + dt * 2) / cap; if (n < 0.3) n = 0; GTn[k] = n;
     if (n > 3) hot = true;
-    if (MET[k] && n > 1100) { MET[k] = 0; metN--; hotData[k * 4 + 3] = 0; hotTex.needsUpdate = true; fxG.emit(G2W(j), HGT[k] + 0.3, G2W(i), 0, 2, 0, 0.5, 0.4, 1, [1, 0.6, 0.2, 1], 5, 0.5); }
+    if (MET[k] > 200 && n > 1100) { MET[k] = 0; metN--; hotData[k * 4 + 3] = 0; hotTex.needsUpdate = true; fxG.emit(G2W(j), HGT[k] + 0.3, G2W(i), 0, 2, 0, 0.5, 0.4, 1, [1, 0.6, 0.2, 1], 5, 0.5); }
     const c = (i >> 2) * CN + (j >> 2), Ta = CT[c], tot = Ta + n;
     if (tot > 1 && (snowData[k * 4] > 0 || snowData[k * 4 + 1] > 0)) { const ms = Math.min(snowData[k * 4], 4 + n * 0.5), mi = Math.min(snowData[k * 4 + 1], 4 + n * 0.5); snowData[k * 4] -= ms; snowData[k * 4 + 1] -= mi; if (HGT[k] >= 0) { WD[k] += (ms + mi) / 255 * 0.1; lakeWet = Math.max(lakeWet, 1); } snowTex.needsUpdate = true; iceActive = true; tried('melt'); }
     if (tot > 100 && SM[k] > 0.02) { SM[k] = Math.max(0, SM[k] - 0.12 * dt); CH[c] = Math.min(160, CH[c] + 0.5 * dt); soilWet = true; if (steam++ < 3 && Math.random() < 0.3) puffSmoke(G2W(j), Math.max(HGT[k], 0) + 0.5, G2W(i), 1, false, 1.2); }
@@ -4402,9 +4415,9 @@ function stepGround(dt) {
 /* ---- electricity: a strike or an arc finds metal and runs through every connected piece of it, heating it, throwing sparks, and shocking anyone standing on or beside it */
 function shock(x, z, power) {
   if (!metN) return 0; const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); let start = -1, bd = 99;
-  for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) { const k = (gz + a) * TN + gx + b; if (k > 0 && k < TN * TN && MET[k] && Math.hypot(a, b) < bd) { bd = Math.hypot(a, b); start = k; } }
+  for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) { const k = (gz + a) * TN + gx + b; if (k > 0 && k < TN * TN && MET[k] > 200 && Math.hypot(a, b) < bd) { bd = Math.hypot(a, b); start = k; } }
   if (start < 0) return 0;
-  const seen = new Set([start]), q = [start], cells = []; while (q.length && cells.length < 1400) { const k = q.pop(); cells.push(k); for (const n of [k + 1, k - 1, k + TN, k - TN]) if (n > 0 && n < TN * TN && MET[n] && !seen.has(n)) { seen.add(n); q.push(n); } }
+  const seen = new Set([start]), q = [start], cells = []; while (q.length && cells.length < 1400) { const k = q.pop(); cells.push(k); for (const n of [k + 1, k - 1, k + TN, k - TN]) if (n > 0 && n < TN * TN && MET[n] > 200 && !seen.has(n)) { seen.add(n); q.push(n); } }
   let sp = 0; for (const k of cells) { const j = k % TN, i = (k - j) / TN, px = G2W(j), pz = G2W(i); GT[k] = Math.min(1800, GT[k] + power * 70); if (sp < 16 && Math.random() < 0.05 + 0.2 / Math.sqrt(cells.length + 1)) { sp++; fxG.emit(px, HGT[k] + 0.25, pz, rnd(-1.5, 1.5), rnd(1, 3.5), rnd(-1.5, 1.5), rnd(0.15, 0.4), rnd(0.12, 0.25), -0.5, [0.7, 0.85, 1, 1], 9, 0.8); } }
   tbx = boxTouch(tbx, gx, gz, 40);
   for (const p of people) { if (p.state === 'rag') continue; const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); let near = false; for (const o of [0, 1, -1, TN, -TN, TN + 1, -TN - 1]) if (seen.has(k + o)) { near = true; break; } if (near) { topple(p, new CANNON.Vec3(rnd(-2, 2), 3, rnd(-2, 2))); noteOnce('shock', 'Someone was knocked down by a shock from the metal.'); } }
@@ -4417,11 +4430,12 @@ const GRN = 3200, gP = new Float32Array(GRN * 3), gV = new Float32Array(GRN * 3)
 const grainMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0 }), GRN);
 grainMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(GRN * 3), 3); grainMesh.frustumCulled = false; grainMesh.count = 0; scene.add(grainMesh);
 const GCOL = { 1: [0.88, 0.78, 0.54], 3: [0.33, 0.23, 0.15], 4: [0.5, 0.48, 0.45], 5: [0.62, 0.66, 0.72] }, grainQ = [];
+function flagMat(k, v) { if (MET[k] >= v) return; if (!MET[k]) metN++; MET[k] = v; hotData[k * 4 + 3] = v; hotTex.needsUpdate = true; }
+function unflagMat(k) { if (!MET[k]) return; MET[k] = 0; metN--; hotData[k * 4 + 3] = 0; hotTex.needsUpdate = true; }
 function depositGrain(x, z, vol, kind) {
   const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4 || vol <= 0) return; const k = i * TN + j;
   HGT[k] = Math.min(34, HGT[k] + vol); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
-  if (kind === 4) BED[k] = HGT[k];                                                                    // rock does not slump
-  if (kind === 5) { if (!MET[k]) metN++; MET[k] = 255; hotData[k * 4 + 3] = 255; hotTex.needsUpdate = true; BED[k] = HGT[k]; }          // metal lies as plate and wire, and carries current
+  if (kind === 4 || kind === 5) flagMat(k, kind === 5 ? 255 : 120);                                   // rock rubble and scrap metal pile up, then slump at their own angle
   slumpArm(j, i, 3); matTex.needsUpdate = true;
 }
 function spawnGrain(x, y, z, vx, vy, vz, vol, kind, size) {
@@ -4441,7 +4455,7 @@ function updateGrains(dt) {
   for (let i = ng - 1; i >= 0; i--) {
     const i3 = i * 3; let x = gP[i3], y = gP[i3 + 1], z = gP[i3 + 2], vx = gV[i3], vy = gV[i3 + 1], vz = gV[i3 + 2];
     const gh = heightAt(x, z), sea = gh < -0.05, wl = sea ? waveH(x, z, simT) : -99, inWater = sea && y < wl;
-    if (inWater) { const d = Math.exp(-dt * 5); vx *= d; vz *= d; vy = Math.max(vy * d - 3 * dt, -2.2); if (gB[i] === 0) { gB[i] = 1; if (Math.random() < 0.35) splash(x, z, 0.25); } } else vy -= 9.82 * dt;
+    if (inWater) { const d = Math.exp(-dt * 5); vx *= d; vz *= d; vy = Math.max(vy * d - 3 * dt, -(MATP[gK[i]] || MATP[1]).sink); if (gB[i] === 0) { gB[i] = 1; if (Math.random() < 0.35) splash(x, z, 0.25); } } else vy -= 9.82 * dt;
     x += vx * dt; y += vy * dt; z += vz * dt;
     const g2 = heightAt(x, z);
     let dead = false;
@@ -4456,7 +4470,7 @@ function updateGrains(dt) {
   for (let i = 0; i < ng; i++) { const o = i * 16, sz = gS[i]; arr[o] = sz; arr[o + 1] = 0; arr[o + 2] = 0; arr[o + 3] = 0; arr[o + 4] = 0; arr[o + 5] = sz; arr[o + 6] = 0; arr[o + 7] = 0; arr[o + 8] = 0; arr[o + 9] = 0; arr[o + 10] = sz; arr[o + 11] = 0; arr[o + 12] = gP[i * 3]; arr[o + 13] = gP[i * 3 + 1]; arr[o + 14] = gP[i * 3 + 2]; arr[o + 15] = 1; }
   grainMesh.count = ng; grainMesh.instanceMatrix.needsUpdate = true; grainMesh.instanceColor.needsUpdate = true;
 }
-function slideGrains(j, i, n, dir) { if (ng > GRN - 400) return; const k = i * TN + j; for (let c = 0; c < n; c++) spawnGrain(G2W(j) + rnd(-0.4, 0.4), HGT[k] + 0.15, G2W(i) + rnd(-0.4, 0.4), dir[0] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), rnd(0.3, 1.2), dir[1] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), 0, matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 4, 0.12 + Math.random() * 0.1); }
+function slideGrains(j, i, n, dir) { if (ng > GRN - 400) return; const k = i * TN + j; for (let c = 0; c < n; c++) spawnGrain(G2W(j) + rnd(-0.4, 0.4), HGT[k] + 0.15, G2W(i) + rnd(-0.4, 0.4), dir[0] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), rnd(0.3, 1.2), dir[1] * rnd(0.8, 2.2) + rnd(-0.3, 0.3), 0, kindAt(k) || 4, 0.12 + Math.random() * 0.1); }
 function slumpArm(j, i, r) { sbx = boxTouch(sbx, j, i, r); sandQuiet = 0; matDirty = true; }
 /* every loose cell (anything above the original bedrock) slides downhill once it is steeper than its angle of repose:
    dry sand about 35 degrees, earth steeper, plain fill steeper still, and wet ground sags at a gentler angle. Bedrock never moves. */
@@ -4465,12 +4479,12 @@ function stepSand() {
   const x0 = Math.max(2, sbx.x0), x1 = Math.min(TN - 3, sbx.x1), z0 = Math.max(2, sbx.z0), z1 = Math.min(TN - 3, sbx.z1); let moved = 0; const N = [1, -1, TN, -TN];
   for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) {
     const k = i * TN + j; if (HGT[k] < BED[k]) BED[k] = HGT[k];
-    let loose = HGT[k] - BED[k]; if (loose < 0.012 || matData[k * 4] > 0) continue;
-    const ch = matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = (ch === 1 ? 0.7 : ch === 3 ? 1.05 : 1.5) - 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1);
+    let loose = HGT[k] - BED[k]; if (loose < 0.012) { if (MET[k] && loose < 0.004) unflagMat(k); continue; } if (matData[k * 4] > 0) continue;
+    const fl = MET[k], ch = fl > 200 ? 5 : fl ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = MATP[ch].rep - (ch >= 4 || ch === 0 ? 0 : 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1));
     for (let q = 0; q < 4; q++) {
       const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;
       const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(34, HGT[n] + m);
-      if (ch && !matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
+      if (fl) flagMat(n, fl); else if (ch && !matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
       moved += m; if (m > 0.012 && Math.random() < 0.18) slideGrains(j, i, 1, [N[q] === 1 ? 1 : N[q] === -1 ? -1 : 0, N[q] === TN ? 1 : N[q] === -TN ? -1 : 0]); if (n % TN <= sbx.x0) sbx.x0--; if (n % TN >= sbx.x1) sbx.x1++; const nz = (n - n % TN) / TN; if (nz <= sbx.z0) sbx.z0--; if (nz >= sbx.z1) sbx.z1++;
     }
   }
@@ -4517,7 +4531,7 @@ function fulguriteAt(x, z) {
   hbx = boxTouch(hbx, gx, gz, 16); sparks(x, Math.max(heightAt(x, z), 0) + 0.5, z, 20);
 }
 function updateMaterials(dt) {
-  for (const s of sandSrc) { s.acc = (s.acc || 0) + dt * 44; const n = Math.floor(s.acc); s.acc -= n; const y0 = Math.max(standY(s.x, s.z), 0) + 2.3, kind = s.kind === 'earth' ? 3 : 1; for (let e = 0; e < n; e++) { const a = Math.random() * 6.283, sp = rnd(0.6, 2.4); spawnGrain(s.x, y0, s.z, Math.cos(a) * sp, rnd(2.5, 5.5), Math.sin(a) * sp, s.rate / 44, kind, 0.14 + Math.random() * 0.12); } }
+  for (const s of sandSrc) { s.acc = (s.acc || 0) + dt * 44; const n = Math.floor(s.acc); s.acc -= n; const y0 = Math.max(standY(s.x, s.z), 0) + 2.3, kind = { earth: 3, rock: 4, metal: 5 }[s.kind] || 1; for (let e = 0; e < n; e++) { const a = Math.random() * 6.283, sp = rnd(0.6, 2.4); spawnGrain(s.x, y0, s.z, Math.cos(a) * sp, rnd(2.5, 5.5), Math.sin(a) * sp, s.rate / 44, kind, 0.14 + Math.random() * 0.12); } }
   for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); heatGT(f.x, f.z, 6, 950); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
   updateGrains(dt);
   sandAcc += dt; if (sandAcc >= 1 / 12) { sandAcc = 0; stepSand(); }
@@ -5162,7 +5176,13 @@ function placeEarth(item, p) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0x5a5f66 })); post.position.y = 0.8; g.add(post, cone); g.position.set(p.x, Math.max(standY(p.x, p.z), 0), p.z); scene.add(g);
     sandSrc.push({ x: p.x, z: p.z, rate: 0.9, mesh: g, kind: 'earth' }); landMark(); toast('Earth fountain: it pours until you remove it. It builds land in water too.'); return;
   }
-  landMark(); addSand(p.x, p.z, item.mat === 'rockdump' ? 240 : 170, 4, 'earth'); toast(item.mat === 'rockdump' ? 'Rock dumped. It piles up steeply.' : 'Earth dumped. It builds land, even in the water.');
+  landMark(); addSand(p.x, p.z, item.mat === 'rockdump' ? 240 : 170, 4, item.mat === 'rockdump' ? 'rock' : 'earth'); toast(item.mat === 'rockdump' ? 'Rock dumped. It piles up steeply and sinks fast in water.' : 'Earth dumped. It builds land, even in the water.');
+}
+function placePourSrc(kind, p) {
+  if (sandSrc.length >= 4) { toast('Four fountains is plenty'); return; }
+  const col = kind === 'metal' ? 0x9aa6b4 : 0x7a746c, g = new THREE.Group(), cone = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.6, 10, 1, true), new THREE.MeshStandardMaterial({ color: col, roughness: kind === 'metal' ? 0.35 : 0.95, metalness: kind === 'metal' ? 0.9 : 0, side: THREE.DoubleSide })); cone.position.y = 2.2; cone.rotation.x = Math.PI;
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0x5a5f66 })); post.position.y = 0.8; g.add(post, cone); g.position.set(p.x, Math.max(standY(p.x, p.z), 0), p.z); scene.add(g);
+  sandSrc.push({ x: p.x, z: p.z, rate: kind === 'metal' ? 0.7 : 0.9, mesh: g, kind }); landMark(); toast(kind === 'metal' ? 'Scrap fountain: metal piles up, conducts current and heats quickly.' : 'Rock fountain: it builds a steep, heavy heap.');
 }
 /* ---- fire in the trees */
 const burning = [], m4t = new THREE.Matrix4(), pT = new THREE.Vector3(), qT = new THREE.Quaternion(), sT = new THREE.Vector3();
@@ -5559,7 +5579,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
