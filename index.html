@@ -208,6 +208,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button><button id="mHide" type="button">Hide buttons</button><button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
   <div id="menuBody" class="mbody"></div>
+  <button id="mMap" type="button">New world</button>
   <button id="mTry" type="button">Things to try</button>
   <button id="mSandbox" type="button">Sandbox settings</button>
   <button class="go" id="mClose" type="button">Close</button>
@@ -471,7 +472,52 @@ function imgTex(im, srgb) {
 }
 
 const D = await loadAll().catch((e) => { $('loadMsg').textContent = 'Could not load the cove assets: ' + e; throw e; });
+
+/* ---------------- maps: the baked Cove, or a generated island from a template and a seed. The choice is kept in localStorage and applied at start. */
+const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland']];
+let MAP = { t: 'cove', seed: 'cove' };
+try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); if (m && m.t && MAPS.some(q => q[0] === m.t)) MAP = m; } catch (e) { }
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
+function genTerrain(H, tpl, seedStr) {
+  const rnd = mulberry(seedNum(tpl + ':' + seedStr)), N = 257, C = 128, G = 64, lat = new Float32Array(G * G); for (let i = 0; i < G * G; i++) lat[i] = rnd();
+  const sm = (t) => t * t * (3 - 2 * t), ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const vn = (x, z) => { const xi = Math.floor(x), zi = Math.floor(z), fx = sm(x - xi), fz = sm(z - zi); const a = lat[((zi & 63) << 6) | (xi & 63)], b = lat[((zi & 63) << 6) | ((xi + 1) & 63)], c = lat[(((zi + 1) & 63) << 6) | (xi & 63)], d = lat[(((zi + 1) & 63) << 6) | ((xi + 1) & 63)]; const t0 = a + (b - a) * fx; return t0 + ((c + (d - c) * fx) - t0) * fz; };
+  const fbm = (x, z) => { let s0 = 0, a = 0.5, f = 1, t = 0; for (let o = 0; o < 5; o++) { s0 += a * vn(x * f + o * 17.3, z * f + o * 5.1); t += a; a *= 0.5; f *= 2.02; } return s0 / t; };
+  const isl = []; for (let n = 0; n < 8; n++) isl.push({ x: (rnd() - 0.5) * 1.2, z: (rnd() - 0.5) * 1.2, r: 0.13 + rnd() * 0.2, h: 7 + rnd() * 15 });
+  const ph = rnd() * 6.28, ph2 = rnd() * 6.28, cx0 = (rnd() - 0.5) * 0.3;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const u = (j - C) / C, v = (i - C) / C, wu = fbm(u * 1.7 + 3, v * 1.7) - 0.5, wv = fbm(u * 1.7, v * 1.7 + 9) - 0.5, U = u + wu * 0.35, V = v + wv * 0.35, r = Math.hypot(U, V);
+    let h = -9;
+    if (tpl === 'archipelago') { let m = -3 - r * 4; for (const q of isl) { const d = Math.hypot(U - q.x, V - q.z) / q.r; if (d < 1.25) m = Math.max(m, q.h * Math.pow(Math.max(0, 1 - d), 1.1) - 1.2 + (d < 1.25 ? -1.0 * ss(0.9, 1.25, d) : 0)); } h = m; }
+    else if (tpl === 'atoll') { const ring = 1 - Math.abs(r - 0.55) / 0.1, gap = fbm(U * 3.3 + 5, V * 3.3) < 0.4 ? 0.35 : 1, floor = r < 0.5 ? -1.8 - 0.8 * fbm(U * 4, V * 4) : Math.max(-9.2, -1.8 - (r - 0.5) * 36); h = Math.max(floor, -1.3 + ring * (6.5 + 5 * fbm(U * 5, V * 5)) * gap); }
+    else if (tpl === 'fjord') {
+      const edge = Math.max(Math.abs(U) * 1.05, Math.abs(V)); let base = 22 * (1 - ss(0.5, 0.92, edge)) + (fbm(U * 3, V * 3) - 0.35) * 24 * (1 - ss(0.6, 0.95, edge)); base = Math.max(base, -9);
+      const xc = 0.1 * Math.sin(V * 3.4 + ph) + 0.05 * Math.sin(V * 8 + ph2) + cx0 * 0.3, w = 0.06 + 0.035 * Math.max(0, V + 0.2), dc = Math.abs(U - xc), f = V > -0.35 ? 1 - ss(w * 0.5, w * 1.25, dc) : 0; h = base * (1 - f) + (-8.5) * f - (f > 0 ? 0 : 0);
+    }
+    else if (tpl === 'volcanic') { const cone = 27 * Math.pow(Math.max(0, 1 - r / 0.5), 1.35), crater = 8.5 * Math.pow(Math.max(0, 1 - r / 0.075), 0.7); h = cone - crater - 1.4 + (fbm(U * 4, V * 4) - 0.5) * 5 * Math.max(0, 1 - r / 0.6); if (r >= 0.5) h = Math.max(-9.2, -1.4 - (r - 0.5) * 22 + (fbm(U * 5, V * 5) - 0.5) * 1.5); }
+    else if (tpl === 'valley') {
+      const el = Math.hypot(U * 0.92, V * 1.05), land = 1 - ss(0.5, 0.82, el), mtn = 22 * Math.pow(Math.max(0, 1 - Math.hypot(U + 0.05, V + 0.38) / 0.52), 1.15);
+      let m = land * (4 + 6 * fbm(U * 3, V * 3)) + mtn * land - 1.6; const dr = Math.abs(U - (0.16 * Math.sin(V * 4.2 + ph) + 0.05)); if (V > -0.3 && V < 0.8) m -= 4.5 * (1 - ss(0.0, 0.07, dr)) * ss(-0.3, 0.1, V);
+      const lk = Math.hypot(U - 0.1, V - 0.12), lf = 1 - ss(0.1, 0.24, lk); m = m * (1 - lf) + (-3 + 4 * ss(0.0, 0.1, lk)) * lf; h = Math.max(m, -9.2 + 7 * land);
+    }
+    else if (tpl === 'barrier') {
+      const main = (1 - ss(-0.9, -0.5, V)) * (8 + 6 * fbm(U * 3, V * 3)) - 1.2, bc = 0.15 + 0.07 * Math.sin(U * 4 + ph), bar = (1 - Math.abs(V - bc) / 0.065) * (2.8 + 1.4 * fbm(U * 6, V * 6)) * ss(-0.95, -0.7, U) * (1 - ss(0.7, 0.95, U)) - 1.3;
+      const lagoon = V > -0.5 && V < bc - 0.03 ? -1.7 : -9; h = Math.max(main, bar, V < bc + 0.04 ? lagoon : Math.max(-9.2, -2.5 - (V - bc) * 14));
+    }
+    else h = Math.max(-9.2, 14 * (1 - r / 0.7) - 1);
+    if (h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
+    const e = ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); h = h * (1 - e) + (-9.2) * e; H[i * N + j] = Math.max(-9.2, Math.min(30, h));
+  }
+  // age the land: let steep faces relax and soften the grain so coasts look worn, not noisy
+  for (let pass = 0; pass < 36; pass++) for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) {
+    const k = i * N + j; if (H[k] <= 0) continue; for (const q of [1, N]) for (const sg of [1, -1]) { const n = k + sg * q, dh = H[k] - H[n]; if (dh > 1.55 && H[n] > -8) { const m = (dh - 1.55) * 0.2; H[k] -= m; H[n] += m; } }
+  }
+  for (let pass = 0; pass < 2; pass++) { const c = H.slice(); for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) { const k = i * N + j; if (c[k] > 0.1) H[k] = (c[k] * 4 + c[k - 1] + c[k + 1] + c[k - N] + c[k + N]) / 8; } }
+}
+const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
 HGT = D.h;
+if (MAP.t !== 'cove') genTerrain(HGT, MAP.t, MAP.seed);
 progress(0.95, 'Building the island');
 
 /* ---------------- sky: equirect panorama on a dome, sun taken from its brightest pixel */
@@ -735,7 +781,7 @@ function scatterVegetation() {
     const x = (hash2(k, 11) - 0.5) * 240, z = (hash2(k, 23) - 0.5) * 240;
     const h = heightAt(x, z); if (h < 1.6) continue;
     const s = slopeAt(x, z); if (s > 0.28) continue;
-    const dens = vnoise(x * 0.035 + 7, z * 0.035 + 3) + 0.25 * vnoise(x * 0.11, z * 0.11);
+    const dens = vnoise(x * 0.035 + 7 + MAPOFF, z * 0.035 + 3 + MAPOFF) + 0.25 * vnoise(x * 0.11, z * 0.11);
     if (dens < 0.62) continue;
     const r = hash2(k, 5);
     let kind;
@@ -993,6 +1039,17 @@ const waterMat = new THREE.ShaderMaterial({
 });
 const water = new THREE.Mesh(new THREE.PlaneGeometry(460, 460, 230, 230).rotateX(-Math.PI / 2), waterMat);
 water.renderOrder = 2; scene.add(water);
+const farLand = (() => {
+  const S = 6400, n = 160, g = new THREE.PlaneGeometry(S, S, n, n).rotateX(-Math.PI / 2), pos = g.attributes.position, col = new Float32Array(pos.count * 3);
+  const so = (MAPOFF + 13) * 0.37;
+  for (let k = 0; k < pos.count; k++) {
+    const x = pos.getX(k), z = pos.getZ(k), d = Math.max(Math.abs(x), Math.abs(z)); let h = -40;
+    if (d > 420) { const nn = vnoise(x * 0.0011 + so, z * 0.0011 + so * 0.7) + 0.45 * vnoise(x * 0.0035 + so, z * 0.0035) - 0.2; if (nn > 0.66) h = Math.min(110, (nn - 0.66) * 320) - 2 + 3 * vnoise(x * 0.02, z * 0.02); }
+    pos.setY(k, h); const c = h < 1 ? [0.75, 0.68, 0.5] : h < 14 ? [0.22, 0.36, 0.2] : h < 50 ? [0.34, 0.33, 0.3] : [0.78, 0.8, 0.82]; col.set(c, k * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
+})();
 const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('wp.y += waveH(wp.xz) * iv; vG = waveGrad(wp.xz) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
@@ -1164,8 +1221,9 @@ function carveIce(x, z, r, left) {
 let pierInfo = null;
 function buildHarbour(glb) {
   // pier: the first bit of coast south of the island centre, running seaward
-  const ang = -Math.PI / 2 + 0.25;
-  const c = coastPoint(ang, 4);
+  let ang = -Math.PI / 2 + 0.25, c = coastPoint(ang, 4);
+  if (!c) { for (let a = 0; a < 6.28 && !c; a += 0.1) { const cp = coastPoint(ang + a, 4); if (cp) { c = cp; ang += a; } } }
+  if (!c) return;
   const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
   const pier = nodeByName(glb, 'pier');
   const deckY = 1.4;
@@ -1184,10 +1242,13 @@ function buildHarbour(glb) {
     const cp = coastPoint(a, 7); if (!cp) continue;
     const h = heightAt(cp.x, cp.z); if (!best || h > best.h) best = { ...cp, h };
   }
-  const lh = shadowAll(nodeByName(glb, 'lighthouse').clone());
-  lh.position.set(best.x, best.h - 1.0, best.z); scene.add(lh);
-  const lb = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Cylinder(1.9, 2.3, 16, 12) });
-  lb.position.set(best.x, best.h + 7, best.z); world.addBody(lb);
+  if (!best) for (let a = 0; a < 6.28; a += 0.05) { const cp = coastPoint(a, 7); if (!cp) continue; const h = heightAt(cp.x, cp.z); if (!best || h > best.h) best = { ...cp, h }; }
+  if (best) {
+    const lh = shadowAll(nodeByName(glb, 'lighthouse').clone());
+    lh.position.set(best.x, best.h - 1.0, best.z); scene.add(lh);
+    const lb = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Cylinder(1.9, 2.3, 16, 12) });
+    lb.position.set(best.x, best.h + 7, best.z); world.addBody(lb);
+  }
   // moored race marks
   const marks = [[0.6, 'buoy0'], [1.9, 'buoy1'], [3.2, 'buoy2'], [4.4, 'buoy5'], [5.5, 'buoy0']];
   for (const [a, nm] of marks) {
@@ -3219,7 +3280,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateRoles(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -3490,6 +3551,7 @@ let scn = null;
 function scnCleanup(s) {
   for (const p of s.people || []) if (people.includes(p)) removePerson(p);
   for (const o of s.objs || []) if (objects.includes(o)) removeObj(o);
+  for (const m of s.extra || []) scene.remove(m);
   for (const b of [s.friend, ...(s.raiders || [])]) if (b && boats.includes(b) && boats.length > 1) { people.filter(q => q.ride && q.ride.boat === b).forEach(removePerson); removeBoat(b); }
 }
 function endScenario(silent, keep) { if (!scn) return; if (!keep) scnCleanup(scn); scn = null; scnPill.hidden = true; if (!silent) toast('Back to free play'); }
@@ -3529,6 +3591,22 @@ const SCENARIOS = [
       for (const b of boats) if (!b.raider && !b.sunk && b.mounts && b.mounts.length && !b.target) { const near = s.raiders.filter(r => !r.sunk && boats.includes(r)).sort((p, q) => Math.hypot(p.body.position.x - b.body.position.x, p.body.position.z - b.body.position.z) - Math.hypot(q.body.position.x - b.body.position.x, q.body.position.z - b.body.position.z))[0]; if (near && Math.hypot(near.body.position.x - b.body.position.x, near.body.position.z - b.body.position.z) < 160) b.target = near; } },
     check(s) { const n = s.raiders.filter(r => r.sunk || !boats.includes(r)).length; return { text: `Raiders sunk: ${n} of ${s.raiders.length}`, done: n >= s.raiders.length && s.raiders.length > 0 }; },
     hint: 'Your boat will shoot back on its own. Select it and use Fire to choose a target, or sail it to get a better angle.' },
+  { id: 'lavastop', name: 'Stop the lava', note: 'A vent opens above a village. Keep the lava out of it.',
+    setup(s) {
+      let best = null; for (let n = 0; n < 500; n++) { const a = Math.random() * 6.28, r = 20 + Math.random() * 60, x = Math.cos(a) * r, z = Math.sin(a) * r, h = standY(x, z); if (h < 2 || h > 9 || slopeAt(x, z) > 0.3) continue; const vx = x + (Math.random() - 0.5) * 20, vz = z + (Math.random() - 0.5) * 20; for (let k = 0; k < 24; k++) { const ang = Math.random() * 6.28, sx = x + Math.cos(ang) * 40, sz = z + Math.sin(ang) * 40; if (standY(sx, sz) > h + 4 && standY(sx, sz) < 30) { best = { x, z, sx, sz }; break; } } if (best) break; }
+      if (!best) { toast('No hillside found. Try again'); scn = null; return; }
+      s.v = best; s.extra = []; s.people = []; s.hit = false; s.pour = 55;
+      for (let i = 0; i < 5; i++) { const px = best.x + (i - 2) * 2.2, pz = best.z + (i % 2) * 2; const p = makePerson(i * 3 + 4, px, pz); p.y = standY(px, pz); p.role = 'Villager'; s.people.push(p); }
+      const flag = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8), new THREE.MeshStandardMaterial({ color: 0xe3a948 })); flag.position.set(best.x, standY(best.x, best.z) + 1.5, best.z); scene.add(flag); s.extra.push(flag);
+      placeLavaThing({ lava: 'vent' }, { x: best.sx, z: best.sz }); s.vent = lavaVents[lavaVents.length - 1]; god.tgt.set((best.x + best.sx) / 2, 0, (best.z + best.sz) / 2); god.follow = null; god.dist = 90; setTool('land');
+    },
+    tick(s, dt) { s.pour -= dt; if (s.vent && s.pour <= 0) { scene.remove(s.vent.mesh); const i = lavaVents.indexOf(s.vent); if (i >= 0) lavaVents.splice(i, 1); s.vent = null; } },
+    check(s) { const gx = Math.round(s.v.x + TH), gz = Math.round(s.v.z + TH); let hit = false; for (let a = -9; a <= 9 && !hit; a++) for (let b = -9; b <= 9; b++) if (LV[(gz + a) * TN + gx + b] > 0.05) { hit = true; break; } if (hit) s.hit = true; return { text: s.hit ? 'The lava reached the village' : s.vent ? 'The vent is pouring. Dig a channel, raise a wall, or flood it with water' : 'The vent has stopped. The village is safe', done: !s.hit && !s.vent && !lavaOn }; },
+    hint: 'Use Land to dig a channel or raise a wall, or place water and cold, to turn the lava away from the flag.' },
+  { id: 'freeze', name: 'Free the frozen harbour', note: 'The sea has frozen over. Get the harbour open again.',
+    setup(s) { clim.T = -18; for (let c = 0; c < CK; c++) { CT[c] = -18; CW[c] = -14; } for (let k = 0; k < TN * TN; k++) if (HGT[k] < -0.05) { SIf[k] = 0.65; snowData[k * 4 + 2] = Math.round(0.65 * 170); } snowTex.needsUpdate = true; iceAny = true; iceActive = true; s.px = pierInfo ? pierInfo.end.x : 0; s.pz = pierInfo ? pierInfo.end.z : 0; god.tgt.set(s.px, 0, s.pz); god.follow = null; god.dist = 100; setTool('select'); renderTray(true); },
+    check(s) { let n = 0, t = 0; for (let a = -14; a <= 14; a += 2) for (let b = -14; b <= 14; b += 2) { const k = (Math.round(s.pz + TH) + a) * TN + Math.round(s.px + TH) + b; if (HGT[k] < -0.05) { t++; if (SIf[k] < 0.12) n++; } } return { text: `Open water round the pier end: ${Math.round(100 * n / Math.max(1, t))}% (needs 70%)`, done: t > 0 && n / t >= 0.7 }; },
+    hint: 'Send an icebreaker through the harbour (Louis S. St-Laurent, Terry Fox and others are in the Coast Guard menu), or warm the air with heat lamps.' },
 ];
 function startScenario(def) {
   endScenario(true); closeMenu(); scn = { def, t: 0, doneSaid: false }; def.setup(scn);
@@ -4145,7 +4223,7 @@ function openClassPicker() {
   openMenu([menuHead('Pick a kind of thing'), ...CLASSES.filter(c => c.grp === buildGroup).map(c => menuBtn(c.name, c.note + ' (' + BUILD.filter(i => classOfItem(i) === c.id).length + ')', () => { buildCls = c.id; const i = BUILD.findIndex(it => classOfItem(it) === c.id); if (i >= 0) buildSel = i; closeMenu(); setTool(buildGroup === 'elements' ? 'elements' : 'build'); renderTray(true); }))]);
 }
 /* ---- sandbox settings, kept on this phone */
-const prefs = { gentle: false, limit: 'some' };
+const prefs = { gentle: false, limit: 'some', threats: 'off' };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}')); } catch (e) { }
 const savePrefs = () => { try { localStorage.setItem('squall-cove-prefs', JSON.stringify(prefs)); } catch (e) { } };
 const LIMITS = { few: 2, some: 4, lots: 8 };
@@ -4161,6 +4239,7 @@ function sandboxSheet() {
     row('Camera pad', 'Buttons to zoom, turn and tilt the view.', prefs.camPad, () => { prefs.camPad = !prefs.camPad; }),
     row('Gentle mode', 'Turns off disasters. Good for young players.', prefs.gentle, () => { prefs.gentle = !prefs.gentle; if (prefs.gentle) calm(); }),
     menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
+    menuBtn('Threats: ' + { off: 'Off', some: 'Now and then', busy: 'Busy' }[prefs.threats || 'off'], 'Smugglers and raiders sometimes come. Armed boats deal with them. Tap to change.', () => { prefs.threats = { off: 'some', some: 'busy', busy: 'off' }[prefs.threats || 'off']; savePrefs(); sandboxSheet(); }),
     menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
 }
 /* ---- disasters sheet, with a way back */
@@ -4184,6 +4263,14 @@ function disastersSheet() {
   openMenu(rows);
 }
 $('mSandbox').addEventListener('click', sandboxSheet);
+const SEEDWORDS = ['kestrel', 'petrel', 'gannet', 'skerry', 'shoal', 'bluff', 'tern', 'halyard', 'fathom', 'driftwood', 'lantern', 'harbor', 'ember', 'thaw', 'cairn', 'osprey'];
+const startMap = (t, seed) => { try { localStorage.setItem('squall-cove-map', JSON.stringify({ t, seed })); } catch (e) { } toast('Building a new world'); setTimeout(() => location.reload(), 350); };
+const randSeed = () => SEEDWORDS[Math.floor(Math.random() * SEEDWORDS.length)] + '-' + Math.floor(Math.random() * 900 + 100);
+$('mMap').addEventListener('click', () => openMenu([menuHead('Now: ' + MAPS.find(q => q[0] === MAP.t)[1] + (MAP.t === 'cove' ? '' : ', seed ' + MAP.seed) + '. A new world replaces this one, so save first.'),
+  ...MAPS.map(([t, n, d]) => menuBtn(n, d, () => startMap(t, t === 'cove' ? 'cove' : (MAP.t === t ? MAP.seed : randSeed())))),
+  menuBtn('Surprise me', 'a random map and seed', () => startMap(MAPS[1 + Math.floor(Math.random() * (MAPS.length - 1))][0], randSeed())),
+  menuBtn('Same map, new seed', 'a different island of the same kind', () => startMap(MAP.t === 'cove' ? 'archipelago' : MAP.t, randSeed())),
+  menuBtn('Type a seed', 'the same seed gives the same island', () => { const v = (prompt('Seed (any word or number)', MAP.seed === 'cove' ? randSeed() : MAP.seed) || '').trim(); if (v) startMap(MAP.t === 'cove' ? 'archipelago' : MAP.t, v); })]));
 $('mTry').addEventListener('click', () => openMenu([menuHead('Things to try: ' + Object.keys(triedSet).length + ' of ' + TRIES.length), ...TRIES.map(([k, t]) => menuBtn((triedSet[k] ? 'Done  ' : '') + t, triedSet[k] ? 'You have made this happen' : 'Not yet', () => { }))]));
 const calmBtn = $('calmBtn');
 calmBtn.addEventListener('click', () => calm());
@@ -4766,6 +4853,52 @@ function updateTreeFire(dt) {
   if (lavaOn) { treeLavaT = (treeLavaT || 0) - dt; if (treeLavaT <= 0) { treeLavaT = 0.6; for (const t of trees) { if (t.dead || t.burn > 0) continue; const k = Math.round(t.z + TH) * TN + Math.round(t.x + TH); if (LV[k] > 0.05 || LV[k + 1] > 0.05 || LV[k - 1] > 0.05 || GT[k] > 420) igniteTree(t); } } }
 }
 let treeLavaT = 0, plantT = 0;
+/* ---- threats: optional smugglers and raiders. Nobody is hurt on screen: crews are knocked out of the fight and collected by medics, theirs by their own medic boat. */
+let threatT = 40, roleT = 0;
+const hostiles = () => boats.filter(b => (b.side === 'hostile' || b.raider) && !b.sunk);
+function edgeSpot() { for (let n = 0; n < 60; n++) { const a = Math.random() * 6.28, x = Math.cos(a) * 124, z = Math.sin(a) * 124; if (heightAt(x, z) < -4) return { x, z, a }; } return null; }
+function spawnThreat() {
+  const e = edgeSpot(); if (!e) return; const kind = Math.random() < 0.6 ? 'smuggler' : 'raider';
+  const bt = makeBoat('bay', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(bt, 2); bt.side = 'hostile'; bt.threat = kind; bt.anchor = null;
+  let spot = null; for (let n = 0; n < 200 && !spot; n++) { const a = Math.random() * 6.28, cp = coastPoint(a, -9); if (cp && heightAt(cp.x, cp.z) < -2) spot = cp; }
+  if (spot) orderTo(bt, spot.x, spot.z);
+  noteOnce('thr' + bt.id, kind === 'smuggler' ? 'A fast boat is running for the shore. Smugglers.' : 'A raider is closing on the cove.');
+}
+function updateThreats(dt) {
+  if (prefs.gentle || !(prefs.threats === 'some' || prefs.threats === 'busy')) { threatT = 40; }
+  else { threatT -= dt; if (threatT <= 0) { threatT = (prefs.threats === 'busy' ? 50 : 110) * (0.7 + Math.random() * 0.6); if (hostiles().length < 2 && boats.length < 14) spawnThreat(); } }
+  roleT -= dt; if (roleT > 0) return; roleT = 1.2;
+  for (const bt of hostiles().slice()) {                                                  // a smuggler that reaches the shore leaves its cargo and goes home
+    if (bt.threat === 'smuggler' && !bt.dropped && bt.order === null && bt.status !== 'Sinking') { bt.dropped = true; const p = bt.body.position; for (let i = 0; i < 2; i++) spawn(CARGO[0], p.x + (i - 0.5) * 2, p.y + 2, p.z); const e = edgeSpot(); if (e) orderTo(bt, e.x * 1.1, e.z * 1.1); }
+    if (bt.dropped && Math.hypot(bt.body.position.x, bt.body.position.z) > 118 && !bt.sunk) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); }
+  }
+  // their medic boat comes for any of their people in the water, then leaves with them
+  const wet = people.filter(q => !q.ride && (q.swim || (q.state === 'rag' && q.floating)) && q.fromHostile);
+  const med = boats.find(b => b.medic);
+  if (wet.length && !med && prefs.threats && prefs.threats !== 'off') { const e = edgeSpot(); if (e) { const mb = makeBoat('petrel', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(mb, 1); mb.side = 'hostile'; mb.medic = true; mb.anchor = null; noteOnce('medic' + mb.id, 'A medic boat comes for the people in the water.'); } }
+  if (med) { const aboard = people.filter(q => q.ride && q.ride.boat === med).length; if (aboard > 1 && !med.leaving) { med.leaving = true; const e = edgeSpot(); if (e) orderTo(med, e.x * 1.1, e.z * 1.1); } if (med.leaving && Math.hypot(med.body.position.x, med.body.position.z) > 118) { people.filter(q => q.ride && q.ride.boat === med).forEach(removePerson); removeBoat(med); } }
+  for (const q of people) if (q.ride && (q.ride.boat.side === 'hostile' || q.ride.boat.raider)) q.fromHostile = true;
+}
+/* ---- people with roles act for themselves when nobody has given them an order */
+const ROLE_LIST = ['Visitor', 'Medic', 'Firefighter', 'Walker', 'Hiker', 'Lifeguard', 'Deckhand', 'Scout'];
+function updateRoles(dt) {
+  for (const p of people) {
+    if (p.state !== 'idle' || p.order || p.job || p.ride || p.fp || p.hop || p.carry || p.swim || p === selPerson) continue;
+    p.rt = (p.rt || 0) - dt; if (p.rt > 0) continue; p.rt = 1.5 + Math.random();
+    const k = Math.round(p.z + TH) * TN + Math.round(p.x + TH), role = ROLE_LIST[p.variant % 8];
+    // everyone steps away from lava, hot ground and a spreading fire
+    let danger = null; for (let a = -4; a <= 4 && !danger; a += 2) for (let b = -4; b <= 4; b += 2) { const kk = k + a * TN + b; if (kk > 0 && kk < TN * TN && (LV[kk] > 0.05 || GT[kk] > 220)) { danger = { dx: -b, dz: -a }; break; } }
+    if (!danger) for (const t of burning) if (Math.hypot(t.x - p.x, t.z - p.z) < 7) { danger = { dx: p.x - t.x, dz: p.z - t.z }; break; }
+    if (danger) { const l = Math.hypot(danger.dx, danger.dz) || 1; const tx = p.x + danger.dx / l * 9, tz = p.z + danger.dz / l * 9; if (standY(tx, tz) > 0.3) { walkTo(p, tx, tz); continue; } }
+    if (role === 'Medic') {
+      let best = null, bd = 45; for (const q of people) { if (q === p || q.ride || q.fp || q.swim) continue; if (!(q.state === 'rag' || q.frozen || (q.cold || 0) > 0.6 || (q.heat || 0) > 0.8)) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { best = q; bd = d; } }
+      if (best) { if (bd < 2.6) { best.cold = Math.min(best.cold || 0, 0.3); best.heat = Math.min(best.heat || 0, 0.3); best.frozen = false; if (best.state === 'rag' && standY(best.x, best.z) > 0.2) standUp(best); noteOnce('med' + p.id, 'A medic helps someone back to their feet.'); } else walkTo(p, best.x, best.z); }
+    } else if (role === 'Firefighter') {
+      let best = null, bd = 40; for (const t of burning) { const d = Math.hypot(t.x - p.x, t.z - p.z); if (d < bd) { best = t; bd = d; } }
+      if (best) { if (bd < 3.4) { extinguishTree(best); puffSmoke(best.x, Math.max(heightAt(best.x, best.z), 0) + 2, best.z, 3, false, 1.5); noteOnce('ff2' + p.id, 'A firefighter puts out a burning tree.'); } else walkTo(p, best.x + (p.x - best.x) / bd * 2.5, best.z + (p.z - best.z) / bd * 2.5); }
+    }
+  }
+}
 /* ---- plants grow back where it is wet and warm enough, starting as saplings */
 function updatePlants(dt) {
   plantT -= dt; if (plantT > 0) return; plantT = 2.5; const T0 = clim.mean;
@@ -4889,7 +5022,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { MAP, genTerrain, updateThreats, spawnThreat, updateRoles, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, CLASSES, openClassPicker, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

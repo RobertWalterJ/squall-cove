@@ -89,3 +89,7 @@ Saving and loading, build preview with Turn, optional scenarios, waypoint routes
 
 ## Done in v7.1.0 (The world answers)
 - Ground temperature field (conducts, melts snow, boils moisture, glows, ignites trees, melts rock into lava above ~1000 C), erosion and deltas, plants that regrow, fire that runs downwind and stalls on wet soil and heats the air, terrain-bent wind with rain shadows, creeping dunes, bedrock saved, armed boats pick their own enemies.
+
+## Done in v7.2.0 (New worlds)
+- Seeded maps: Archipelago, Atoll, Fjord, Volcano island, River valley, Barrier coast (Menu, New world; seed shown and typeable), aged coasts, distant islands on the horizon, Bay class lifeboat remodelled, challenge cards (Stop the lava, Free the frozen harbour), optional Threats with medic boats, people with roles (medic, firefighter) who step away from lava and fire.
+- Not done: Large 512 m map (needs CELL refactor), crane/net/mine defences, fisher/builder/scout roles.

@@ -6,9 +6,9 @@ import math, bpy, bmesh
 from mathutils import Vector, Matrix
 from pg_core import *
 
-RED, WHITE, BOOT, BOTTOM, DECKC, GLASS = '#d52b1e', '#f1efe9', '#1d1d1f', '#6e2a22', '#6f6863', '#16222b'
+RED, WHITE, BOOT, BOTTOM, DECKC, GLASS = '#d52b1e', '#f1efe9', '#1d1d1f', '#8e2e24', '#6f6863', '#16222b'
 ORANGE, STEEL, GREY, DGREY = '#e86a1c', '#9aa1a8', '#8d9399', '#2d3035'
-HL = 9.5          # half length
+HL = 9.45         # half length (the stern fenders add the last 0.1 m, so the model is 19.0 m long)
 WSH = 3.165       # half beam at the top of the bulwark
 
 def sstep(x):
@@ -259,7 +259,7 @@ def build(name='bay_class'):
     parts.append(box((0.62, 0.62, 0.08), (mx, 0, zp + 0.04), material=mss))
     parts.append(cyl(0.06, 0.06, 0.3, 6, loc=(mx, 0, zp + 0.08), material=mdk))
     mrad = mat('radar', '#2b2b2b', 0.5)
-    sc = join([box((0.14, 1.25, 0.2), (mx, 0, zp + 0.5), material=mrad), box((0.2, 1.25, 0.06), (mx - 0.06, 0, zp + 0.5), material=mrad)], 'radar_bar')
+    sc = join([box((0.14, 1.5, 0.2), (mx, 0, zp + 0.5), material=mrad), box((0.2, 1.5, 0.06), (mx - 0.06, 0, zp + 0.5), material=mrad)], 'radar_bar')
     M.pivoted(sc, (mx, 0, zp + 0.5), 'anim_radar')
     parts.append(rod((mx, -0.55, zp + 0.95), (mx, 0.55, zp + 0.95), 0.03, 4, mrail))                       # yardarm with nav lights
     parts.append(navlight(mx, 0.55, zp + 0.95, '#ff2020')); parts.append(navlight(mx, -0.55, zp + 0.95, '#18d85a'))
@@ -270,7 +270,7 @@ def build(name='bay_class'):
     parts.append(rod((mx - 0.18, -0.2, zp + 0.08), (mx - 0.2, -0.22, zp + 1.1), 0.012, 3, mdk))
     parts.append(rod((mx + 0.16, -0.2, zp + 0.08), (mx + 0.16, -0.2, zp + 0.85), 0.012, 3, mdk))
     M.flag_on(mx, zp + 1.5, 0.45, parts)                                                                     # pennant at the masthead (bay_flag0)
-    M.flag_on(-9.15, zs(0.02) + 0.02, 0.55, parts)                                                          # ensign at the stern (bay_flag1)
+    M.flag_on(-9.2, zs(0.02) + 0.02, 0.45, parts)                                                          # ensign at the stern (bay_flag1)
 
     # --- foredeck
     zf = lambda x: zs(tz(x))
@@ -295,9 +295,11 @@ def build(name='bay_class'):
         parts.append(rod((sx0, ya, zst + 0.74), (sx0, yb, zst + 0.74), 0.03, 4, mrail)); parts.append(rod((sx0, ya, zst + 0.38), (sx0, yb, zst + 0.38), 0.022, 4, mrail))
         parts.append(rod((sx0, ya, zst), (sx0, ya, zst + 0.74), 0.035, 4, mrail))
 
+    stem = [(xt(1.0) + rake(1.0, z), 0.0, z) for z in (0.3, 0.9, 1.6, 2.4, 3.1, zt(1.0) - 0.04)]
+    parts.append(tube(stem, 0.07, 4, mblack, name='stembar', rot0=math.pi / 4))                              # black stem fender
     # --- stern: fenders, towing post, bollards
     for y in (-1.9, -0.95, 0.0, 0.95, 1.9):
-        parts.append(cyl(0.11, 0.11, 0.85, 8, loc=(-HL + 0.11, y, zs(0.0) - 0.95), material=mblack))
+        parts.append(cyl(0.1, 0.1, 0.85, 8, loc=(-HL, y, zs(0.0) - 0.95), material=mblack))
     mtow = mat('towpost', '#38342f', 0.6, 0.3)
     parts.append(cyl(0.2, 0.22, 0.85, 8, loc=(-8.35, 0, zs(0.02)), material=mtow))
     parts.append(cyl(0.3, 0.3, 0.08, 8, loc=(-8.35, 0, zs(0.02) + 0.85), material=mtow))
