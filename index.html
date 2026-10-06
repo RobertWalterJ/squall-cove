@@ -1362,19 +1362,24 @@ const CARGO = [
   { id: 'ice', node: 'ice', name: 'Ice block', density: 917, sw: '#cfe9f2', shape: 'box', fric: 0.03, rest: 0.05, shrink: 0.82 },
   { id: 'ball', node: 'ball', name: 'Beach ball', density: 35, sw: '#e3a948', shape: 'sphere', fric: 0.5, rest: 0.85 },
   { id: 'box', node: 'container_a', alt: 'container_b', name: 'Container', density: 380, sw: '#b8402a', shape: 'box', fric: 0.5, rest: 0.03 },
+  { id: 'stone', prim: [1.0, 0.5, 0.5], color: '#8d8a84', rough: 0.9, name: 'Stone block', density: 2700, sw: '#8d8a84', shape: 'box', fric: 0.8, rest: 0.04 },
+  { id: 'beam', prim: [3.0, 0.22, 0.22], color: '#b07a43', rough: 0.8, name: 'Timber beam', density: 650, sw: '#b07a43', shape: 'box', fric: 0.6, rest: 0.08 },
+  { id: 'steel', prim: [3.0, 0.2, 0.2], color: '#7d8792', rough: 0.35, metal: 0.9, name: 'Steel beam', density: 7800, sw: '#7d8792', shape: 'box', fric: 0.45, rest: 0.05 },
+  { id: 'glass', prim: [1.2, 1.2, 0.06], color: '#a8d8e8', rough: 0.1, alpha: 0.55, name: 'Glass pane', density: 2500, sw: '#a8d8e8', shape: 'box', fric: 0.3, rest: 0.05 },
 ];
 const objects = [];
 let countEl = null;
 function prepCargo(glbCargo, glbNature) {
   for (const c of CARGO) {
-    const variants = c.id === 'rock' ? ['boulder1', 'boulder3', 'boulder5'].map(n => nodeByName(glbNature, n)) : [nodeByName(glbCargo, c.node), c.alt && nodeByName(glbCargo, c.alt)].filter(Boolean);
+    if (c.prim) { const g = new THREE.Mesh(new THREE.BoxGeometry(...c.prim), new THREE.MeshStandardMaterial({ color: c.color, roughness: c.rough, metalness: c.metal || 0, transparent: !!c.alpha, opacity: c.alpha || 1 })); g.castShadow = true; g.receiveShadow = true; const wrapper = new THREE.Group(); wrapper.add(g); c.protos = [{ obj: wrapper, size: new THREE.Vector3(...c.prim) }]; }
+    else { const variants = c.id === 'rock' ? ['boulder1', 'boulder3', 'boulder5'].map(n => nodeByName(glbNature, n)) : [nodeByName(glbCargo, c.node), c.alt && nodeByName(glbCargo, c.alt)].filter(Boolean);
     c.protos = variants.map(n => {
       const g = n.clone(); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0);
       if (c.id === 'rock') g.scale.setScalar(0.62);
       const box = new THREE.Box3().setFromObject(g); const ctr = box.getCenter(new THREE.Vector3()); const size = box.getSize(new THREE.Vector3());
       const wrapper = new THREE.Group(); g.position.sub(ctr); wrapper.add(shadowAll(g));
       return { obj: wrapper, size };
-    });
+    }); }
     c.pmat = new CANNON.Material(c.id);
     world.addContactMaterial(new CANNON.ContactMaterial(groundMat, c.pmat, { friction: c.fric, restitution: c.rest }));
     world.addContactMaterial(new CANNON.ContactMaterial(boatMat, c.pmat, { friction: Math.min(0.6, c.fric + 0.15), restitution: c.rest * 0.6 }));
@@ -1402,9 +1407,78 @@ function spawn(c, x, y, z) {
   world.addBody(body);
   const mesh = pr.obj.clone(); scene.add(mesh);
   const fl = makeFloater(body, { pts, slab, volume, kH: 0.6, area, rad });
-  objects.push({ body, mesh, fl, c, pr });
-  while (objects.length > MAX_OBJ) { let far = objects[0], fd = -1; const ft = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt; for (const q of objects) { const d = Math.hypot(q.body.position.x - ft.x, q.body.position.z - ft.z); if (d > fd) { fd = d; far = q; } } removeObj(far); }       // the cargo furthest from you goes first, so a stack you are building keeps its base
+  const ob = { body, mesh, fl, c, pr, m: MATB[c.id] || MATB.crate, T: (MATB[c.id] || MATB.crate).ice ? -4 : 14, burn: 0, load: 0, dmg: 0, vol: volume, size: s.clone() }; body.sco = ob; body.addEventListener('collide', e => onImpact(ob, e)); objects.push(ob);
+  while (objects.length > MAX_OBJ) { let far = frags.length ? null : objects[0], fd = -1; if (frags.length) { depositFrag(frags[0]); } else { const ft = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt; for (const q of objects) { const d = Math.hypot(q.body.position.x - ft.x, q.body.position.z - ft.z); if (d > fd) { fd = d; far = q; } } removeObj(far); } }       // fragments go first, then the cargo furthest from you, so a stack you are building keeps its base
   updateCount();
+}
+/* ---- v8.5: structures. Every block has a material: how much impact energy per kilogram breaks it (str, J/kg), how much weight per square metre it carries (crush, kPa),
+   whether it burns, softens, melts or cracks when quenched. Blocks that break become fragments, and fragments settle into rubble that joins the ground. */
+const MATB = {
+  crate:  { name: 'wood', col: '#a8743f', str: 45, brit: 0.3, crush: 40, flam: 1, burnT: 280, cp: 1700, rubble: 3, frag: 4 },
+  barrel: { name: 'wood', col: '#9c6a38', str: 50, brit: 0.3, crush: 30, flam: 1, burnT: 280, cp: 1700, rubble: 3, frag: 4 },
+  beam:   { name: 'wood', col: '#b07a43', str: 40, brit: 0.4, crush: 120, flam: 1, burnT: 280, cp: 1700, rubble: 3, frag: 3 },
+  rock:   { name: 'rock', col: '#8a8780', str: 160, brit: 0.8, crush: 20000, shock: 250, melt: 1100, cp: 850, rubble: 4, frag: 4 },
+  stone:  { name: 'rock', col: '#8d8a84', str: 120, brit: 0.8, crush: 900, shock: 250, melt: 1100, cp: 850, rubble: 4, frag: 4 },
+  drum:   { name: 'plastic', col: '#2f6f8f', str: 400, brit: 0.1, crush: 25, flam: 1, burnT: 330, melt: 400, cp: 1900, rubble: 3, frag: 2 },
+  ingots: { name: 'metal', col: '#7d8792', str: 4000, brit: 0.05, crush: 50000, soft: 450, melt: 1250, cond: 1, cp: 450, rubble: 5, frag: 2 },
+  steel:  { name: 'metal', col: '#7d8792', str: 4000, brit: 0.05, crush: 4000, soft: 450, melt: 1250, cond: 1, cp: 450, rubble: 5, frag: 2 },
+  ice:    { name: 'ice', col: '#cfe9f2', str: 18, brit: 0.9, crush: 35, shock: 9999, ice: 1, cp: 2100, rubble: 1, frag: 5 },
+  ball:   { name: 'rubber', col: '#e3a948', str: 99999, brit: 0, crush: 99999, cp: 1900, rubble: 3, frag: 1 },
+  box:    { name: 'steel', col: '#b8402a', str: 700, brit: 0.1, crush: 150, soft: 450, melt: 1250, cond: 1, cp: 450, rubble: 5, frag: 3 },
+  glass:  { name: 'glass', col: '#a8d8e8', str: 22, brit: 1, crush: 30, shock: 120, melt: 900, cp: 840, rubble: 1, frag: 7 },
+};
+const frags = [], fragGeo = new THREE.BoxGeometry(1, 1, 1), fragMats = {}; let structT = 0;
+const fragMat = (m) => fragMats[m.col] || (fragMats[m.col] = new THREE.MeshStandardMaterial({ color: m.col, roughness: 0.85, transparent: m.name === 'glass', opacity: m.name === 'glass' ? 0.6 : 1 }));
+function fracture(o, why) {
+  if (o.gone) return; o.gone = true; const p = o.body.position, v = o.body.velocity, n = o.m.frag || 3, sz = o.size, fv = o.vol / n, side = Math.cbrt(fv);
+  for (let i = 0; i < n; i++) {
+    if (frags.length >= 80) depositFrag(frags[0]);
+    const hs = Math.max(0.04, side * 0.5), b = new CANNON.Body({ mass: Math.max(0.05, o.c.density * fv), shape: new CANNON.Box(new CANNON.Vec3(hs, hs, hs)), material: o.c.pmat, allowSleep: true, sleepSpeedLimit: 0.2, sleepTimeLimit: 0.8 });
+    b.position.set(p.x + rnd(-0.5, 0.5) * sz.x * 0.6, p.y + rnd(-0.3, 0.5) * sz.y * 0.6, p.z + rnd(-0.5, 0.5) * sz.z * 0.6); b.velocity.set(v.x * 0.5 + rnd(-2, 2), Math.abs(v.y) * 0.2 + rnd(0.5, 3), v.z * 0.5 + rnd(-2, 2)); b.angularVelocity.set(rnd(-4, 4), rnd(-4, 4), rnd(-4, 4)); settle(b);
+    const mesh = new THREE.Mesh(fragGeo, fragMat(o.m)); mesh.scale.set(hs * 2, hs * 2, hs * 2); mesh.castShadow = true; scene.add(mesh); world.addBody(b); b.sco = { frag: true };
+    frags.push({ body: b, mesh, vol: fv, m: o.m, life: 7 + Math.random() * 4, wet: 0 });
+  }
+  if (o.m.name === 'glass' || o.m.name === 'ice') for (let i = 0; i < 6; i++) fxG.emit(p.x + rnd(-0.4, 0.4), p.y, p.z + rnd(-0.4, 0.4), rnd(-2, 2), rnd(1, 4), rnd(-2, 2), rnd(0.4, 0.8), rnd(0.12, 0.25), 0.6, o.m.name === 'glass' ? [0.8, 0.95, 1, 0.8] : [0.9, 0.97, 1, 0.8], 9, 0.3);
+  else puffSmoke(p.x, p.y, p.z, 2, false, 1.0);
+  if (heightAt(p.x, p.z) < -0.15) splash(p.x, p.z, 0.4);
+  removeObj(o); updateCount(); tried('fracture');
+  noteOnce('fracture', why === 'crushed' ? 'A block was crushed under the weight above it.' : why === 'quench' ? 'A hot block cracked when it met water.' : 'A block shattered on impact.');
+}
+function depositFrag(f) { const p = f.body.position; depositGrain(p.x, p.z, f.vol, f.m.rubble || 4); world.removeBody(f.body); scene.remove(f.mesh); frags.splice(frags.indexOf(f), 1); }
+function onImpact(o, e) {
+  if (o.gone || o.m.str > 9e4) return; const ob = e.body, oth = ob.sco; if (oth && oth.frag) return;
+  const imp = Math.abs(e.contact.getImpactVelocityAlongNormal()); if (imp < 1.5) return;
+  const mo = ob.mass, share = mo === 0 ? 1 : mo / (o.body.mass + mo), E = 0.5 * imp * imp * share, str = o.m.str * (o.m.soft && o.T > o.m.soft ? Math.max(0.2, 1 - (o.T - o.m.soft) / Math.max(1, (o.m.melt || 1250) - o.m.soft)) : 1);
+  if (window.__dbgImp) window.__dbgImp.push([o.c.id, +imp.toFixed(2), +E.toFixed(1), +str.toFixed(1), mo]);
+  if (E > str) fracture(o, 'impact'); else if (simT - (o.hitT || -9) > 0.25) { o.hitT = simT; o.dmg += 0.3 * E / str; if (o.dmg > 1) fracture(o, 'impact'); }       // a landing fires one event per contact point: damage counts once per hit
+}
+function ashAt(x, z, r, a) { const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) { const d = Math.hypot(i, j); if (d > r) continue; const k = (gz + i) * TN + gx + j; if (k > 0 && k < TN * TN) ashData[k] = Math.max(ashData[k], a * (1 - d / (r + 1))); } ashTex.needsUpdate = true; }
+function updateStructures(dt) {
+  for (let i = frags.length - 1; i >= 0; i--) { const f = frags[i]; syncMesh(f.mesh, f.body); f.life -= dt; if (f.body.sleepState === CANNON.Body.SLEEPING || f.life <= 0 || f.body.position.y < -14) depositFrag(f); }
+  structT += dt; if (structT < 0.25) return; const d4 = structT; structT = 0;
+  // loads: who is resting on whom, from the contacts cannon already built
+  const up = new Map(), lowersOf = new Map();
+  for (const eq of world.contacts) {
+    const A = eq.bi.sco, B = eq.bj.sco; if (!A || !B || A.frag || B.frag || !A.m || !B.m) continue; const ny = eq.ni.y; let lo, hi; if (ny > 0.7) { lo = A; hi = B; } else if (ny < -0.7) { lo = B; hi = A; } else continue;
+    if (!up.has(lo)) up.set(lo, new Set()); up.get(lo).add(hi); lowersOf.set(hi, (lowersOf.get(hi) || new Set()).add(lo));
+  }
+  const memo = new Map(); const loadOf = (o, depth) => { if (memo.has(o)) return memo.get(o); if (depth > 40) return 0; memo.set(o, 0); let L = 0; const us = up.get(o); if (us) for (const u of us) L += (u.body.mass * G + loadOf(u, depth + 1)) / Math.max(1, (lowersOf.get(u) || { size: 1 }).size); memo.set(o, L); return L; };
+  for (const o of objects.slice()) {
+    if (o.gone) continue; const p = o.body.position, m = o.m, k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)), inSea = HGT[k] < -0.1 && p.y < waveH(p.x, p.z, simT) + o.size.y * 0.5, wet = inSea || WD[k] > 0.04 || SM[k] > 0.95 || snowData[k * 4] > 40;
+    if (up.has(o)) { o.load = loadOf(o, 0); const area = Math.max(0.01, o.vol / Math.max(o.size.x, o.size.y, o.size.z)); if (m.crush < 9e4 && o.load / area > m.crush * 1000 * (m.soft && o.T > m.soft ? 0.4 : 1)) { fracture(o, 'crushed'); continue; } } else o.load = 0;
+    const target = GT[k] + airTempAt(p.x, p.z), was = o.T; o.T += (target - o.T) * Math.min(1, 0.05 * (wet ? 4 : 1) * d4); if (inSea) o.T += (Math.min(target, 12) - o.T) * Math.min(1, 1.2 * d4);
+    if (m.shock && wet && was > m.shock) { fracture(o, 'quench'); continue; }
+    if (m.flam && !o.burn && o.T > m.burnT && !wet) o.burn = 14;
+    if (o.burn > 0) {
+      o.burn -= d4 * (wet || wx.rainAmt > 0.3 ? 5 : 1); o.T = Math.max(o.T, m.burnT + 40); const gy = p.y;
+      for (let q = 0; q < 3; q++) fxG.emit(p.x + rnd(-0.4, 0.4), gy + rnd(0.3, 1.1), p.z + rnd(-0.4, 0.4), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1), rnd(0.5, 0.9), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]); if (Math.random() < 0.5) puffSmoke(p.x, gy + 1, p.z, 1, true, 1);
+      heatGT(p.x, p.z, 1.4, 330); igniteTreesNear(p.x, p.z, 2.5); for (const q of objects) if (q !== o && !q.gone && q.m.flam && !q.burn && Math.hypot(q.body.position.x - p.x, q.body.position.z - p.z) < 2.6 && Math.random() < 0.25 * d4 * 4) q.T += 120;
+      o.body.mass = Math.max(1, o.body.mass * (1 - 0.06 * d4)); o.body.updateMassProperties(); const sc = 1 - 0.03 * d4; o.mesh.scale.multiplyScalar(sc > 0.5 ? sc : 0.5);
+      if (o.burn <= 0) { ashAt(p.x, p.z, 2, 190); removeObj(o); o.gone = true; updateCount(); noteOnce('burnt', 'A wooden block burned away to ash.'); continue; }
+    }
+    if (m.melt && o.T > m.melt) { const kind = m.rubble === 5 ? 5 : m.rubble === 1 ? 1 : 4; dumpGrains(p.x, p.z, o.vol * 0.9, 1.2, kind); fxG.emit(p.x, p.y + 0.3, p.z, 0, 2, 0, 0.5, 0.4, 1, [1, 0.6, 0.2, 1], 5, 0.5); removeObj(o); o.gone = true; updateCount(); noteOnce('melted', 'A block melted and ran onto the ground.'); continue; }
+    if (m.ice && o.T > 0.5) { o.meltF = (o.meltF || 0) + d4 * 0.0006 * Math.min(120, o.T); const sc = Math.max(0.2, 1 - o.meltF); o.mesh.scale.setScalar(sc); if (o.meltF > 0.8) { if (HGT[k] >= -0.1) { WD[k] += o.vol * 0.5; lakeWet = Math.max(lakeWet, 1); } removeObj(o); o.gone = true; updateCount(); } }
+  }
 }
 function removeObj(o) { world.removeBody(o.body); scene.remove(o.mesh); floaters.splice(floaters.indexOf(o.fl), 1); objects.splice(objects.indexOf(o), 1); }
 
@@ -1580,6 +1654,8 @@ function commitLand(full) {
 
 /* terraform history: one snapshot per stroke, so any digging can be taken back */
 const TRIES = [
+  ['fracture', 'Drop a glass pane or a stone block from a height and watch it shatter into rubble'],
+  ['burnblock', 'Light a wooden beam with a heat hold and watch it burn and the stack above it fall'],
   ['ripple', 'Drop a heavy rock into the water, or sail a boat fast past another, and watch the ripples spread'],
   ['sprout', 'Scatter seeds on moist earth and wait for them to sprout'],
   ['pile', 'Pour scrap metal or rock and watch it heap up at its own angle'],
@@ -4633,7 +4709,7 @@ function fulguriteAt(x, z) {
 function updateMaterials(dt) {
   for (const s of sandSrc) { s.acc = (s.acc || 0) + dt * 44; const n = Math.floor(s.acc); s.acc -= n; const y0 = Math.max(standY(s.x, s.z), 0) + 2.3, kind = { earth: 3, rock: 4, metal: 5 }[s.kind] || 1; for (let e = 0; e < n; e++) { const a = Math.random() * 6.283, sp = rnd(0.6, 2.4); spawnGrain(s.x, y0, s.z, Math.cos(a) * sp, rnd(2.5, 5.5), Math.sin(a) * sp, s.rate / 44, kind, 0.14 + Math.random() * 0.12); } }
   for (const f of furnaces) { f.t = (f.t || 0) - dt; if (f.t <= 0) { f.t = 0.4; heatGround(f.x, f.z, 6, 0.55); heatGT(f.x, f.z, 6, 950); } f.glow.material.color.setRGB(1, 0.35 + 0.15 * Math.sin(simT * 6 + f.x), 0.05); }
-  updateGrains(dt);
+  updateGrains(dt); updateStructures(dt);
   sandAcc += dt; if (sandAcc >= 1 / 12) { sandAcc = 0; stepSand(); }
   rip.acc += dt; if (rip.acc >= 1 / 30) { const rd = Math.min(rip.acc, 0.1); rip.acc = 0; stepRipples(rd); }
   heatAcc += dt; if (heatAcc >= 1 / 8) { const s = heatAcc; heatAcc = 0; stepHeat(s); }
@@ -5680,7 +5756,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
