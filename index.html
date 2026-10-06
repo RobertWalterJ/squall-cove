@@ -537,7 +537,7 @@ const skyTex = imgTex(D.sky[1], true); skyTex.wrapT = THREE.ClampToEdgeWrapping;
   for (let x = 0; x < 256; x++) { if (Math.abs(x - bi % 256) < 40) continue; const i = (62 * 256 + x) * 4; r += px[i]; g += px[i + 1]; b += px[i + 2]; n++; }
   FOG.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
 }
-scene.fog = new THREE.FogExp2(FOG, 0.0032);
+scene.fog = new THREE.FogExp2(FOG, 0.0009);
 const EQUI = `vec2 equirectUv2(vec3 d){ return vec2(atan(d.z, d.x) * 0.15915494 + 0.5, asin(clamp(d.y, -1.0, 1.0)) * 0.31830989 + 0.5); }`;
 const skyMat = new THREE.ShaderMaterial({
   uniforms: { tSky: { value: skyTex }, uTint: { value: new THREE.Color(1, 1, 1) } }, side: THREE.BackSide, depthWrite: false, fog: false,
@@ -2736,6 +2736,15 @@ const sky0 = { az: Math.atan2(sunDir.z, sunDir.x) };
 const wx = { sky: 'golden', rain: 0, fog: 0, dirMode: 'auto', base: Math.PI, cur: { ...SKIES.golden }, rainAmt: 0, imp: { rain: false, fog: false } };   // imp: the player has imposed rain or fog; otherwise the climate model decides
 const FOG0 = FOG.clone();
 const cA = new THREE.Color(), cB = new THREE.Color();
+function applyFog() {
+  let hum = 5, mean = 18, cloud = 0; try { hum = clim.hum; mean = clim.mean; cloud = clim.cloud; } catch (e) { }                // the climate model is built further down the file
+  const rel = hum / Math.max(2, 6 * Math.pow(1.07, mean)), mist = clamp((rel - 0.72) / 0.5, 0, 3);        // relative humidity above about 70 percent starts to thicken the air
+  let d = [0.0008, 0.0035, 0.010][wx.fog] + 0.0025 * wx.rainAmt + 0.0045 * mist * mist + 0.0022 * clamp(cloud / 3, 0, 1);
+  const cold = clamp((mean + 14) / 14, 0, 1); d *= 0.45 + 0.55 * cold;                                    // cold air holds little mist
+  let extreme = (wx.imp.fog && wx.fog === 2) || mist > 1.2; try { extreme = extreme || dis.hurricane > 0 || !!dis.tsunami || (dis.deluge || 0) > 0; } catch (e) { }
+  if (mode === 'god') { const dist = Math.max(70, camera.position.distanceTo(god.tgt)); d = Math.min(d, (extreme ? 1.7 : 0.6) / dist); }   // from above, ordinary haze never hides what you are looking at
+  scene.fog.density = d;
+}
 function stepWeather(dt) {
   const T = SKIES[wx.sky], C = wx.cur, k = 1 - Math.exp(-dt * 1.2);
   for (const key of ['el', 'az', 'sunI', 'hemiI', 'exp', 'envI']) C[key] += (T[key] - C[key]) * k;
@@ -2753,7 +2762,7 @@ function stepWeather(dt) {
   waterU.uSunCol.value.copy(C.sunC).multiplyScalar(dim);
   grassU.uSunCol.value.copy(C.sunC).multiplyScalar(0.9 * dim);
   scene.fog.color.copy(FOG0).multiply(C.fogV).multiplyScalar(dim);
-  scene.fog.density = ([0.0032, 0.008, 0.017][wx.fog] + 0.005 * wx.rainAmt) * (mode === 'god' ? clamp(90 / god.dist, 0.3, 1) : 1);
+  applyFog();
   rain.material.uniforms.uAmt.value = wx.rainAmt;
   const envI = C.envI * dim;
   if (Math.abs(envI - (wx.lastEnv ?? -1)) > 0.015) {          // three r160 has no scene-wide environment intensity, so set it on the materials
@@ -3976,7 +3985,7 @@ function startDeluge() { dis.deluge = 150; stormUp(2, 1, 3); toast('Deluge. The 
 
 /* ================================================================ v5.1: climate. Heat evaporates water, vapour drifts, cool air aloft turns it to cloud and rain. */
 const CN = 64, CK = CN * CN;                                    // a coarse 64 x 64 air grid, 4 m cells
-const CT = new Float32Array(CK).fill(18), CH = new Float32Array(CK).fill(5), CC = new Float32Array(CK), CT2 = new Float32Array(CK), CH2 = new Float32Array(CK), CC2 = new Float32Array(CK), CHT = new Float32Array(CK);
+const CT = new Float32Array(CK).fill(18), CH = new Float32Array(CK).fill(8), CC = new Float32Array(CK), CT2 = new Float32Array(CK), CH2 = new Float32Array(CK), CC2 = new Float32Array(CK), CHT = new Float32Array(CK);
 const CHG = new Float32Array(64 * 64);                            // ground height at the centre of each air cell
 const CW = new Float32Array(64 * 64).fill(16);                     // the warm layer a few hundred metres up (slower to change than the ground)
 const clim = { nose: 0, mid: 16, p: { rain: 1, snow: 0, frz: 0, sleet: 0 }, T: 18, acc: 0, emitT: 0, cloud: 0, hum: 0, rainLvl: 0, mean: 18, hotCells: 0 };
@@ -4007,7 +4016,7 @@ function stepClimate(dt) {
     // evaporation from open water, faster when hot
     let wet = h < 0 ? 1 : lakeWet > 0 ? Math.min(1, lakeDepth(x, z) * 6) : 0, hu = CH[c];
     if (wet > 0 && T > 8) {
-      const room = 0.65 * qsat(T) - hu;
+      const room = (h < 0 ? 0.45 : 0.65) * qsat(T) - hu;
       if (room > 0) { const e = Math.min(room, 0.5 * (T - 8) / 20 * wet * dt * (h < 0 ? 0.35 : 1)); hu += e; if (h >= 0) { const amt = e * 0.003; const gx = Math.round(x + TH) - 2, gz = Math.round(z + TH) - 2; for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) { const kk = (gz + a) * TN + gx + b; if (WD[kk] > 0) WD[kk] = Math.max(0, WD[kk] - amt); } } }
     }
     CH2[c] = hu; tSum += T; hSum += hu; if (T > 60) hot++;
@@ -4044,11 +4053,7 @@ function updateClimate(dt) {
     for (let n = 0; n < 3; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 0.5) { const j = c % CN, i = (c - j) / CN, x = j * 4 - TH + 2 + rnd(-2, 2), z = i * 4 - TH + 2 + rnd(-2, 2), dark = Math.min(1, CC[c] / 3); fxS.emit(x, rnd(60, 90), z, AU[c] * 0.6, 0, AV[c] * 0.6, 8, rnd(12, 22), 4, [0.92 - dark * 0.45, 0.93 - dark * 0.45, 0.95 - dark * 0.42, 0.3 + dark * 0.2], 0, 0.1); } }
   }
   // haze from clear vapour, a little heat shimmer tint, and dim light under heavy cloud
-  const haze = Math.min(1, clim.hum / 40);
-  scene.fog.density += 0.0035 * haze + 0.004 * Math.min(1, clim.cloud / 2);
   hemi.intensity *= 1 - 0.25 * Math.min(1, clim.cloud / 2);
-  const cold = Math.max(0, Math.min(1, (clim.mean + 12) / 14));              // cold air holds little mist: ease the fog off as it freezes
-  scene.fog.density *= 0.4 + 0.6 * cold; if (cold < 1) scene.fog.density = Math.min(scene.fog.density, 0.011);
   updatePrecipVisuals();
 }
 function addSource(x, z, k) {
@@ -4067,7 +4072,7 @@ function placeClimate(item, p) {
   addSource(p.x, p.z, item.climate === 'heat' ? 1.4 : -1.4); toast(item.climate === 'heat' ? 'Heat lamp placed. Water nearby will evaporate.' : 'Cooler placed. Vapour nearby turns to cloud and rain.');
 }
 function setAirTemp(T) { clim.T = T; renderTray(true); toast(T <= -5 ? 'Freezing air' : T <= 5 ? 'Cold air' : T <= 14 ? 'Cool air' : T <= 24 ? 'Mild air' : T <= 34 ? 'Warm air' : 'Hot air'); }
-function clearClimate() { CW.fill(16); clim.nose = 0; clim.p = { rain: 1, snow: 0, frz: 0, sleet: 0 }; CT.fill(18); CH.fill(5); CC.fill(0); clim.T = 18; clim.rainLvl = 0; for (const s of heatSrc) scene.remove(s.mesh); heatSrc.length = 0; }
+function clearClimate() { CW.fill(16); clim.nose = 0; clim.p = { rain: 1, snow: 0, frz: 0, sleet: 0 }; CT.fill(18); CH.fill(8); CC.fill(0); clim.T = 18; clim.rainLvl = 0; for (const s of heatSrc) scene.remove(s.mesh); heatSrc.length = 0; }
 
 /* ================================================================ v5.2: materials pack. Sand piles and slides, very high heat melts it, and it cools into glass. */
 const MH = new Float32Array(TN * TN), MOLT = new Uint8Array(TN * TN);          // material heat (1 = sand melts), molten flag
@@ -4396,7 +4401,7 @@ function computeWinds() {
     TU[c] = tu; TV[c] = tv; AU[c] = bx - 0.9 * tu; AV[c] = bz - 0.9 * tv;
     CUP[c] = Math.max(0, CT2[c] - TS[c]) * 0.35;                                                                         // updraft over cells warmer than their surroundings
     { const hl = CHG[j > 0 ? c - 1 : c], hr = CHG[j < CN - 1 ? c + 1 : c], hu = CHG[i > 0 ? c - CN : c], hd = CHG[i < CN - 1 ? c + CN : c], gx = (hr - hl) / 8, gz = (hd - hu) / 8, wu = wind.v.x + tu, wv = wind.v.z + tv, up = wu * gx + wv * gz;
-      if (up > 0) { CUP[c] += Math.min(3, up * 0.9); const nn = 0.35 / (1 + gx * gx + gz * gz); TU[c] -= gx * up * nn; TV[c] -= gz * up * nn; }                      // windward slope: air is forced up (cloud and rain) and turned along the hill
+      if (up > 0) { CUP[c] += Math.min(0.7, up * 0.18); const nn = 0.35 / (1 + gx * gx + gz * gz); TU[c] -= gx * up * nn; TV[c] -= gz * up * nn; }                      // windward slope: air is forced up (cloud and rain) and turned along the hill
       else if (up < 0) CUP[c] = Math.max(0, CUP[c] + up * 0.5);                                                                                          // lee side: air sinks and dries
       const hh = Math.max(0, CHG[c] - 4), sp = Math.min(0.35, hh * 0.012); TU[c] += wind.v.x * sp; TV[c] += wind.v.z * sp; }              // wind speeds up over ridges
   }
@@ -4423,7 +4428,7 @@ let stormT = 0;
 function updateStorms(dt) {
   stormT -= dt; if (stormT > 0) return; stormT = 1;
   if (prefs.gentle) return;
-  for (let n = 0; n < 24; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 2.2 && CUP[c] > 0.8) { const j = c % CN, i = (c - j) / CN; strikeAt(j * 4 - TH + 2 + rnd(-2, 2), i * 4 - TH + 2 + rnd(-2, 2)); noteOnce('storm', 'A thunderstorm has built over the hot, wet ground.'); break; } }
+  for (let n = 0; n < 24; n++) { const c = Math.floor(Math.random() * CK); if (CC[c] > 2.6 && CUP[c] > 1.3) { const j = c % CN, i = (c - j) / CN; strikeAt(j * 4 - TH + 2 + rnd(-2, 2), i * 4 - TH + 2 + rnd(-2, 2)); noteOnce('storm', 'A thunderstorm has built over the hot, wet ground.'); break; } }
 }
 
 /* ================================================================ v5.7: heat and wet map overlay, ice on boats, lighter climate update */
@@ -4837,7 +4842,7 @@ function updateTreeFire(dt) {
     if (Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);
     t.spread = (t.spread || 0) - dt;
     if (t.spread <= 0) {                                                                         // fire runs downwind and through dry ground, and stalls on wet soil
-      t.spread = 1; heatGT(t.x, t.z, 2.5, 520); const reach = 6.5 + Math.min(8, wind.ms * 0.6), wl = Math.hypot(wind.v.x, wind.v.z) || 1;
+      t.spread = 1; heatGT(t.x, t.z, 1.6, 330); const reach = 6.5 + Math.min(8, wind.ms * 0.6), wl = Math.hypot(wind.v.x, wind.v.z) || 1;
       if (wx.rainAmt < 0.5) for (const o of trees) {
         if (o.dead || o.burn > 0) continue; const dx = o.x - t.x, dz = o.z - t.z, dd = Math.hypot(dx, dz); if (dd > reach) continue;
         const k = Math.round(o.z + TH) * TN + Math.round(o.x + TH), along = (dx * wind.v.x + dz * wind.v.z) / (dd * wl + 1e-6), p = 0.32 * (1 - 0.85 * Math.min(1, SM[k])) * clamp(0.55 + along * 0.9 * Math.min(1, wind.ms / 8), 0.12, 1.8) * (dd < 6.5 ? 1 : 0.4);
@@ -4850,7 +4855,7 @@ function updateTreeFire(dt) {
       const gx = Math.round(t.x + TH), gz = Math.round(t.z + TH); for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) { const d = Math.hypot(a, b); if (d > 3) continue; const k = (gz + a) * TN + gx + b; if (k > 0 && k < TN * TN) ashData[k] = Math.max(ashData[k], 170 * (1 - d / 4)); } ashTex.needsUpdate = true;       // a scorched patch
     }
   }
-  if (lavaOn) { treeLavaT = (treeLavaT || 0) - dt; if (treeLavaT <= 0) { treeLavaT = 0.6; for (const t of trees) { if (t.dead || t.burn > 0) continue; const k = Math.round(t.z + TH) * TN + Math.round(t.x + TH); if (LV[k] > 0.05 || LV[k + 1] > 0.05 || LV[k - 1] > 0.05 || GT[k] > 420) igniteTree(t); } } }
+  if (lavaOn) { treeLavaT = (treeLavaT || 0) - dt; if (treeLavaT <= 0) { treeLavaT = 0.6; for (const t of trees) { if (t.dead || t.burn > 0) continue; const k = Math.round(t.z + TH) * TN + Math.round(t.x + TH); if (LV[k] > 0.05 || LV[k + 1] > 0.05 || LV[k - 1] > 0.05 || GT[k] > 560) igniteTree(t); } } }
 }
 let treeLavaT = 0, plantT = 0;
 /* ---- threats: optional smugglers and raiders. Nobody is hurt on screen: crews are knocked out of the fight and collected by medics, theirs by their own medic boat. */
