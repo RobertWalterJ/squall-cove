@@ -384,6 +384,152 @@ addEventListener('error', (e) => fail(e.error || e.message));
 addEventListener('unhandledrejection', (e) => fail(e.reason));
 function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'; if (msg) $('loadMsg').textContent = msg; }
 
+
+/* ================================================================ sound (see SOUND-DESIGN.md)
+   Web Audio engine: buses with a limiter, a manifest of Ogg assets loaded by group, spatial one-shots (distance, air absorption, pan), state-driven beds (wind, sea, surf, rain, fire, birds, music),
+   per-boat engine layers, footsteps, and a handful of hooks the game calls. Everything is a no-op until the first tap or key starts the audio context, and silently ignores assets that are not there. */
+const Snd = (() => {
+  const A = { ctx: null, ready: false, man: null, fam: {}, bufs: {}, pend: {}, grp: {}, inst: {}, voices: 0, last: {}, lastVar: {}, L: { x: 0, y: 0, z: 0, rx: 1, rz: 0 }, hold: { until: 0, kind: null, x: 0, z: 0 }, grains: { sand: 0, earth: 0, rock: 0, metal: 0, x: 0, z: 0 }, T: 0, tickT: 0, under: false, stats: { played: 0, culled: 0, loaded: 0 } };
+  const touch = matchMedia('(pointer: coarse)').matches; A.max = touch ? 14 : 24;
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v)); A.cl = cl;
+  const BUS = ['amb', 'wx', 'water', 'mat', 'veh', 'ppl', 'ui', 'mus'];
+  A.vol = { master: 0.8, amb: 1, wx: 1, water: 1, mat: 1, veh: 1, ppl: 1, ui: 0.9, mus: 0.35 }; A.on = true;
+  A.setPrefs = (p) => { if (!p) return; A.on = p.on !== false; if (p.vol !== undefined) A.vol.master = p.vol; if (p.mus !== undefined) A.vol.mus = p.mus; A.applyVol(); };
+  A.applyVol = () => { if (!A.ctx) return; const t = A.ctx.currentTime; A.master.gain.setTargetAtTime(A.on ? A.vol.master : 0, t, 0.05); for (const b of BUS) A.buses[b].gain.setTargetAtTime(A.vol[b], t, 0.05); };
+  A.init = () => {
+    if (A.ctx) { if (A.ctx.state === 'suspended') A.ctx.resume(); return; }
+    try { const C = window.AudioContext || window.webkitAudioContext; A.ctx = new C({ latencyHint: 'interactive' }); } catch (e) { return; }
+    const c = A.ctx; A.master = c.createGain(); A.mlp = c.createBiquadFilter(); A.mlp.type = 'lowpass'; A.mlp.frequency.value = 20000;
+    const comp = c.createDynamicsCompressor(); comp.threshold.value = -9; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.003; comp.release.value = 0.18;
+    A.master.connect(A.mlp); A.mlp.connect(comp); comp.connect(c.destination); A.buses = {};
+    for (const b of BUS) { const g = c.createGain(); g.connect(A.master); A.buses[b] = g; }
+    A.applyVol();
+    fetch('audio/manifest.json').then(r => r.ok ? r.json() : null).then(m => {
+      if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
+      A.ready = true; A.group('core');
+    }).catch(() => { });
+  };
+  A.group = async (g) => {
+    if (!A.man || A.grp[g]) return; A.grp[g] = 1; const ids = Object.keys(A.man).filter(id => A.man[id].group === g && !A.bufs[id]); let i = 0;
+    const worker = async () => { while (i < ids.length) { const id = ids[i++]; try { const r = await fetch(A.man[id].file); if (!r.ok) continue; const ab = await r.arrayBuffer(); A.bufs[id] = await A.ctx.decodeAudioData(ab); A.stats.loaded++; } catch (e) { } } };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+  };
+  const entry = (id) => A.man && A.man[id];
+  A.pick = (stem) => { const ids = A.fam[stem]; if (!ids) return null; const ok = ids.filter(id => A.bufs[id]); if (!ok.length) { const e = entry(ids[0]); if (e && !A.grp[e.group]) A.group(e.group); return null; } let id = ok[(Math.random() * ok.length) | 0]; if (ok.length > 1 && id === A.lastVar[stem]) id = ok[(ok.indexOf(id) + 1) % ok.length]; A.lastVar[stem] = id; return id; };
+  const spat = (o, e) => {
+    let g = 1, f = 20000, pan = 0, d = 0;
+    if (o && o.x !== undefined) { const L = A.L, dx = o.x - L.x, dz = o.z - L.z, dy = (o.y !== undefined ? o.y - L.y : 0), len = Math.hypot(dx, dz) || 1; d = Math.hypot(dx, dz, dy * 0.5); const ref = 7 + 4 * (e.weight || 1); g = ref / (ref + d * 0.9); f = Math.max(800, 17000 / (1 + d / 50)); pan = cl((dx * L.rx + dz * L.rz) / len * Math.min(1, len / 10), -0.9, 0.9); }
+    return { g, f, pan, d };
+  };
+  A.ui = (stem, gain) => A.fx(stem, undefined, undefined, { gain: gain || 1 });
+  A.fx = (stem, x, z, o) => {
+    if (!A.ready || !A.on || A.ctx.state !== 'running') return null; o = o || {}; const id = A.pick(stem); if (!id) return null; const e = entry(id), now = A.ctx.currentTime;
+    if (now - (A.last[stem] || -9) < (o.gap !== undefined ? o.gap : 0.045)) { A.stats.culled++; return null; } A.last[stem] = now;
+    const sp = spat(x !== undefined ? { x, z, y: o.y } : null, e); if (x !== undefined && sp.d > (e.maxDist || 160) * (o.far || 1)) { A.stats.culled++; return null; }
+    let gain = (o.gain !== undefined ? o.gain : 1) * (e.gain || 1) * sp.g * (10 ** ((Math.random() * 3 - 1.5) / 20)); if (gain < 0.004) { A.stats.culled++; return null; }
+    if (A.voices >= A.max) { if ((e.weight || 1) < 3 && gain < 0.35) { A.stats.culled++; return null; } }
+    const c = A.ctx, src = c.createBufferSource(); src.buffer = A.bufs[id]; const rr = e.rate || [0.95, 1.05]; src.playbackRate.value = (rr[0] + Math.random() * (rr[1] - rr[0])) * (o.rate || 1);
+    const g = c.createGain(); g.gain.value = gain; let node = src.connect(g);
+    if (sp.f < 16000) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = sp.f; node = node.connect(f); }
+    if (c.createStereoPanner && x !== undefined) { const p = c.createStereoPanner(); p.pan.value = sp.pan; node = node.connect(p); }
+    node.connect(A.buses[e.bus] || A.buses.mat); A.voices++; src.onended = () => { A.voices--; try { g.disconnect(); } catch (er) { } }; src.start(); A.stats.played++; return src;
+  };
+  // looping instances: keyed so each boat, bed or tool owns its own source; level 0 for a few seconds stops the source
+  A.set = (key, stem, level, o) => {
+    if (!A.ready || A.ctx.state !== 'running') return; o = o || {}; let it = A.inst[key]; const c = A.ctx, t = c.currentTime;
+    if (!it) { if (level < 0.01) return; const id = A.pick(stem) || (A.fam[stem] && A.fam[stem].find(i => A.bufs[i])); if (!id || !A.bufs[id]) return; const e = entry(id), src = c.createBufferSource(); src.buffer = A.bufs[id]; src.loop = true; src.loopStart = 0; src.loopEnd = A.bufs[id].duration; src.start(0, Math.random() * A.bufs[id].duration);
+      const g = c.createGain(); g.gain.value = 0; const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 20000; const p = c.createStereoPanner ? c.createStereoPanner() : null; src.connect(g); g.connect(f); if (p) { f.connect(p); p.connect(A.buses[e.bus] || A.buses.amb); } else f.connect(A.buses[e.bus] || A.buses.amb); it = A.inst[key] = { src, g, f, p, e, quiet: 0, stem }; }
+    let gain = level * (it.e.gain || 1), cut = o.cut || 20000, pan = o.pan || 0;
+    if (o.x !== undefined) { const sp = spat(o, it.e); if (sp.d > (it.e.maxDist || 200)) gain = 0; else { gain *= sp.g; cut = Math.min(cut, sp.f); pan = sp.pan; } }
+    it.g.gain.setTargetAtTime(gain, t, o.tc || 0.35); it.f.frequency.setTargetAtTime(cut, t, 0.3); if (it.p) it.p.pan.setTargetAtTime(pan, t, 0.2); if (o.rate) it.src.playbackRate.setTargetAtTime(o.rate, t, 0.25);
+    it.quiet = gain < 0.003 ? it.quiet + 1 : 0; it.t = A.T;
+  };
+  A.stopAll = () => { for (const k in A.inst) { try { A.inst[k].src.stop(); } catch (e) { } delete A.inst[k]; } };
+  // ---- hooks the game calls
+  A.splash = (x, z, big) => { const sz = big < 0.35 ? 'xs' : big < 1 ? 's' : big < 2.4 ? 'm' : big < 4.5 ? 'l' : 'xl'; A.fx('water_splash_' + sz, x, z, { gain: 0.45 + 0.2 * Math.min(4, big), y: 0.5 }); };
+  const IMPACT = { wood: 'mat_wood_knock', plank: 'mat_wood_plank_drop', barrel: 'mat_wood_barrel_knock', rock: 'mat_stone_tock', metal: 'mat_metal_clang_s', steel: 'mat_metal_clang_s', glass: 'mat_glass_ping', ice: 'mat_ice_crack', plastic: 'mat_plastic_drum_hollow', rubber: 'mat_plastic_ball_bounce' };
+  A.impact = (o, imp, other) => {
+    if (!A.ready || o.gone) return; const t = A.T; if (t - (o.sndT || -9) < 0.14) return; o.sndT = t; const p = o.body.position, id = o.c.id, m = o.body.mass; if (heightAt(p.x, p.z) < -0.3 && p.y < waveH(p.x, p.z, simT) + 0.4) return;       // in the sea: the water sounds take over
+    let stem = IMPACT[o.m.name] || 'mat_wood_knock'; if (id === 'crate' && m > 150) stem = 'mat_wood_crate_slam'; else if (id === 'barrel') stem = 'mat_wood_barrel_knock'; else if (id === 'beam') stem = 'mat_wood_plank_drop'; else if (id === 'drum') stem = 'mat_plastic_drum_hollow'; else if (id === 'ball') stem = 'mat_plastic_ball_bounce';
+    else if (id === 'ingots') stem = 'mat_metal_ingot_clunk'; else if (id === 'box') stem = 'mat_metal_container_boom'; else if (id === 'steel') stem = imp > 6 ? 'mat_metal_clang_l' : 'mat_metal_clang_s'; else if (o.m.name === 'rock') stem = 'mat_stone_tock';
+    A.fx(stem, p.x, p.z, { gain: cl(imp / 9, 0.12, 1.2) * cl(0.5 + m / 800, 0.5, 1.5), rate: cl(1.25 - Math.log10(1 + m) * 0.22, 0.6, 1.4), y: p.y, gap: 0.03 });
+  };
+  A.fracture = (o, why) => {
+    const p = o.body.position, n = o.m.name; let stem = 'mat_wood_crack'; if (why === 'quench') stem = 'water_quench_hiss'; else if (n === 'glass') stem = o.vol > 0.05 ? 'mat_glass_shatter_large' : 'mat_glass_shatter_small'; else if (n === 'ice') stem = 'mat_ice_break_large'; else if (n === 'rock') stem = 'mat_stone_shatter'; else if (n === 'metal' || n === 'steel') stem = 'mat_metal_bend_groan'; else if (why === 'crushed') stem = 'mat_wood_collapse'; else if (o.vol > 0.3) stem = 'mat_wood_splinter';
+    A.fx(stem, p.x, p.z, { gain: 1.0, y: p.y, gap: 0.02 }); if (n === 'glass') setTimeout(() => A.fx('mat_glass_shards_settle', p.x, p.z, { gain: 0.8 }), 350);
+  };
+  A.grain = (kind, x, z, vol) => { const k = kind === 1 ? 'sand' : kind === 3 ? 'earth' : kind === 4 ? 'rock' : kind === 5 ? 'metal' : null; if (!k) return; A.grains[k] += Math.min(1, vol * 3 + 0.05); A.grains.x = x; A.grains.z = z; };
+  A.holdKind = (kind, x, z) => { A.hold.until = A.T + 0.3; A.hold.kind = kind; A.hold.x = x; A.hold.z = z; };
+  A.listen = () => {
+    const c = typeof camera !== 'undefined' ? camera : null; if (!c) return; const L = A.L; c.updateMatrixWorld(); const m = c.matrixWorld.elements; L.rx = m[0]; L.rz = m[2]; const rl = Math.hypot(L.rx, L.rz) || 1; L.rx /= rl; L.rz /= rl;
+    if (mode === 'god') { L.x = god.tgt.x; L.z = god.tgt.z; L.y = 2 + Math.min(40, c.position.y * 0.25); } else { L.x = c.position.x; L.z = c.position.z; L.y = c.position.y; }
+  };
+  const WIND = [['amb_wind_light', 3.2], ['amb_wind_fresh', 9.5], ['amb_wind_gale', 16], ['amb_wind_hurricane', 38]], SEAS = [['amb_sea_calm', 0.1], ['amb_sea_moderate', 0.28], ['amb_sea_rough', 0.7]];
+  const nearest = (arr, x, z, f) => { let d = 1e9; for (const o of arr) d = Math.min(d, Math.hypot(f(o).x - x, f(o).z - z)); return d; };
+  const ENG = { bollard: 'tug', bay: 'lifeboat', hero: 'patrol', hover: 'hover', louis: 'icebreaker', arpatuuq: 'icebreaker', terry: 'icebreaker', radisson: 'icebreaker', molly: 'icebreaker', martha: 'icebreaker', donjek: 'icebreaker', franklin: 'icebreaker' };
+  A.tick = () => {                                              // beds, ten times a second
+    const L = A.L, U = wind.ms, amp = sea.amp, rain = wx.rainAmt, sky = wx.sky, night = sky === 'night', day = sky === 'day' || sky === 'golden' || sky === 'dawn';
+    const camY = typeof camera !== 'undefined' ? camera.position.y : 20, underwater = mode !== 'god' && camY < waveH(L.x, L.z, simT) - 0.15; if (underwater !== A.under) { A.under = underwater; A.mlp.frequency.setTargetAtTime(underwater ? 650 : 20000, A.ctx.currentTime, 0.15); }
+    const h0 = heightAt(L.x, L.z), onWater = h0 < -0.2, storm = cl(Math.max(rain, (U - 9) / 14, dis.hurricane > 0 ? 1 : 0), 0, 1);
+    // shoreline: nearest crossing along sixteen rays
+    if (A.T - (A.shoreT || -9) > 0.5) { A.shoreT = A.T; let best = 140; for (let r = 0; r < 16; r++) { const a = r * 0.3927; for (let d = 12; d <= 120; d += 12) { const hh = heightAt(L.x + Math.cos(a) * d, L.z + Math.sin(a) * d); if ((hh < 0) !== (h0 < 0)) { best = Math.min(best, d); break; } } } A.shore = best; }
+    const shore = A.shore === undefined ? 140 : A.shore;
+    const w = WIND.map(([id, u]) => Math.exp(-(((U - u) / (u * 0.55 + 1.5)) ** 2))); WIND.forEach(([id], i) => A.set('bed:' + id, id, w[i] * cl(0.22 + U * 0.04, 0.2, 1) * (underwater ? 0.1 : 1), { rate: 1, cut: underwater ? 500 : 20000 }));
+    A.set('bed:rig', 'amb_wind_rigging', cl((U - 4) / 14, 0, 1) * (boats.length ? 0.5 : 0) * (mode === 'helm' ? 1 : 0.35));
+    const sw = SEAS.map(([id, a]) => Math.exp(-(((amp - a) / (a * 0.6 + 0.04)) ** 2))), seaRate = cl((swell.k / 0.16) ** 0.25, 0.82, 1.2), seaG = onWater ? 1 : cl(1 - (140 - shore) / 140 * 0.4, 0.35, 0.8) * cl(shore / 20, 0.3, 1);
+    SEAS.forEach(([id], i) => A.set('bed:' + id, id, sw[i] * 0.9 * seaG * (underwater ? 0.1 : 1), { rate: seaRate }));
+    const surfG = cl(Math.exp(-shore / 55), 0, 1) * cl(0.35 + amp * 1.2, 0.3, 1); A.set('bed:surfg', 'amb_surf_gentle', surfG * (amp < 0.45 ? 1 : 0.3), { rate: seaRate }); A.set('bed:surfh', 'amb_surf_heavy', surfG * cl((amp - 0.3) * 2.2, 0, 1), { rate: seaRate });
+    A.set('bed:rainl', 'amb_rain_light', cl(rain * 2.2, 0, 1) * (1 - cl((rain - 0.45) * 2.5, 0, 1)) * (onWater ? 0.5 : 1)); A.set('bed:rainh', 'amb_rain_heavy', cl((rain - 0.35) * 1.8, 0, 1) * (onWater ? 0.5 : 1)); A.set('bed:rainw', 'amb_rain_on_water', cl(rain * 1.6, 0, 1) * (onWater ? 1 : 0.35));
+    let fireG = 0, fx = 0, fz = 0; for (const t of burning) { const d = Math.hypot(t.x - L.x, t.z - L.z); const g = 1 / (1 + d / 24); if (g > fireG) { fireG = g; fx = t.x; fz = t.z; } } A.set('bed:fire', 'amb_fire_bed', cl(fireG * (0.35 + burning.length * 0.08), 0, 1));
+    if (lavaOn && lbx) { const lx = G2W((lbx.x0 + lbx.x1) / 2), lz = G2W((lbx.z0 + lbx.z1) / 2), d = Math.hypot(lx - L.x, lz - L.z); A.set('bed:lava', 'amb_lava_bubble', 0.8 / (1 + d / 45)); } else A.set('bed:lava', 'amb_lava_bubble', 0);
+    const calm = cl(1 - storm * 1.3, 0, 1) * (underwater ? 0 : 1); A.set('bed:gulls', 'amb_gulls', day ? calm * 0.6 * cl((90 - Math.abs(shore - 25)) / 90, 0.15, 1) : 0); A.set('bed:birds', 'amb_birds_day', day && !onWater ? calm * 0.55 : 0); A.set('bed:crick', 'amb_crickets_night', night && !onWater ? calm * 0.5 : 0); A.set('bed:forest', 'amb_forest_air', !onWater ? calm * 0.35 : 0);
+    if (pierInfo) A.set('bed:harbour', 'amb_harbour_far', 0.5 / (1 + Math.hypot(pierInfo.c.x - L.x, pierInfo.c.z - L.z) / 60) * calm);
+    A.set('bed:under', 'amb_underwater', underwater ? 1 : 0);
+    // music: one pad for the time of day, the tension layers under threats and storms
+    const mk = { dawn: 'mus_pad_dawn', day: 'mus_pad_day', golden: 'mus_pad_day', dusk: 'mus_pad_dusk', night: 'mus_pad_night' }; for (const k of ['dawn', 'day', 'dusk', 'night']) A.set('bed:mus' + k, 'mus_pad_' + k, mk[sky] === 'mus_pad_' + k ? 0.8 : 0, { tc: 4 });
+    A.set('bed:mustens', 'mus_tension_layer', hostiles().length || boats.some(b => b.disguise && b.disguise.susp > 0.6) ? 0.7 : 0, { tc: 3 }); A.set('bed:musstorm', 'mus_storm_layer', storm > 0.55 ? (storm - 0.4) : 0, { tc: 3 });
+    // tool in hand
+    const H = A.hold, HK = { heat: 'hold_heat', cold: 'hold_cold', water: 'hold_water', lightning: 'hold_lightning_charge', spark: 'hold_electricity', fire: 'hold_fire', lava: 'hold_lava', sand: 'hold_sand', earth: 'hold_earth', rock: 'hold_rock', metal: 'hold_metal', seed: 'hold_seed' };
+    for (const k in HK) A.set('hold:' + k, HK[k], H.kind === k && A.T < H.until ? 0.8 : 0, { x: H.x, z: H.z, tc: 0.12 });
+    // poured grains: the loop level follows how much has landed lately
+    for (const k of ['sand', 'earth', 'rock', 'metal']) { A.grains[k] *= 0.78; A.set('grain:' + k, 'grain_' + k + '_pour', cl(A.grains[k] * 0.9, 0, 1), { x: A.grains.x, z: A.grains.z, tc: 0.15 }); }
+    // boats: wake wash and engines for the nearest few
+    const near = boats.filter(b => !b.sunk && b.body).map(b => ({ b, d: Math.hypot(b.body.position.x - L.x, b.body.position.z - L.z) })).filter(q => q.d < 150).sort((a, b) => a.d - b.d).slice(0, 4), live = new Set();
+    for (const { b, d } of near) {
+      const v = Math.hypot(b.body.velocity.x, b.body.velocity.z), p = b.body.position, fam = ENG[b.key], thr = cl(Math.abs(b.throttle || 0), 0, 1), motor = b.sp.kind === 'motor' && !b.sunk && (boatCrew(b).length > 0 || mode === 'helm'); const k = 'eng:' + b.id; live.add(k);
+      A.set(k + ':wake', 'water_wake_loop', cl(v / 7, 0, 1) * 0.7, { x: p.x, z: p.z, rate: 0.8 + cl(v / 12, 0, 0.5) });
+      if (fam && motor) { const r = cl(Math.max(thr, v / (b.sp.L * 0.6 + 4)), 0, 1); const lo = cl(1 - r * 2, 0, 1), hi = cl(r * 2 - 0.8, 0, 1), mid = cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1), rate = 0.92 + r * 0.18, w = 0.8, cutI = mode === 'helm' && boats[activeIdx] === b ? 1 : 1;
+        A.set(k + ':lo', 'veh_eng_' + fam + '_lo', lo * w, { x: p.x, z: p.z, rate }); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', mid * w, { x: p.x, z: p.z, rate }); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', hi * w, { x: p.x, z: p.z, rate }); }
+      else if (b.sp.kind === 'sail') A.set(k + ':luff', 'veh_sail_luff', cl((U - 3) / 12, 0, 1) * 0.4, { x: p.x, z: p.z });
+      if (b.fire > 0.25) A.set(k + ':fire', 'veh_fire_on_boat_loop', 0.7, { x: p.x, z: p.z });
+    }
+    for (const k in A.inst) if (k.startsWith('eng:') && !live.has(k.split(':').slice(0, 2).join(':'))) { const it = A.inst[k]; it.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.3); it.quiet = 99; }
+    if (heli.on && heli.g) A.set('air:heli', 'veh_heli_rotor_loop', 0.9, { x: heli.pos.x, z: heli.pos.z }); else A.set('air:heli', 'veh_heli_rotor_loop', 0);
+    if (bomber.on && bomber.g) A.set('air:bomb', 'veh_prop_big_loop', 0.9, { x: bomber.pos.x, z: bomber.pos.z }); else A.set('air:bomb', 'veh_prop_big_loop', 0);
+    if (dis.tornados && dis.tornados.length) { const tn = dis.tornados[0]; A.set('wx:torn', 'wx_tornado_loop', 0.9, { x: tn.x, z: tn.z }); } else A.set('wx:torn', 'wx_tornado_loop', 0);
+    if (typeof volcanoes !== 'undefined' && volcanoes.length) A.set('wx:erupt', 'wx_eruption_loop', 0.6, { x: volcanoes[0].x || 0, z: volcanoes[0].z || 0 }); else A.set('wx:erupt', 'wx_eruption_loop', 0);
+    // loops that have been silent for a few seconds are stopped to save CPU
+    for (const k in A.inst) { const it = A.inst[k]; if (it.quiet > 40) { try { it.src.stop(); } catch (e) { } try { it.g.disconnect(); } catch (e) { } delete A.inst[k]; } }
+  };
+  const STEP = { sand: 'ppl_step_sand', grass: 'ppl_step_grass', gravel: 'ppl_step_gravel', wood: 'ppl_step_wood', rock: 'ppl_step_rock', water: 'ppl_step_water', snow: 'ppl_step_snow', deck: 'ppl_step_deck', metal: 'ppl_step_metal' };
+  A.steps = (dt) => {
+    const L = A.L; for (const p of people) {
+      if (p.state === 'rag' || p.fp && false) continue; const dx = p.x - (p._sx ?? p.x), dz = p.z - (p._sz ?? p.z); p._sx = p.x; p._sz = p.z; const mv = Math.hypot(dx, dz); if (mv > 3 || mv < 0.002) continue; p._sacc = (p._sacc || 0) + mv; if (p._sacc < 0.78) continue; p._sacc = 0;
+      if (Math.hypot(p.x - L.x, p.z - L.z) > 32) continue; const h = standY(p.x, p.z); let k = 'grass'; if (p.ride) k = 'deck'; else if (h < 0.25) k = 'water'; else if (pierInfo && Math.hypot(p.x - pierInfo.c.x, p.z - pierInfo.c.z) < 14 && pierY(p.x, p.z) > -90) k = 'wood'; else if (h < 1.7) k = 'sand'; else if (h > 14) k = 'rock'; else { const gi = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); if (snowData[gi * 4] > 60) k = 'snow'; else if (matData[gi * 4 + 1]) k = 'sand'; else if (MET[gi] > 200) k = 'metal'; else if (MET[gi] > 0) k = 'gravel'; }
+      A.fx(STEP[k], p.x, p.z, { gain: 0.5, gap: 0.01, far: 0.3, y: p.y });
+    }
+  };
+  A.frame = (dt) => {
+    A.T += dt; if (!A.ready) return; A.listen(); A.tickT -= dt; if (A.tickT <= 0) { A.tickT = 0.1; A.tick(); }
+    A.stepT = (A.stepT || 0) - dt; if (A.stepT <= 0) { A.stepT = 0.08; A.steps(0.08); }
+  };
+  A.stats2 = () => ({ ready: A.ready, ctx: A.ctx && A.ctx.state, voices: A.voices, insts: Object.keys(A.inst).length, loaded: Object.keys(A.bufs).length, ...A.stats });
+  return A;
+})();
+const unlockSound = () => { Snd.init(); };
+addEventListener('pointerdown', unlockSound, { once: false, passive: true }); addEventListener('keydown', unlockSound, { passive: true });
+addEventListener('click', (e) => { const b = e.target && e.target.closest && e.target.closest('button'); if (b && Snd.ready) Snd.ui(b.dataset && b.dataset.t ? 'ui_tab' : 'ui_tap', 0.9); }, true);
+
 /* ================================================================ waves (one function for GPU and physics) */
 const WAVES = [[0.20, 0.98, 0.16, 1.00, 0.0], [-0.60, 0.80, 0.27, 0.55, 1.3], [0.71, 0.70, 0.45, 0.30, 2.1], [0.10, 0.995, 0.90, 0.12, 0.7]];
 const sea = { amp: 0.25 };
@@ -437,7 +583,7 @@ function stepRipples(dt) {
   if (!rip.init) return;
   // sources: heavy things entering the water, and the bow and stern of moving boats
   for (const o of objects) { const p = o.body.position, w = waveH(p.x, p.z, simT) + 0.0, wet = p.y < w + 0.2 && heightAt(p.x, p.z) < -0.15; const vy = o.body.velocity.y;
-    if (wet && !o.wasWet && vy < -0.8) { const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.2 + 0.7 * m3, Math.min(0.5, 0.025 * m3 * -vy)); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); if (m3 > 1.5) tried('ripple'); }
+    if (wet && !o.wasWet && vy < -0.8) { const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.2 + 0.7 * m3, Math.min(0.5, 0.025 * m3 * -vy)); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); Snd.fx(m3 > 1.5 ? 'water_object_in_large' : 'water_object_in_small', p.x, p.z, { gain: 0.9, y: p.y }); if (m3 > 1.5) tried('ripple'); }
     o.wasWet = wet; }
   for (const bt of boats) { if (bt.sunk) continue; const b = bt.body, v = Math.hypot(b.velocity.x, b.velocity.z); if (v < 0.7) continue;
     const L = bt.sp.L, B = bt.sp.B; const q = b.quaternion, fxv = 1 - 2 * (q.y * q.y + q.z * q.z), fzv = 2 * (q.x * q.z - q.w * q.y);   // local +x (the bow) in world
@@ -1058,11 +1204,11 @@ const waterU = { ...waveU, ...ripU, tSnow: { value: snowTex }, uTime: terrainU.u
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
   vertexShader: `${WAVE_GLSL}${RIP_GLSL}
-    varying vec3 vW; varying vec2 vG; varying float vCrest; uniform sampler2D tSnow, tH;
+    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk; uniform sampler2D tSnow, tH;
     float terrH(vec2 p){ vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5); vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5); vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz)); vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1070,7 +1216,7 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTime, uAmp, uWindStr, uBlow; uniform sampler2D tSky, tH, tN, tSnow; uniform vec3 uSun, uSunCol, uSkyTint; uniform vec2 uWind;
     ${GUST_GLSL}
     uniform vec4 uFoam[${MAXFOAM}]; uniform vec4 uWake[${MAXWAKE}];
-    varying vec3 vW; varying vec2 vG; varying float vCrest;
+    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk;
     #include <common>
     #include <fog_pars_fragment>
     ${EQUI}
@@ -1135,7 +1281,14 @@ const waterMat = new THREE.ShaderMaterial({
         ic += uSunCol * pow(max(dot(vec3(0.0, 1.0, 0.0), Hh), 0.0), 60.0) * 0.18 * (1.0 - pack);
         col = mix(col, ic, cover); alpha = mix(alpha, 0.98, cover);
       }
-      { float fo = smoothstep(0.74, 0.96, vCrest + 0.34 * (texture2D(tN, vW.xz * 0.06 + uTime * 0.015).x - 0.5)) * smoothstep(0.34, 0.8, uAmp); col = mix(col, vec3(0.93, 0.96, 0.98) * (uSunCol * 0.4 + 0.55), fo * 0.85); alpha = max(alpha, fo * 0.9); }       // whitecaps on the crests once the sea builds
+      {                                                     // whitecaps: tall crests, steep waves that are breaking, surf lines where the swell meets the shoaling bottom, and lace left on the swash
+        float lace = texture2D(tN, vW.xz * 0.06 + uTime * 0.015).x - 0.5, lace2 = texture2D(tN, vW.xz * 0.21 - uTime * 0.03).y;
+        float fo = smoothstep(0.74, 0.96, vCrest + 0.34 * lace) * smoothstep(0.34, 0.8, uAmp);
+        float brk = smoothstep(0.30, 0.55, vBrk.x * (0.6 + uAmp)) * smoothstep(0.35, 0.75, vCrest + 0.3 * lace) * smoothstep(0.22, 0.55, uAmp); fo = max(fo, brk);
+        float Hw = uAmp * 1.6, surf = smoothstep(Hw * 1.3 + 0.7, 0.12, vBrk.y) * smoothstep(0.0, 0.5, vCrest + 0.45 * lace + 0.25);
+        float swash = smoothstep(0.5, 0.02, vBrk.y) * (0.5 + 0.5 * lace2) * (0.3 + uAmp);
+        fo = max(fo, max(surf * 0.95, swash * 0.75));
+        col = mix(col, vec3(0.93, 0.96, 0.98) * (uSunCol * 0.4 + 0.55), fo * 0.88); alpha = max(alpha, fo * 0.92); }
       col = mix(col, vec3(0.80, 0.90, 0.94) * (uSunCol * 0.5 + 0.4), iceW * 0.9); alpha = mix(alpha, 0.97, iceW);
       gl_FragColor = vec4(col, alpha);
       #include <tonemapping_fragment>
@@ -1156,7 +1309,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);').replace('vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5);', 'vCrest = -1.0;'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);').replace('vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5);', 'vCrest = -1.0;').replace('vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz));', 'vBrk = vec2(0.0, 99.0);'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
@@ -1448,7 +1601,7 @@ const MATB = {
 const frags = [], fragGeo = new THREE.BoxGeometry(1, 1, 1), fragMats = {}; let structT = 0;
 const fragMat = (m) => fragMats[m.col] || (fragMats[m.col] = new THREE.MeshStandardMaterial({ color: m.col, roughness: 0.85, transparent: m.name === 'glass', opacity: m.name === 'glass' ? 0.6 : 1 }));
 function fracture(o, why) {
-  if (o.gone) return; o.gone = true; const p = o.body.position, v = o.body.velocity, n = o.m.frag || 3, sz = o.size, fv = o.vol / n, side = Math.cbrt(fv);
+  if (o.gone) return; o.gone = true; Snd.fracture(o, why); const p = o.body.position, v = o.body.velocity, n = o.m.frag || 3, sz = o.size, fv = o.vol / n, side = Math.cbrt(fv);
   for (let i = 0; i < n; i++) {
     if (frags.length >= 80) depositFrag(frags[0]);
     const hs = Math.max(0.04, side * 0.5), b = new CANNON.Body({ mass: Math.max(0.05, o.c.density * fv), shape: new CANNON.Box(new CANNON.Vec3(hs, hs, hs)), material: o.c.pmat, allowSleep: true, sleepSpeedLimit: 0.2, sleepTimeLimit: 0.8 });
@@ -1464,7 +1617,8 @@ function fracture(o, why) {
 }
 function depositFrag(f) { const p = f.body.position; depositGrain(p.x, p.z, f.vol, f.m.rubble || 4); world.removeBody(f.body); scene.remove(f.mesh); frags.splice(frags.indexOf(f), 1); }
 function onImpact(o, e) {
-  if (o.gone || o.m.str > 9e4) return; const ob = e.body, oth = ob.sco; if (oth && oth.frag) return;
+  if (o.gone) return; { const ob0 = e.body; if (!(ob0.sco && ob0.sco.frag)) { const imp0 = Math.abs(e.contact.getImpactVelocityAlongNormal()); if (imp0 > 0.9) Snd.impact(o, imp0, ob0); } }
+  if (o.m.str > 9e4) return; const ob = e.body, oth = ob.sco; if (oth && oth.frag) return;
   const imp = Math.abs(e.contact.getImpactVelocityAlongNormal()); if (imp < 1.5) return;
   const mo = ob.mass, share = mo === 0 ? 1 : mo / (o.body.mass + mo), E = 0.5 * imp * imp * share, str = o.m.str * (o.m.soft && o.T > o.m.soft ? Math.max(0.2, 1 - (o.T - o.m.soft) / Math.max(1, (o.m.melt || 1250) - o.m.soft)) : 1);
   if (window.__dbgImp) window.__dbgImp.push([o.c.id, +imp.toFixed(2), +E.toFixed(1), +str.toFixed(1), mo]);
@@ -1795,7 +1949,7 @@ const BUILD = [
 let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false, multiTap = false, lpTimer = 0, buildGroup = 'things';
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
-  const x = p.x, z = p.z, h = groundAt(x, z);
+  const x = p.x, z = p.z, h = groundAt(x, z); Snd.ui(item.erase ? 'ui_erase' : 'ui_place', 0.9);
   if (item.erase) return erase(p);
   if (item.hold) { applyHold(item.hold, x, z, 0.5, 0.4); return; }
   if (item.site) { if (h < 0.2 && item.site !== 'view') { toast(item.name + ' goes on dry land'); return; } if (addSite(item.site, x, z)) toast(item.name + ' placed: ' + SITE_INFO[item.site][1] + '.'); return; }
@@ -2654,7 +2808,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 function puffSmoke(x, y, z, n, dark, big) { for (let i = 0; i < n; i++) fxS.emit(x + rnd(-0.4, 0.4), y, z + rnd(-0.4, 0.4), rnd(-0.6, 0.6) + wind.v.x * 0.25, rnd(1.2, 3.2), rnd(-0.6, 0.6) + wind.v.z * 0.25, rnd(2.5, 5.5), rnd(0.9, 1.6) * (big || 1), 4, dark ? [0.14, 0.14, 0.15, 0.42] : [0.7, 0.7, 0.72, 0.32], -0.25, 0.25); }
 function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(-4, 4), rnd(1, 6), rnd(-4, 4), rnd(0.25, 0.6), rnd(0.12, 0.28), -0.6, [1, rnd(0.55, 0.8), 0.25, 1], 9, 0.8); }
 function splash(x, z, big) {
-  const y = waveH(x, z, simT); ripple(x, z, 0.9 + 1.1 * big, Math.min(0.45, 0.05 * big));
+  Snd.splash(x, z, big); const y = waveH(x, z, simT); ripple(x, z, 0.9 + 1.1 * big, Math.min(0.45, 0.05 * big));
   for (let i = 0; i < 10 * big; i++) fxS.emit(x + rnd(-0.3, 0.3), y, z + rnd(-0.3, 0.3), rnd(-1.8, 1.8) * big, rnd(3, 7) * Math.sqrt(big), rnd(-1.8, 1.8) * big, rnd(0.7, 1.4), rnd(0.25, 0.55) * big, 0.6, [0.85, 0.93, 0.97, 0.75], 9, 0.5);
   fxS.emit(x, y + 0.1, z, 0, 1.0, 0, 1.2, 1.2 * big, 5, [0.9, 0.96, 1, 0.55], 0, 1);
 }
@@ -2693,7 +2847,7 @@ function fireShot(bt, m, tgt) {
   const sp = w.spread + d * 0.00005 + sea.amp * 0.012 + rock * 0.05 + Math.max(0, 3 - crew) * 0.003;
   const yaw = Math.atan2(dx, dz) + rnd(-sp, sp), pitch = th + rnd(-sp, sp), cp = Math.cos(pitch);
   const vx = Math.sin(yaw) * cp * w.v, vz = Math.cos(yaw) * cp * w.v, vy = Math.sin(pitch) * w.v;
-  shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 });
+  shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 }); Snd.fx(m.k === 'gun' ? 'veh_gun_fire' : 'veh_mg_burst', from.x, from.z, { gain: m.k === 'gun' ? 1 : 0.6, far: 1.5, y: from.y });
   // muzzle flash, smoke and a little kick
   const fl = w.flash; fxG.emit(from.x, from.y, from.z, 0, 0, 0, 0.09, 1.1 * fl, 0.6, [1, 0.85, 0.5, 1]); puffSmoke(from.x, from.y, from.z, m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
   bt.body.applyImpulse(new CANNON.Vec3(-Math.sin(yaw) * w.recoil, 0, -Math.cos(yaw) * w.recoil), new CANNON.Vec3(from.x - bt.body.position.x, 0, from.z - bt.body.position.z));
@@ -3575,7 +3729,7 @@ const noteLog = []; let noteUnread = 0;
 function updateBell() { const el = $('logN'); if (el) el.textContent = noteUnread ? String(Math.min(99, noteUnread)) : ''; }
 var quietToasts = false;
 function toast(msg) {
-  if (quietToasts) return; msg = String(msg); const now = Date.now(), last = noteLog[noteLog.length - 1], box = $('notes');
+  if (quietToasts) return; msg = String(msg); { const m = msg.toLowerCase(); Snd.ui(/sink|threat|raider|hurricane|tsunami|quake|falling|disaster|eruption|burning|fire/.test(m) ? 'ui_toast_warn' : /rescu|finished|sprout|unmask|seiz|saved|caught/.test(m) ? 'ui_toast_good' : 'ui_toast_info', 0.8); } const now = Date.now(), last = noteLog[noteLog.length - 1], box = $('notes');
   if (last && last.msg === msg && now - last.t < 8000) { last.n++; last.t = now; if (last.el && last.el.isConnected) last.el.textContent = msg + ' (x' + last.n + ')'; return; }       // the same message again is counted, not repeated
   const e = { msg, t: now, n: 1, el: null }; noteLog.push(e); if (noteLog.length > 200) noteLog.shift(); noteUnread++; updateBell();
   if (!box) return; const el = document.createElement('div'); el.className = 'note'; el.textContent = msg; e.el = el; box.append(el); requestAnimationFrame(() => el.classList.add('on'));
@@ -3739,6 +3893,7 @@ function frame(now) {
   }
   if (dis.shake > 0) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
   renderer.render(scene, camera);
+  Snd.frame(dt);
   requestAnimationFrame(frame);
 }
 setTool('select'); refreshPanel(); refreshHelm();
@@ -4125,6 +4280,7 @@ function startTornado(p) {
 }
 function startLightning() { dis.light = 90; dis.lightNext = 1; stormUp(2, 1, 3); toast('Lightning storm'); }
 function strikeAt(x, z) {
+  { const d = Math.hypot(x - Snd.L.x, z - Snd.L.z), dl = d / 340; Snd.fx('wx_lightning_crack', x, z, { gain: 1.1, far: 3, gap: 0 }); setTimeout(() => Snd.fx(d < 120 ? 'wx_thunder_near' : 'wx_thunder_far', undefined, undefined, { gain: cl(1.2 - d / 400, 0.35, 1.2), gap: 0 }), Math.min(9000, dl * 1000)); }
   const pts = [new THREE.Vector3(x, 130, z)]; for (let i = 1; i < 8; i++) pts.push(new THREE.Vector3(x + rnd(-6, 6) * (1 - i / 8), 130 * (1 - i / 8), z + rnd(-6, 6) * (1 - i / 8)));
   const y = Math.max(waveH(x, z, simT), heightAt(x, z)); pts.push(new THREE.Vector3(x, y, z));
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xf2f6ff, fog: false, depthTest: false, transparent: true })); line.renderOrder = 6; scene.add(line); dis.bolts.push({ line, life: 0.22 });
@@ -4138,9 +4294,9 @@ function startQuake() {
   for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, 34); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
   land.dirty = true; commitLand(true); toast('Earthquake');
 }
-function startTsunami() { dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
+function startTsunami() { Snd.fx('wx_tsunami_rumble', undefined, undefined, { gain: 1 }); dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
 function startHurricane() { dis.hurricane = 150; stormUp(2, 1, 4); toast('Hurricane. Storm surge is coming.'); }
-function startMeteor(p) { dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
+function startMeteor(p) { Snd.fx('wx_meteor_whistle', p.x, p.z, { gain: 1, far: 3 }); setTimeout(() => Snd.fx('wx_meteor_impact', p.x, p.z, { gain: 1.2, far: 4, gap: 0 }), 2600); dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
 function impactMeteor(m) {
   const x = m.x, z = m.z, R = 11; landMark();
   for (let i = -R - 4; i <= R + 4; i++) for (let j = -R - 4; j <= R + 4; j++) { const d = Math.hypot(i, j), gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; if (d <= R) HGT[k] = clamp(HGT[k] - 5 * (1 - (d / R) ** 2), -9.2, 34); else if (d <= R + 4) HGT[k] = clamp(HGT[k] + 0.9 * (1 - (d - R) / 4), -9.2, 34); }
@@ -4209,6 +4365,7 @@ const bombGeo = new THREE.SphereGeometry(0.6, 8, 6), bombMat = new THREE.MeshBas
 const VR = 38;                                                         // footprint radius, metres
 const VPEAK = 22;                                                      // how high the cone finally stands above the sea
 function startVolcano(p) {
+  Snd.fx('wx_eruption_boom', p.x, p.z, { gain: 1.2, far: 4 });
   if (prefs.gentle) { toast('Gentle mode is on. Turn it off in Menu, Sandbox.'); return; }
   if (volcanoes.filter(v => v.state !== 'dormant').length >= 2) { toast('One eruption at a time is plenty'); return; }
   const x = Math.max(G2W(VR + 3), Math.min(G2W(TN - 1 - VR - 3), p.x)), z = Math.max(G2W(VR + 3), Math.min(G2W(TN - 1 - VR - 3), p.z));
@@ -4485,6 +4642,7 @@ function addSource(x, z, k) {
 /* ---- v8: hold to apply. Press and hold on the map and the chosen element pours out under your finger or pointer; drag to move it. A short tap gives one puff. */
 const hld = { on: false, x: 0, y: 0, t: 0, item: null, timer: 0, acc: 0 }, HOLD_COL = { heat: 0xe8541c, cold: 0x9fd8ff, water: 0x4a96cc, lightning: 0xe6ecff, spark: 0x8fd0ff, fire: 0xf08020, lava: 0xd8431b, sand: 0xd8c08a, earth: 0x8a6240, rock: 0x9a948a, metal: 0xaab6c4, seed: 0x9ac24a };
 function applyHold(kind, x, z, dt, held) {
+  Snd.holdKind(kind, x, z);
   const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); if (gx < 4 || gz < 4 || gx > TN - 5 || gz > TN - 5) return; const gy = Math.max(heightAt(x, z), 0), k0 = gz * TN + gx, c = ((gz >> 2) * CN) + (gx >> 2), pw = Math.min(1, 0.25 + (held || 0) / 3), em = perf.k;
   if (kind === 'heat') { heatGT(x, z, 3.2, 300 + 1200 * pw); if (c >= 0 && c < CK) CT[c] = Math.min(160, CT[c] + 12 * dt); for (let n = 0; n < 3 * em; n++) fxG.emit(x + rnd(-1.5, 1.5), gy + 0.4, z + rnd(-1.5, 1.5), rnd(-0.4, 0.4), rnd(1.5, 3.5), rnd(-0.4, 0.4), rnd(0.5, 1), rnd(0.4, 0.8), 0.4, [1, rnd(0.35, 0.6), 0.08, 0.7], -1, 0.2); }
   else if (kind === 'cold') {
@@ -4654,7 +4812,7 @@ function shock(x, z, power) {
   tbx = boxTouch(tbx, gx, gz, 40);
   for (const p of people) { if (p.state === 'rag') continue; const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); let near = false; for (const o of [0, 1, -1, TN, -TN, TN + 1, -TN - 1]) if (seen.has(k + o)) { near = true; break; } if (near) { topple(p, new CANNON.Vec3(rnd(-2, 2), 3, rnd(-2, 2))); noteOnce('shock', 'Someone was knocked down by a shock from the metal.'); } }
   if (power > 1.5) for (const t of trees) if (!t.dead && t.burn <= 0) { const k = Math.round(W2G(t.z)) * TN + Math.round(W2G(t.x)); for (const o of [0, 1, -1, TN, -TN]) if (seen.has(k + o)) { igniteTree(t); break; } }
-  tried('metal'); return cells.length;
+  Snd.fx('elec_arc_zap', x, z, { gain: 1 }); tried('metal'); return cells.length;
 }
 /* ---- v8: grains. Dumped sand and earth fall, splash into the sea, bounce and settle as particles. A grain only becomes part of the ground when it comes to rest, and slides spill grains downhill. */
 const MET = new Uint8Array(TN * TN); let metN = 0;
@@ -4666,6 +4824,7 @@ function flagMat(k, v) { if (MET[k] >= v) return; if (!MET[k]) metN++; MET[k] = 
 function unflagMat(k) { if (!MET[k]) return; MET[k] = 0; metN--; hotData[k * 4 + 3] = 0; hotTex.needsUpdate = true; }
 /* grain volumes are cubic metres, so the same pour makes the same size of pile on the standard and the large map (a cell is CELL x CELL metres) */
 function depositGrain(x, z, vol, kind) {
+  Snd.grain(kind, x, z, vol);
   const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4 || vol <= 0) return; const k = i * TN + j;
   HGT[k] = Math.min(34, HGT[k] + vol / (CELL * CELL)); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
   if (kind === 4 || kind === 5) { flagMat(k, kind === 5 ? 255 : 120); tried('pile'); }                                   // rock rubble and scrap metal pile up, then slump at their own angle
@@ -4846,8 +5005,9 @@ function clearMaterials() { seeds.length = 0; MET.fill(0); metN = 0; for (let q 
 
 /* ================================================================ v5.3: Calm all, Gentle mode, effect limits, restore */
 /* ---- sandbox settings, kept on this phone */
-const prefs = { gentle: false, limit: 'some', threats: 'off', autoMissions: true, life: 'lively' };
+const prefs = { gentle: false, limit: 'some', threats: 'off', autoMissions: true, life: 'lively', sound: { on: true, vol: 0.8, mus: 0.35 } };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}')); } catch (e) { }
+Snd.setPrefs(prefs.sound);
 const savePrefs = () => { try { localStorage.setItem('squall-cove-prefs', JSON.stringify(prefs)); } catch (e) { } };
 const LIMITS = { few: 2, some: 4, lots: 8 };
 function effectsCount() { return dis.tornados.length + (dis.light > 0 ? 1 : 0) + (dis.hurricane > 0 ? 1 : 0) + (dis.tsunami ? 1 : 0) + (dis.deluge > 0 ? 1 : 0) + volcanoes.filter(v => v.state !== 'dormant').length + dis.meteors.length + (dis.quake > 0 ? 1 : 0); }
@@ -4864,6 +5024,8 @@ function sandboxSheet() {
     menuBtn('Effects at once: ' + { few: 'Few (2)', some: 'Some (4)', lots: 'Lots (8)' }[prefs.limit], 'How many disasters can run together. Tap to change.', () => { prefs.limit = { few: 'some', some: 'lots', lots: 'few' }[prefs.limit]; savePrefs(); sandboxSheet(); }),
     menuBtn('Threats: ' + { off: 'Off', some: 'Now and then', busy: 'Busy' }[prefs.threats || 'off'], 'Smugglers and raiders sometimes come. Armed boats deal with them. Tap to change.', () => { prefs.threats = { off: 'some', some: 'busy', busy: 'off' }[prefs.threats || 'off']; savePrefs(); sandboxSheet(); }),
     menuBtn('Cove life: ' + { quiet: 'Quiet', lively: 'Lively', busy: 'Busy' }[prefs.life || 'lively'], 'How much the cove does by itself: fishing trips, salvage, rival builders, smugglers drawn to piled-up cargo. Tap to change.', () => { prefs.life = { quiet: 'lively', lively: 'busy', busy: 'quiet' }[prefs.life || 'lively']; savePrefs(); sandboxSheet(); }),
+    menuBtn('Sound: ' + (prefs.sound && prefs.sound.on === false ? 'Off' : 'On') + ', volume ' + Math.round(((prefs.sound && prefs.sound.vol) ?? 0.8) * 100) + '%', 'Tap to turn it off, or change the volume. Starts with your first tap.', () => { const sp = prefs.sound = prefs.sound || { on: true, vol: 0.8, mus: 0.35 }; if (sp.on === false) { sp.on = true; sp.vol = 0.25; } else if (sp.vol < 0.3) sp.vol = 0.5; else if (sp.vol < 0.6) sp.vol = 0.8; else if (sp.vol < 0.9) sp.vol = 1; else sp.on = false; Snd.setPrefs(sp); savePrefs(); sandboxSheet(); }),
+    menuBtn('Music: ' + ((prefs.sound && prefs.sound.mus) ? (prefs.sound.mus > 0.5 ? 'Loud' : 'Low') : 'Off'), 'A slow score that follows the time of day and the weather. Tap to change.', () => { const sp = prefs.sound = prefs.sound || { on: true, vol: 0.8, mus: 0.35 }; sp.mus = !sp.mus ? 0.35 : sp.mus < 0.5 ? 0.7 : 0; Snd.setPrefs(sp); savePrefs(); sandboxSheet(); }),
     menuBtn('Coast Guard missions: ' + (prefs.autoMissions === false ? 'Off' : 'On'), 'The Coast Guard patrols, answers raiders and fights fires by itself.', () => { prefs.autoMissions = prefs.autoMissions === false; savePrefs(); sandboxSheet(); }),
     menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); })]);
 }
@@ -5468,7 +5630,7 @@ function placePourSrc(kind, p) {
 /* ---- fire in the trees */
 const burning = [], m4t = new THREE.Matrix4(), pT = new THREE.Vector3(), qT = new THREE.Quaternion(), sT = new THREE.Vector3();
 function hideTree(t, regrow) { t.dead = true; if (regrow) t.regrowAt = simT + rnd(50, 110); for (const r of t.refs || []) { r.inst.getMatrixAt(r.i, m4t); m4t.decompose(pT, qT, sT); if (!r.s0) r.s0 = sT.clone(); sT.set(0.001, 0.001, 0.001); m4t.compose(pT, qT, sT); r.inst.setMatrixAt(r.i, m4t); r.inst.instanceMatrix.needsUpdate = true; } }
-function igniteTree(t, dur) { if (t.dead || t.burn > 0) return; t.burn = dur || rnd(7, 13); burning.push(t); if (burning.length >= 4) tried('fire'); }
+function igniteTree(t, dur) { if (t.dead || t.burn > 0) return; t.burn = dur || rnd(7, 13); Snd.fx('fire_ignite_whoomp', t.x, t.z, { gain: 0.9 }); burning.push(t); if (burning.length >= 4) tried('fire'); }
 function igniteTreesNear(x, z, r) { for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < r) igniteTree(t); }
 function clearTreesNear(x, z, r) { for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < r) hideTree(t); }
 const perf = { ema: 1 / 60, k: 1, t: 0 };
@@ -5804,7 +5966,8 @@ function lmBest(kind, near) {                                // kind 'yard': fla
 }
 const NPC = { goals: {}, ev: {}, T0: 0 };
 function npcStat(role, kind, what) { const o = NPC.goals[role + '|' + kind] || (NPC.goals[role + '|' + kind] = { start: 0, end: 0 }); o[what]++; }
-function npcEv(k, n = 1) { NPC.ev[k] = (NPC.ev[k] || 0) + n; }
+const NPC_SND = { unmasked: 'npc_unmask_sting', report: 'npc_report_blip', falseTipFiled: 'npc_decoy_blip', courierCaught: 'npc_courier_caught_sting', drumsSeized: 'npc_contraband_seized_sting', drumsLanded: 'npc_drop_thud_sand', drumsStashed: 'npc_stash_cover', salvageSold: 'npc_salvage_sold_coin', buildDone: 'npc_circle_done_fanfare', sabotage: 'npc_sabotage_topple', siteTaken: 'npc_site_taken_sting', devCrew: 'npc_developer_arrive', falsePositive: 'npc_trust_down', blockPlaced: null };
+function npcEv(k, n = 1) { NPC.ev[k] = (NPC.ev[k] || 0) + n; if (NPC_SND[k]) Snd.ui(NPC_SND[k], 0.9); }
 const BLOCKS = new Set(['stone']), RING = 9, COURSES = 2;
 const buildSlot = (st, i) => { const course = Math.floor(i / RING), idx = i % RING, ang = idx / RING * 6.283 + course * (Math.PI / RING), r = 2.3; return { x: st.x + Math.cos(ang) * r, z: st.z + Math.sin(ang) * r, ang, course }; };
 function freeBlocks() { return objects.filter(o => BLOCKS.has(o.c.id) && !o.placed && !o.gone); }
@@ -5830,7 +5993,7 @@ function nextSlot(st) { st.slots = st.slots || []; for (let i = 0; i < BSLOTS; i
 function placeBlock(st, o) {
   const i = nextSlot(st); if (i < 0) return false; const sl = buildSlot(st, i), gy = standY(sl.x, sl.z), sz = o.size, b = o.body;
   b.position.set(sl.x, gy + (sl.course + 0.5) * sz.y + 0.02, sl.z); b.quaternion.setFromEuler(0, -(sl.ang + Math.PI / 2), 0); b.velocity.set(0, 0, 0); b.angularVelocity.set(0, 0, 0); settle(b);
-  o.placed = true; o.site = st; o.slot = i; st.slots[i] = o; st.stage = st.slots.filter(Boolean).length; return true;
+  Snd.fx('mat_stone_tock', sl.x, sl.z, { gain: 1.1, y: gy }); Snd.fx('ppl_stone_place', sl.x, sl.z, { gain: 0.8 }); o.placed = true; o.site = st; o.slot = i; st.slots[i] = o; st.stage = st.slots.filter(Boolean).length; return true;
 }
 let siteT = 0;
 function siteTick(dt) {                                       // blocks that have been knocked, burned or crushed out of place free their slot again; neglected sites can be taken over
@@ -5980,7 +6143,7 @@ function updateAgents(dt) {
     } else if (g.kind === 'sabotage') {
       if (!walking) { const site = g.site, bl = site && site.slots && site.slots.filter(Boolean); if (bl && bl.length && bl.every(o => o && objects.includes(o))) { const o = bl[(Math.random() * bl.length) | 0], m = o.body.mass; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(rnd(-1, 1) * m * 1.6, m * 1.1, rnd(-1, 1) * m * 1.6), o.body.position); npcEv('sabotage'); noteOnce('sabotage', 'Rival developers knocked over a block of the Port circle. The builders will put it back.'); } ag.goal = null; ag.cool = 10; } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'quarry') {
-      if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Cutting stone from the rubble'; if (g.work > 6) { const k = g.k, loose = HGT[k] - BED[k], vol = 0.25; if (loose >= 0.3) { HGT[k] -= vol / (CELL * CELL); slumpArm(k % TN, Math.floor(k / TN), 3); land.dirty = true; spawn(CARGO.find(c => c.id === 'stone'), g.x + rnd(-0.6, 0.6), standY(g.x, g.z) + 0.8, g.z + rnd(-0.6, 0.6)); npcEv('quarried'); } ag.goal = null; ag.cool = 0.5; } } else if (g.t > 60) ag.goal = null;
+      if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Cutting stone from the rubble'; if (g.work > 6) { const k = g.k, loose = HGT[k] - BED[k], vol = 0.25; if (loose >= 0.3) { HGT[k] -= vol / (CELL * CELL); slumpArm(k % TN, Math.floor(k / TN), 3); land.dirty = true; spawn(CARGO.find(c => c.id === 'stone'), g.x + rnd(-0.6, 0.6), standY(g.x, g.z) + 0.8, g.z + rnd(-0.6, 0.6)); npcEv('quarried'); Snd.fx('mat_stone_quarry_chink', g.x, g.z, { gain: 1 }); } ag.goal = null; ag.cool = 0.5; } } else if (g.t > 60) ag.goal = null;
     } else if (g.kind === 'wall') {
       if (!walking) { g.work = (g.work || 0) + dt; ag.intent = 'Piling rock to hold the shore'; if (Math.random() < dt * 14) spawnGrain(g.x + rnd(-1.4, 1.4), Math.max(heightAt(g.x, g.z), 0) + 7, g.z + rnd(-1.4, 1.4), 0, 0, 0, 0.03, 4, 0.22); if (g.work > 12) { agentStat.built = (agentStat.built || 0) + 1; ag.goal = null; ag.cool = 2; } } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'fish') { if (!walking) { if (!g.set) { g.set = true; g.t = 0; } p.heading = g.face + Math.PI / 2 * 0; p.heading = Math.atan2(Math.cos(g.face), Math.sin(g.face)); ag.intent = g.guard ? 'Watching the water' : 'Fishing (' + (p.ag.stats.fish || 0) + ' caught)'; if (!safeSpot(p.x, p.z)) { ag.goal = null; continue; } g.catchT = (g.catchT === undefined ? rnd(5, 12) : g.catchT) - dt; if (g.catchT <= 0) { g.catchT = rnd(6, 16); if (!g.guard && Math.random() < 0.6) { p.ag.stats.fish = (p.ag.stats.fish || 0) + 1; agentStat.fish++; splash(p.x + Math.cos(g.face) * 4.5, p.z + Math.sin(g.face) * 4.5, 0.5); } } if (g.t > g.dur) { ag.goal = null; ag.cool = rnd(1, 3); } } }
@@ -6093,7 +6256,7 @@ function callBomber(manual) {
   bomber.on = true; bomber.state = 'inbound'; bomber.load = 0; bomber.drops = 0; bomber.scoop = findScoop(f.x, f.z); bomber.pos.set(bomber.scoop.x - bomber.scoop.dx * 230, 55, bomber.scoop.z - bomber.scoop.dz * 230); bomber.yaw = Math.atan2(-bomber.scoop.dz, bomber.scoop.dx); bomber.g.visible = true; $('mBomber').textContent = 'Recall water bomber';
   toast('A Canadair water bomber is on its way to the fire.');
 }
-function extinguishTree(t) { t.burn = 0; const i = burning.indexOf(t); if (i >= 0) burning.splice(i, 1); }
+function extinguishTree(t) { Snd.fx('fire_extinguish_hiss', t.x, t.z, { gain: 0.8 }); t.burn = 0; const i = burning.indexOf(t); if (i >= 0) burning.splice(i, 1); }
 function steer(b, tx, tz, rate, dt) { let d = Math.atan2(-(tz - b.pos.z), tx - b.pos.x) - b.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); const turn = Math.max(-rate * dt, Math.min(rate * dt, d)); b.yaw += turn; b.roll += ((turn / Math.max(dt, 1e-3)) * 0.5 - b.roll) * Math.min(1, dt * 3); return d; }
 function updateBomber(dt, t) {
   // call it automatically when a forest fire gets going

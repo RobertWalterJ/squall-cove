@@ -1,0 +1,2264 @@
+{
+ "water_splash_xs_01": {
+  "id": "water_splash_xs_01",
+  "file": "audio/water_splash_xs_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.7,
+  "lufs": -29.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xs_02": {
+  "id": "water_splash_xs_02",
+  "file": "audio/water_splash_xs_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.8,
+  "lufs": -29.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xs_03": {
+  "id": "water_splash_xs_03",
+  "file": "audio/water_splash_xs_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -29.7,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xs_04": {
+  "id": "water_splash_xs_04",
+  "file": "audio/water_splash_xs_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.0,
+  "lufs": -28.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xs_05": {
+  "id": "water_splash_xs_05",
+  "file": "audio/water_splash_xs_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.8,
+  "lufs": -29.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xs_06": {
+  "id": "water_splash_xs_06",
+  "file": "audio/water_splash_xs_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 1.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -32.3,
+  "lufs": -30.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xs",
+   "massKg": [
+    0.005,
+    0.05
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_01": {
+  "id": "water_splash_s_01",
+  "file": "audio/water_splash_s_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.2,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_02": {
+  "id": "water_splash_s_02",
+  "file": "audio/water_splash_s_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.7,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_03": {
+  "id": "water_splash_s_03",
+  "file": "audio/water_splash_s_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -27.9,
+  "lufs": -26.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_04": {
+  "id": "water_splash_s_04",
+  "file": "audio/water_splash_s_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.1,
+  "lufs": -26.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_05": {
+  "id": "water_splash_s_05",
+  "file": "audio/water_splash_s_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.2,
+  "lufs": -26.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_s_06": {
+  "id": "water_splash_s_06",
+  "file": "audio/water_splash_s_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -27.6,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "s",
+   "massKg": [
+    0.05,
+    1.0
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_01": {
+  "id": "water_splash_m_01",
+  "file": "audio/water_splash_m_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_02": {
+  "id": "water_splash_m_02",
+  "file": "audio/water_splash_m_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.6,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_03": {
+  "id": "water_splash_m_03",
+  "file": "audio/water_splash_m_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -24.9,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_04": {
+  "id": "water_splash_m_04",
+  "file": "audio/water_splash_m_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.3,
+  "lufs": -24.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_05": {
+  "id": "water_splash_m_05",
+  "file": "audio/water_splash_m_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.1,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_m_06": {
+  "id": "water_splash_m_06",
+  "file": "audio/water_splash_m_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -25.5,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "m",
+   "massKg": [
+    1,
+    20
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_01": {
+  "id": "water_splash_l_01",
+  "file": "audio/water_splash_l_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -22.9,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_02": {
+  "id": "water_splash_l_02",
+  "file": "audio/water_splash_l_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -22.9,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_03": {
+  "id": "water_splash_l_03",
+  "file": "audio/water_splash_l_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -23.8,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_04": {
+  "id": "water_splash_l_04",
+  "file": "audio/water_splash_l_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -23.9,
+  "lufs": -24.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_05": {
+  "id": "water_splash_l_05",
+  "file": "audio/water_splash_l_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -23.8,
+  "lufs": -23.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_l_06": {
+  "id": "water_splash_l_06",
+  "file": "audio/water_splash_l_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 190,
+  "weight": 7.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -21.9,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "l",
+   "massKg": [
+    20,
+    300
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_01": {
+  "id": "water_splash_xl_01",
+  "file": "audio/water_splash_xl_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.9,
+  "lufs": -20.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_02": {
+  "id": "water_splash_xl_02",
+  "file": "audio/water_splash_xl_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.3,
+  "lufs": -22.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_03": {
+  "id": "water_splash_xl_03",
+  "file": "audio/water_splash_xl_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.5,
+  "lufs": -22.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_04": {
+  "id": "water_splash_xl_04",
+  "file": "audio/water_splash_xl_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -19.6,
+  "lufs": -20.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_05": {
+  "id": "water_splash_xl_05",
+  "file": "audio/water_splash_xl_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -20.3,
+  "lufs": -20.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_splash_xl_06": {
+  "id": "water_splash_xl_06",
+  "file": "audio/water_splash_xl_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 240,
+  "weight": 10.0,
+  "lazy": false,
+  "group": "core",
+  "dur": 4.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -21.2,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "sizeClass": "xl",
+   "massKg": [
+    300,
+    5000
+   ],
+   "pickBy": "object mass (kg) at water entry; speed scales gain and lowpass",
+   "speedRange": [
+    1,
+    25
+   ]
+  }
+ },
+ "water_rock_in_01": {
+  "id": "water_rock_in_01",
+  "file": "audio/water_rock_in_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.5,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.5,
+    30
+   ],
+   "note": "dense object; pitch by size"
+  }
+ },
+ "water_rock_in_02": {
+  "id": "water_rock_in_02",
+  "file": "audio/water_rock_in_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.8,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.5,
+    30
+   ],
+   "note": "dense object; pitch by size"
+  }
+ },
+ "water_rock_in_03": {
+  "id": "water_rock_in_03",
+  "file": "audio/water_rock_in_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.2,
+  "lufs": -23.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.5,
+    30
+   ],
+   "note": "dense object; pitch by size"
+  }
+ },
+ "water_rock_in_04": {
+  "id": "water_rock_in_04",
+  "file": "audio/water_rock_in_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 130,
+  "weight": 4,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -23.6,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.5,
+    30
+   ],
+   "note": "dense object; pitch by size"
+  }
+ },
+ "water_object_in_small_01": {
+  "id": "water_object_in_small_01",
+  "file": "audio/water_object_in_small_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -27.6,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.05,
+    2
+   ],
+   "note": "light/floating objects"
+  }
+ },
+ "water_object_in_small_02": {
+  "id": "water_object_in_small_02",
+  "file": "audio/water_object_in_small_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -26.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.05,
+    2
+   ],
+   "note": "light/floating objects"
+  }
+ },
+ "water_object_in_small_03": {
+  "id": "water_object_in_small_03",
+  "file": "audio/water_object_in_small_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -28.6,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.05,
+    2
+   ],
+   "note": "light/floating objects"
+  }
+ },
+ "water_object_in_small_04": {
+  "id": "water_object_in_small_04",
+  "file": "audio/water_object_in_small_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": false,
+  "group": "core",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.0,
+  "rmsDb": -26.1,
+  "lufs": -24.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    0.05,
+    2
+   ],
+   "note": "light/floating objects"
+  }
+ },
+ "water_object_in_large_01": {
+  "id": "water_object_in_large_01",
+  "file": "audio/water_object_in_large_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -22.2,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    20,
+    500
+   ],
+   "note": "crates, barrels, blocks"
+  }
+ },
+ "water_object_in_large_02": {
+  "id": "water_object_in_large_02",
+  "file": "audio/water_object_in_large_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -22.6,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    20,
+    500
+   ],
+   "note": "crates, barrels, blocks"
+  }
+ },
+ "water_object_in_large_03": {
+  "id": "water_object_in_large_03",
+  "file": "audio/water_object_in_large_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -22.6,
+  "lufs": -22.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    20,
+    500
+   ],
+   "note": "crates, barrels, blocks"
+  }
+ },
+ "water_object_in_large_04": {
+  "id": "water_object_in_large_04",
+  "file": "audio/water_object_in_large_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 150,
+  "weight": 5,
+  "lazy": false,
+  "group": "core",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -22.6,
+  "lufs": -22.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "massKg": [
+    20,
+    500
+   ],
+   "note": "crates, barrels, blocks"
+  }
+ },
+ "water_drip_01": {
+  "id": "water_drip_01",
+  "file": "audio/water_drip_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 1,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -16.0,
+  "rmsDb": -34.9,
+  "lufs": -33.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "cave/leak/melt"
+  }
+ },
+ "water_drip_02": {
+  "id": "water_drip_02",
+  "file": "audio/water_drip_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 1,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -16.0,
+  "rmsDb": -33.7,
+  "lufs": -32.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "cave/leak/melt"
+  }
+ },
+ "water_drip_03": {
+  "id": "water_drip_03",
+  "file": "audio/water_drip_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 1,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -16.0,
+  "rmsDb": -38.6,
+  "lufs": -37.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "cave/leak/melt"
+  }
+ },
+ "water_drip_04": {
+  "id": "water_drip_04",
+  "file": "audio/water_drip_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 40,
+  "weight": 1,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -16.0,
+  "rmsDb": -38.7,
+  "lufs": -37.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "cave/leak/melt"
+  }
+ },
+ "water_bubbles_01": {
+  "id": "water_bubbles_01",
+  "file": "audio/water_bubbles_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -28.6,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "sinking object / gas escaping; rate scales with volume"
+  }
+ },
+ "water_bubbles_02": {
+  "id": "water_bubbles_02",
+  "file": "audio/water_bubbles_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -30.5,
+  "lufs": -29.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "sinking object / gas escaping; rate scales with volume"
+  }
+ },
+ "water_bubbles_03": {
+  "id": "water_bubbles_03",
+  "file": "audio/water_bubbles_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -29.1,
+  "lufs": -28.4,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "sinking object / gas escaping; rate scales with volume"
+  }
+ },
+ "water_bubbles_04": {
+  "id": "water_bubbles_04",
+  "file": "audio/water_bubbles_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 60,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -28.3,
+  "lufs": -27.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "sinking object / gas escaping; rate scales with volume"
+  }
+ },
+ "water_swash_01": {
+  "id": "water_swash_01",
+  "file": "audio/water_swash_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 2.457,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -31.2,
+  "lufs": -30.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "wave run-up on a beach; gain by wave height, rate by swell period"
+  }
+ },
+ "water_swash_02": {
+  "id": "water_swash_02",
+  "file": "audio/water_swash_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 2.321,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -31.4,
+  "lufs": -30.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "wave run-up on a beach; gain by wave height, rate by swell period"
+  }
+ },
+ "water_swash_03": {
+  "id": "water_swash_03",
+  "file": "audio/water_swash_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 2.481,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -30.3,
+  "lufs": -29.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "wave run-up on a beach; gain by wave height, rate by swell period"
+  }
+ },
+ "water_swash_04": {
+  "id": "water_swash_04",
+  "file": "audio/water_swash_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 2.318,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -30.2,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "wave run-up on a beach; gain by wave height, rate by swell period"
+  }
+ },
+ "water_pour_loop": {
+  "id": "water_pour_loop",
+  "file": "audio/water_pour_loop.ogg",
+  "bus": "water",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -27.0,
+  "lufs": -26.0,
+  "seamDb": -36.3,
+  "tags": [],
+  "meta": {
+   "drive": "pour flow rate -> gain (0..1), rate 0.9..1.15"
+  }
+ },
+ "water_wake_loop": {
+  "id": "water_wake_loop",
+  "file": "audio/water_wake_loop.ogg",
+  "bus": "water",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 100,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 5.0,
+  "ch": 2,
+  "sr": 44100,
+  "peakDb": -14.4,
+  "rmsDb": -28.7,
+  "lufs": -26.0,
+  "seamDb": -28.1,
+  "tags": [],
+  "meta": {
+   "drive": "hull speed (m/s): gain 0..1 over 0..12, lowpass opens with speed, rate 0.85..1.3"
+  }
+ },
+ "water_hull_slap_01": {
+  "id": "water_hull_slap_01",
+  "file": "audio/water_hull_slap_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -27.3,
+  "lufs": -27.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_hull_slap_02": {
+  "id": "water_hull_slap_02",
+  "file": "audio/water_hull_slap_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.6,
+  "lufs": -25.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_hull_slap_03": {
+  "id": "water_hull_slap_03",
+  "file": "audio/water_hull_slap_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.5,
+  "lufs": -26.2,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_hull_slap_04": {
+  "id": "water_hull_slap_04",
+  "file": "audio/water_hull_slap_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.9,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_hull_slap_05": {
+  "id": "water_hull_slap_05",
+  "file": "audio/water_hull_slap_05.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.3,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_hull_slap_06": {
+  "id": "water_hull_slap_06",
+  "file": "audio/water_hull_slap_06.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 2,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.4,
+  "lufs": -26.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "wave height at hull and relative motion"
+  }
+ },
+ "water_boil_hiss": {
+  "id": "water_boil_hiss",
+  "file": "audio/water_boil_hiss.ogg",
+  "bus": "water",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 70,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.7,
+  "rmsDb": -27.0,
+  "lufs": -26.0,
+  "seamDb": -31.4,
+  "tags": [],
+  "meta": {
+   "drive": "hot water / lava contact; gain by hot cell count"
+  }
+ },
+ "water_quench_hiss_01": {
+  "id": "water_quench_hiss_01",
+  "file": "audio/water_quench_hiss_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.3,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "object temperature (hotter = louder), mass scales gain"
+  }
+ },
+ "water_quench_hiss_02": {
+  "id": "water_quench_hiss_02",
+  "file": "audio/water_quench_hiss_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -24.6,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "object temperature (hotter = louder), mass scales gain"
+  }
+ },
+ "water_quench_hiss_03": {
+  "id": "water_quench_hiss_03",
+  "file": "audio/water_quench_hiss_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -26.2,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "object temperature (hotter = louder), mass scales gain"
+  }
+ },
+ "water_quench_hiss_04": {
+  "id": "water_quench_hiss_04",
+  "file": "audio/water_quench_hiss_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 90,
+  "weight": 3,
+  "lazy": true,
+  "group": "water",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.0,
+  "rmsDb": -25.6,
+  "lufs": -24.0,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "drive": "object temperature (hotter = louder), mass scales gain"
+  }
+ },
+ "water_flood_trickle": {
+  "id": "water_flood_trickle",
+  "file": "audio/water_flood_trickle.ogg",
+  "bus": "water",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 45,
+  "weight": 1,
+  "lazy": true,
+  "group": "water",
+  "dur": 5.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.3,
+  "rmsDb": -29.5,
+  "lufs": -28.0,
+  "seamDb": -28.3,
+  "tags": [],
+  "meta": {
+   "drive": "flowing water cell count near camera"
+  }
+ },
+ "water_ripple_tick_01": {
+  "id": "water_ripple_tick_01",
+  "file": "audio/water_ripple_tick_01.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 25,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.12,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -18.0,
+  "rmsDb": -37.2,
+  "lufs": -35.3,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "tiny drop on surface"
+  }
+ },
+ "water_ripple_tick_02": {
+  "id": "water_ripple_tick_02",
+  "file": "audio/water_ripple_tick_02.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 25,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.12,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -18.0,
+  "rmsDb": -40.8,
+  "lufs": -38.8,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "tiny drop on surface"
+  }
+ },
+ "water_ripple_tick_03": {
+  "id": "water_ripple_tick_03",
+  "file": "audio/water_ripple_tick_03.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 25,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.12,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -18.0,
+  "rmsDb": -35.5,
+  "lufs": -33.6,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "tiny drop on surface"
+  }
+ },
+ "water_ripple_tick_04": {
+  "id": "water_ripple_tick_04",
+  "file": "audio/water_ripple_tick_04.ogg",
+  "bus": "water",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 1,
+  "maxDist": 25,
+  "weight": 0.5,
+  "lazy": true,
+  "group": "water",
+  "dur": 0.12,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -18.0,
+  "rmsDb": -36.6,
+  "lufs": -34.5,
+  "seamDb": null,
+  "tags": [],
+  "meta": {
+   "note": "tiny drop on surface"
+  }
+ }
+}
