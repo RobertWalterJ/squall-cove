@@ -1,49 +1,46 @@
-"""Build the two aircraft and render views for checking against the reference photographs and drawings.
-  blender -b --python build_aircraft.py -- GAME_DIR REVIEW_DIR
-Writes GAME_DIR/aircraft.glb (nodes cormorant_hull, cormorant_rotor0, cormorant_tail0, cormorant_winch0, cl415_hull, cl415_prop0, cl415_prop1)
-and REVIEW_DIR/<model>_{side,plan,front,3q}.png."""
-import bpy, sys, os, math
-from mathutils import Vector
+"""Build the two aircraft (CH-149 Cormorant and Canadair CL-415) and render review views.
+  blender -b --python build_aircraft.py -- GAME_DIR REVIEW_DIR [TEX_DIR]
+Writes GAME_DIR/aircraft.glb and GAME_DIR/aircraft.glb.b64.txt (one line, no newline; copy it to assets/aircraft.glb.b64.txt)
+with nodes cormorant_hull, cormorant_rotor0, cormorant_tail0, cormorant_winch0, cl415_hull, cl415_prop0, cl415_prop1,
+and REVIEW_DIR/<model>_<view>.png for side, port, front, rear, plan, belly and the 3/4 views.
+The livery atlases (colour + normal) are painted by air_tex.py with a normal Python that has Pillow and numpy (found as `python` on PATH, or $AIR_PY);
+set AC_NOTEX=1 to reuse the textures already in TEX_DIR. AC_NORENDER=1 skips the review renders, AC_SAMPLES sets the render samples.
+"""
+import bpy, sys, os, math, base64, shutil, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from pg_core import *
-import pg_aircraft as A
+import air_render as R
 
-GAME, REV = sys.argv[sys.argv.index('--') + 1:][:2]
-os.makedirs(GAME, exist_ok=True); os.makedirs(REV, exist_ok=True)
-MODELS = [('cormorant', A.cormorant, 'cormorant_hull'), ('cl415', A.cl415, 'cl415_hull')]
-reset(); allobjs = []; built = {}
-for key, fn, nm in MODELS:
-    hull = fn(); hull.name = nm; parts = list(A.ANIM); built[key] = (hull, parts); allobjs += [hull] + parts
-    print('MODEL', key, dims(hull), tri_count(hull), [p.name for p in parts])
-export_glb(allobjs, os.path.join(GAME, 'aircraft.glb'))
-# review renders: hide the other model while each is photographed
-def setup_scene():
-    sc = bpy.context.scene; w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True
-    bg = w.node_tree.nodes['Background']; bg.inputs[0].default_value = (0.80, 0.83, 0.86, 1); bg.inputs[1].default_value = 1.0
-    sun = bpy.data.objects.new('sun', bpy.data.lights.new('sun', 'SUN')); link(sun); sun.data.energy = 3.2; sun.data.angle = math.radians(5); sun.rotation_euler = (math.radians(52), math.radians(8), math.radians(-35))
-    sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = int(os.environ.get('AC_SAMPLES', '12')); sc.cycles.use_denoising = True
-    sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'; return sc
-def bounds(objs):
-    pts = [o.matrix_world @ Vector(c) for o in objs for c in o.bound_box]
-    return Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))), Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
-def shoot(sc, path, kind, objs):
-    mn, mx = bounds(objs); c = (mn + mx) / 2; L, B, H = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
-    cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); link(cam); sc.camera = cam; cam.data.type = 'ORTHO'; cam.data.clip_end = 5000
-    if kind == 'side':
-        cam.location = (c.x, c.y + 200, c.z); cam.rotation_euler = (c - cam.location).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = max(L, H) * 1.1; res = (1600, int(1600 * H * 1.1 / (max(L, H) * 1.1)) + 80)
-    elif kind == 'plan':
-        cam.location = (c.x, c.y, mx.z + 200); cam.rotation_euler = (0, 0, math.pi); cam.data.ortho_scale = max(L, B) * 1.08; res = (1600, int(1600 * B * 1.08 / (max(L, B) * 1.08)) + 80)
-    elif kind == 'front':
-        cam.location = (c.x + 200, c.y, c.z); cam.rotation_euler = (c - cam.location).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = max(B, H) * 1.1; res = (1600, int(1600 * H * 1.1 / (max(B, H) * 1.1)) + 80)
-    else:
-        d = Vector((0.8, 0.9, 0.5)).normalized(); cam.location = c + d * 120; cam.rotation_euler = (c - cam.location).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = max(L, B, H) * 0.95; res = (1500, 1000)
-    sc.render.resolution_x, sc.render.resolution_y = res; sc.render.filepath = path; bpy.ops.render.render(write_still=True); bpy.data.objects.remove(cam)
+argv = sys.argv[sys.argv.index('--') + 1:]
+GAME, REV = argv[0], argv[1]
+TEX = argv[2] if len(argv) > 2 else os.path.join(GAME, 'tex')
+os.makedirs(GAME, exist_ok=True); os.makedirs(REV, exist_ok=True); os.makedirs(TEX, exist_ok=True)
+
+if not os.environ.get('AC_NOTEX'):
+    py = os.environ.get('AIR_PY') or shutil.which('python') or shutil.which('python3')
+    subprocess.check_call([py, os.path.join(HERE, 'air_tex.py'), TEX])
+
+import pg_cormorant, pg_cl415
+reset(); built = {}; everything = []
+for key, mod in (('cormorant', pg_cormorant), ('cl415', pg_cl415)):
+    fus, parts, anim, M = mod.build(TEX)
+    hull = join(parts, key + '_hull')
+    built[key] = (hull, anim); everything += [hull] + anim
+    print('MODEL', key, dims(hull), 'tris hull', tri_count(hull), 'anim', [(a.name, tri_count(a)) for a in anim])
+
+glb = os.path.join(GAME, 'aircraft.glb')
+bpy.ops.object.select_all(action='DESELECT')
+for o in everything: o.select_set(True)
+bpy.ops.export_scene.gltf(filepath=glb, use_selection=True, export_apply=True, export_yup=True, export_extras=True, export_image_format='AUTO', export_jpeg_quality=88)
+open(os.path.join(GAME, 'aircraft.glb.b64.txt'), 'w').write(base64.b64encode(open(glb, 'rb').read()).decode('ascii'))
+print('GLB', os.path.getsize(glb), 'bytes')
+
 if os.environ.get('AC_NORENDER'):
     print('AIRCRAFT DONE (no renders)'); sys.exit(0)
-sc = setup_scene()
-for key, (hull, parts) in built.items():
-    objs = [hull] + parts
-    for k2, (h2, p2) in built.items():
-        for o in [h2] + p2: o.hide_render = (k2 != key)
-    for kind in ('side', 'plan', 'front', '3q'): shoot(sc, os.path.join(REV, f'{key}_{kind}.png'), kind, objs)
+sc = R.setup_scene(int(os.environ.get('AC_SAMPLES', '20')))
+views = os.environ.get('AC_VIEWS', 'side,port,front,rear,plan,belly,3q_high,3q_low,3q_rear,3q_port').split(',')
+for key, (hull, anim) in built.items():
+    for k2, (h2, a2) in built.items():
+        for o in [h2] + a2: o.hide_render = (k2 != key)
+    for v in views: R.shoot(sc, os.path.join(REV, f'{key}_{v}.png'), v, [hull] + anim, int(os.environ.get('AC_SIZE', '1500')))
 print('AIRCRAFT DONE')

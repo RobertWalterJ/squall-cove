@@ -52,3 +52,13 @@ blender -b --python generators/people_sheet.py -- people.glb people_sheet.png 8 
 ## Animated ship parts (v4.4)
 
 The Coast Guard ships now export a few moving parts as their own nodes, named `<gamekey>_<part>N`: `radar` (spins), `flag` (a pennant that streams downwind), and on the hovercraft `propL` and `propR` (spin with the throttle). Each part's origin sits on its pivot. `generators/pg_marine.py` builds them (`pivoted`, `flag_on`, the `ANIM` list) and `build_ccg_all.py` names and exports them. The game finds them by name in `makeBoat` and moves them in `updateBoatParts`.
+
+## Aircraft (October 2026 rebuild)
+
+The CH-149 Cormorant and the Canadair CL-415 are modelled from Wikimedia Commons photographs and published dimensions, with painted livery atlases.
+
+- `generators/build_aircraft.py` builds both (`blender -b --python build_aircraft.py -- GAME_DIR REVIEW_DIR [TEX_DIR]`), writes `aircraft.glb` and `aircraft.glb.b64.txt` (copy that to `assets/aircraft.glb.b64.txt`) and renders review views (side, port, front, rear, plan, belly, four 3/4 views). It needs a normal Python with Pillow and numpy on PATH (or `$AIR_PY`) to paint the textures.
+- `pg_cormorant.py`, `pg_cl415.py`: the models. `air_common.py`: lofted fuselages with rounded-rectangle sections, surface patches ray-cast onto the skin (windows, bezels, inlets), aerofoil lofts, UV mapping.
+- `air_layout.py`: where each side, top, belly and small part sits in the 2048 px atlas. `air_tex.py` and `air_tex_cl.py` paint the colour atlas (stripes, lettering, panel lines, weathering) and the normal map (panel grooves) in world metres.
+- `air_review.py` renders chosen views of one aircraft quickly: `blender -b --python air_review.py -- cormorant TEX_DIR OUT_DIR side+3q_high:7.5,0,2:3`.
+- Node contract: `cormorant_hull`, `cormorant_rotor0` (hub), `cormorant_tail0` (tail rotor hub, port side), `cormorant_winch0` (hoist hook, starboard), `cl415_hull`, `cl415_prop0`, `cl415_prop1` (hubs, propellers in front of the nacelles).
