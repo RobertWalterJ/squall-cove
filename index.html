@@ -1058,11 +1058,11 @@ const waterU = { ...waveU, ...ripU, tSnow: { value: snowTex }, uTime: terrainU.u
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
   vertexShader: `${WAVE_GLSL}${RIP_GLSL}
-    varying vec3 vW; varying vec2 vG; uniform sampler2D tSnow, tH;
+    varying vec3 vW; varying vec2 vG; varying float vCrest; uniform sampler2D tSnow, tH;
     float terrH(vec2 p){ vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5); vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1070,7 +1070,7 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTime, uAmp, uWindStr, uBlow; uniform sampler2D tSky, tH, tN, tSnow; uniform vec3 uSun, uSunCol, uSkyTint; uniform vec2 uWind;
     ${GUST_GLSL}
     uniform vec4 uFoam[${MAXFOAM}]; uniform vec4 uWake[${MAXWAKE}];
-    varying vec3 vW; varying vec2 vG;
+    varying vec3 vW; varying vec2 vG; varying float vCrest;
     #include <common>
     #include <fog_pars_fragment>
     ${EQUI}
@@ -1135,6 +1135,7 @@ const waterMat = new THREE.ShaderMaterial({
         ic += uSunCol * pow(max(dot(vec3(0.0, 1.0, 0.0), Hh), 0.0), 60.0) * 0.18 * (1.0 - pack);
         col = mix(col, ic, cover); alpha = mix(alpha, 0.98, cover);
       }
+      { float fo = smoothstep(0.74, 0.96, vCrest + 0.34 * (texture2D(tN, vW.xz * 0.06 + uTime * 0.015).x - 0.5)) * smoothstep(0.34, 0.8, uAmp); col = mix(col, vec3(0.93, 0.96, 0.98) * (uSunCol * 0.4 + 0.55), fo * 0.85); alpha = max(alpha, fo * 0.9); }       // whitecaps on the crests once the sea builds
       col = mix(col, vec3(0.80, 0.90, 0.94) * (uSunCol * 0.5 + 0.4), iceW * 0.9); alpha = mix(alpha, 0.97, iceW);
       gl_FragColor = vec4(col, alpha);
       #include <tonemapping_fragment>
@@ -1155,7 +1156,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);').replace('vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5);', 'vCrest = -1.0;'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
