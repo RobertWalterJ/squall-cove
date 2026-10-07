@@ -268,6 +268,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 
 <div id="marquee" hidden></div>
 <div id="dropTag" hidden></div>
+<div id="fpScope" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 31vmin,#000 32vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.75)"></div></div>
 <div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bJump">Jump in</button><button type="button" id="bSpec">Watch next</button><button type="button" id="bOver">Overview</button></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
 <aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
@@ -359,7 +360,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div id="fpTools"></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
-    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
   </div>
   <div id="inspector" hidden role="dialog" aria-label="Device settings">
     <div class="ihead"><b id="iTitle">Device</b><span id="iNote"></span><button id="iClose" type="button">Done</button></div>
@@ -2504,8 +2505,6 @@ function poseGait(p, k, amp) {
 }
 function poseRifle(p, k, aim, run) {                                // two hands on the rifle: low ready when walking, up on the shoulder when aiming, tucked in when running
   if (k < 0.02) return; const R = p.ax.right, U = p.ax.up, a = clamp(aim, 0, 1), r = run ? 1 : 0;
-  blendPose(p, 'upper_arm.R', R, 0.85 + 0.55 * a - 0.2 * r, k); blendPose(p, 'forearm.R', R, 1.45 - 0.25 * a, k);
-  blendPose(p, 'upper_arm.L', R, 1.15 + 0.35 * a - 0.15 * r, k); blendPose(p, 'upper_arm.L', U, -0.55, k * 0.6); blendPose(p, 'forearm.L', R, 0.55 - 0.1 * a, k); blendPose(p, 'forearm.L', U, -0.55, k * 0.6);
   blendPose(p, 'spine', R, -0.05 - 0.2 * r - 0.06 * a, k); blendPose(p, 'chest', R, -0.04 - 0.08 * r, k); blendPose(p, 'head', R, 0.1 * a + 0.05 * r, k);
 }
 function poseCrouch(p, k) {                                         // down on the heels behind cover
@@ -2987,7 +2986,7 @@ function stepRide(p, dt, t) {
     }
   }
   R.ly += (deckLy(bt, R.lx, R.lz) - R.ly) * Math.min(1, 10 * dt);
-  p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt); if (moving) p.ph += dt * 6.4;
+  p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt); if (moving) p.ph += dt * 6.4 * (1 + 0.75 * (p.runK || 0));
   const seat = !!bt.sp.seat && !moving && !R.order && !p.carry && !p.job && !(p.aim > 0.1);
   p.sitK += ((seat ? 1 : 0) - p.sitK) * Math.min(1, 5 * dt);
   p.carryK += ((p.carry ? 1 : 0) - p.carryK) * Math.min(1, 6 * dt);
@@ -3026,12 +3025,36 @@ function poseSwim(p, k) {
   blendPose(p, 'thigh.L', R, 0.35 * Math.sin(p.ph * 3.2), k); blendPose(p, 'thigh.R', R, -0.35 * Math.sin(p.ph * 3.2), k);
   blendPose(p, 'shin.L', R, -0.3 - 0.25 * Math.sin(p.ph * 3.2 + 1), k); blendPose(p, 'shin.R', R, -0.3 + 0.25 * Math.sin(p.ph * 3.2 + 1), k);
 }
-function armedPose(p, dt) {                                         // soldiers hold their rifles, crouch behind cover and lean into a run
+/* two-bone arm solver: puts the hand on a target and bends the elbow towards a pole, so both hands really hold the weapon */
+const ikV = Array.from({ length: 10 }, () => new THREE.Vector3()), ikQ = [0, 1, 2, 3, 4].map(() => new THREE.Quaternion());
+function restOf(p, n) { const c = p.rc || (p.rc = {}); if (!c[n]) { const pos = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3(); p.restW[n].decompose(pos, q, sc); c[n] = { pos, q }; } return c[n]; }
+function ikArm(p, s, T, pole, k, objQinv) {
+  const nu = bnName('upper_arm.' + s), nf = bnName('forearm.' + s), nh = bnName('hand.' + s), ua = p.info[nu], fa = p.info[nf], r0 = restOf(p, nu), r1 = restOf(p, nf), r2 = restOf(p, nh), L1 = r0.pos.distanceTo(r1.pos), L2 = r1.pos.distanceTo(r2.pos);
+  const S = ikV[0].setFromMatrixPosition(ua.b.matrixWorld).applyMatrix4(p.invW), d = ikV[1].copy(T).sub(S), dist = d.length() || 1e-4, dc = clamp(dist, Math.abs(L1 - L2) + 1e-3, L1 + L2 - 1e-3); d.multiplyScalar(1 / dist);
+  const a = (L1 * L1 - L2 * L2 + dc * dc) / (2 * dc), h = Math.sqrt(Math.max(0, L1 * L1 - a * a)), pv = ikV[2].copy(pole).addScaledVector(d, -pole.dot(d)); if (pv.lengthSq() < 1e-6) pv.copy(p.ax.up).negate(); pv.normalize();
+  const E = ikV[3].copy(S).addScaledVector(d, a).addScaledVector(pv, h), Tc = ikV[4].copy(S).addScaledVector(d, dc), d1 = ikV[5].copy(E).sub(S).normalize(), d2 = ikV[6].copy(Tc).sub(E).normalize(), rd1 = ikV[7].copy(r1.pos).sub(r0.pos).normalize(), rd2 = ikV[8].copy(r2.pos).sub(r1.pos).normalize();
+  const qU = ikQ[0].setFromUnitVectors(rd1, d1).multiply(r0.q), qF = ikQ[1].setFromUnitVectors(rd2, d2).multiply(r1.q), par = ikQ[2]; ua.b.parent.getWorldQuaternion(par); par.premultiply(objQinv).invert();
+  ua.b.quaternion.slerp(ikQ[3].copy(par).multiply(qU), k); fa.b.quaternion.slerp(ikQ[4].copy(qU).invert().multiply(qF), k);
+}
+const GRIP = { pistol: 0.02, smg: 0.3, rifle: 0.42, shotgun: 0.38, sniper: 0.46, medic: 0.02 };
+function armedPose(p, dt) {                                         // soldiers hold their weapons in both hands, crouch behind cover and lean into a run
   const armed = !!(p.gun || p.bot) && !p.swim && p.state !== 'rag' && !p.fp, b = p.bot || p.gun;
   p.armedK = (p.armedK || 0) + ((armed ? 1 : 0) - (p.armedK || 0)) * Math.min(1, 6 * dt); p.crouchK = (p.crouchK || 0) + (((armed && b && b.crouch) ? 1 : 0) - (p.crouchK || 0)) * Math.min(1, 7 * dt);
-  const gm = p.gunMesh || (p.bot && p.bot.wmesh);
-  if (armed || p.armedK > 0.02) { poseRifle(p, p.armedK, p.aim || 0, p.run && p.walkK > 0.3); poseCrouch(p, p.crouchK); }
-  if (gm) { const a = clamp(p.aim || 0, 0, 1); gm.position.set(0.1, 1.3 - 0.45 * p.crouchK - 0.04 * a, 0.36 - (p.recoil || 0) * 0.06); gm.rotation.set(0.5 * (1 - a) * (p.run && p.walkK > 0.3 ? 0.5 : 1) + (p.run && p.walkK > 0.3 ? 0.35 : 0), -0.1, 0); gm.visible = !p.swim; }
+  const gm = p.gunMesh || (p.bot && p.bot.wmesh), run = p.runK || 0;
+  if (armed || p.armedK > 0.02) { poseRifle(p, p.armedK, p.aim || 0, run > 0.5); poseCrouch(p, p.crouchK); }
+  if (!gm) return; gm.visible = !p.swim; if (!(armed || p.armedK > 0.02) || !p.ax) return;
+  const wt = (b && b.w) || 'rifle', pist = wt === 'pistol' || wt === 'medic', a = clamp(p.aim || 0, 0, 1), sc = Math.max(0.8, p.height / 1.7), k = p.armedK;
+  p.obj.updateMatrixWorld(true); p.invW = p.invW || new THREE.Matrix4(); p.invW.copy(p.obj.matrixWorld).invert(); const oq = p.obj.getWorldQuaternion(ikQ[0]).clone().invert();
+  const SR = ikV[0].clone().setFromMatrixPosition(p.info[bnName('upper_arm.R')].b.matrixWorld).applyMatrix4(p.invW), SL = ikV[0].clone().setFromMatrixPosition(p.info[bnName('upper_arm.L')].b.matrixWorld).applyMatrix4(p.invW);
+  const up = p.ax.up, fwd = p.ax.fwd, lat = SR.clone().sub(SL).normalize(), C = SR.clone().add(SL).multiplyScalar(0.5);
+  // where the weapon sits: up at the shoulder when aiming, low across the chest when ready, tucked in and tilted down when running
+  const lowG = C.clone().addScaledVector(lat, 0.1 * sc).addScaledVector(up, (pist ? -0.3 : -0.22) * sc).addScaledVector(fwd, (pist ? 0.3 : 0.24) * sc), aimG = C.clone().addScaledVector(lat, (pist ? 0.03 : 0.11) * sc).addScaledVector(up, (pist ? -0.02 : 0.0) * sc).addScaledVector(fwd, (pist ? 0.55 : 0.3) * sc - (p.recoil || 0) * 0.06), runG = C.clone().addScaledVector(lat, 0.1 * sc).addScaledVector(up, (pist ? -0.28 : -0.2) * sc).addScaledVector(fwd, 0.26 * sc);
+  const G = lowG.lerp(runG, run * (1 - a)).lerp(aimG, a), pitch = (1 - a) * (0.55 + 0.25 * run) + (pist ? 0.05 : 0) - (p.recoil || 0) * 0.04, z = fwd.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(up, -Math.sin(pitch)).normalize(), yG = up.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(fwd, Math.sin(pitch)).normalize(), xG = new THREE.Vector3().crossVectors(yG, z).normalize();
+  gm.position.copy(G); gm.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xG, yG, z)); gm.scale.setScalar(sc);
+  const grip = (GRIP[wt] || 0.4) * sc, rh = G.clone().addScaledVector(yG, -0.05 * sc).addScaledVector(z, -0.02 * sc), lh = G.clone().addScaledVector(z, grip).addScaledVector(yG, -0.045 * sc).addScaledVector(lat, pist ? -0.025 * sc : 0.0);
+  if (pist) lh.copy(rh).addScaledVector(lat, -0.04 * sc).addScaledVector(z, 0.0).addScaledVector(yG, -0.02 * sc);
+  const poleR = up.clone().multiplyScalar(-1).addScaledVector(lat, 0.8).addScaledVector(fwd, -0.3), poleL = up.clone().multiplyScalar(-1).addScaledVector(lat, -0.8).addScaledVector(fwd, -0.3);
+  ikArm(p, 'R', rh, poleR, k, oq); ikArm(p, 'L', lh, poleL, k, oq);
 }
 function stepFoot(p, dt, t) {
   let moving = false;
@@ -3078,7 +3101,7 @@ function stepFoot(p, dt, t) {
   animStep(p, dt);
   p.fighting = Math.max(0, p.fighting - dt); p.fightK += ((p.fighting > 0 && !p.swim ? 1 : 0) - p.fightK) * Math.min(1, 8 * dt);
   if (p.swim) { p.ph += dt * (3 + 4 * p.walkK); poseSwim(p, clamp(p.swimK * 1.2, 0, 1)); }
-  else if (p.walkK > 0.02) poseGait(p, p.walkK, (p.bot || p.gun) && p.run ? 1.45 : 1);
+  else if (p.walkK > 0.02) { p.runK = (p.runK || 0) + ((((p.bot || p.gun) && p.run) ? 1 : 0) - (p.runK || 0)) * Math.min(1, 5 * dt); poseGait(p, p.walkK, 1 + 0.4 * p.runK); }
   armedPose(p, dt);
   if (p.wk > 0.02 && !p.carry && p.fightK < 0.2) poseWave(p, p.wk, t);
   if (p.fightK > 0.02) poseFight(p, p.fightK, t);
@@ -3097,6 +3120,7 @@ function updatePeople(dt, t) {
     if (!people.includes(p) || p.state === 'rag') continue;
     if (p.hop) { stepHop(p, dt, t); continue; }
     if (p.ride) stepRide(p, dt, t); else stepFoot(p, dt, t);
+    if (p.fp && p.obj) { const sn = fp.stance || 0; p.stK = (p.stK || 0) + (sn - (p.stK || 0)) * Math.min(1, dt * 6); const pr = clamp(p.stK - 1, 0, 1), cr = Math.min(1, p.stK); if (p.stK > 0.02) { p.obj.rotation.order = 'YXZ'; p.obj.rotation.x = 1.45 * pr; p.obj.position.y = p.y - p.footOff - 0.28 * cr * (1 - pr) + 0.12 * pr; } else if (p.obj.rotation.x) p.obj.rotation.x = 0; }
   }
 }
 
@@ -3451,7 +3475,7 @@ function updateFP(dt, t) {
   let r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
   let len = Math.hypot(f, r); if (len > 1) { f /= len; r /= len; len = 1; }
   if (len < 0.1) { f = r = len = 0; }                                                  // dead zone on the stick
-  const run = keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.82, top = (run ? 6.4 : 3.3) * (p.carry ? 0.8 : 1) * (p.swim ? 0.6 : 1);
+  const st_ = fp.stance || 0, run = !st_ && (keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.82), top = (run ? 6.4 : 3.3) * [1, 0.5, 0.2][st_] * (p.carry ? 0.8 : 1) * (p.swim ? 0.6 : 1);
   const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw), want = top * (run ? 1 : Math.min(1, 0.35 + len * 0.8)) * (len ? 1 : 0);
   const tvx = (fx_ * f + (-fz_) * r) / (len || 1) * want, tvz = (fz_ * f + fx_ * r) / (len || 1) * want;
   const kk = 1 - Math.exp(-dt * (len ? (fp.air ? 3 : 12) : (fp.air ? 0.6 : 15)));
@@ -3490,12 +3514,16 @@ function fpCamera(dt, t) {
   let px = p.x, py = p.y + fpEye(p), pz = p.z;
   if (p.state === 'rag' && p.rag) { const hd = p.rag.bodies.head.interpolatedPosition; px = hd.x; py = hd.y + 0.12; pz = hd.z; }
   else { if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob * 2) * 0.012 * Math.min(1.6, fp.spd / 2.5) + Math.abs(Math.sin(fp.bob)) * 0.03 * Math.min(1.6, fp.spd / 3); py -= fp.land * 0.12; }
+  { const tgtEye = [0, 0.55, 1.15][fp.stance || 0]; fp.eye = (fp.eye || 0) + (tgtEye - (fp.eye || 0)) * Math.min(1, dt * 8); py -= fp.eye; }
+  { const sc = fp.zoom && fp.tool === 'sniper' && fp.on; const so = $('fpScope'); if (so) so.style.display = sc ? 'block' : 'none'; const m = fpToolMesh.sniper; if (m && fp.tool === 'sniper') m.visible = !sc; }
   const fov = fp.zoom && WPN[fp.tool] && WPN[fp.tool].zoom ? WPN[fp.tool].zoom : 62 + Math.min(1, Math.max(0, (fp.spd - 3.4) / 3)) * 9; fp.fov += (fov - fp.fov) * Math.min(1, dt * 6); if (Math.abs(camera.fov - fp.fov) > 0.05) { camera.fov = fp.fov; camera.updateProjectionMatrix(); }
   camera.position.set(px, py, pz);
-  const cp = Math.cos(fp.pitch); camera.lookAt(px + Math.sin(fp.yaw) * cp, py + Math.sin(fp.pitch), pz + Math.cos(fp.yaw) * cp);
+  const sway = fp.zoom && fp.tool === 'sniper' ? 0.0022 * [1, 0.45, 0.15][fp.stance || 0] * (keys.has('shift') ? 0.3 : 1) : 0, sy_ = Math.sin(simT * 1.3) * sway, sp_ = Math.sin(simT * 1.9 + 1) * sway;
+  const cp = Math.cos(fp.pitch + sp_); camera.lookAt(px + Math.sin(fp.yaw + sy_) * cp, py + Math.sin(fp.pitch + sp_), pz + Math.cos(fp.yaw + sy_) * cp);
 }
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
 document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
+$('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
 addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
 canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { passive: false });
 { // touch: stick and look pad
@@ -3509,8 +3537,11 @@ canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { pa
   lk.addEventListener('pointermove', (e) => { if (e.pointerId !== lid) return; fp.yaw -= (e.clientX - lx) * 0.0068; fp.pitch = clamp(fp.pitch - (e.clientY - ly) * 0.0068, -1.45, 1.45); lx = e.clientX; ly = e.clientY; });
   const lEnd = (e) => { if (e.pointerId === lid) lid = null; }; lk.addEventListener('pointerup', lEnd); lk.addEventListener('pointercancel', lEnd);
 }
+function fpStance(n) {                                           // stand, crouch (C) or lie prone (P): lower, slower, steadier and harder to hit
+  if (!fp.on) return; fp.stance = n; toast(['Standing', 'Crouching: slower, steadier, harder to hit', 'Prone: very low and still. Space gets you up.'][n]); fp.zoom = fp.zoom && true;
+}
 function fpJumpOrGetUp() {
-  const p = fp.p; if (!p) return; if (BATTLE.on && BATTLE.down) return;
+  const p = fp.p; if (!p) return; if (BATTLE.on && BATTLE.down) return; if (fp.stance) { fpStance(0); return; }
   if (p.state === 'rag') { if (standY(p.rag.bodies.pelvis.position.x, p.rag.bodies.pelvis.position.z) >= 0.15) standUp(p); else { const pb = p.rag.bodies.pelvis.position; freeRag(p); p.state = 'idle'; p.floating = false; p.x = pb.x; p.z = pb.z; p.swim = true; p.y = waveH(p.x, p.z, simT) - 1.15; for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } p.obj.quaternion.identity(); giveBody(p); } return; }
   fp.jump = true;
 }
@@ -3520,7 +3551,7 @@ addEventListener('keydown', (e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
-  else if (/^[1-7]$/.test(k)) fpSetTool(FPT[+k - 1][0]); else if (k === 'r') fpReload(); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo();
+  else if (/^[1-7]$/.test(k)) fpSetTool(FPT[+k - 1][0]); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo();
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
 
@@ -3599,7 +3630,7 @@ function fpFireGun() {
   fp.ammo[id]--; { const sf = surfaceAt(p.x, p.z); setTimeout(() => Snd.fx('wpn_shell_' + (sf === 'concrete' || sf === 'asphalt' ? 'concrete' : 'dirt'), p.x + 0.5, p.z, { gain: 0.35 }), 380); } fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + 0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)); fp.yaw += (Math.random() - 0.5) * 0.006; fp.flash = 0.05;
   { const sn = 'wpn_' + id + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
-  const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1);
+  const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1) * [1, 0.7, 0.45][fp.stance || 0];
   for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z);
     impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { hurt(q, w.dmg * fall, p, head); Snd.ui('ui_hitmarker', 0.6); } else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
     else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
@@ -3897,10 +3928,10 @@ function paveRoad(pts, w, marks) {                                              
 
 /* ================================================================ the battle: Port against Raiders (or Invaders) for the capture points. Health, tickets, spawns and respawns, bots with classes and weapons, squads and orders. Knock-outs only: nobody is hurt, the fallen go down cartoon-style and are carried off. */
 const WPN = {
-  pistol: { name: 'Pistol', dmg: 26, rate: 0.3, mag: 12, spread: 0.012, range: 120, auto: false, bot: 1.3 },
-  smg: { name: 'SMG', dmg: 11, rate: 0.08, mag: 32, spread: 0.03, range: 90, auto: true, bot: 0.16 },
-  rifle: { name: 'Rifle', dmg: 30, rate: 0.16, mag: 25, spread: 0.012, range: 220, auto: true, bot: 0.34 },
-  shotgun: { name: 'Shotgun', dmg: 9, pellets: 8, rate: 0.85, mag: 6, spread: 0.07, range: 45, auto: false, bot: 1.1 },
+  pistol: { name: 'Pistol', dmg: 26, rate: 0.3, mag: 12, spread: 0.012, range: 120, auto: false, bot: 1.3, zoom: 50 },
+  smg: { name: 'SMG', dmg: 11, rate: 0.08, mag: 32, spread: 0.03, range: 90, auto: true, bot: 0.16, zoom: 46 },
+  rifle: { name: 'Rifle', dmg: 30, rate: 0.16, mag: 25, spread: 0.012, range: 220, auto: true, bot: 0.34, zoom: 34 },
+  shotgun: { name: 'Shotgun', dmg: 9, pellets: 8, rate: 0.85, mag: 6, spread: 0.07, range: 45, auto: false, bot: 1.1, zoom: 52 },
   sniper: { name: 'Sniper', dmg: 90, rate: 1.2, mag: 5, spread: 0.002, range: 420, auto: false, zoom: 16, bot: 2.2 },
 };
 const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, kills: { blue: 0, red: 0 }, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: 'blue', plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow' };
@@ -3996,12 +4027,12 @@ function findCover(q, e) {                                           // a spot b
 }
 function senseEnemy(q, b) {
   const w = WPN[b.w], sight = b.cls === 'sniper' ? 200 : 85, fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
-  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + ((e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
+  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
 }
 function botFire(q, b, e, d) {
   const w = WPN[b.w]; b.ammo--; b.cool = w.rate + w.bot * (0.7 + Math.random() * 0.8); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 6 : 99)) { b.burst = 0; b.cool += 0.7 + Math.random() * 0.6; }
-  const moving = e.fpMoving || (e.order != null), acc = (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1), hit = Math.random() < acc;
+  const moving = e.fpMoving || (e.order != null), acc = (e.fp ? [1, 0.8, 0.55][fp.stance || 0] : 1) * (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1), hit = Math.random() < acc;
   const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + 1.3, ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + 1.1 + (hit ? 0 : rnd(-0.5, 0.5));
   addTracer(sx, sy, sz, ex, ey, ez); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + (b.w === 'medic' ? 'pistol' : b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
   if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)), q, Math.random() < 0.08); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) e.bot.alert = Math.max(e.bot.alert, 3); impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d); if (fp.on && fp.p === e) Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), e.x, e.z, { gain: 0.8 }); }
