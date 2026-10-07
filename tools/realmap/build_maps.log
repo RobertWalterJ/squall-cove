@@ -211,3 +211,49 @@ attempt 0 failed: 5 Overpass groups failed (cached ones are kept; just re-run): 
    osm 5ddda5437111 20
    http retry 0 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
    http retry 1 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   http retry 0 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   http retry 1 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   !! query failed: [out:json][timeout:120];(node["place"](39.913007,25.230794,39.920993,25.241206); network failure https://overpass.kumi.systems/api/interprete
+   osm 193098b599e0 20
+   http retry 0 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   http retry 1 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   http retry 0 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   http retry 1 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   !! query failed: [out:json][timeout:120];(node["aeroway"](39.913007,25.230794,39.920993,25.241206 network failure https://overpass.kumi.systems/api/interprete
+   osm d1a001d83b8b 20
+   osm ccddf1af5bd7 20
+   http retry 0 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   osm d5f63d6750dd 20
+   osm c7bc03173f10 37
+attempt 1 failed: 2 Overpass groups failed (cached ones are kept; just re-run): ['9ea76f8a7e5d', 'd307ee9c43da']
+[lemnos_airport] DEM z14 ...
+[lemnos_airport] Overpass ...
+   osm 0a0aef8f1e39 9
+   osm 6624a93ea154 11
+   osm 5d4175f8e6f0 13
+   osm 2d4ddc1c167a 13
+   osm 31bc5f92b559 14
+   osm c134526b5384 14
+   osm 5840e71b3c74 20
+   http retry 0 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   osm 9acf4b877660 20
+   osm b777aa870389 20
+   osm 0a419eb0add1 20
+   osm e2e963c072c7 20
+   osm e9bef3196904 20
+   http retry 0 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   http retry 1 https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+   http retry 0 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   http retry 1 https://overpass.kumi.systems/api/interpreter HTTP Error 500: Internal Server Error
+   !! query failed: [out:json][timeout:120];(node["man_made"~"water_tower|tower|lighthouse|mast|chim network failure https://overpass.kumi.systems/api/interprete
+   osm c6e88d2c45ed 20
+   osm 5ddda5437111 20
+   osm 9ea76f8a7e5d 20
+   osm 193098b599e0 20
+   osm d307ee9c43da 20
+   osm d1a001d83b8b 20
+   osm ccddf1af5bd7 20
+   osm d5f63d6750dd 20
+   osm c7bc03173f10 37
+    {'id': 'lemnos_airport', 'centre': [39.917, 25.236], 'size_m': 768.0, 'cell_m': 3.0, 'hmin': 0.4293380081653595, 'hmax': 8.49007511138916, 'water_frac': 0.0, 'slope_gt20': 0.0, 'buildings': 2, 'roads': 9, 'road_m': 2469, 'landcover': 3, 'towers': 0, 'aeroways': 4, 'harbour': 0, 'coast_pts': 19372}
+   wrote C:\Users\Robert Walter-Joseph\Code Projects\squall-cove-large\assets\map_lemnos_airport.json  0.36 MB

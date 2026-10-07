@@ -6852,7 +6852,8 @@ onKey((e) => {
   else if (k === 'escape' && mode === 'god' && (sel.length || insp)) { if (insp) closeInspector(); else { setSel([]); toast('Deselected'); } }
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
 });
-addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys.delete(k); if (k === '+' || k === '=') { keys.delete('+'); keys.delete('='); } if (k === '-' || k === '_') { keys.delete('-'); keys.delete('_'); } });
+addEventListener('blur', () => keys.clear());
 /* selection groups, fire mode, drop: the overview's own shortcuts */
 onKey((e) => {
   if (mode !== 'god' || !$('help').hidden) return; const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
@@ -7191,6 +7192,7 @@ function frameStep(now) {
     bt.rudder += clamp(((left ? 1 : 0) - (right ? 1 : 0)) * 0.7 - bt.rudder, -2.5 * dt, 2.5 * dt);
     if (bt.sp.kind === 'motor') { if (up) bt.throttle = clamp(bt.throttle + 0.6 * dt, -0.5, 1); if (down) bt.throttle = clamp(bt.throttle - 0.6 * dt, -0.5, 1); }
     else if (up || down) { if (bt.auto) { bt.auto = false; refreshHelm(); } bt.sheet = clamp(bt.sheet + (down ? 1 : -1) * 0.8 * dt, 0.05, 1.45); }
+    if (keys.has('+') || keys.has('=')) camS.dist = clamp(camS.dist * (1 - dt), 5, 120); if (keys.has('-')) camS.dist = clamp(camS.dist * (1 + dt), 5, 120);
   } else if (mode === 'god') {
     // keyboard pan / turn / zoom for the overview
     const sp = god.dist * 0.9 * dt;
@@ -7198,7 +7200,7 @@ function frameStep(now) {
     const kz = (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - (keys.has('w') || keys.has('arrowup') ? 1 : 0);
     if (kx || kz) panBy(-kx * sp / (god.dist * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / innerHeight), -kz * sp / (god.dist * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / innerHeight));
     if (keys.has('q')) god.yaw += 1.4 * dt; if (keys.has('e')) god.yaw -= 1.4 * dt;
-    if (keys.has('z')) god.dist = clamp(god.dist * (1 - dt), god.minD, god.maxD); if (keys.has('x')) god.dist = clamp(god.dist * (1 + dt), god.minD, god.maxD);
+    if (keys.has('z') || keys.has('+') || keys.has('=')) god.dist = clamp(god.dist * (1 - dt), god.minD, god.maxD); if (keys.has('x') || keys.has('-') || keys.has('_')) god.dist = clamp(god.dist * (1 + dt), god.minD, god.maxD);   // the keypad + and - zoom too, for when the wheel is busy setting a drop height
   }
   // terraforming: paint while held, rebuild the mesh at 20 Hz and the physics at 3 Hz
   if (mode === 'god' && tool === 'land' && isTouch && land.finger === 'hold' && !land.painting) hoverPt = reticlePt();
@@ -7339,7 +7341,7 @@ $('mCtl').addEventListener('click', () => openMenu(controlsNodes()));
    [where, keys, what, flags]  where: over (overview), fp (first person), boat (at the helm), tab (command tablet), help (card only).  flags: h on the help card, p in the Play tab note. */
 const KEYMAP = [
   ['over', 'Drag', 'Move the map. Right-drag turns it, the wheel zooms', 'h'],
-  ['over', 'W A S D, Q E, Z X', 'Pan, turn, zoom', 'h'],
+  ['over', 'W A S D, Q E, Z X, keypad + and -', 'Pan, turn, zoom. The keypad + and - zoom while the wheel sets a drop height', 'h'],
   ['over', 'Click', 'Select a boat or person. Empty ground deselects', 'h'],
   ['over', 'Right click', 'Send the selection there: boats sail, people walk, board or carry', 'h'],
   ['over', 'Shift + drag', 'Box-select. Double-click picks every one on screen. Ctrl + A selects all. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it', 'h'],
