@@ -1,0 +1,39 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-07T18:21:02Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 254303046,
+  "bounds": {
+    "minlat": 39.8707828,
+    "minlon": 25.2668381,
+    "maxlat": 39.8709149,
+    "maxlon": 25.2669776
+  },
+  "nodes": [
+    2600901873,
+    2600901874,
+    2600901875,
+    2600901876,
+    2600901873
+  ],
+  "geometry": [
+    { "lat": 39.8707828, "lon": 25.2669618 },
+    { "lat": 39.8709056, "lon": 25.2669776 },
+    { "lat": 39.8709149, "lon": 25.2668539 },
+    { "lat": 39.8707921, "lon": 25.2668381 },
+    { "lat": 39.8707828, "lon": 25.2669618 }
+  ],
+  "tags": {
+    "aeroway": "helipad"
+  }
+}
+
+  ]
+}

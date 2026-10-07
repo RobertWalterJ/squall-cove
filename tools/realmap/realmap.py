@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Squall Cove real-place map pipeline (open data only).
 
   python realmap.py build lemnos_myrina 39.8715 25.0640 [--size 768]
@@ -101,33 +101,42 @@ def overpass_queries(S, W, Nn, E, big=None):
         [f'way["landuse"]{b};', f'way["natural"]["natural"!="coastline"]{b};', f'way["leisure"~"park|pitch|stadium|garden|marina|golf_course|sports_centre|playground"]{b};'],
         [f'relation["natural"~"water|bay|wood|scrub|beach"]{b};', f'relation["landuse"]{b};', f'relation["building"]{b};'],
         [f'way["waterway"]{b};'], [f'way["man_made"]{b};'], [f'way["aeroway"]{b};'], [f'way["harbour"]{b};'], [f'way["military"]{b};'],
-        [f'way["power"~"line|minor_line"]{b};'], [f'way["barrier"~"wall|fence"]{b};'], [f'way["amenity"~"parking|fuel|place_of_worship|school|hospital|townhall|marketplace"]{b};'],
+        [f'way["power"="line"]{b};'], [f'way["barrier"="wall"]{b};'], [f'way["amenity"~"parking|fuel|place_of_worship|school|hospital|townhall|marketplace"]{b};'],
         [f'node["man_made"~"water_tower|tower|lighthouse|mast|chimney|storage_tank|crane|windmill|silo|pier"]{b};', f'node["power"~"tower|generator"]{b};',
          f'node["place"]{b};', f'node["natural"~"peak|cape|bay|beach"]{b};', f'node["aeroway"]{b};', f'node["amenity"~"fuel|place_of_worship|ferry_terminal"]{b};',
          f'node["historic"]{b};', f'node["military"]{b};'],
     ]
-    qs = ['[out:json][timeout:120];(' + chr(10).join(g) + ');out geom;' for g in groups]
+    qs = [['[out:json][timeout:120];(' + chr(10).join(g) + ');out geom;'] + (['[out:json][timeout:120];(' + c + ');out geom;' for c in g] if len(g) > 1 else []) for g in groups]
     bb = '(%.6f,%.6f,%.6f,%.6f)' % big
-    qs.append('[out:json][timeout:120];(way["natural"="coastline"]%s;);out geom%s;' % (b, bb))   # geometry clipped to a wider box
+    qs.append(['[out:json][timeout:120];(way["natural"="coastline"]%s;);out geom%s;' % (bb, bb)])   # geometry clipped to a wider box
     return qs
 
 def fetch_osm_raw(lat0, lon0, size_m, margin=60):
     P = Proj(lat0, lon0); h = size_m / 2 + margin
     S, _ = P.inv(0, h); Nn, _ = P.inv(0, -h); _, W = P.inv(-h, 0); _, E = P.inv(h, 0)
-    els = {}
-    big = (S - 0.02, W - 0.025, Nn + 0.02, E + 0.025)
-    for q in overpass_queries(S, W, Nn, E, big):
-        key = hashlib.md5(q.encode()).hexdigest()[:12]
-        def go():
-            last = None
-            for ep in ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']:
-                try: return http(ep, data=urllib.parse.urlencode({'data': q}).encode(), wait=3.0, tries=2)
-                except Exception as e: last = e
-            raise last
-        try: txt = cached(f'osm_{key}.json', go)
-        except Exception as ex: print('   !! group failed, skipped:', q[:90].replace(chr(10), ' '), ex); continue
-        for e in json.loads(txt)['elements']: els[(e['type'], e['id'])] = e
-        print('   osm group', key, len(els), flush=True)
+    els = {}; fails = []
+    sn = lambda v, f: math.floor(v / 0.05) * 0.05 if f else math.ceil(v / 0.05) * 0.05
+    big = (round(sn(S - 0.02, 1), 4), round(sn(W - 0.025, 1), 4), round(sn(Nn + 0.02, 0), 4), round(sn(E + 0.025, 0), 4))
+    for alts in overpass_queries(S, W, Nn, E, big):
+        got = []   # first alternative = the whole group; if it fails, fall back to its clauses one by one
+        for ai, q in enumerate(alts):
+            key = hashlib.md5(q.encode()).hexdigest()[:12]
+            def go():
+                last = None
+                for ep in ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']:
+                    try: return http(ep, data=urllib.parse.urlencode({'data': q}).encode(), wait=3.0, tries=2)
+                    except Exception as e: last = e
+                raise last
+            try: txt = cached(f'osm_{key}.json', go)
+            except Exception as ex:
+                print('   !! query failed:', q[:80].replace(chr(10), ' '), str(ex)[:60]); 
+                if ai == 0 and len(alts) > 1: continue   # try the individual clauses next
+                if not any(w in q for w in ('["power"', '["barrier"', '["military"', '["harbour"')): fails.append(key)   # those four are optional extras
+                continue
+            for e in json.loads(txt)['elements']: els[(e['type'], e['id'])] = e
+            print('   osm', key, len(els), flush=True)
+            if ai == 0: break                    # whole group succeeded
+    if fails: raise RuntimeError('%d Overpass groups failed (cached ones are kept; just re-run): %s' % (len(fails), fails))
     return {'elements': list(els.values())}
 
 def join_rings(ways):
@@ -163,7 +172,7 @@ LAND_CLASS = {
     # natural
     ('natural', 'wood'): 'forest', ('natural', 'scrub'): 'scrub', ('natural', 'heath'): 'scrub', ('natural', 'grassland'): 'grass',
     ('natural', 'beach'): 'beach', ('natural', 'sand'): 'beach', ('natural', 'bare_rock'): 'rock', ('natural', 'rock'): 'rock', ('natural', 'scree'): 'rock',
-    ('natural', 'cliff'): 'rock', ('natural', 'water'): 'water', ('natural', 'wetland'): 'wetland', ('natural', 'bay'): 'bay', ('natural', 'shingle'): 'beach',
+    ('natural', 'cliff'): 'rock', ('natural', 'water'): 'water', ('natural', 'wetland'): 'wetland', ('natural', 'bay'): None, ('natural', 'shingle'): 'beach',
     ('natural', 'fell'): 'scrub', ('natural', 'mud'): 'wetland', ('natural', 'coastline'): None, ('natural', 'tree_row'): None,
     ('leisure', 'park'): 'grass', ('leisure', 'garden'): 'grass', ('leisure', 'pitch'): 'pitch', ('leisure', 'stadium'): 'pitch', ('leisure', 'sports_centre'): 'pitch',
     ('leisure', 'golf_course'): 'grass', ('leisure', 'marina'): 'harbour', ('leisure', 'playground'): 'pitch',
@@ -374,12 +383,14 @@ def add_building(out, pts, tags, inwin):
     if area > 12000:   # castle/site outlines etc. are not single buildings: keep as a landcover site
         out['landcover'].append(dict(k='site', n=tags.get('name:en') or tags.get('name', ''), a=rd(area, 0), p=flat(simplify(pts + [pts[0]], 1.0)[:-1]))); return
     cat = classify_building(tags)
+    if cat is None:      # untyped / generic 'yes' / 'house': decide from footprint size
+        cat = 'workshop' if area < 30 else 'house_a' if area < 100 else 'house_b' if area < 180 else 'house_c' if area < 350 else ('office' if (tags.get('building:levels', '0').isdigit() and int(tags.get('building:levels', '0')) >= 3) else 'warehouse')
     lv = tags.get('building:levels'); ht = tags.get('height') or tags.get('building:height')
     try: lv = float(lv) if lv else 0
     except ValueError: lv = 0
     try: ht = float(str(ht).replace('m', '').strip()) if ht else 0
     except ValueError: ht = 0
-    out['buildings'].append(dict(t=tags.get('building', 'yes'), m=cat or '', lv=lv, ht=ht, n=tags.get('name:en') or tags.get('name', ''),
+    out['buildings'].append(dict(t=tags.get('building', 'yes'), m=cat, lv=lv, ht=ht, n=tags.get('name:en') or tags.get('name', ''),
                                  cx=rd(cx), cz=rd(cz), w=rd(w), d=rd(d), rot=rd(rot, 3), a=rd(area, 0), p=flat(simplify(pts + [pts[0]], 0.3)[:-1])))
 
 def add_landcover(out, pts, tags, half, water_polys, holes=None):
@@ -449,6 +460,10 @@ def shape_heights(dem, osm, cell_m, size_m):
     # a little deterministic undulation so the sea floor is not a perfect ramp
     rng = np.random.default_rng(7); noise = ndimage.gaussian_filter(rng.standard_normal((N, N)), 8); noise /= max(1e-6, abs(noise).max())
     depth = np.clip(depth * (1 + 0.12 * noise), 0.3, np.minimum(cap, 9.0))
+    # coastal ease: SRTM land right at the shore can be tens of metres high -> unplayable cliffs; ramp it up from a low quay/beach edge
+    d_land = ndimage.distance_transform_edt(~water) * cell_m
+    f = np.clip(d_land / 45.0, 0, 1); f = f * f * (3 - 2 * f)
+    h = np.maximum(0.25 + np.minimum(d_land, 40) * 0.03, h * f)
     h = np.where(water, -depth, h)
     sm = ndimage.gaussian_filter(h, 1.0)
     h = np.where(water, np.minimum(sm, -0.2), np.maximum(sm, 0.25))
@@ -555,3 +570,5 @@ if __name__ == '__main__':
     ap.add_argument('--size', type=float, default=768.0); a = ap.parse_args()
     if a.cmd == 'build': build(a.id, a.lat, a.lon, a.size)
     elif a.cmd == 'scan': build(a.id, a.lat, a.lon, a.size, scan=True)
+
+

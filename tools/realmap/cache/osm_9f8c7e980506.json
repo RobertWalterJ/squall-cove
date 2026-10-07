@@ -1,0 +1,60 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-07T18:24:06Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 353288786,
+  "lat": 39.8857201,
+  "lon": 25.2673782,
+  "tags": {
+    "historic": "archaeological_site",
+    "name": "Κουκονήσι",
+    "name:de": "Koukonísi",
+    "name:el": "Κουκονήσι",
+    "name:en": "Koukonísi",
+    "name:fr": "Koukkonísi",
+    "name:ru": "Кукониси"
+  }
+},
+{
+  "type": "node",
+  "id": 1184102584,
+  "lat": 39.8752950,
+  "lon": 25.2705173,
+  "tags": {
+    "addr:postcode": "81401",
+    "int_name": "Moudros",
+    "name": "Μούδρος",
+    "name:el": "Μούδρος",
+    "name:en": "Moudros",
+    "name:ml": "മൂഡ്രോസ്",
+    "name:ru": "Мудрос",
+    "name:tr": "Mondros",
+    "place": "town",
+    "wikidata": "Q1014244",
+    "wikipedia": "el:Μούδρος Λήμνου"
+  }
+},
+{
+  "type": "node",
+  "id": 9765136259,
+  "lat": 39.8854339,
+  "lon": 25.2774487,
+  "tags": {
+    "amenity": "fuel",
+    "brand": "ΕΛΙΝΟΙΛ",
+    "brand:wikidata": "Q12876543",
+    "name": "ΕΛΙΝΟΙΛ",
+    "operator": "ΤΣΑΠΤΣΑΛΗΣ ΠΑΝΤΕΛΗΣ",
+    "phone": "+302254071301"
+  }
+}
+
+  ]
+}

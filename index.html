@@ -229,6 +229,9 @@ body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe
 #intro .introGrid b{font:700 19px var(--f-display);letter-spacing:.06em;color:#e8cf8a}
 #intro .introGrid span{font:500 13.5px/1.35 var(--f-body);color:#cfc7b6;text-transform:none;letter-spacing:0}
 #intro .introFoot{margin-top:16px;display:flex;justify-content:center;gap:14px;align-items:center;color:#9a937f;font:500 12px var(--f-mono)}
+@media (min-width:700px){body.sideopen #selFloat{left:calc(min(332px,90vw) + 16px)}}
+@media (max-width:560px){#bHud{left:8px;transform:none;align-items:flex-start;max-width:calc(100vw - 74px)}#bTick{gap:6px;padding:5px 8px;font-size:14px}body.sideopen #bHud{left:8px}.fpTop button{padding:0 10px;min-height:42px}body.touch #fpTools{max-width:calc(100vw - 130px)}}
+#bSpawn .dpRow{position:sticky;bottom:-12px;background:var(--panel);padding:8px 0 4px;z-index:2}
 #bTick{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:700 16px var(--f-body);letter-spacing:.01em}
 #bTick .bB{color:#7fb4ff}#bTick .bR{color:#ff9c8a}#bTick .bPts{display:flex;gap:5px}#bTick .bPts i{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.4)}
 body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
@@ -294,7 +297,7 @@ body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
 #fp .xh::after{left:0;top:6px;width:14px;height:2px}
 .fpPrompt{position:absolute;left:50%;bottom:calc(128px + var(--safe-b));transform:translateX(-50%);max-width:min(90vw,540px);text-align:center;font:600 17px/1.25 var(--f-display);letter-spacing:.05em;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;pointer-events:none}
 .fpPrompt:empty{display:none}
-body.touch .fpPrompt{bottom:calc(172px + var(--safe-b));max-width:84vw;pointer-events:none}
+body.touch .fpPrompt{bottom:calc(230px + var(--safe-b));max-width:84vw;pointer-events:none;font-size:14px;padding:6px 10px}
 .fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
 .fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px;z-index:5}
 .fpTop button{min-height:46px;padding:0 16px;font-weight:700}
@@ -594,6 +597,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
 const $ = (id) => document.getElementById(id);
+var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
 const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
 const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot' };
 const CLS_IC = { assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa' };
@@ -742,11 +746,12 @@ const Snd = (() => {
     }
     for (const k in A.inst) if (k.startsWith('eng:') && !live.has(k.split(':').slice(0, 2).join(':'))) { const it = A.inst[k]; it.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.3); it.quiet = 99; }
     for (const v of VEHS) { const d = Math.hypot(v.x - L.x, v.z - L.z); if (d > 170) continue; const k = 'veh:' + v.id, r = cl(v.speed / (v.sp.v + 0.1), 0, 1), fam = v.sp.eng; const run_ = v.speed > 0.15 || v.hold ? 1 : 0, EG = 0.32 * run_; A.set(k + ':lo', 'veh_eng_' + fam + '_lo', cl(1 - r * 2, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', cl(r * 2 - 0.8, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); if (v.siren && v.speed > 0.5) A.set(k + ':sir', 'veh_siren_wail', 0.45, { x: v.x, z: v.z }); else A.set(k + ':sir', 'veh_siren_wail', 0, { x: v.x, z: v.z }); if (v.spraying) A.set(k + ':hose', 'veh_fire_hose_spray_loop', 0.8, { x: v.x, z: v.z }); }
+    try { if (BVL.length) bvSound(A, L); bvSoundEnd(A); } catch (e) { }
     if (heli.on && heli.g) A.set('air:heli', 'veh_heli_rotor_loop', 0.9, { x: heli.pos.x, z: heli.pos.z }); else A.set('air:heli', 'veh_heli_rotor_loop', 0);
     if (bomber.on && bomber.g) A.set('air:bomb', 'veh_prop_big_loop', 0.9, { x: bomber.pos.x, z: bomber.pos.z }); else A.set('air:bomb', 'veh_prop_big_loop', 0);
     try { A.airK = A.airK || {}; A.airN = A.airN || 0; const act = {};          // battle aircraft: each has its own engine loops, fading with distance (rotor and whine for helicopters, props for the gunship, a thin whine for jets)
       for (const u of AIR.list) { const sid = u._sid || (u._sid = ++A.airN), base = 'air:u' + sid, set = (suf, stem, lv, extra) => { const key = base + suf; act[key] = 1; A.airK[key] = stem; A.set(key, stem, lv, Object.assign({ x: u.x, z: u.z, y: u.y }, extra || {})); };
-        if (u.kind === 'gunship') set(':p', 'veh_prop_big_loop', 0.8); else if (u.kind === 'strike') set(':j', 'veh_prop_small_loop', 0.7, { rate: 1.7 }); else { set(':r', 'veh_heli_rotor_loop', 0.55); set(':w', 'veh_heli_whine_loop', 0.22); if (u.y - Math.max(heightAt(u.x, u.z), 0) < 30) set(':s', 'veh_heli_wash_loop', 0.5); } }
+        if (u.kind === 'gunship') set(':p', 'veh_prop_big_loop', 0.8); else if (u.kind === 'strike') set(':j', 'veh_prop_small_loop', 0.7, { rate: 1.7 }); else { set(':r', 'veh_heli_rotor_loop', u.bv ? (u.rpm > 0.04 ? (0.4 + 0.5 * (fp.veh === u ? 1 : 0.3)) * u.rpm : 0) : 0.55, u.bv ? { rate: 0.8 + 0.25 * u.rpm } : undefined); set(':w', 'veh_heli_whine_loop', u.bv ? 0.22 * u.rpm : 0.22); if (u.y - Math.max(heightAt(u.x, u.z), 0) < 30) set(':s', 'veh_heli_wash_loop', u.bv ? 0.5 * u.rpm : 0.5); } }
       for (const key in A.airK) if (!act[key]) { A.set(key, A.airK[key], 0); if (!A.inst[key]) delete A.airK[key]; }
       const rp = BATTLE.on ? BATTLE.points.find(p => p.type === 'radio' && Math.hypot(p.x - L.x, p.z - L.z) < 55) : null; A.set('bed:radiochat', 'ppl_radio_chatter_loop', rp ? 0.35 : 0, rp ? { x: rp.x, z: rp.z } : {});
     } catch (e) { }
@@ -1014,16 +1019,22 @@ const BATTLE_MAPS = {
   port: {
     name: 'Port and mountains',
     points: [['Quay West', -150, 78, 'blue', 'hq'], ['Quay East', 90, 76, 'blue', 'harbour'], ['Town centre', -20, -40, null, 'strongpoint'], ['West farm', -235, -160, null, 'depot'], ['East farm', 205, -185, null, 'battery'], ['Lighthouse', -336, 56, null, 'radio'], ['Mountain lake', -68, -228, null, 'plain'], ['Landing beach', 228, 84, 'red', 'harbour'], ['Raider camp', 305, -32, 'red', 'hq']],
+    veh: [['Quay West', 'blue', ['jeep', 'technical', 'supply_truck']], ['Quay East', 'blue', ['jeep']], ['West farm', 'blue', ['ambulance']], ['Raider camp', 'red', ['jeep', 'technical', 'supply_truck', 'ambulance']], ['Landing beach', 'red', ['jeep']]],
+    heli: [['Quay West', 'blue', 'griffon'], ['Quay East', 'blue', 'chinook'], ['Raider camp', 'red', 'huey'], ['Landing beach', 'red', 'cobra']],
     seaAng: null, airAng: null, amb: 'port', concrete: (x, z) => x > -200 && x < 160 && z > 40 && z < 100 && heightAt(x, z) < 2.2,
   },
   urban: {
     name: 'Urban port',
     points: [['Quay West', -190, 224, 'blue', 'hq'], ['Quay East', 190, 224, 'blue', 'harbour'], ['Container terminal', 0, 228, null, 'airfield'], ['Town square', 0, 20, null, 'plain'], ['Market quarter', -100, 115, null, 'choke'], ['Old town', 0, -85, null, 'radio'], ['The stadium', 200, -80, null, 'strongpoint'], ['Rail yard', -200, -80, null, 'depot'], ['Hill park', -100, -180, null, 'battery'], ['North barracks', -200, -280, 'red', 'hq'], ['North depot', 200, -280, 'red', 'strongpoint']],
+    veh: [['Quay West', 'blue', ['jeep', 'apc']], ['Quay East', 'blue', ['technical']], ['Container terminal', 'blue', ['jeep']], ['North barracks', 'red', ['jeep', 'apc']], ['North depot', 'red', ['technical']], ['Rail yard', 'red', ['ambulance', 'jeep']]],
+    heli: [['Container terminal', 'blue', 'blackhawk'], ['Quay West', 'blue', 'cobra'], ['North barracks', 'red', 'huey'], ['North depot', 'red', 'griffon']],
     seaAng: { blue: [1.0, 2.1], red: [-0.85, 0.4] }, airAng: { blue: [0.4, 2.7], red: [-2.7, -0.4] }, amb: 'urban', concrete: (x, z) => inPaved(x, z),
   },
   desert: {
     name: 'Desert and far port',
     points: [['Port quay', -115, 268, 'blue', 'harbour'], ['Customs yard', 115, 268, 'blue', 'hq'], ['Dune ridge', 45, 140, null, 'airfield'], ['Oil pump station', -200, 75, null, 'strongpoint'], ['Fuel depot', 160, 30, null, 'depot'], ['Ruined village', -20, -60, null, 'choke'], ['Oasis', -212, -150, null, 'plain'], ['Radio outpost', 200, -190, null, 'radio'], ['Northern camp', -100, -285, 'red', 'hq'], ['Wadi fort', 120, -292, 'red', 'battery']],
+    veh: [['Customs yard', 'blue', ['jeep', 'technical', 'light_tank', 'fuel_truck']], ['Port quay', 'blue', ['jeep', 'supply_truck']], ['Dune ridge', 'blue', ['apc']], ['Fuel depot', 'blue', ['ambulance']], ['Northern camp', 'red', ['jeep', 'technical', 'light_tank', 'fuel_truck']], ['Wadi fort', 'red', ['apc', 'supply_truck', 'ambulance']]],
+    heli: [['Dune ridge', 'blue', 'blackhawk'], ['Customs yard', 'blue', 'cobra'], ['Northern camp', 'red', 'griffon'], ['Wadi fort', 'red', 'chinook']],
     seaAng: { blue: [1.0, 2.1], red: [-2.3, -0.85] }, airAng: { blue: [0.4, 2.7], red: [-2.7, -0.4] }, amb: 'desert', concrete: (x, z) => inPaved(x, z),
   },
 };
@@ -2809,7 +2820,7 @@ function placePeople(n, pt, role, side) {
   toast(placed.length > 1 ? placed.length + ' people' : 'Person arrived'); selectPerson(placed[0]); updateCount();
 }
 function removePerson(p) {
-  if (fp.on && fp.p === p) exitFP();
+  if (fp.on && fp.p === p) exitFP(); if (p.vin) { if (p.vseat) p.vseat.q = null; p.vin = null; p.vseat = null; p.hoist = null; }
   if (p.carry) dropCarry(p); cancelJob(p);
   if (p.body) world.removeBody(p.body); if (p.rag) freeRag(p);
   scene.remove(p.obj); p.mixer.stopAllAction(); people.splice(people.indexOf(p), 1); unselect(p); updateCount();
@@ -2908,7 +2919,8 @@ function freeRag(p) {
 function stagger(p, vel) {                                         // a shove, a hull or a crate: people lurch and recover instead of falling over
   if (!p || p.state === 'rag' || p.fp || p.ride || p.hop || (p.stag || 0) > 0.25) return; p.stag = 0.8; p.stagV = { x: clamp(vel.x, -4, 4) * 0.5, z: clamp(vel.z, -4, 4) * 0.5 };
 }
-function pushOutOfProps(p, rad) {                                  // buildings, containers and fences are solid to people on foot. Returns what it pushed against.
+function pushOutOfProps(p, rad) { const h0 = pushOutOfProps0(p, rad); return BVL.length ? (bvPushOut(p, rad) || h0) : h0; }
+function pushOutOfProps0(p, rad) {                                  // buildings, containers and fences are solid to people on foot. Returns what it pushed against.
   let hit = null; const cell = propGrid().get(pgKey(Math.floor(p.x / PG_C), Math.floor(p.z / PG_C))); if (!cell) return null; for (const pr of cell) { const b = pr.item && pr.item.box; if (!b) continue; const dx = p.x - pr.x, dz = p.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 4) ** 2) continue;
     const yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), lx = dx * c - dz * sn, lz = dx * sn + dz * c, hx = b[0] + rad, hz = b[2] + rad;
     if (Math.abs(lx) < hx && Math.abs(lz) < hz) { const px = hx - Math.abs(lx), pz = hz - Math.abs(lz); let nx = lx, nz = lz; if (px < pz) nx = Math.sign(lx || 1) * hx; else nz = Math.sign(lz || 1) * hz; p.x = pr.x + nx * c + nz * sn; p.z = pr.z - nx * sn + nz * c; hit = { pr, lx, lz, hx: b[0], hz: b[2], c, sn }; } }
@@ -3759,6 +3771,7 @@ function enterFP(p) {
   ensureWeapons(); fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
 function exitFP() {
+  if (fp.veh) { const vc = fp.veh; if (vc.heli) bvHeliDisembark(vc); bvLeavePlayer(vc); }
   { const so = $('fpScope'), s2 = $('fpScope2'); if (so) so.style.display = 'none'; if (s2) s2.style.display = 'none'; }
   if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
   if (fp.man) { fp.man.manned = false; fp.man = null; } if (BATTLE.down) { BATTLE.down = false; $('bSpawn').hidden = true; } fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; releasePerson(p); camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
@@ -3795,6 +3808,7 @@ function fpScan() {
     out.push({ act: 'helm', boat: bt, text: `${isTouch ? 'Helm' : 'H'}: take the helm of the ${bt.sp.name}` });
     if (!isTouch) out.push({ act: 'overboard', text: 'Q: jump overboard' });
   }
+  { const vp = BVL.length || AIR.list.some(u => u.bv) ? bvPrompt(p) : null; if (vp) out.unshift({ act: 'veh', text: vp }); }
   fp.prompt = out; $('fpPrompt').textContent = out.length ? out.slice(0, 3).map(o => o.text).join('   |   ') : '';
   $('fpDrop').hidden = !p.carry; $('fpHelm').hidden = !p.ride;
 }
@@ -3810,8 +3824,9 @@ function fpManFire() {
 }
 function fpUse() {
   const p = fp.p; if (!p || p.hop || p.state === 'rag') return;
+  if (fp.veh) { if (isTouch || !fp.veh.heli) bvLeaveKey(); return; }
   if (fp.man) { fp.man.manned = false; fp.man = null; fpSetTool(fp.tool); toast('You leave the gun.'); return; }
-  if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
+  if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; if (bvTryEnter()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
   if (!a) return;
   if (a.act === 'pickup') { if (liftNeed(a.obj) > 1) { toast('Too heavy for one'); return; } p.job = { type: 'pickup', obj: a.obj, team: [p], phase: 'lift', t: 0, age: 0 }; }
   else if (a.act === 'board') { p.job = { type: 'board', boat: a.boat }; boardHop(p, a.boat); }
@@ -3841,6 +3856,7 @@ function updateFP(dt, t) {
   const p = fp.p; if (!p || !people.includes(p)) { if (fp.on) exitFP(); return; }
   if (p.state === 'rag') { fp.air = false; $('fpPrompt').textContent = (isTouch ? 'Tap Jump' : 'Space') + ': get up'; return; }
   if (p.hop) { p.fpMoving = true; return; }
+  if (fp.veh) { bvFpUpdate(dt, t); return; }
   if (fp.man) { p.x = fp.man.x; p.z = fp.man.z; p.y = fp.man.y; p.fpMoving = false; fp.vx = fp.vz = 0; fpToolsUpdate(dt, t); return; }
   // move: quick to respond, brisk to walk, with a little inertia so it feels like a body and not a cursor
   let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy;
@@ -3883,6 +3899,7 @@ function updateFP(dt, t) {
 }
 function fpCamera(dt, t) {
   const p = fp.p; if (!p) return;
+  if (fp.veh) { bvCamera(dt); return; }
   let px = p.x, py = p.y + fpEye(p), pz = p.z;
   if (p.state === 'rag' && p.rag) { const hd = p.rag.bodies.head.interpolatedPosition; px = hd.x; py = hd.y + 0.12; pz = hd.z; }
   else { if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob * 2) * 0.012 * Math.min(1.6, fp.spd / 2.5) + Math.abs(Math.sin(fp.bob)) * 0.03 * Math.min(1.6, fp.spd / 3); py -= fp.land * 0.12; }
@@ -3913,7 +3930,7 @@ function fpStance(n) {                                           // stand, crouc
   if (!fp.on) return; fp.stance = n; toast(['Standing', 'Crouching: slower, steadier, harder to hit', 'Prone: very low and still. Space gets you up.'][n]); fp.zoom = fp.zoom && true;
 }
 function fpJumpOrGetUp() {
-  const p = fp.p; if (!p) return; if (BATTLE.on && BATTLE.down) return; if (fp.stance) { fpStance(0); return; }
+  const p = fp.p; if (!p) return; if (fp.veh) { fp.vhb = 0.5; return; } if (BATTLE.on && BATTLE.down) return; if (fp.stance) { fpStance(0); return; }
   if (p.state === 'rag') { if (standY(p.rag.bodies.pelvis.position.x, p.rag.bodies.pelvis.position.z) >= 0.15) standUp(p); else { const pb = p.rag.bodies.pelvis.position; freeRag(p); p.state = 'idle'; p.floating = false; p.x = pb.x; p.z = pb.z; p.swim = true; p.y = waveH(p.x, p.z, simT) - 1.15; for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } p.obj.quaternion.identity(); giveBody(p); } return; }
   fp.jump = true;
 }
@@ -3924,6 +3941,7 @@ const KEY_ROUTE = []; let keyStop = false; const onKey = (fn) => { KEY_ROUTE.pus
 addEventListener('keydown', (e) => { keyStop = false; for (let i = 0; i < KEY_ROUTE.length; i++) { KEY_ROUTE[i](e); if (keyStop) break; } });
 onKey((e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
+  if (fp.veh && bvKey(k, e)) return;
   if (k === 'h') keyStop = true;      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
   else if (/^[1-9]$/.test(k)) { if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer();
@@ -3961,10 +3979,11 @@ const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _ray = new THREE.Ray()
 function fpAim(maxD, jit) {
   camera.getWorldPosition(_o); camera.getWorldDirection(_d); if (jit) { _d.x += (Math.random() - 0.5) * 2 * jit; _d.y += (Math.random() - 0.5) * 2 * jit; _d.z += (Math.random() - 0.5) * 2 * jit; _d.normalize(); } const me = fp.p; let best = { t: maxD, kind: null, ref: null };
   for (let t = 0.8; t <= maxD; t += (t < 30 ? 0.6 : 1.4)) { const x = _o.x + _d.x * t, y = _o.y + _d.y * t, z = _o.z + _d.z * t, gh = heightAt(x, z); if (y <= gh) { best = { t, kind: 'land', ref: null }; break; } if (gh < -0.05 && y <= waveH(x, z, simT)) { best = { t, kind: 'water', ref: null }; break; } }
-  for (const q of people) { if (q === me || q.state === 'rag') continue; for (const cy of [0.5, 1.25]) { const cx = q.x - _o.x, cyy = q.y + cy - _o.y, cz = q.z - _o.z, t = cx * _d.x + cyy * _d.y + cz * _d.z; if (t < 0.4 || t >= best.t) continue; const dx = _o.x + _d.x * t - q.x, dy = _o.y + _d.y * t - (q.y + cy), dz = _o.z + _d.z * t - q.z; if (dx * dx + dy * dy + dz * dz < 0.2) { best = { t, kind: 'person', ref: q }; break; } } }
+  for (const q of people) { if (q === me || q.state === 'rag' || q.vin) continue; for (const cy of [0.5, 1.25]) { const cx = q.x - _o.x, cyy = q.y + cy - _o.y, cz = q.z - _o.z, t = cx * _d.x + cyy * _d.y + cz * _d.z; if (t < 0.4 || t >= best.t) continue; const dx = _o.x + _d.x * t - q.x, dy = _o.y + _d.y * t - (q.y + cy), dz = _o.z + _d.z * t - q.z; if (dx * dx + dy * dy + dz * dz < 0.2) { best = { t, kind: 'person', ref: q }; break; } } }
   _ray.set(_o, _d);
   for (const bt of boats) { if (bt.sunk) continue; const bp = bt.body.position; if (Math.hypot(bp.x - _o.x, bp.z - _o.z) > maxD + bt.sp.L) continue; _bx.setFromObject(bt.group); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.5 && t < best.t && !(me.ride && me.ride.boat === bt && t < 3)) best = { t, kind: 'boat', ref: bt }; } }
   for (const o of objects) { if (o.gone) continue; const bp = o.body.position, cx = bp.x - _o.x, cy = bp.y - _o.y, cz = bp.z - _o.z, t0 = cx * _d.x + cy * _d.y + cz * _d.z; if (t0 < 0.4 || t0 > best.t + 3) continue; if (Math.hypot(_o.x + _d.x * t0 - bp.x, _o.y + _d.y * t0 - bp.y, _o.z + _d.z * t0 - bp.z) > 4) continue; _bx.setFromObject(o.mesh); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.4 && t < best.t) best = { t, kind: 'obj', ref: o }; } }
+  if (BVL.length) for (const w of BVL) { if (w === fp.veh || Math.hypot(w.x - _o.x, w.z - _o.z) > maxD + w.rad) continue; const t = bvRayBox(w, _o.x, _o.y, _o.z, _d.x, _d.y, _d.z); if (t > 0.3 && t < best.t) best = { t, kind: 'veh', ref: w }; }
   best.pt = new THREE.Vector3(_o.x + _d.x * best.t, _o.y + _d.y * best.t, _o.z + _d.z * best.t); return best;
 }
 function fpHandsPrimary() {
@@ -3997,11 +4016,12 @@ function fpFireGun() {
   for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z);
     impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { if (id === 'sniper') hurt(q, head ? 120 : 70 * Math.max(0.8, fall), p, false, w.name); else hurt(q, w.dmg * fall, p, head, w.name); Snd.ui('ui_hitmarker', 0.6); }          /* the sniper rifle only one-shots on the head; a body shot leaves a target on its feet */ else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
     else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
+    else if (h.kind === 'veh') damageVehicle(h.ref, w.dmg * fall * 0.7 * (w.pellets ? 3 : 1) * h.ref.sp.arm, BATTLE.on ? BATTLE.team : null, w.name, p);
     else if (h.kind === 'obj') { const o = h.ref; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(_d.x * w.dmg * 3, _d.y * w.dmg * 3 + 12, _d.z * w.dmg * 3), new CANNON.Vec3(pt.x - o.body.position.x, pt.y - o.body.position.y, pt.z - o.body.position.z)); if (o.m && o.m.frag && o.m.str < 120 && Math.random() < 0.2) fracture(o, 'shot'); }
     }
   if (fp.ammo[id] <= 0) fpReload();
 }
-function fpPrimary() { if (!fp.on || mode !== 'fp') return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
+function fpPrimary() { if (!fp.on || mode !== 'fp' || fp.veh) return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
 function fpToolsUpdate(dt, t) {
   const p = fp.p; fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6); { const rp = fpToolMesh.rpg, rk = rp && rp.userData.rocket; if (rk) rk.visible = !fp.ammo || fp.ammo.rpg == null || fp.ammo.rpg > 0; }
   for (const k in WPN) { const m = fpToolMesh[k]; if (m) { m.position.z = (m.userData.bz !== undefined ? m.userData.bz : k === 'rifle' ? -0.55 : -0.5) + fp.kick * 0.07; const f = m.getObjectByName('flash'); if (f) f.visible = fp.flash > 0 && fp.tool === k; } } fp.flash = Math.max(0, (fp.flash || 0) - dt);
@@ -4132,7 +4152,7 @@ $('bFP').addEventListener('click', dropIn); $('burger').addEventListener('click'
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
 setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'battle') { const sg = BATTLE.on ? BATTLE.tickets.blue + '/' + BATTLE.tickets.red + BATTLE.points.map(p => p.owner || '-').join('') : 'off'; if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
 setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
-onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && fp.veh) { e.preventDefault(); } else if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
 /* ================================================================ the Port and mountains scenario: every yard, site and objective laid out and labelled so the mechanics can be watched */
 const LABELS = []; let labelsOn = false, portLaid = false;
@@ -4575,7 +4595,7 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
+function battleStop(quiet) { bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
@@ -4631,7 +4651,7 @@ function killFeedAdd(from, q, wn) {
   BATTLE.feed.push({ a: from && from !== q ? nm(from) : '', ta: teamOf(from), b: nm(q), tb: tq, w: wn || '', at: performance.now() }); while (BATTLE.feed.length > 5) BATTLE.feed.shift(); renderKillFeed(); setTimeout(renderKillFeed, 9100);
 }
 function hurt(q, dmg, from, head, wn) {
-  if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q; if (from && from !== q && fp.on && fp.p === from) hitMarker(q.hp <= 0);
+  if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.vin) { bvHurtOcc(q, dmg, from, wn); return; } if (q.bvImm > simT) dmg = Math.min(dmg, 28); if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q; if (from && from !== q && fp.on && fp.p === from) hitMarker(q.hp <= 0);
   if (q.bot) q.bot.hitT = simT; if (q.gun) q.gun.hitT = simT;
   { const fa = from ? wrap(Math.atan2(from.x - q.x, from.z - q.z) - (q.heading || 0)) : 0; q.flinch = { t: 0.5, a: fa, s: Math.min(1.2, 0.5 + dmg / 50) }; }
   if (isP) { Snd.fx('foley_breath_hurt', q.x, q.z, { gain: 0.6, gap: 0.5 }); BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
@@ -4672,7 +4692,7 @@ function findCover(q, e) {                                           // a spot b
 }
 function senseEnemy(q, b) {
   const w = WPN[b.w], sight = (b.cls === 'sniper' ? 200 : 85) * BKIT.sightK, fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
-  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
+  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || e.vin || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
 }
 const eyeOf = (e) => e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4);
@@ -4698,7 +4718,7 @@ function chooseStance(q, b, e, d) {                                 // stand to 
 function botThink(q, dt) {
   const b = q.bot; if (!b) return;
   if (q.state === 'rag') { if (!b.dead) { b.dead = true; b.deadAt = simT; } if (simT - b.deadAt > 8 && !(fp.on && fp.p === q)) removeBot(q); return; }          // the fallen are carried off after eight seconds, so they never crowd out the reinforcements
-  if (q.fp || q.hop || q.ride || q.hp <= 0) return;
+  if (q.fp || q.hop || q.ride || q.hp <= 0 || q.vin) return;
   if (b.crew && crewThink(q, dt)) return; b.alert = Math.max(0, b.alert - dt); b.cool -= dt; b.reload -= dt; b.scan -= dt; b.supp = Math.max(0, (b.supp || 0) - dt * 0.25); if (b.morale === undefined) b.morale = 1; b.morale = Math.min(1, b.morale + dt * 0.02); if (q.hp < 40) b.morale -= dt * 0.03;
   // never stand about in a loop: if the order is not getting them closer, drop it and try somewhere else
   b.stT = (b.stT || 0) + dt; if (b.stT > 4) { b.stT = 0; const mv = Math.hypot(q.x - (b.stX || 0), q.z - (b.stZ || 0)); b.stX = q.x; b.stZ = q.z; b.stN = (b.stN || 0) + 1;
@@ -4832,8 +4852,8 @@ function updateShellsAir(dt) {
 const AAS = [], MIS = [];
 function damageAir(u, dmg, by) {
   if (u.down) return; u.hp -= dmg; fxG.emit(u.x, u.y, u.z, 0, 0, 0, 0.2, 2.5, 1, [1, 0.8, 0.4, 1]); if (u.hp < u.hpMax * 0.5) puffSmoke(u.x, u.y, u.z, 1, true, 0.9);
-  if (u.hp <= 0) { u.down = true; u.vy = 0; { const ck = AIRKEY[u.kind] || 'st'; if (AIR.cd[u.team]) { AIR.cd[u.team][ck] = Math.max(AIR.cd[u.team][ck], ck === 'gs' ? 160 : 110); AIR.off[u.team][ck] = true; } } Snd.fx('imp_ko', u.x, u.z, { gain: 1, far: 3, y: u.y }); noteOnce('down' + Math.floor(simT), u.team === BATTLE.team ? 'Our ' + (AIRNAME[u.kind] || 'aircraft') + ' has been shot down.' : 'Enemy ' + (AIRNAME[u.kind] || 'aircraft') + ' shot down!'); }
-  else if (u.hp < u.hpMax * 0.3) u.leaving = true;
+  if (u.hp <= 0) { u.down = true; u.vy = 0; if (u.bv) bvHeliDowned(u); { const ck = AIRKEY[u.kind] || 'st'; if (AIR.cd[u.team] && !u.bv) { AIR.cd[u.team][ck] = Math.max(AIR.cd[u.team][ck], ck === 'gs' ? 160 : 110); AIR.off[u.team][ck] = true; } } Snd.fx('imp_ko', u.x, u.z, { gain: 1, far: 3, y: u.y }); noteOnce('down' + Math.floor(simT), u.team === BATTLE.team ? 'Our ' + (AIRNAME[u.kind] || 'aircraft') + ' has been shot down.' : 'Enemy ' + (AIRNAME[u.kind] || 'aircraft') + ' shot down!'); }
+  else if (u.hp < u.hpMax * 0.3 && !u.bv) u.leaving = true;
 }
 function layAA() {                                                  // an anti-air gun and a machine-gun nest at every capture point, working for whoever holds it
   for (const p of BATTLE.points) for (const kind of ['aa', 'mg']) { let a = (kind === 'aa' ? 0.9 : 3.5) + p.x * 0.013, x, z; const d = 15 + (kind === 'mg' ? 3 : 0); x = p.x + Math.cos(a) * d; z = p.z + Math.sin(a) * d;
@@ -4857,7 +4877,7 @@ function updateAAS(dt) {
   for (const e of AAS) if (e.kind !== 'mortar') empTrack(e, dt);
   for (const e of AAS) { if (e.kind === 'mortar') { updateMortar(e, dt); continue; } const team = e.p.owner; if (!team || e.manned) continue; if (fp.on && !fp.man && fp.p && Math.hypot(e.x - fp.p.x, e.z - fp.p.z) < 4.5) noteOnce('emp' + e.x, 'E: man this gun'); if (e.needCrew && !crewOK(e)) continue; e.cd -= dt; const gy = e.y + 1.5, aa = e.kind === 'aa'; let tgt = null, tp = null, bd = aa ? 340 : 160;
     for (const u of AIR.list) { if (u.down || u.team === team) continue; const d = Math.hypot(u.x - e.x, u.z - e.z, u.y - gy); if (d < bd) { bd = d; tgt = u; } }
-    if (!tgt && !aa) { bd = 55; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride) continue; const d = Math.hypot(q.x - e.x, q.z - e.z); if (d < bd && losFull(e.x, gy, e.z, q.x, q.y + 1.2, q.z)) { bd = d; tp = q; } } }
+    if (!tgt && !aa) { bd = 55; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.vin) continue; const d = Math.hypot(q.x - e.x, q.z - e.z); if (d < bd && losFull(e.x, gy, e.z, q.x, q.y + 1.2, q.z)) { bd = d; tp = q; } } }
     if (!tgt && !tp) continue; const tx = tgt ? tgt.x : tp.x, ty = tgt ? tgt.y : tp.y + 1.2, tz = tgt ? tgt.z : tp.z; e.aimAt = { x: tx, z: tz }; e.aimT = simT;
     if (e.gun) { e.gun.rotation.y = Math.atan2(tx - e.x, tz - e.z) - e.mesh.rotation.y; e.gun.rotation.x = -Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)); }
     if (e.cd <= 0) { e.cd = aa ? 0.16 : 0.12; const hit = Math.random() < (tgt ? (aa ? 0.3 : 0.1) : 0.1), j = hit ? 0 : 3; addTracer(e.x, gy + 0.4, e.z, tx + rnd(-j, j), ty + rnd(-j, j), tz + rnd(-j, j)); empShot(e, gy);
@@ -4888,8 +4908,9 @@ function updateAir(dt) {
   updateShellsAir(dt);
   for (let i = AIR.list.length - 1; i >= 0; i--) { const u = AIR.list[i];
     if (u.down) { u.vy -= 12 * dt; u.y += u.vy * dt; u.hd += 1.6 * dt; u.x += Math.sin(u.hd) * u.spd * 0.3 * dt; u.z += Math.cos(u.hd) * u.spd * 0.3 * dt; u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0.3, u.hd, Math.min(1.2, (u.dt = (u.dt || 0) + dt) * 0.6), 'YXZ'); puffSmoke(u.x, u.y, u.z, 1, true, 1.3); fxG.emit(u.x, u.y, u.z, 0, 0, 0, 0.3, 3, 1, [1, 0.6, 0.2, 0.9]);
-      if (u.y <= heightAt(u.x, u.z) + 1.5 || u.y <= waveH(u.x, u.z, simT) + 1) { blast(u.x, u.y, u.z, { R: 14, dmg: 160, crater: 6, depth: 1.6, owner: null }); puffSmoke(u.x, u.y + 1, u.z, 14, true, 2.2); lifeWreck(u.x, Math.max(heightAt(u.x, u.z), 0.1), u.z); scene.remove(u.g); AIR.list.splice(i, 1); } continue; }
+      if (u.y <= heightAt(u.x, u.z) + 1.5 || u.y <= waveH(u.x, u.z, simT) + 1) { blast(u.x, u.y, u.z, { R: 14, dmg: 160, crater: 6, depth: 1.6, owner: null }); puffSmoke(u.x, u.y + 1, u.z, 14, true, 2.2); lifeWreck(u.x, Math.max(heightAt(u.x, u.z), 0.1), u.z); if (u.bv) bvHeliGone(u); scene.remove(u.g); AIR.list.splice(i, 1); } continue; }
     if (u.kind === 'strike') { u.x += Math.sin(u.hd) * u.spd * dt; u.z += Math.cos(u.hd) * u.spd * dt; u.trav += u.spd * dt; if (!u.snd && u.trav > 430) { u.snd = true; Snd.fx('veh_bomber_pass', u.x, u.z, { gain: 1.2, far: 3, y: u.y }); } u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, 0); while (u.drops < 5 && u.trav >= 535 + u.drops * 17) { u.drops++; dropBomb(u.x, u.y - 2, u.z, Math.sin(u.hd) * u.spd * 0.95, Math.cos(u.hd) * u.spd * 0.95, { R: 12, dmg: 220, crater: 6, depth: 1.8 }); } if (u.trav > 1250) { scene.remove(u.g); AIR.list.splice(i, 1); } continue; }
+    if (u.bv) { bvHeliStep(u, dt); continue; }
     if (u.kind === 'chinook') { chinookStep(u, dt, i); continue; } if (u.kind === 'medevac') { medevacStep(u, dt, i); continue; }
     u.life -= dt; if (u.life <= 0) u.leaving = true;
     let tx, tz; if (u.leaving) { tx = Math.cos(u.a) * EXT * 1.3; tz = Math.sin(u.a) * EXT * 1.3; } else { u.tgt = u.manual ? u.tgt : (hotSpot(u.team) || u.tgt); u.oa = (u.oa || 0) + dt * u.spd / u.orbit * (u.kind === 'gunship' ? 1 : -1); tx = u.tgt.x + Math.cos(u.oa) * u.orbit; tz = u.tgt.z + Math.sin(u.oa) * u.orbit; }
@@ -5003,6 +5024,7 @@ function blast(x, y, z, o) {                                        // one explo
   const cx = camera.position.x, cz = camera.position.z, k = clamp(1 - Math.hypot(cx - x, cz - z) / (R * 12), 0, 1); dis.quake = Math.max(dis.quake, k * Math.min(2.5, R * 0.16));
   if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2); if (!wet && R >= 5) scorchAt(x, z, R * 0.7);
   for (const bt of boats) { if (bt === o.owner || bt.sunk) continue; const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < R * 1.3 && !insideHull(bt, x, z, 0)) damageBoat(bt, dmg * 0.6 * (1 - d / (R * 1.3)), x, gy, z, o.owner || null, 'heavy'); }
+  if (BVL.length) bvBlast(x, y, z, o);
   for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist || q.ride) continue; const d = Math.hypot(q.x - x, q.z - z); if (d >= R) continue; const f = 1 - d / R;
     if (BATTLE.on) { hurt(q, dmg * f + 20, null, false, o.name || 'Explosion'); if (q.state !== 'rag' && f > 0.35) stagger(q, new CANNON.Vec3((q.x - x) * 2.5, 0, (q.z - z) * 2.5)); } else if (f > 0.5) topple(q, new CANNON.Vec3((q.x - x) / (d + 1) * 8, 6, (q.z - z) / (d + 1) * 8)); else stagger(q, new CANNON.Vec3((q.x - x) * 2, 0, (q.z - z) * 2)); }
   for (const ob of objects) { if (ob.gone || !ob.body || !(ob.body.mass > 0)) continue; const dx = ob.body.position.x - x, dz = ob.body.position.z - z, d = Math.hypot(dx, dz); if (d < R * 2.2) { const f = 1 - d / (R * 2.2); { const pu = (o.push || 1) * 55 * f * ob.body.mass; ob.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * pu, 0.73 * pu, dz / (d + 1) * pu), ob.body.position); } } }
@@ -5160,6 +5182,7 @@ function renderTablet() {
       wrow('heli', 'Griffon', 'door gunner on the hot spot', 'gr', () => { callAir(team, 'griffon'); renderTablet(); }); wrow('heli', 'Gunship', 'minigun and howitzer', 'gs', () => { callAir(team, 'gunship'); renderTablet(); }); wrow('heli', 'Attack helicopter', 'chin gun and rockets', 'co', () => { callAir(team, 'cobra'); renderTablet(); }); wrow('cross', 'Medevac', 'patches up people beneath it', 'md', () => { callAir(team, 'medevac'); renderTablet(); });
       wrow('jet', 'Air strike', 'at the target or the hot spot', 'st', () => { const p = tp(); if (p) callStrike(team, p); renderTablet(); }); wrow('arty', 'Artillery', 'at the target or the hot spot', 'ar', () => { const p = tp(); if (p) callArty(team, p); renderTablet(); }); wrow('arty', 'Battery barrage', 'free, from the batteries your side holds', 'by', () => { const p = tp(); if (p) batteryFire(team, { x: p.x, z: p.z }); renderTablet(); });
       wrow('para', 'Troop transport', 'a Chinook lands a squad', 'pa', () => { paraWave(team, 6); renderTablet(); }); wrow('boat', 'Boat landing', 'a landing party from the sea', 'bt', () => { boatWave(team); renderTablet(); });
+      bvTablet('support', body, head, note);
     } else {
       head('Help on the way', 'heli'); note('Calls for the sandbox. In a battle this tab lists the support for your side.');
       wrow('heli', heli.on ? 'Recall rescue helicopter' : 'Call rescue helicopter', 'lifts people off roofs and wrecks', null, () => { callHeli(); renderTablet(); }); wrow('para', bomber.on ? 'Recall water bomber' : 'Call water bomber', 'scoops from the sea and drops on fires', null, () => { callBomber(true); renderTablet(); });
@@ -5174,11 +5197,12 @@ function renderTablet() {
       const m = document.createElement('button'); m.type = 'button'; m.className = 'wrow'; m.innerHTML = ic(({ hq: 'flag', strongpoint: 'bunker', radio: 'radio', depot: 'depot', battery: 'arty', airfield: 'jet', harbour: 'anchor', choke: 'choke', plain: 'plain' })[p.type] || 'plain') + '<span><b></b><small></small></span>'; m.querySelector('b').textContent = p.name; m.querySelector('small').textContent = (p.owner === 'blue' ? 'Port' : p.owner === 'red' ? BATTLE.redKind : 'Nobody') + ' · ' + pt.name + (pl ? ' · plan: ' + pl : ''); m.title = pt.name + ': ' + pt.note; m.addEventListener('click', () => { camFlyTo(p.x, p.z, 55 * CELL); toggleTablet(false); });
       row.append(m, mkB('Attack', 'pl', () => { BATTLE.plan[p.name] = pl === 'attack' ? null : 'attack'; planBattle(); renderTablet(); }, { 'aria-pressed': String(pl === 'attack') }), mkB('Defend', 'pl', () => { BATTLE.plan[p.name] = pl === 'defend' ? null : 'defend'; planBattle(); renderTablet(); }, { 'aria-pressed': String(pl === 'defend') })); body.append(row);
     }
+    bvTablet('points', body, head, note);
     head('The battle', 'close'); const sb = mkB('Stop the battle', 'btn-d', () => { battleStop(); toggleTablet(false); if (sideOpen) renderSide(); }); sb.style.cssText = 'display:block;width:100%;min-height:52px;margin:4px 0'; body.append(sb); const su = mkB('Battle setup', '', () => { toggleTablet(false); openBattleSetup(); }); su.style.cssText = 'display:block;width:100%;min-height:52px;margin:4px 0'; body.append(su);
   }
   body.scrollTop = keepY; tbSig = tbSigNow();
 }
-function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0); }
+function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0) + '|' + BV.bays.map(b => b.state[0]).join(''); }
 setInterval(() => { if ($('tablet').hidden) return; const s = tbSigNow(); if (s !== tbSig) renderTablet(); }, 700);
 $('tbClose').addEventListener('click', () => toggleTablet(false));
 onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
@@ -5203,7 +5227,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); updateManQ(dt); updateAir(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); updateTracers(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); updateTracers(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
@@ -5349,7 +5373,7 @@ function bTry(name, x, z, yaw, o) {                                    // build 
     if (Math.min(hx, hz) > 1.2) { try { maskGrass(x, z, hx * 2, hz * 2, -yaw); } catch (e) { } }
     props.push(pr);
   }
-  const fi = { x, z, hx, hz, t: yaw, bk: true }; FOOT.push(fi);
+  const fi = { x, z, hx, hz, t: yaw, bk: true, nm: name, top: bb.h }; FOOT.push(fi);
   const part = (n) => nodeByName({ scene: g }, n), s = { name, p: o.p || null, x, z, y: g.position.y, yaw, g, hx, hz, h: bb.h, pr, body, fi, cover: !!o.cover, mine: !!o.mine, aimYaw: yaw, elev: 0.15, kick: 0, spin: 0 };
   if (name === 'radar_station') s.dish = part('radar_dish'); else if (name === 'artillery_battery') s.barrel = part('howitzer_barrel'); else if (name === 'mortar_pit') s.tube = part('mortar_tube'); else if (name === 'helipad') s.sock = part('windsock'); else if (name === 'oil_pumpjack') s.head = part('pump_head');
   else if (name === 'searchlight_tower') { s.lamp = part('searchlight_lamp'); if (s.lamp) { const geo = new THREE.ConeGeometry(4.5, 40, 14, 1, true).translate(0, -20, 0).rotateX(-Math.PI / 2), mat2 = new THREE.MeshBasicMaterial({ color: 0xfff2c8, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }); s.cone = new THREE.Mesh(geo, mat2); s.cone.visible = false; s.cone.frustumCulled = false; s.lamp.add(s.cone); } }
@@ -5578,7 +5602,7 @@ function updateKit(dt) {
 function kitStart(gen) {
   evInit(); const live = () => BATTLE.on && BATTLE.gen === gen;
   if (!D.glb.troops2) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
-  Promise.all([ensureAir(), ensureBattleKit().catch(() => null)]).then(() => { if (!live()) return; layAA(); layBattleKit(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
+  Promise.all([ensureAir(), ensureBattleKit().catch(() => null)]).then(() => { if (!live()) return; layAA(); layBattleKit(); return ensureBVeh(); }).then(() => { if (live()) bvLayAll(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
 }
 function reskinBots() {                                                // the troops file arrives a little after the battle starts: swap the first bots over to the new skins
   if (BATTLE.t > 150 || !D.glb.troops2) return; let n = 0;
@@ -5621,7 +5645,8 @@ function fpFireRPG() {
 function rpgHit(m) {                                                   // a rocket bursts on a person or a solid thing it reaches
   let hit = false; for (const q of people) { if (q === m.owner || q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; if (Math.hypot(q.x - m.x, q.z - m.z) < 1.7 && m.y > q.y - 0.3 && m.y < q.y + 2.2) { hit = true; break; } }
   if (!hit) for (const pr of props) { const b = pr.item && pr.item.box; if (!b || b[1] * 2 < 1.2) continue; const dx = m.x - pr.x, dz = m.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 2) ** 2) continue; const yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), lx = dx * c - dz * sn, lz = dx * sn + dz * c; if (Math.abs(lx) < b[0] && Math.abs(lz) < b[2] && m.y < heightAt(pr.x, pr.z) + b[1] * 2) { hit = true; break; } }
-  if (hit) blast(m.x, Math.max(m.y, heightAt(m.x, m.z)), m.z, { R: m.R, dmg: m.dmg, crater: m.crater, depth: 0.9, owner: null }); return hit;
+  if (!hit && BVL.length && bvRocketHit(m)) hit = true;
+  if (hit) blast(m.x, Math.max(m.y, heightAt(m.x, m.z)), m.z, { R: m.R, dmg: m.dmg, crater: m.crater, depth: 0.9, owner: null, rpg: true, by: teamOf(m.owner), name: 'Rocket' }); return hit;
 }
 function fpEngineer() {                                                // F: an engineer sets down a sandbag corner in front of them (six at most; the oldest goes when a seventh is placed)
   const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag') return; if (!BATTLE.on) { toast('Sandbags are built in a battle.'); return; } if (BATTLE.kit !== 'engineer') { toast('Only engineers build. Pick the Engineer loadout when you deploy.'); return; }
@@ -5653,6 +5678,839 @@ function applyWeaponModels2() {
   for (const q of people) if (q.bot && q.bot.wmesh) { q.obj.remove(q.bot.wmesh); q.bot.wmesh = botWeapon(q.bot.w); q.obj.add(q.bot.wmesh); }
 }
 /*BD-END*/
+/*BV-START*/
+/* ================================================================ battlefield vehicles (BV), battle mode only (the sandbox vehicles stay off: VEHICLES_ON)
+   Arcade kinematic driving, no rigid-body wheels. Each vehicle keeps a position, a yaw, a speed and a steering angle. Every frame the ground is read under the four wheel points: the body height is their plane (plus a small
+   spring on the picture only), so a vehicle can neither float nor sink. Water deeper than the wheel, slopes over 35 degrees, props, buildings, trees and other vehicles are refused with an oriented-box push-out, taken
+   in sub-steps no longer than 0.3 m so nothing tunnels. The vehicle's physics body is a kinematic box, so loose cargo is shoved. Models are in assets/bveh.glb (blender/NOTES-bveh.md).
+   Seats, guns, damage, bays, bot crews and squad transport, and the flyable helicopters (blender/NOTES-helis.md) are all in this block. Written without a browser: none of it has been seen running. */
+const BVSPEC = {
+  jeep: { name: 'Jeep', hp: 140, vmax: 23, vrev: 7, acc: 10, brk: 17, steer: 0.52, r: 0.36, arm: 1, blk: 1, ck: 1, eng: 'outboard', box: [0, -0.05, 0.9, 1.95], cy: 0.7, hy: 0.7, cam: 8, camH: 1.8, vis: () => true, gun: { gun: 'gun', mz: 'muzzle', kind: 'mg', name: 'Machine gun', dmg: 9, vdmg: 7, rate: 0.085, mag: 120, rel: 2.6, tr: 3.6, up: 0.75, dn: 0.15, spread: 0.014, range: 260, snd: 'wpn_hmg_fire', far: 'wpn_hmg_far', gain: 0.8 } },
+  technical: { name: 'Technical', hp: 170, vmax: 20, vrev: 6, acc: 9, brk: 15, steer: 0.5, r: 0.4, arm: 0.9, blk: 1, ck: 1, eng: 'patrol', box: [0, 0, 1.0, 2.6], cy: 1.0, hy: 0.95, cam: 9, camH: 2.4, vis: () => true, gun: { gun: 'gun', mz: 'muzzle', kind: 'mg', name: 'Heavy machine gun', dmg: 14, vdmg: 11, rate: 0.1, mag: 100, rel: 3.2, tr: 2.8, up: 0.8, dn: 0.12, spread: 0.016, range: 280, snd: 'wpn_hmg_fire', far: 'wpn_hmg_far', gain: 0.95 } },
+  apc: { name: 'Armoured carrier', hp: 380, vmax: 15, vrev: 5, acc: 6, brk: 12, steer: 0.42, r: 0.54, arm: 0.22, blk: 0.6, ck: 0.3, eng: 'tug', box: [0, 0.05, 1.5, 4.0], cy: 1.15, hy: 1.15, cam: 12, camH: 3, vis: () => false, gun: { tur: 'turret', gun: 'gun', mz: 'muzzle', kind: 'mg', name: 'Autocannon', dmg: 16, vdmg: 10, rate: 0.14, mag: 70, rel: 3.5, tr: 1.3, ptr: 1.0, up: 0.85, dn: 0.15, spread: 0.012, range: 300, snd: 'wpn_hmg_fire', far: 'wpn_hmg_far', gain: 1.0 } },
+  light_tank: { name: 'Light tank', hp: 560, vmax: 12, vrev: 4, acc: 4.5, brk: 12, pivot: 0.9, tracked: true, r: 0.29, arm: 0.1, blk: 0.5, ck: 0.2, eng: 'icebreaker', box: [0, 0, 1.28, 2.55], cy: 1.0, hy: 0.975, cam: 12, camH: 3, vis: () => false, gun: { tur: 'turret', gun: 'barrel', mz: 'muzzle', kind: 'cannon', name: 'Cannon', rate: 3.5, tr: 0.85, ptr: 0.6, up: 0.35, dn: 0.14, spread: 0.002, range: 420, snd: 'wpn_tank_cannon_fire', far: 'wpn_tank_cannon_far', gain: 1.2 } },
+  supply_truck: { name: 'Supply truck', hp: 240, vmax: 16, vrev: 5, acc: 5.2, brk: 12, steer: 0.45, r: 0.55, arm: 0.8, blk: 0.9, ck: 0.6, eng: 'tug', box: [0, -0.15, 1.2, 4.3], cy: 1.6, hy: 1.55, cam: 13, camH: 3.4, vis: (n) => /^seat_p[1-8]$/.test(n) },
+  ambulance: { name: 'Ambulance', hp: 200, vmax: 18, vrev: 6, acc: 6.5, brk: 13, steer: 0.5, r: 0.5, arm: 0.8, blk: 0.9, ck: 0.6, eng: 'lifeboat', box: [0, 0.05, 1.15, 3.75], cy: 1.4, hy: 1.4, cam: 12, camH: 3, vis: () => false, medic: true },
+  fuel_truck: { name: 'Fuel truck', hp: 160, vmax: 14, vrev: 5, acc: 4.5, brk: 11, steer: 0.45, r: 0.52, arm: 1, blk: 1.4, ck: 0.6, eng: 'tug', box: [0, -0.2, 1.15, 4.25], cy: 1.5, hy: 1.5, cam: 12, camH: 3, vis: () => false, boom: true },
+  quad_atv: { name: 'Quad bike', hp: 70, vmax: 22, vrev: 6, acc: 12, brk: 15, steer: 0.6, r: 0.31, arm: 1.2, blk: 1.3, ck: 1.4, eng: 'outboard', box: [0, 0, 0.7, 1.125], cy: 0.65, hy: 0.6, cam: 6, camH: 1.4, vis: () => true },
+};
+const BVH = {                                                          // flyable helicopters: model prefix, hit points, fastest forward speed (m/s), climb and descent speeds
+  griffon: { name: 'Griffon', hp: 150, vmax: 46, up: 6.5, dn: 5.5 }, huey: { name: 'Huey', hp: 140, vmax: 42, up: 6, dn: 5.5 }, blackhawk: { name: 'Black Hawk', hp: 170, vmax: 52, up: 7, dn: 6 },
+  cobra: { name: 'Cobra attack helicopter', hp: 175, vmax: 62, up: 8, dn: 6.5 }, chinook: { name: 'Chinook', hp: 240, vmax: 40, up: 5, dn: 4.5 },
+};
+const BV = {
+  list: BVL, bays: [], shells: [], paint: {}, ready: false, loadP: null, frame: 0, n: 0, stamp: 0, camMode: 'chase', hud: null, hudT: 0, hudSig: '', mt: 0, ly: 0, lp: 0, vy: 0, rmb: false,
+  sqBusy: new Map(), trees: null, treeT: -99, treeN: -1, threatT: 0, aiT: 0, planQ: [], capSide: isTouch ? 3 : 8, capHeli: isTouch ? 1 : 2, startAt: 0, mapLaid: false, lastGen: -1,
+};
+BVA = BV;
+const _bvH = new Float32Array(5), _bvD = new THREE.Vector3(), _bvP = new THREE.Vector3(), _bvQ = new THREE.Vector3(), _bvUp = new THREE.Vector3(), _bvU = new THREE.Vector3(0, 1, 0), _bvTQ = new THREE.Quaternion();
+const _sat = { p: 0, nx: 0, nz: 0 }, BC = { thr: 0, str: 0, hb: false, boost: false };
+const ensureBVeh = () => BV.loadP || (BV.loadP = loadGLB('bveh').then(g => { D.glb.bveh = g; g.scene.traverse(o => { if (o.isMesh && o.material && o.material.name === 'veh_glass') { o.material.depthWrite = false; } }); BV.ready = true; return g; }).catch(e => { BV.loadP = null; window.__bverr = String(e && e.stack || e); return null; }));
+
+/* ---- paint: one body-paint material per side and map, with a team panel on the roof and bonnet (the same shader trick as teamMark) */
+const BV_COL = { port: { blue: 0x6a7352, red: 0x5e3a30 }, urban: { blue: 0x7f858c, red: 0x5c3a34 }, desert: { blue: 0xb59d72, red: 0x6a4533 } };
+function bvPaint(team) {
+  const k = team + ':' + MAP.t; if (BV.paint[k]) return BV.paint[k];
+  let base = null; D.glb.bveh.scene.traverse(o => { if (!base && o.isMesh && o.material && o.material.name === 'veh_paint') base = o.material; });
+  const nm = base ? base.clone() : new THREE.MeshStandardMaterial({ roughness: 0.7 }); nm.name = 'veh_paint_' + k; nm.color.setHex((BV_COL[MAP.t] || BV_COL.port)[team] || 0x777777);
+  const col = new THREE.Color(team === 'blue' ? 0x2f6bd6 : 0xd63a2a), cs = col.r.toFixed(4) + ', ' + col.g.toFixed(4) + ', ' + col.b.toFixed(4);
+  nm.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLPb; varying float vNYb;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvLPb = position; vNYb = normal.y;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vLPb; varying float vNYb;').replace('#include <color_fragment>', '#include <color_fragment>\n{ float roofB = smoothstep(0.8, 0.95, vNYb) * step(0.8, vLPb.y); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(' + cs + '), roofB * 0.85); }');
+  };
+  nm.customProgramCacheKey = () => 'bvpaint-' + team;
+  return (BV.paint[k] = nm);
+}
+
+/* ---- draw-call budget: the GLB has 26 to 73 separate pieces per vehicle. Each model is merged once into a few vertex-coloured meshes per moving part (body, each wheel, turret, gun), which every vehicle of that kind shares,
+   and a far version is a single mesh. Near ones (under about 140 m, or the one you are in) use the full version. */
+const BV_CLS = (nm) => nm === 'veh_paint' ? 'paint' : nm === 'veh_glass' ? 'glass' : /^veh_light_/.test(nm) ? 'light' : /^veh_(metal|steel_dark|rust)$/.test(nm) ? 'metal' : /^veh_canvas/.test(nm) ? 'canvas' : 'dull';
+let BVM = null;
+function bvMats() {
+  if (BVM) return BVM; const vc = { vertexColors: true }; let glass = null; D.glb.bveh.scene.traverse(o => { if (!glass && o.isMesh && o.material && o.material.name === 'veh_glass') glass = o.material; });
+  return (BVM = { dull: new THREE.MeshStandardMaterial({ ...vc, roughness: 0.85, metalness: 0.05 }), metal: new THREE.MeshStandardMaterial({ ...vc, roughness: 0.45, metalness: 0.7 }), canvas: new THREE.MeshStandardMaterial({ ...vc, roughness: 0.95, side: THREE.DoubleSide }), light: new THREE.MeshBasicMaterial({ vertexColors: true }), far: new THREE.MeshStandardMaterial({ ...vc, roughness: 0.8, metalness: 0.1 }), glass: glass || new THREE.MeshStandardMaterial({ color: 0x223344, transparent: true, opacity: 0.5, depthWrite: false }), paint: new THREE.MeshStandardMaterial({ color: 0x777777 }) });
+}
+const bvAcc = () => ({ pos: [], nor: [], col: [], idx: [], n: 0 });
+function bvAdd(acc, geo, M, col) {                                       // append a geometry, moved by M, with one colour (or a function of the moved point and normal)
+  const p = geo.attributes.position, nrm = geo.attributes.normal, nm = new THREE.Matrix3().getNormalMatrix(M), v = new THREE.Vector3(), w = new THREE.Vector3(), base = acc.n;
+  for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(M); acc.pos.push(v.x, v.y, v.z); if (nrm) w.fromBufferAttribute(nrm, i).applyMatrix3(nm).normalize(); else w.set(0, 1, 0); acc.nor.push(w.x, w.y, w.z); const c = typeof col === 'function' ? col(v, w) : col; acc.col.push(c.r, c.g, c.b); }
+  if (geo.index) for (let i = 0; i < geo.index.count; i++) acc.idx.push(geo.index.getX(i) + base); else for (let i = 0; i < p.count; i++) acc.idx.push(base + i); acc.n += p.count;
+}
+function bvGeo(acc) {
+  if (!acc.n) return null; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(acc.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(acc.nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(acc.col, 3));
+  g.setIndex(acc.n > 65535 ? new THREE.Uint32BufferAttribute(acc.idx, 1) : new THREE.Uint16BufferAttribute(acc.idx, 1)); g.computeBoundingSphere(); g.computeBoundingBox(); return g;
+}
+const BVT = {}, BVF = {};
+function bvTemplate(key) {
+  if (BVT[key]) return BVT[key]; const src = nodeByName(D.glb.bveh, key); if (!src) return null; src.updateMatrixWorld(true); const Mt = bvMats(), inv = new THREE.Matrix4().copy(src.matrixWorld).invert(), root = new THREE.Group(), units = [], recs = [];
+  root.name = src.name; const kind = (nm) => { const q = /_(wheel|sprocket|idler|turret|gun|barrel|ramp|boom)(_|$)/.exec(nm); return q && q[1]; };
+  const walk = (n, out, unit) => {
+    let o = out, u = unit; const uk = n !== src ? kind(n.name) : null, pk = n.parent ? kind(n.parent.name) : null, asUnit = !!uk && !(pk && pk === uk);       // a mesh that only repeats its parent's name is one piece of that parent
+    if (n !== src && (!n.isMesh || asUnit)) { o = new THREE.Object3D(); o.name = n.name; o.position.copy(n.position); o.quaternion.copy(n.quaternion); o.scale.copy(n.scale); out.add(o); if (asUnit) { u = { node: n, out: o, acc: {} }; units.push(u); } }
+    if (n.isMesh && n.geometry) {
+      const mat = Array.isArray(n.material) ? n.material[0] : n.material, cls = BV_CLS(mat ? mat.name : ''), rel = new THREE.Matrix4().copy(u.node.matrixWorld).invert().multiply(n.matrixWorld), col = cls === 'light' && mat.emissive && (mat.emissive.r + mat.emissive.g + mat.emissive.b) > 0.01 ? mat.emissive : (mat && mat.color) || new THREE.Color(0.5, 0.5, 0.5);
+      if (!u.acc[cls]) u.acc[cls] = bvAcc(); bvAdd(u.acc[cls], n.geometry, rel, col); recs.push({ geo: n.geometry, M: new THREE.Matrix4().copy(inv).multiply(n.matrixWorld), cls, col });
+    }
+    for (const c of n.children) walk(c, o, u);
+  };
+  const ru = { node: src, out: root, acc: {} }; units.push(ru); walk(src, root, ru);
+  for (const u of units) for (const cls in u.acc) { const g = bvGeo(u.acc[cls]); if (!g) continue; const m = new THREE.Mesh(g, Mt[cls]); m.castShadow = cls !== 'glass' && cls !== 'light'; m.receiveShadow = cls !== 'glass'; if (cls === 'paint') m.userData.paint = true; u.out.add(m); }
+  BVF[key] = recs; return (BVT[key] = root);
+}
+function bvFarGeo(key, team) {                                           // the whole vehicle in one mesh: the paint colour of this side and map, a team panel on the roof, glass left out
+  const k = key + ':' + team + ':' + MAP.t; if (BVF[k]) return BVF[k]; const recs = BVF[key] || (bvTemplate(key), BVF[key]), acc = bvAcc(), pc = new THREE.Color((BV_COL[MAP.t] || BV_COL.port)[team] || 0x777777), tc = new THREE.Color(team === 'blue' ? 0x2f6bd6 : 0xd63a2a), mixc = new THREE.Color();
+  for (const r of recs) { if (r.cls === 'glass') continue; bvAdd(acc, r.geo, r.M, r.cls === 'paint' ? (v, w) => (w.y > 0.82 && v.y > 0.8 ? mixc.copy(pc).lerp(tc, 0.85) : pc) : r.col); }
+  return (BVF[k] = bvGeo(acc));
+}
+
+/* ---- making one: clone the model, find its wheels, steering, turret, seats and exits, and give it a kinematic physics box */
+function bvMake(key, team, x, z, yaw) {
+  const sp = BVSPEC[key]; if (!sp || !D.glb.bveh) return null; const node = nodeByName(D.glb.bveh, key); if (!node) return null;
+  const tpl = bvTemplate(key); if (!tpl) return null; const m = tpl.clone(), g = new THREE.Group(); g.rotation.order = 'YXZ'; g.add(m);
+  const pm = bvPaint(team); m.traverse(o => { if (o.isMesh && o.userData.paint) o.material = pm; });
+  const farMesh = new THREE.Mesh(bvFarGeo(key, team), bvMats().far); farMesh.castShadow = true; farMesh.receiveShadow = true; farMesh.visible = false; g.add(farMesh);
+  m.updateMatrixWorld(true);
+  const get = (n) => m.getObjectByName(key + '_' + n), wheels = [], steers = [], fz = [], rz = [], xs = [];
+  m.traverse(o => {
+    if (!o.name || !(o.name.startsWith(key + '_wheel_') || o.name.startsWith(key + '_sprocket_') || o.name.startsWith(key + '_idler_'))) return;
+    const id = o.name.split('_').slice(-1)[0], sd = id.replace(/\d$/, '').slice(-1) === 'L' ? 1 : -1, front = /^F/.test(id), tr = !!sp.tracked, r = tr ? (/sprocket/.test(o.name) ? 0.32 : /idler/.test(o.name) ? 0.3 : 0.29) : sp.r;
+    o.getWorldPosition(_bvP); wheels.push({ n: o, side: sd, front, r, st: front ? get('steer_' + id) : null }); xs.push(Math.abs(_bvP.x)); if (front || tr) fz.push(_bvP.z); if (!front || tr) rz.push(_bvP.z);
+    if (front && !tr) { const sn = get('steer_' + id); if (sn) steers.push(sn); }
+  });
+  const mean = (a, d) => a.length ? a.reduce((s, q) => s + q, 0) / a.length : d;
+  let xh = mean(xs, sp.box[2] - 0.2), zF = fz.length ? Math.max(...fz) : sp.box[3] * 0.6, zB = rz.length ? Math.min(...rz) : -sp.box[3] * 0.6;
+  const wb = sp.tracked ? 3.0 : Math.max(1.6, mean(fz, zF) - mean(rz, zB)); xh = Math.max(0.55, xh);
+  const seats = [], addSeat = (nm, kind) => { const nd = get(nm); if (nd) seats.push({ n: nd, name: nm, kind, q: null, vis: !!sp.vis(nm), stand: kind === 'gunner' && sp.vis(nm) }); };
+  addSeat('seat_driver', 'driver'); if (sp.gun) addSeat('seat_gunner', 'gunner'); for (let i = 0; i < 12; i++) addSeat('seat_p' + i, 'pass');
+  const G = sp.gun, T = G ? { tur: G.tur ? get(G.tur) : null, gun: get(G.gun), mz: get(G.mz) } : null; if (T && T.gun && !T.tur) T.gun.rotation.order = 'YXZ';
+  const body = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC, collisionFilterGroup: 1, collisionFilterMask: -1, allowSleep: false });
+  body.addShape(new CANNON.Box(new CANNON.Vec3(sp.box[2], sp.hy, sp.box[3])), new CANNON.Vec3(sp.box[0], sp.cy, sp.box[1])); world.addBody(body);
+  const v = { key, sp, team, g, m, wheels, steers, seats, exL: get('exit_L'), exR: get('exit_R'), exRear: get('exit_rear'), ramp: get('ramp'), body, T, x, z, y: standY(x, z), yaw: yaw || 0, speed: 0, steer: 0, hp: sp.hp, hpMax: sp.hp, id: ++BV.n,
+    cx: sp.box[0], cz: sp.box[1], hx: sp.box[2], hz: sp.box[3], rad: Math.hypot(sp.box[2], sp.box[3]) + Math.hypot(sp.box[0], sp.box[1]), xh, zF, zB, wb, trk: xh * 2, dead: false, wreck: false, pit: 0, rol: 0, so: 0, sv: 0, vyG: 0, tPrev: 0, sPrev: 0, lean: 0, leanR: 0,
+    gy: 0, gp: 0, recoil: 0, trav: 0, wst: { cd: 0, ammo: G ? (G.mag || 0) : 0, rel: 0 }, crashT: -9, surfK: 1, surfT: 0, obs: null, obsK: -1, obsX: 0, obsZ: 0, obsT: -9, ai: null, bay: null, fire: 0, hitT: -9, burn: 0, steerVis: 0, yawRate: 0, rampK: 0, _mw: -1, near: true, farMesh, lodNear: true };
+  v.tPrev = v.y; g.position.set(x, v.y, z); g.rotation.set(0, v.yaw, 0); scene.add(g); BVL.push(v); v.poseDirty = true; bvPose(v, 1, true); bvSync(v); return v;
+}
+function bvSync(v) {                                                   // the physics box follows the vehicle: the turn about the vertical axis, the speed for shoving cargo
+  const b = v.body, s = Math.sin(v.yaw), c = Math.cos(v.yaw); b.position.set(v.x, v.y, v.z); b.quaternion.setFromEuler(0, v.yaw, 0); b.velocity.set(s * v.speed, 0, c * v.speed); b.aabbNeedsUpdate = true;
+  if (b.interpolatedPosition) { b.interpolatedPosition.copy(b.position); b.interpolatedQuaternion.copy(b.quaternion); }
+}
+
+/* ---- ground and obstacles */
+function bvCorners(v, x, z, yaw) {                                     // heights under the four wheel points (front left, front right, rear left, rear right) and the middle, into _bvH
+  const s = Math.sin(yaw), c = Math.cos(yaw), xh = v.xh, zF = v.zF, zB = v.zB;
+  _bvH[0] = standY(x + xh * c + zF * s, z - xh * s + zF * c); _bvH[1] = standY(x - xh * c + zF * s, z + xh * s + zF * c); _bvH[2] = standY(x + xh * c + zB * s, z - xh * s + zB * c); _bvH[3] = standY(x - xh * c + zB * s, z + xh * s + zB * c); _bvH[4] = standY(x, z);
+}
+function bvOK(v, x, z, yaw) {                                          // 0 fine, 1 water deeper than the wheel (or the edge of the world), 2 too steep
+  if (Math.abs(x) > EXT - 10 || Math.abs(z) > EXT - 10) return 1; bvCorners(v, x, z, yaw); const lim = -v.sp.r * 0.8;
+  for (let i = 0; i < 5; i++) if (_bvH[i] < lim) return 1;
+  const pit = Math.abs((_bvH[0] + _bvH[1]) - (_bvH[2] + _bvH[3])) * 0.5 / Math.max(1, v.zF - v.zB), rol = Math.abs((_bvH[0] + _bvH[2]) - (_bvH[1] + _bvH[3])) * 0.5 / Math.max(0.8, 2 * v.xh);
+  return pit > 0.7 || rol > 0.75 ? 2 : 0;                                // 0.7 is 35 degrees
+}
+function bvSAT(ax, az, ahx, ahz, at, bx, bz, bhx, bhz, bt, pad) {      // do two turned boxes overlap? On a hit _sat holds the shortest way to push box A out of box B
+  const ac = Math.cos(at), as = Math.sin(at), bc = Math.cos(bt), bs = Math.sin(bt), dx = bx - ax, dz = bz - az; let best = 1e9, bnx = 0, bnz = 0;
+  for (let k = 0; k < 4; k++) {
+    const ux = k === 0 ? ac : k === 1 ? as : k === 2 ? bc : bs, uz = k === 0 ? -as : k === 1 ? ac : k === 2 ? -bs : bc;
+    const ra = ahx * Math.abs(ux * ac - uz * as) + ahz * Math.abs(ux * as + uz * ac), rb = bhx * Math.abs(ux * bc - uz * bs) + bhz * Math.abs(ux * bs + uz * bc), d = dx * ux + dz * uz, ov = ra + rb + pad - Math.abs(d);
+    if (ov <= 0) return false; if (ov < best) { best = ov; const sg = d > 0 ? -1 : 1; bnx = ux * sg; bnz = uz * sg; }
+  }
+  _sat.p = best; _sat.nx = bnx; _sat.nz = bnz; return true;
+}
+function bvTreeGrid() {                                                // trees in 24 m cells, rebuilt every few seconds: living trees block vehicles, shrubs are driven over
+  if (BV.trees && simT - BV.treeT < 4 && BV.treeN === trees.length) return BV.trees; BV.treeT = simT; BV.treeN = trees.length; const G = new Map();
+  for (const t of trees) { if (t.dead || t.kind === 'shrub') continue; const k = Math.floor(t.x / 24) * 4096 + Math.floor(t.z / 24); let a = G.get(k); if (!a) G.set(k, a = []); a.push(t); }
+  return (BV.trees = G);
+}
+function bvGather(v) {                                                 // every box near the vehicle that it must not enter (cached, rebuilt when it has moved a few metres or something was built)
+  const key = props.length * 7 + FOOT.length * 3 + STRUCT.length; if (v.obs && v.obsK === key && Math.hypot(v.x - v.obsX, v.z - v.obsZ) < 5 && simT - v.obsT < 3) return v.obs;
+  const rr = v.rad + 10, out = []; v.obsK = key; v.obsX = v.x; v.obsZ = v.z; v.obsT = simT;
+  const G = propGrid(), st = ++BV.stamp;
+  for (let i = Math.floor((v.x - rr) / PG_C); i <= Math.floor((v.x + rr) / PG_C); i++) for (let j = Math.floor((v.z - rr) / PG_C); j <= Math.floor((v.z + rr) / PG_C); j++) { const cell = G.get(pgKey(i, j)); if (!cell) continue; for (const pr of cell) { if (pr._bvs === st) continue; pr._bvs = st; const b = pr.item.box; if (b[1] * 2 < 0.35 || !pr.mesh) continue; out.push({ x: pr.x, z: pr.z, hx: b[0], hz: b[2], t: pr.mesh.rotation.y, top: heightAt(pr.x, pr.z) + b[1] * 2 }); } }
+  for (const f of FOOT) { if (f.nm === 'helipad' || Math.abs(f.x - v.x) > rr + f.hx + f.hz || Math.abs(f.z - v.z) > rr + f.hx + f.hz) continue; out.push({ x: f.x, z: f.z, hx: f.hx, hz: f.hz, t: f.t, top: heightAt(f.x, f.z) + (f.top || 9) }); }
+  const TG = bvTreeGrid(); for (let i = Math.floor((v.x - rr) / 24); i <= Math.floor((v.x + rr) / 24); i++) for (let j = Math.floor((v.z - rr) / 24); j <= Math.floor((v.z + rr) / 24); j++) { const a = TG.get(i * 4096 + j); if (!a) continue; for (const t of a) { const r = 0.45 * (t.sc || 1); out.push({ x: t.x, z: t.z, hx: r, hz: r, t: 0, tree: t, top: 99 }); } }
+  return (v.obs = out);
+}
+function bvResolve(v) {                                                // push the vehicle out of anything it overlaps: buildings, props, trees, other vehicles. Returns how many it hit; v.hitNx/hitNz is the average way out.
+  const obs = bvGather(v); let hit = 0, nxs = 0, nzs = 0, tree = true;
+  for (let it = 0; it < 3; it++) {
+    let any = false, s = Math.sin(v.yaw), c = Math.cos(v.yaw), ax = v.x + v.cx * c + v.cz * s, az = v.z - v.cx * s + v.cz * c;
+    for (let k = 0; k < obs.length; k++) { const o = obs[k]; if (o.tree && o.tree.dead) continue; const rr = v.rad + o.hx + o.hz + 0.2; if (Math.abs(o.x - ax) > rr || Math.abs(o.z - az) > rr) continue;
+      if (bvSAT(ax, az, v.hx, v.hz, v.yaw, o.x, o.z, o.hx, o.hz, o.t, 0.03)) { v.x += _sat.nx * _sat.p; v.z += _sat.nz * _sat.p; ax += _sat.nx * _sat.p; az += _sat.nz * _sat.p; any = true; hit++; nxs += _sat.nx; nzs += _sat.nz; if (!o.tree) tree = false; } }
+    for (const w of BVL) { if (w === v || Math.hypot(w.x - v.x, w.z - v.z) > v.rad + w.rad) continue; const ws = Math.sin(w.yaw), wc = Math.cos(w.yaw), wx = w.x + w.cx * wc + w.cz * ws, wz = w.z - w.cx * ws + w.cz * wc;
+      if (bvSAT(ax, az, v.hx, v.hz, v.yaw, wx, wz, w.hx, w.hz, w.yaw, 0.03)) { const sh = w.dead || !w.drv ? 1 : 0.55; v.x += _sat.nx * _sat.p * sh; v.z += _sat.nz * _sat.p * sh; ax += _sat.nx * _sat.p * sh; az += _sat.nz * _sat.p * sh; any = true; hit++; nxs += _sat.nx; nzs += _sat.nz; tree = false; if (!w.dead && Math.abs(v.speed) > 5 && simT - w.crashT > 0.5) { w.crashT = simT; damageVehicle(w, (Math.abs(v.speed) - 4) * 2.2 * w.sp.ck, v.team, 'Crash', null); } } }
+    if (!any) break;
+  }
+  v.hitTree = tree; if (hit) { const l = Math.hypot(nxs, nzs) || 1; v.hitNx = nxs / l; v.hitNz = nzs / l; } return hit;
+}
+function bvImpact(v) {                                                 // what a hit does to speed, to the hull and to the ears
+  const fx = Math.sin(v.yaw), fz = Math.cos(v.yaw), dn = fx * v.hitNx + fz * v.hitNz, vn = v.speed * dn; if (vn >= -0.2) return;
+  v.speed *= 1 - dn * dn * 1.1; const imp = -vn;
+  if (imp > 5.5 && simT - v.crashT > 0.45) { v.crashT = simT; if (!v.hitTree && imp > 6.5) damageVehicle(v, (imp - 5) * 3 * v.sp.ck, null, 'Crash', null); Snd.fx(imp > 11 ? 'mat_metal_clang_l' : 'mat_metal_clang_s', v.x, v.z, { gain: Math.min(1.1, imp / 12), y: v.y + 1 }); sparks(v.x + v.hitNx * -v.hx, v.y + 1, v.z + v.hitNz * -v.hx, 6); if (fp.veh === v) dis.quake = Math.max(dis.quake, Math.min(1.4, imp / 14)); }
+}
+
+/* ---- one drive step: speed, steering, then sub-steps of at most 0.3 m with the ground and obstacle checks after each */
+const toward = (a, b, d) => a < b ? Math.min(b, a + d) : Math.max(b, a - d);
+const BV_SURF = { asphalt: 1, concrete: 1, gravel: 0.86, dirt: 0.78, grass: 0.72, sand: 0.58 };
+function bvDrive(v, dt, c) {
+  const sp = v.sp; v.surfT -= dt; if (v.surfT <= 0) { v.surfT = 0.25; v.surfK = BV_SURF[surfaceAt(v.x, v.z)] || 0.75; }
+  const fx = Math.sin(v.yaw), fz = Math.cos(v.yaw), grade = (standY(v.x + fx * 2.2, v.z + fz * 2.2) - standY(v.x - fx * 2.2, v.z - fz * 2.2)) / 4.4;
+  const vmax = sp.vmax * v.surfK * (c.boost && !sp.tracked ? 1.3 : 1); let vt = c.thr > 0.02 ? c.thr * vmax : c.thr < -0.02 ? c.thr * sp.vrev * v.surfK : 0;
+  if (vt * grade > 0) vt *= 1 - clamp(Math.abs(grade) * 1.1, 0, 0.8);
+  if (c.hb) v.speed = toward(v.speed, 0, sp.brk * 1.4 * dt);
+  else if (vt === 0) v.speed = toward(v.speed, 0, (2.4 + Math.abs(v.speed) * 0.05) * dt) - grade * 2.6 * dt;
+  else if (vt * v.speed < 0) v.speed = toward(v.speed, vt, sp.brk * dt);
+  else if (Math.abs(vt) > Math.abs(v.speed)) v.speed = toward(v.speed, vt, sp.acc * (1.15 - Math.abs(v.speed) / (vmax + 1) * 0.8) * dt * (c.boost ? 1.3 : 1));
+  else v.speed = toward(v.speed, vt, 6 * dt);
+  let yr;
+  if (sp.tracked) { yr = c.str * sp.pivot * (1 - Math.min(0.5, Math.abs(v.speed) / (vmax + 1) * 0.5)); v.steer = 0; }
+  else { const mx = sp.steer / (1 + Math.abs(v.speed) * 0.05), tg = c.str * mx; v.steer += clamp(tg - v.steer, -dt * (Math.abs(tg) < Math.abs(v.steer) ? 5.5 : 3.2), dt * (Math.abs(tg) < Math.abs(v.steer) ? 5.5 : 3.2)); yr = clamp(v.speed / v.wb * Math.tan(v.steer), -1.7, 1.7); if (c.hb && Math.abs(v.speed) > 6) { yr *= 1.5; v.speed *= 1 - 0.8 * dt; } }
+  v.yawRate = yr;
+  { const gx = (heightAt(v.x + 1.5, v.z) - heightAt(v.x - 1.5, v.z)) / 3, gz = (heightAt(v.x, v.z + 1.5) - heightAt(v.x, v.z - 1.5)) / 3, gm = Math.hypot(gx, gz); if (gm > 0.7) { const k = Math.min(5, (gm - 0.7) * 8) * dt / gm; v.x -= gx * k; v.z -= gz * k; v.speed *= 1 - dt * 2; } }
+  const dist = Math.abs(v.speed) * dt, n = clamp(Math.ceil(dist / 0.3), 1, 10), dy = yr * dt / n, ds = v.speed * dt / n;
+  for (let i = 0; i < n; i++) {
+    const ox = v.x, oz = v.z, oy = v.yaw; v.yaw += dy; const my = oy + dy * 0.5; let nx = ox + Math.sin(my) * ds, nz = oz + Math.cos(my) * ds;
+    if (bvOK(v, nx, nz, v.yaw) !== 0) {                                // water or a cliff: try sliding along one axis, else stop dead
+      if (bvOK(v, nx, oz, v.yaw) === 0) nz = oz; else if (bvOK(v, ox, nz, v.yaw) === 0) nx = ox; else { nx = ox; nz = oz; if (bvOK(v, ox, oz, v.yaw) !== 0) v.yaw = oy; v.speed *= 1 - Math.min(1, dt * 6); }
+      v.edgeT = simT;
+    }
+    v.x = nx; v.z = nz;
+    if (bvResolve(v)) { bvImpact(v); if (bvOK(v, v.x, v.z, v.yaw) !== 0) { v.x = ox; v.z = oz; v.yaw = oy; v.speed *= 0.5; } }
+  }
+}
+function bvPose(v, dt, dress) {                                        // ground plane under the wheels, spring on the picture, wheels and steering turning
+  bvCorners(v, v.x, v.z, v.yaw); const H = _bvH, hF = (H[0] + H[1]) * 0.5, hB = (H[2] + H[3]) * 0.5, hL = (H[0] + H[2]) * 0.5, hR = (H[1] + H[3]) * 0.5, mean = (H[0] + H[1] + H[2] + H[3]) * 0.25;
+  const L = Math.max(1, v.zF - v.zB), W = Math.max(0.8, 2 * v.xh), pit = Math.atan2(hF - hB, L), rol = Math.atan2(hL - hR, W), tp = Math.tan(pit), tr = Math.tan(rol), dz = L * 0.5, dx = v.xh;
+  const lift = Math.max(0, H[0] - (mean + dz * tp + dx * tr), H[1] - (mean + dz * tp - dx * tr), H[2] - (mean - dz * tp + dx * tr), H[3] - (mean - dz * tp - dx * tr)), target = mean + lift;
+  v.y += (target - v.y) * Math.min(1, dt * 30); if (v.y < target - 0.02) v.y = target - 0.02; else if (v.y > target + 0.12) v.y = target + 0.12;
+  if (!dress) { v.pit = pit; v.rol = rol; v.so = 0; v.sv = 0; v.lean = 0; v.leanR = 0; v.tPrev = target; v.vyG = 0; v.sPrev = v.speed; v.g.position.set(v.x, v.y, v.z); v.g.rotation.set(-pit, v.yaw, rol, 'YXZ'); return; }
+  const gv = (target - v.tPrev) / Math.max(dt, 1e-3); v.tPrev = target; const dvy = clamp(gv - v.vyG, -6, 6); v.vyG = gv; v.sv += -dvy * 0.1; v.sv += (-90 * v.so - 11 * v.sv) * dt; v.so = clamp(v.so + v.sv * dt, -0.03, 0.08);
+  const acc = (v.speed - v.sPrev) / Math.max(dt, 1e-3); v.sPrev = v.speed; v.lean += (clamp(acc * 0.006, -0.05, 0.05) - v.lean) * Math.min(1, dt * 6); v.leanR += (clamp(v.speed * v.yawRate * 0.004, -0.06, 0.06) - v.leanR) * Math.min(1, dt * 6);
+  v.pit += (pit - v.pit) * Math.min(1, dt * 12); v.rol += (rol - v.rol) * Math.min(1, dt * 12);
+  v.g.position.set(v.x, v.y + v.so, v.z); v.g.rotation.set(-(v.pit + v.lean), v.yaw, v.rol + v.leanR, 'YXZ');
+  if (!dress) return;
+  const sp = v.sp, sp0 = v.speed, yr = v.yawRate, half = v.trk * 0.5;
+  for (const w of v.wheels) { const vs = sp.tracked ? sp0 - w.side * yr * half : sp0; w.n.rotation.x += vs / w.r * dt; }
+  if (!sp.tracked) { v.steerVis += (v.steer - v.steerVis) * Math.min(1, dt * 14); for (const sn of v.steers) sn.rotation.y = v.steerVis; }
+}
+
+/* ---- small geometry helpers */
+function bvBoxDist(w, x, z) { const s = Math.sin(w.yaw), c = Math.cos(w.yaw), dx = x - w.x, dz = z - w.z, lx = dx * c - dz * s - w.cx, lz = dx * s + dz * c - w.cz; return Math.hypot(Math.max(Math.abs(lx) - w.hx, 0), Math.max(Math.abs(lz) - w.hz, 0)); }
+function bvPushOut(p, rad) {                                           // people on foot cannot walk through a vehicle: the same push-out as for props (called from pushOutOfProps)
+  let hit = null;
+  for (const w of BVL) { if (p.vin === w || Math.abs(w.x - p.x) > w.rad + rad + 1 || Math.abs(w.z - p.z) > w.rad + rad + 1) continue;
+    const s = Math.sin(w.yaw), c = Math.cos(w.yaw), dx = p.x - w.x, dz = p.z - w.z, lx = dx * c - dz * s - w.cx, lz = dx * s + dz * c - w.cz, hx = w.hx + rad, hz = w.hz + rad;
+    if (Math.abs(lx) < hx && Math.abs(lz) < hz) { const px = hx - Math.abs(lx), pz = hz - Math.abs(lz); let nx = lx, nz = lz; if (px < pz) nx = Math.sign(lx || 1) * hx; else nz = Math.sign(lz || 1) * hz;
+      p.x = w.x + (nx + w.cx) * c + (nz + w.cz) * s; p.z = w.z - (nx + w.cx) * s + (nz + w.cz) * c; hit = { pr: { x: w.x + w.cx * c + w.cz * s, z: w.z - w.cx * s + w.cz * c }, lx, lz, hx: w.hx, hz: w.hz, c, sn: s }; } }
+  return hit;
+}
+function bvExitSpot(v, n, out) {                                       // a dry, free spot beside the vehicle for the n-th person getting out: the model's exit markers first, then spots along its sides
+  { const mk = out.rear && v.exRear ? [v.exRear, v.exL, v.exR] : n % 2 ? [v.exR, v.exL] : [v.exL, v.exR]; v.g.updateMatrixWorld(true);
+    for (let k = 0; k < mk.length; k++) { if (!mk[k]) continue; mk[k].getWorldPosition(_bvQ); const sg = mk[k] === v.exL ? 1 : mk[k] === v.exR ? -1 : 0, x = _bvQ.x + Math.cos(v.yaw) * sg * 0.9 + Math.sin(v.yaw) * (n >> 1) * -0.9, z = _bvQ.z - Math.sin(v.yaw) * sg * 0.9 + Math.cos(v.yaw) * (n >> 1) * -0.9;
+      if (standY(x, z) < 0.35 || footBlocked(x, z, 0.5)) continue; let ok = true; for (const w of BVL) if (w !== v && bvBoxDist(w, x, z) < 0.8) { ok = false; break; } if (ok) { out.x = x; out.z = z; return true; } } }
+  const side = n % 2 ? 1 : -1, row = (n >> 1) - 1;
+  for (let k = 0; k < 8; k++) {
+    const rear = v.sp.tracked ? false : v.key === 'apc' && out.rear, lx = rear ? ((k % 3) - 1) * 1.2 : side * (v.hx + 1.3 + (k >> 1) * 0.7), lz = rear ? -(v.hz + 1.6 + (k >> 1)) : v.cz + (row + (k % 2 ? 0.5 : 0)) * 1.2, s = Math.sin(v.yaw), c = Math.cos(v.yaw), x = v.x + lx * c + lz * s, z = v.z - lx * s + lz * c;
+    if (standY(x, z) < 0.35 || footBlocked(x, z, 0.5)) continue; let ok = true; for (const w of BVL) if (w !== v && bvBoxDist(w, x, z) < 0.8) { ok = false; break; } if (ok) { out.x = x; out.z = z; return true; }
+  }
+  out.x = v.x + Math.sin(v.yaw) * (v.hz + 2); out.z = v.z + Math.cos(v.yaw) * (v.hz + 2); return false;
+}
+const _bvO = { x: 0, z: 0, rear: false };
+
+/* ---- seats: a person in a seat is hidden or posed, and no longer walks. Their damage goes to the vehicle. */
+function bvBoard(c, q, seat) {
+  if (!seat || seat.q || !q || q.vin) return false; seat.q = q; q.vin = c; q.vseat = seat; q.hoist = { bv: c }; q.order = null; q.route = null; q.walkK = 0; q.wk = 0; q.swim = false; q.run = false; q.job && cancelJob(q);
+  if (q.bot) { q.bot.tgt = null; q.bot.coverPt = null; q.bot.atCover = false; q.bot.crouch = false; }
+  q.sitK = 0; q.obj.visible = !!seat.vis && !(q.fp && BV.camMode === 'cockpit'); return true;
+}
+function bvUnboard(c, q, spot) {
+  const s = q.vseat; if (s) s.q = null; q.vin = null; q.vseat = null; q.hoist = null;
+  for (const n in q.info) { const i = q.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } for (const n of POSED) q.snap[n].copy(q.info[n].restQ); q.snapHip.copy(q.info.hips.restP);
+  q.obj.visible = !q.fp; if (spot) { q.x = spot.x; q.z = spot.z; q.y = standY(spot.x, spot.z); } q.obj.position.set(q.x, q.y - q.footOff, q.z); q.obj.quaternion.identity();
+  if (q.body) { q.body.position.set(q.x, q.y + q.height / 2, q.z); q.body.velocity.set(0, 0, 0); }
+}
+function bvOcc(v, dt, t) {                                             // each frame: put the people in the seats, facing the right way
+  let any = false; for (const s of v.seats) if (s.q) { any = true; break; } if (!any) return;
+  v.g.updateMatrixWorld(true); _bvUp.copy(_bvU).applyQuaternion(v.g.quaternion); const far = Math.hypot(v.x - camera.position.x, v.z - camera.position.z) > 110;
+  for (const s of v.seats) {
+    const q = s.q; if (!q) continue; s.n.getWorldPosition(_bvP); const dn = s.stand ? 0.3 : 0.55;
+    q.x = _bvP.x; q.z = _bvP.z; q.y = _bvP.y - dn; q.heading = v.yaw + (s.kind === 'gunner' && v.sp.gun ? v.gy : 0); q.fpMoving = false;
+    q.obj.position.set(_bvP.x - _bvUp.x * (dn + q.footOff), _bvP.y - _bvUp.y * (dn + q.footOff), _bvP.z - _bvUp.z * (dn + q.footOff));
+    _bvTQ.setFromAxisAngle(_bvU, (s.kind === 'gunner' && v.sp.gun ? v.gy : 0) - q.yawOff); q.obj.quaternion.copy(v.g.quaternion).multiply(_bvTQ);
+    if (q.body) { q.body.position.set(q.x, q.y + q.height / 2, q.z); q.body.velocity.set(0, 0, 0); if (q.body.interpolatedPosition) q.body.interpolatedPosition.copy(q.body.position); }
+    q.obj.visible = !!s.vis && !(q.fp && BV.camMode === 'cockpit');
+    if (q.obj.visible && !far) { animStep(q, dt); if (s.stand) poseAim(q, 1, 0); else poseSit(q, 1); }
+  }
+}
+
+/* ---- damage, fire, destruction, wrecks */
+function damageVehicle(v, dmg, byTeam, weapon, byQ) {
+  if (!v || v.dead || v.hp <= 0 || !(dmg > 0)) return; if (byTeam && byTeam === v.team && weapon !== 'Crash') return;
+  v.hp -= dmg; v.hitT = simT; if (byQ) v.lastBy = byQ; if (byTeam) v.lastTeam = byTeam; v.lastW = weapon;
+  if (fp.veh === v) { BATTLE.hurtT = Math.max(BATTLE.hurtT, 0.5); const hv = $('bHurt'); if (hv) hv.style.opacity = 0.7; if (dmg > 6) dis.quake = Math.max(dis.quake, Math.min(1.1, dmg / 40)); }
+  if (v.hp <= 0) { bvDestroy(v, byTeam || v.lastTeam || null, weapon, byQ || v.lastBy || null); return; }
+  if (v.hp < v.hpMax * 0.25 && !v.burn) { v.burn = 1; noteOnce('bvf' + v.id, v.team === BATTLE.team ? 'Your ' + v.sp.name.toLowerCase() + ' is on fire. Get out or find cover.' : 'An enemy ' + v.sp.name.toLowerCase() + ' is burning.'); }
+  if (dmg > 12) Snd.fx('imp_metal', v.x, v.z, { gain: 0.7, y: v.y + 1 });
+}
+function bvEject(c, q, n) {                                            // people thrown clear: a short guard from the blast so a wreck is not a death sentence
+  if (!q) return; q.bvImm = simT + 1.6; const player = fp.on && fp.p === q && fp.veh === c;
+  if (c.heli) { const g = Math.max(heightAt(c.x, c.z), 0) + 0.1; _bvO.x = c.x + Math.sin(c.hd + 1.6) * (3.5 + n); _bvO.z = c.z + Math.cos(c.hd + 1.6) * (3.5 + n); if (standY(_bvO.x, _bvO.z) < 0.35) { _bvO.x = c.x; _bvO.z = c.z; } }
+  else { _bvO.rear = false; bvExitSpot(c, n, _bvO); }
+  if (player) bvLeavePlayer(c, _bvO); else { bvUnboard(c, q, _bvO); if (q.bot) { q.bot.crew = null; q.bot.cmdUntil = 0; } }
+}
+function bvEjectAll(c) { let n = 0; for (const s of c.seats) if (s.q) bvEject(c, s.q, n++); }
+const bvWreckMat = new THREE.MeshStandardMaterial({ color: 0x1d1c1b, roughness: 0.95, metalness: 0.2 });
+function bvDestroy(v, byTeam, weapon, byQ) {
+  if (v.dead) return; v.dead = true; v.hp = 0; v.wreck = true; v.wreckT = 0; v.speed = 0; v.burn = 0; NAV.dyn.push({ x: v.x, z: v.z, r: v.rad * 0.7, until: simT + 95 }); bvEjectAll(v); if (v.ai) bvAIRelease(v);
+  blast(v.x, v.y + 1, v.z, { R: v.sp.boom ? 12 : 9, dmg: 140, crater: 3, depth: 0.8, owner: null, skip: v, by: byTeam || null, name: 'Vehicle explosion' });
+  puffSmoke(v.x, v.y + 2, v.z, 12, true, 2); sparks(v.x, v.y + 1.5, v.z, 20); dis.quake = Math.max(dis.quake, Math.hypot(v.x - camera.position.x, v.z - camera.position.z) < 80 ? 1.6 : 0.3);
+  v.g.traverse(o => { if (o.isMesh) o.material = bvWreckMat; }); v.rol += (Math.random() - 0.5) * 0.12; for (const w of v.wheels) w.n.rotation.x = Math.random() * 6;
+  if (v.T && v.T.tur) v.T.tur.rotation.y += (Math.random() - 0.5) * 0.9; bvSync(v);
+  BATTLE.feed.push({ a: byQ ? (fp.on && fp.p === byQ ? 'You' : (byQ.role || 'Soldier')) : '', ta: byTeam || '', b: v.sp.name, tb: v.team, w: weapon || '', at: performance.now() }); while (BATTLE.feed.length > 5) BATTLE.feed.shift(); renderKillFeed(); setTimeout(renderKillFeed, 9100);
+  if (byQ && fp.on && fp.p === byQ) { fp.ko++; BATTLE.myKills = (BATTLE.myKills || 0) + 1; Snd.ui('ui_kill', 0.7); }
+  if (v.bay) { v.bay.state = 'rebuilding'; v.bay.t = v.bay.delay; v.bay.v = null; }
+  noteOnce('bvd' + v.id, (v.team === BATTLE.team ? 'Your ' : 'The enemy ') + v.sp.name.toLowerCase() + ' was destroyed. The wreck burns and makes cover.');
+}
+function bvRemove(v) { if (v.body) world.removeBody(v.body); scene.remove(v.g); const i = BVL.indexOf(v); if (i >= 0) BVL.splice(i, 1); if (v.bay && v.bay.v === v) v.bay.v = null; }
+function bvWreckStep(v, dt) {
+  v.wreckT += dt; const hi = v.y + v.sp.cy * 1.8;
+  if (v.wreckT < 55 && Math.random() < dt * 4) puffSmoke(v.x + rnd(-1, 1), hi, v.z + rnd(-1, 1), 1, true, 1.3);
+  if (v.wreckT < 22 && Math.random() < dt * 7) fxG.emit(v.x + rnd(-1.2, 1.2), hi - 0.4, v.z + rnd(-1.2, 1.2), rnd(-0.4, 0.4), rnd(1.5, 3), rnd(-0.4, 0.4), 0.45, 1.6, 1.2, [1, 0.6, 0.2, 0.9]);
+  if (v.wreckT > 90) bvRemove(v);                                      // the burning wreck stands as cover for 90 s
+}
+
+/* ---- run people over (a knock-out, never gore) */
+function bvRunOver(v, dt) {
+  const sp0 = Math.abs(v.speed); if (sp0 < 0.8) return; const s = Math.sin(v.yaw), c = Math.cos(v.yaw), drv = v.seats[0] && v.seats[0].q, tm = v.team;
+  for (const q of people) {
+    if (q.vin || q.hoist || q.state === 'rag' || q.hp <= 0 || Math.abs(q.x - v.x) > v.rad + 1 || Math.abs(q.z - v.z) > v.rad + 1) continue;
+    const dx = q.x - v.x, dz = q.z - v.z, lx = dx * c - dz * s - v.cx, lz = dx * s + dz * c - v.cz; if (Math.abs(lx) > v.hx + 0.45 || Math.abs(lz) > v.hz + 0.45 || q.y > v.y + 2.4) continue;
+    if (q._bvh && simT - q._bvh < 1.2) continue; q._bvh = simT; const same = teamOf(q) && teamOf(q) === tm;
+    if (sp0 > 6 && !same) { hurt(q, 160, drv || null, false, 'Run over'); if (fp.veh === v) dis.quake = Math.max(dis.quake, 0.5); }
+    else if (sp0 > 2.2) stagger(q, new CANNON.Vec3(-Math.sin(v.yaw) * 0 + dx * 2, 0, dz * 2));
+  }
+}
+
+/* ---- guns: the turret turns at a limited rate toward a point, the shot goes out along the barrel */
+function bvAimPoint() { const h = fpAim(520, 0); return h.pt; }
+function bvGun(v, dt, who, tx, ty, tz, fire) {
+  const G = v.sp.gun, T = v.T; if (!G || !T || !T.gun) return; if (v._mw !== BV.frame) { v.g.updateMatrixWorld(true); v._mw = BV.frame; }
+  const yn = T.tur || T.gun, pn = T.gun; yn.getWorldPosition(_bvP); pn.getWorldPosition(_bvQ);
+  const want = wrap(Math.atan2(tx - _bvP.x, tz - _bvP.z) - v.yaw), err = wrap(want - v.gy), st = clamp(err, -G.tr * dt, G.tr * dt); v.gy = wrap(v.gy + st); yn.rotation.y = v.gy;
+  const hd = Math.hypot(tx - _bvQ.x, tz - _bvQ.z); let up = Math.atan2(ty - _bvQ.y, hd) - v.pit; if (G.kind === 'cannon') up += 6 * hd / (2 * 200 * 200) * 1.0;
+  const wp = clamp(up, -G.dn, G.up), ps = clamp(wp - v.gp, -(G.ptr || G.tr) * dt, (G.ptr || G.tr) * dt); v.gp += ps; pn.rotation.x = -v.gp; v.trav = (Math.abs(st) + Math.abs(ps)) / Math.max(dt, 1e-3);
+  if (fire && Math.abs(wrap(want - v.gy)) < (G.kind === 'cannon' ? 0.05 : 0.5) && Math.abs(wp - v.gp) < (G.kind === 'cannon' ? 0.05 : 0.5)) bvShoot(v, who);
+}
+function bvGunTick(v, dt) {                                            // reload, cooldown and the barrel settling back after each shot, for every vehicle
+  const W = v.wst, G = v.sp.gun; if (!G) return; if (W.cd > 0) W.cd -= dt; if (W.rel > 0) { W.rel -= dt; if (W.rel <= 0) W.ammo = G.mag; }
+  if (v.recoil > 0) { v.recoil = Math.max(0, v.recoil - dt * 3); const nd = v.T && v.T.gun; if (nd) { if (nd.userData.z0 === undefined) nd.userData.z0 = nd.position.z; nd.position.z = nd.userData.z0 - v.recoil * (G.kind === 'cannon' ? 0.4 : 0.07); } }
+  if (v.trav > 0) v.trav *= 0.8;
+}
+function bvShoot(v, who) {
+  const G = v.sp.gun, W = v.wst, T = v.T; if (W.cd > 0 || W.rel > 0) return false; W.cd = G.rate; const mzn = T.mz || T.gun; if (v._mw !== BV.frame) { v.g.updateMatrixWorld(true); v._mw = BV.frame; }
+  mzn.getWorldPosition(_bvP); mzn.getWorldDirection(_bvD); const j = G.spread; _bvD.x += rnd(-j, j); _bvD.y += rnd(-j, j); _bvD.z += rnd(-j, j); _bvD.normalize();
+  const ox = _bvP.x, oy = _bvP.y, oz = _bvP.z, dx = _bvD.x, dy = _bvD.y, dz = _bvD.z, far = Math.hypot(ox - camera.position.x, oz - camera.position.z) > 95;
+  v.recoil = 1; fxG.emit(ox + dx * 0.4, oy + dy * 0.4, oz + dz * 0.4, dx * 3, dy * 3, dz * 3, 0.07, G.kind === 'cannon' ? 2.4 : 1.2, 0.8, [1, 0.85, 0.5, 1]);
+  Snd.fx(far ? G.far : G.snd, ox, oz, { gain: G.gain, y: oy, gap: 0.02, far: G.kind === 'cannon' ? 2 : 1 });
+  if (G.kind === 'cannon') {
+    if (BV.shells.length < 10) BV.shells.push({ x: ox, y: oy, z: oz, vx: dx * 200, vy: dy * 200, vz: dz * 200, team: v.team, q: who, src: v, age: 0, vdmg: 150 });
+    puffSmoke(ox + dx * 2, oy, oz + dz * 2, 6, false, 1.4); if (fp.veh === v) dis.quake = Math.max(dis.quake, 1.1); else if (Math.hypot(ox - camera.position.x, oz - camera.position.z) < 50) dis.quake = Math.max(dis.quake, 0.5);
+    return true;
+  }
+  W.ammo--; if (W.ammo <= 0) W.rel = G.rel; if ((W.ammo & 1) === 0) ejectCasing(ox, oy, oz, v.yaw + v.gy); if (fp.veh === v) dis.quake = Math.max(dis.quake, 0.18);
+  bvShot(v, who, ox, oy, oz, dx, dy, dz, G); return true;
+}
+function bvRayBox(w, ox, oy, oz, dx, dy, dz) {                          // where a ray first enters a vehicle's box (or -1)
+  const s = Math.sin(w.yaw), c = Math.cos(w.yaw), px = ox - w.x, pz = oz - w.z, lox = px * c - pz * s - w.cx, loz = px * s + pz * c - w.cz, ldx = dx * c - dz * s, ldz = dx * s + dz * c, loy = oy - (w.y + w.sp.cy); let a = 0, b = 1e9;
+  const slab = (o, d, h) => { if (Math.abs(d) < 1e-9) return Math.abs(o) < h; let t1 = (-h - o) / d, t2 = (h - o) / d; if (t1 > t2) { const tt = t1; t1 = t2; t2 = tt; } if (t1 > a) a = t1; if (t2 < b) b = t2; return a <= b; };
+  return slab(lox, ldx, w.hx) && slab(loz, ldz, w.hz) && slab(loy, dy, w.sp.hy) ? a : -1;
+}
+function bvHurtOcc(q, dmg, from, wn) { const c = q.vin; if (c && !c.heli && !c.dead) damageVehicle(c, dmg * 0.4, from ? teamOf(from) : null, wn || 'Hit', from || null); }
+const _rh = { t: 0, kind: null, ref: null };
+function bvCast(ox, oy, oz, dx, dy, dz, range, team, skip) {           // where does this ray first hit land, water, a person, a vehicle, an aircraft or a solid prop?
+  let bt = range, kind = null, ref = null;
+  for (let t = 1.2; t < bt; t += t < 40 ? 1.6 : 3.5) { const x = ox + dx * t, y = oy + dy * t, z = oz + dz * t, gh = heightAt(x, z); if (y <= gh) { bt = t; kind = 'land'; break; } if (gh < -0.05 && y <= waveH(x, z, simT)) { bt = t; kind = 'water'; break; } }
+  for (const q of people) { if (q.vin || q.state === 'rag' || q.hp <= 0 || (team && teamOf(q) === team)) continue;
+    for (let h = 0; h < 2; h++) { const cx = q.x - ox, cyy = q.y + (h ? 1.3 : 0.45) - oy, cz = q.z - oz, t = cx * dx + cyy * dy + cz * dz; if (t < 0.8 || t >= bt) continue; if (cx * cx + cyy * cyy + cz * cz - t * t < 0.2) { bt = t; kind = 'person'; ref = q; break; } } }
+  for (const w of BVL) {
+    if (w === skip || (w.team === team && !w.dead)) continue; const cx = w.x - ox, cyy = w.y + 1 - oy, cz = w.z - oz, t0 = cx * dx + cyy * dy + cz * dz; if (t0 < -w.rad || t0 > bt + w.rad || cx * cx + cyy * cyy + cz * cz - t0 * t0 > (w.rad + 1) * (w.rad + 1)) continue;
+    const s = Math.sin(w.yaw), c = Math.cos(w.yaw), px = ox - w.x, pz = oz - w.z, lox = px * c - pz * s - w.cx, loz = px * s + pz * c - w.cz, ldx = dx * c - dz * s, ldz = dx * s + dz * c, loy = oy - (w.y + w.sp.cy);
+    let a = 0, b = bt;
+    const slab = (o, d, h) => { if (Math.abs(d) < 1e-9) return Math.abs(o) < h; let t1 = (-h - o) / d, t2 = (h - o) / d; if (t1 > t2) { const tt = t1; t1 = t2; t2 = tt; } if (t1 > a) a = t1; if (t2 < b) b = t2; return a <= b; };
+    if (slab(lox, ldx, w.hx) && slab(loz, ldz, w.hz) && slab(loy, dy, w.sp.hy) && a > 0.3 && a < bt) { bt = a; kind = 'veh'; ref = w; }
+  }
+  for (const u of AIR.list) { if (u.down || u.team === team) continue; const cx = u.x - ox, cyy = u.y + 1 - oy, cz = u.z - oz, t = cx * dx + cyy * dy + cz * dz; if (t < 2 || t >= bt) continue; if (cx * cx + cyy * cyy + cz * cz - t * t < (u.rad + 0.5) * (u.rad + 0.5)) { bt = t; kind = 'air'; ref = u; } }
+  { const ex = ox + dx * bt, ey = oy + dy * bt, ez = oz + dz * bt; if (!losFull(ox, oy, oz, ex, ey, ez)) { let lo = 0, hi = bt; for (let k = 0; k < 7; k++) { const mid = (lo + hi) * 0.5; if (losFull(ox, oy, oz, ox + dx * mid, oy + dy * mid, oz + dz * mid)) lo = mid; else hi = mid; } bt = lo; kind = 'prop'; ref = null; } }
+  _rh.t = bt; _rh.kind = kind; _rh.ref = ref; return _rh;
+}
+function bvShot(v, who, ox, oy, oz, dx, dy, dz, G) {                   // a machine-gun round: tracer, then damage to whatever it reaches
+  const r = bvCast(ox, oy, oz, dx, dy, dz, G.range, v.team, v), t = r.t, ex = ox + dx * t, ey = oy + dy * t, ez = oz + dz * t, fall = 1 - 0.5 * clamp((t - G.range * 0.4) / (G.range * 0.6), 0, 1), pt = { x: ex, y: ey, z: ez }; addTracer(ox, oy, oz, ex, ey, ez);
+  if (r.kind === 'person') { hurt(r.ref, G.dmg * fall, who || null, ey > r.ref.y + 1.5, G.name); impactFx('person', r.ref, pt, t); }
+  else if (r.kind === 'veh') { damageVehicle(r.ref, G.vdmg * r.ref.sp.arm * fall, v.team, G.name, who); impactFx('boat', null, pt, t); }
+  else if (r.kind === 'air') { damageAir(r.ref, G.vdmg * 0.9, 'vehicle'); }
+  else if (r.kind === 'water') impactFx('water', null, pt, t); else if (r.kind) impactFx('land', null, pt, t);
+}
+function bvShells(dt) {                                                // tank shells in flight: fast, a little arc, bursting on the first thing they reach
+  for (let i = BV.shells.length - 1; i >= 0; i--) {
+    const s = BV.shells[i]; s.age += dt; if (s.age > 9) { BV.shells.splice(i, 1); continue; }
+    const sp = Math.hypot(s.vx, s.vy, s.vz), n = Math.max(1, Math.ceil(sp * dt / 1.4)), h = dt / n, sx = s.x, sy = s.y, sz = s.z; let hit = false, hv = null;
+    for (let k = 0; k < n && !hit; k++) {
+      s.vy -= 6 * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
+      if (s.y <= heightAt(s.x, s.z) || (heightAt(s.x, s.z) < 0 && s.y <= waveH(s.x, s.z, simT))) { hit = true; break; }
+      for (const w of BVL) { if (w === s.src && s.age < 0.3) continue; if (Math.abs(w.x - s.x) > w.rad + 1 || Math.abs(w.z - s.z) > w.rad + 1) continue; if (bvBoxDist(w, s.x, s.z) < 0.2 && s.y > w.y - 0.2 && s.y < w.y + w.sp.cy + w.sp.hy + 0.3) { hit = true; hv = w; break; } }
+      if (hit) break;
+      const cell = propGrid().get(pgKey(Math.floor(s.x / PG_C), Math.floor(s.z / PG_C))); if (cell) for (const pr of cell) { const b = pr.item.box; if (b[1] * 2 < 0.6) continue; const dx = s.x - pr.x, dz = s.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 1.5) ** 2) continue; const yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), lx = dx * c - dz * sn, lz = dx * sn + dz * c; if (Math.abs(lx) < b[0] && Math.abs(lz) < b[2] && s.y < heightAt(pr.x, pr.z) + b[1] * 2) { hit = true; break; } }
+      if (hit) break;
+      for (const f of FOOT) { if (Math.abs(f.x - s.x) > f.hx + f.hz + 1 || Math.abs(f.z - s.z) > f.hx + f.hz + 1) continue; if (pointBoxDist(s.x, s.z, f) < 0.1 && s.y < heightAt(f.x, f.z) + (f.top || 9)) { hit = true; break; } }
+      if (hit) break;
+      for (const q of people) { if (q.vin || q.state === 'rag' || q.hp <= 0 || teamOf(q) === s.team) continue; if (Math.abs(q.x - s.x) < 0.9 && Math.abs(q.z - s.z) < 0.9 && s.y > q.y - 0.2 && s.y < q.y + 2.1) { hit = true; break; } }
+      if (hit) break;
+      for (const u of AIR.list) { if (u.down || u.team === s.team) continue; if (Math.hypot(u.x - s.x, u.y - s.y, u.z - s.z) < u.rad + 1.5) { hit = true; damageAir(u, 140, 'vehicle'); break; } }
+    }
+    addTracer(sx, sy, sz, s.x, s.y, s.z); if (Math.random() < dt * 20) puffSmoke(s.x, s.y, s.z, 1, false, 0.5);
+    if (hit) { BV.shells.splice(i, 1); if (hv) damageVehicle(hv, s.vdmg, s.team, 'Tank shell', s.q); blast(s.x, Math.max(s.y, heightAt(s.x, s.z)), s.z, { R: 7, dmg: 120, crater: 2, depth: 0.7, owner: null, by: s.team, rpg: true, skip: hv, name: 'Tank shell' }); }
+  }
+}
+function bvBlast(x, y, z, o) {                                         // called from blast(): vehicles near the burst are hurt, rockets and shells doubly
+  for (const v of BVL) { if (v.dead || v === o.skip) continue; const R = (o.R || 10) * 1.1, d = bvBoxDist(v, x, z); if (d > R || y > v.y + 12) continue; damageVehicle(v, (o.dmg || 100) * (1 - d / R) * v.sp.blk * (o.rpg ? 2 : 1), o.by || null, o.name || 'Explosion', null); }
+}
+function bvRocketHit(m) { for (const v of BVL) { if (Math.abs(v.x - m.x) > v.rad + 1 || Math.abs(v.z - m.z) > v.rad + 1) continue; if (bvBoxDist(v, m.x, m.z) < 0.4 && m.y > v.y - 0.2 && m.y < v.y + v.sp.cy + v.sp.hy + 0.3) return v; } return null; }
+function bvThreat(dt) {                                                // infantry against vehicles: engineers fire rockets, everybody else only scratches the paint
+  BV.threatT -= dt; if (BV.threatT > 0) return; BV.threatT = 1.3;
+  for (const v of BVL) {
+    if (v.dead) continue; for (const q of people) {
+      const b = q.bot; if (!b || q.vin || q.state === 'rag' || b.dead || q.hp <= 0 || b.team === v.team) continue; const d = Math.hypot(q.x - v.x, q.z - v.z); if (d > 80) continue;
+      if (b.cls === 'engineer' && d < 75 && (b.rpgT || 0) < simT && losFull(q.x, q.y + 1.3, q.z, v.x, v.y + 1.2, v.z)) { b.rpgT = simT + 9 + Math.random() * 5; const l = Math.max(1, Math.hypot(v.x - q.x, v.z - q.z)), ex = v.x + rnd(-1.6, 1.6) - q.x, ez = v.z + rnd(-1.6, 1.6) - q.z, ey = v.y + 1.2 - (q.y + 1.3), el = Math.hypot(ex, ey, ez);
+        MIS.push({ x: q.x, y: q.y + 1.3, z: q.z, vx: ex / el * 40, vy: ey / el * 40, vz: ez / el * 40, tgt: null, age: 0, sp: 40, rpg: true, R: 9, dmg: 150, crater: 3, owner: q }); Snd.fx('veh_gun_fire', q.x, q.z, { gain: 0.7, y: q.y + 1.5 }); }
+      else if (d < 55 && Math.random() < 0.3 && losFull(q.x, q.y + 1.3, q.z, v.x, v.y + 1.2, v.z)) damageVehicle(v, 2.2 * v.sp.arm, b.team, 'Rifle fire', q);
+    }
+  }
+}
+
+/* ---- the player in a vehicle: getting in and out, the keys, the camera, the small HUD */
+function bvNear(p, rmax) {                                             // the nearest friendly vehicle or landed helicopter the person is standing beside
+  const team = teamOf(p) || BATTLE.team; let best = null, bd = rmax || 6.5;
+  for (const w of BVL) { if (w.dead || w.team !== team) continue; const d = bvBoxDist(w, p.x, p.z); if (d < bd && Math.abs(p.y - w.y) < 3) { bd = d; best = w; } }
+  for (const u of AIR.list) { if (!u.bv || u.down || u.team !== team) continue; const d = Math.hypot(u.x - p.x, u.z - p.z) - 3.5; if (d < bd && Math.abs(p.y - u.y) < 3.5) { bd = d; best = u; } }
+  return best;
+}
+function bvPickSeat(c, p) {
+  const free = (k) => c.seats.find(s => s.kind === k && !s.q); let s = free('driver') || free('gunner') || free('pass'); if (s) return s;
+  const d = c.seats[0]; if (!c.heli && d && d.kind === 'driver' && d.q && d.q.bot) return d; return null;      // a bot driver steps out for the player
+}
+const bvName = (c) => c.heli ? BVH[c.pre].name : c.sp.name, bvSeatName = (s) => s.kind === 'driver' ? (s.name === 'pilot' ? 'pilot' : 'driver') : s.kind === 'gunner' ? 'gunner' : 'passenger';
+function bvPrompt(p) {
+  if (!BATTLE.on || fp.veh || !p || p.state === 'rag' || p.carry || p.swim) return null; const c = bvNear(p); if (!c) return null; const s = bvPickSeat(c, p);
+  return s ? (isTouch ? 'Use' : 'E') + ': get in the ' + bvName(c).toLowerCase() + ' (' + bvSeatName(s) + ')' : 'The ' + bvName(c).toLowerCase() + ' is full';
+}
+function bvTryEnter() {
+  const p = fp.p; if (!p || !BATTLE.on || fp.veh || p.state === 'rag' || p.carry || p.swim || BATTLE.down) return false; const c = bvNear(p); if (!c) return false;
+  const s = bvPickSeat(c, p); if (!s) { toast('That ' + bvName(c).toLowerCase() + ' is full.'); return true; } return bvEnter(c, s);
+}
+function bvEnter(c, seat) {
+  const p = fp.p; if (!p || !seat) return false;
+  if (seat.q && seat.q !== p) { const old = seat.q; _bvO.rear = false; bvExitSpot(c, 1, _bvO); bvUnboard(c, old, _bvO); if (old.bot) { old.bot.crew = null; old.bot.cmdUntil = 0; } if (c.ai) bvAIRelease(c, true); }
+  if (!bvBoard(c, p, seat)) return false; p.fp = true; p.fpMoving = false; if (c.heli) c.pilotSeat = c.seats[0];
+  fp.veh = c; fp.vseat = seat; fp.vx = fp.vz = 0; fp.air = false; fp.stance = 0; fp.zoom = false; fp.fireHeld = false; fp.vhb = 0; fp.vy = 0; if (p.stag) p.stag = 0;
+  for (const k in fpToolMesh) fpToolMesh[k].visible = false; { const so = $('fpScope'), s2 = $('fpScope2'); if (so) so.style.display = 'none'; if (s2) s2.style.display = 'none'; }
+  fp.yaw = c.heli ? c.hd : c.yaw; fp.pitch = -0.14; BV.ly = fp.yaw; BV.lp = fp.pitch; BV.vy = fp.yaw; BV.mt = 0; BV.camMode = 'chase'; p.obj.visible = !!seat.vis;
+  if (c.heli) bvHeliBoarded(c, seat); else { c.active = true; if (c.ai && seat.kind === 'driver') bvAIRelease(c, true); }
+  $('fpPrompt').textContent = ''; $('fpHint').textContent = isTouch ? 'Stick drives. Fire button shoots. Use button gets out.' : 'In the ' + bvName(c).toLowerCase() + ': E gets out, V changes the view, X changes seat. The full list is in the Menu under Controls.';
+  toast('You are the ' + bvSeatName(seat) + ' of the ' + bvName(c).toLowerCase() + '.'); Snd.fx('mat_metal_clang_s', c.x, c.z, { gain: 0.35, y: c.y + 1 }); return true;
+}
+function bvLeavePlayer(c, spot) {
+  const p = fp.p; if (!p || fp.veh !== c) return; if (!spot) { _bvO.rear = false; if (c.heli) { _bvO.x = c.x + Math.sin(c.hd + 1.6) * 4; _bvO.z = c.z + Math.cos(c.hd + 1.6) * 4; if (standY(_bvO.x, _bvO.z) < 0.35) { _bvO.x = c.x - Math.sin(c.hd + 1.6) * 4; _bvO.z = c.z - Math.cos(c.hd + 1.6) * 4; } } else bvExitSpot(c, fp.vseat && fp.vseat.kind === 'driver' ? 0 : 1, _bvO); spot = _bvO; }
+  const sx = spot.x, sz = spot.z; bvUnboard(c, p, { x: sx, z: sz }); p.fp = true; p.obj.visible = false; p.fpMoving = false; fp.veh = null; fp.vseat = null; fp.vx = fp.vz = 0; fp.air = false; fp.vy = 0; fp.pitch = 0; fp.fireHeld = false;
+  pushOutOfProps(p, 0.4); if (c.heli) bvHeliLeft(c); else { c.poseDirty = true; if (c.ai) { c.ai.st = 'park'; c.ai.t = BATTLE.t + 25; } }
+  if (BV.hud) BV.hud.hidden = true; for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === fp.tool; if (!isTouch && fp.on && !fp.locked) lockPointer();
+}
+function bvLeaveKey() {
+  const c = fp.veh; if (!c) return; if (c.heli && !bvHeliCanLeave(c)) { toast('Land first. You can get out when you are under 3 metres up and slow.'); return; }
+  const name = bvName(c).toLowerCase(); if (c.heli) { bvHeliDisembark(c); } bvLeavePlayer(c); toast('You get out of the ' + name + '.');
+}
+function bvSwitchSeat() {
+  const c = fp.veh, p = fp.p; if (!c || c.heli) return; const cur = c.seats.indexOf(fp.vseat);
+  for (let k = 1; k <= c.seats.length; k++) { const s = c.seats[(cur + k) % c.seats.length]; if (s && !s.q) { fp.vseat.q = null; s.q = p; p.vseat = s; fp.vseat = s; p.obj.visible = !!s.vis && BV.camMode !== 'cockpit'; toast('You move to the ' + bvSeatName(s) + ' seat.'); c.poseDirty = true; return; } }
+  toast('No free seat.');
+}
+function bvKey(k, e) {                                                 // keys while in a vehicle: true means taken here
+  const c = fp.veh; if (!c) return false;
+  if (k === 'e' || k === 'f') { if (c.heli && k === 'e' && !bvHeliOnGround(c)) return false; bvLeaveKey(); return true; }
+  if (k === 'v') { BV.camMode = BV.camMode === 'chase' ? 'cockpit' : 'chase'; if (fp.p && fp.vseat) fp.p.obj.visible = !!fp.vseat.vis && BV.camMode !== 'cockpit'; toast(BV.camMode === 'chase' ? 'Chase view' : 'Cockpit view'); return true; }
+  if (k === 'x') { bvSwitchSeat(); return true; }
+  if (c.heli && (k === '1' || k === '2' || k === '3')) { bvHeliSeatKey(c, +k); return true; }
+  if (k === ' ' || k === 'escape' || k === 'tab' || k === 'o' || k === 't' || k === 'y' || k === 'b') return false;
+  return /^[a-z0-9\-]$/.test(k) && !/^[wasd]$/.test(k);                // keep the walking and tool keys from doing anything in here
+}
+function bvPlayerCtl(v, c) {
+  let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy, r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
+  c.thr = clamp(f, -1, 1); c.str = -clamp(r, -1, 1); c.hb = keys.has(' ') || fp.vhb > 0; c.boost = keys.has('shift');
+}
+function bvCamera(dt) {
+  const c = fp.veh, p = fp.p, seat = fp.vseat; if (!c || !p) return; const now = performance.now(), yawNow = c.heli ? c.hd : c.yaw, cock = BV.camMode === 'cockpit';
+  if (Math.abs(wrap(fp.yaw - BV.ly)) > 1e-4 || Math.abs(fp.pitch - BV.lp) > 1e-4) BV.mt = now;
+  if (cock) fp.yaw += wrap(yawNow - BV.vy); else if (seat && seat.kind === 'driver' && now - BV.mt > 1400 && !fp.fireHeld) { fp.yaw += wrap(yawNow - fp.yaw) * Math.min(1, dt * 2.2); fp.pitch += (-0.14 - fp.pitch) * Math.min(1, dt * 2); }
+  BV.vy = yawNow; BV.ly = fp.yaw; BV.lp = fp.pitch; fp.pitch = clamp(fp.pitch, -1.2, 1.3);
+  const cp = Math.cos(fp.pitch), dx = Math.sin(fp.yaw) * cp, dy = Math.sin(fp.pitch), dz = Math.cos(fp.yaw) * cp, spd = c.heli ? Math.hypot(c.vx, c.vz) : Math.abs(c.speed);
+  const fov = (c.heli ? 66 : 64) + Math.min(1, spd / (c.heli ? 50 : c.sp.vmax)) * 9; fp.fov += (fov - fp.fov) * Math.min(1, dt * 5); if (Math.abs(camera.fov - fp.fov) > 0.05) { camera.fov = fp.fov; camera.updateProjectionMatrix(); }
+  if (cock) {
+    if (c.heli) { c.g.updateMatrixWorld(true); _bvP.set(0, c.eyeY, c.eyeZ).applyMatrix4(c.g.matrixWorld); }
+    else { c.g.updateMatrixWorld(true); const sn = (seat && seat.n) || c.seats[0].n; sn.getWorldPosition(_bvP); _bvP.y += 0.6; }
+    camera.position.copy(_bvP); camera.lookAt(_bvP.x + dx, _bvP.y + dy, _bvP.z + dz); return;
+  }
+  const dist = c.heli ? 17 : c.sp.cam, hgt = c.heli ? 3.2 : c.sp.camH, px = c.x, py = c.y + hgt, pz = c.z; let cx = px - dx * dist, cy = py - dy * dist, cz = pz - dz * dist;
+  const gy = Math.max(heightAt(cx, cz), 0) + 0.9; if (cy < gy) cy = gy; camera.position.set(cx, cy, cz); camera.lookAt(px + dx * 8, py + dy * 8 - 0.6, pz + dz * 8);
+}
+function bvFpUpdate(dt, t) {                                           // called from updateFP while the player is in a vehicle
+  const c = fp.veh, p = fp.p; if (!c || !p) return; fp.vhb = Math.max(0, (fp.vhb || 0) - dt); fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6); fp.zoom = false; p.fpMoving = false; fp.spd = c.heli ? Math.hypot(c.vx, c.vz) : Math.abs(c.speed);
+  if (BATTLE.on) { BATTLE.hurtT = Math.max(0, BATTLE.hurtT); battleHud(); }
+}
+function bvHudUpdate(dt) {
+  if (!BV.hud) bvHudInit(); const h = BV.hud, c = fp.on ? fp.veh : null; if (!c) { if (!h.hidden) { h.hidden = true; BV.hudSig = ''; } return; }
+  BV.hudT -= dt; if (BV.hudT > 0 && !h.hidden) return; BV.hudT = 0.12; const seat = fp.vseat, hpP = Math.max(0, Math.round(100 * c.hp / c.hpMax)), spd = c.heli ? Math.hypot(c.vx, c.vz) : Math.abs(c.speed);
+  let l2 = '', l3 = ''; const gs = !c.heli && c.sp.gun && bvGunner(c);
+  if (c.heli) { const gy = Math.max(standY(c.x, c.z), 0); l2 = 'Height ' + Math.max(0, Math.round(c.y - gy)) + ' m' + (c.rpm < 0.9 ? ' · rotors ' + (c.rpm > 0.15 ? 'spinning up' : 'stopped') : ''); l3 = bvHeliWeaponLine(c); }
+  else if (c.sp.gun && gs && gs.q === fp.p) { const G = c.sp.gun, W = c.wst; l2 = G.name + ': ' + (G.kind === 'cannon' ? (W.cd > 0 ? 'Recharging' : 'Ready') : (W.rel > 0 ? 'Reloading' : Math.round(100 * W.ammo / G.mag) + '% left')); }
+  else if (c.sp.gun) l2 = (gs && gs.q ? 'A crewman works the gun.' : 'The gun has no crew. Take the gunner seat with X.');
+  const hint = isTouch ? 'Stick drives, fire button shoots, Use button gets out' : seat && seat.kind === 'gunner' ? 'Mouse aims, left button fires · E gets out · V view · X seat' : seat && seat.kind === 'pass' ? 'E gets out · X seat · V view' : c.heli ? 'W S fly · A D bank · Q E turn · Space up · Shift down · E gets out when landed · 1 2 3 seats' : 'W S drive · A D steer · Space brake · Shift boost' + (c.sp.gun ? ' · mouse aims, click fires' : '') + ' · E gets out · V view · X seat';
+  const html = '<div class="big">' + bvName(c) + ' · ' + Math.round(spd * 3.6) + ' km/h</div><div class="hp"><b style="transform:scaleX(' + (hpP / 100) + ');background:' + (hpP < 25 ? '#d6584a' : hpP < 55 ? '#e0b020' : '#6fb36a') + '"></b></div><div>Hull ' + hpP + '%' + (l2 ? ' · ' + l2 : '') + '</div>' + (l3 ? '<small>' + l3 + '</small>' : '') + '<small>' + hint + '</small>';
+  if (html !== BV.hudSig) { BV.hudSig = html; h.innerHTML = html; } h.hidden = false;
+}
+function bvHudInit() {
+  if (BV.hud) return; const st = document.createElement('style'); st.textContent = '#bvHud{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9;min-width:250px;max-width:92vw;padding:10px 14px;border-radius:12px;background:rgba(18,22,26,.78);color:#f1ece2;font:600 15px/1.4 system-ui,sans-serif;pointer-events:none;text-align:center}#bvHud .hp{height:8px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin:6px 0}#bvHud .hp b{display:block;height:100%;transform-origin:left}#bvHud small{display:block;opacity:.8;font-weight:500;font-size:13px}#bvHud .big{font-size:19px}.touch #bvHud{bottom:auto;top:88px}';
+  document.head.appendChild(st); const h = document.createElement('div'); h.id = 'bvHud'; h.hidden = true; h.setAttribute('role', 'status'); document.body.appendChild(h); BV.hud = h;
+}
+
+/* ---- the vehicle navigation grid: 6 m cells over the whole map. Water, steep ground, buildings, props and thick trees are closed (with room for the vehicle's width); roads and paving are cheap, slopes and sand dear. */
+const NAV = { N: 0, c: 6, o: 0, blk: null, cost: null, g: null, vis: null, from: null, tmp: null, st: 0, sig: '', t: -99, dyn: [] };
+function bvNavBuild() {
+  const c = 6, o = -(EXT - 8), N = Math.floor((EXT - 8) * 2 / c);
+  if (NAV.N !== N || !NAV.blk) { NAV.N = N; NAV.blk = new Uint8Array(N * N); NAV.cost = new Float32Array(N * N); NAV.g = new Float32Array(N * N); NAV.vis = new Uint32Array(N * N); NAV.from = new Int32Array(N * N); NAV.tmp = new Uint32Array(N * N); NAV.st = 0; }
+  NAV.c = c; NAV.o = o; const B = NAV.blk, C = NAV.cost;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const x = o + (j + 0.5) * c, z = o + (i + 0.5) * c, h = standY(x, z), k = i * N + j; let b = 0, cs = 1;
+    if (h < 0.6) b = 1; else { const g = Math.max(Math.abs(heightAt(x + 3, z) - heightAt(x - 3, z)), Math.abs(heightAt(x, z + 3) - heightAt(x, z - 3))) / 6; if (g > 0.5) b = 1; else cs += g * 9 + (h < 1.2 ? 1.5 : 0); }
+    if (!b) { const sf = surfaceAt(x, z); if (sf === 'asphalt' || sf === 'concrete') cs *= 0.45; else if (sf === 'sand') cs *= 1.25; }
+    B[k] = b; C[k] = cs;
+  }
+  const mark = (x, z, hx, hz, t, inf) => {
+    const r = Math.hypot(hx, hz) + inf, i0 = Math.max(0, Math.floor((z - r - o) / c)), i1 = Math.min(N - 1, Math.floor((z + r - o) / c)), j0 = Math.max(0, Math.floor((x - r - o) / c)), j1 = Math.min(N - 1, Math.floor((x + r - o) / c)), cs = Math.cos(t), sn = Math.sin(t);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const wx = o + (j + 0.5) * c - x, wz = o + (i + 0.5) * c - z, lx = wx * cs - wz * sn, lz = wx * sn + wz * cs; if (Math.abs(lx) < hx + inf && Math.abs(lz) < hz + inf) B[i * N + j] = 1; }
+  };
+  for (const pr of props) { const b = pr.item && pr.item.box; if (!b || b[1] * 2 < 0.35 || !pr.mesh) continue; mark(pr.x, pr.z, b[0], b[2], pr.mesh.rotation.y, 3.2); }
+  for (const f of FOOT) { if (f.nm === 'helipad') continue; mark(f.x, f.z, f.hx, f.hz, f.t, 3.2); }
+  const cnt = new Uint8Array(N * N); for (const t of trees) { if (t.dead || t.kind === 'shrub') continue; const j = Math.floor((t.x - o) / c), i = Math.floor((t.z - o) / c); if (i >= 0 && j >= 0 && i < N && j < N) cnt[i * N + j]++; }
+  for (let k = 0; k < N * N; k++) { if (cnt[k] >= 2) B[k] = 1; else if (cnt[k]) C[k] += 2.5; }
+  NAV.sig = props.length + ':' + FOOT.length + ':' + STRUCT.length + ':' + trees.length; NAV.t = simT;
+}
+const bvNavCell = (x, z) => { const N = NAV.N; return [clamp(Math.floor((z - NAV.o) / NAV.c), 0, N - 1), clamp(Math.floor((x - NAV.o) / NAV.c), 0, N - 1)]; };
+const bvNavFree = (i, j) => i >= 0 && j >= 0 && i < NAV.N && j < NAV.N && !NAV.blk[i * NAV.N + j];
+function bvNavSnap(i, j) { if (bvNavFree(i, j)) return i * NAV.N + j; for (let r = 1; r < 9; r++) for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) { if (Math.max(Math.abs(a), Math.abs(b)) !== r) continue; if (bvNavFree(i + a, j + b)) return (i + a) * NAV.N + j + b; } return -1; }
+function bvNavLine(x0, z0, x1, z1, st) { const d = Math.hypot(x1 - x0, z1 - z0), n = Math.ceil(d / 2.5); for (let k = 1; k < n; k++) { const [i, j] = bvNavCell(x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n); if (!bvNavFree(i, j) || NAV.tmp[i * NAV.N + j] === st) return false; } return true; }
+function bvNavPath(x0, z0, x1, z1, skip) {                             // A* over the grid, then the corners that matter. Null when there is no way. Parked vehicles, wrecks and recent blockages are closed too.
+  if (!NAV.blk || (simT - NAV.t > 12 && NAV.sig !== props.length + ':' + FOOT.length + ':' + STRUCT.length + ':' + trees.length)) bvNavBuild();
+  const N = NAV.N, [si, sj] = bvNavCell(x0, z0), [gi, gj] = bvNavCell(x1, z1), S = bvNavSnap(si, sj), Gc = bvNavSnap(gi, gj); if (S < 0 || Gc < 0) return null;
+  const st = ++NAV.st, g = NAV.g, vis = NAV.vis, from = NAV.from, B = NAV.blk, C = NAV.cost, T = NAV.tmp, gI = (Gc / N) | 0, gJ = Gc % N, hk = [], hf = [];
+  const closeAt = (x, z, r) => { const i0 = Math.max(0, Math.floor((z - r - NAV.o) / NAV.c)), i1 = Math.min(N - 1, Math.floor((z + r - NAV.o) / NAV.c)), j0 = Math.max(0, Math.floor((x - r - NAV.o) / NAV.c)), j1 = Math.min(N - 1, Math.floor((x + r - NAV.o) / NAV.c)); for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) if (Math.hypot(NAV.o + (j + 0.5) * NAV.c - x, NAV.o + (i + 0.5) * NAV.c - z) < r + 2) T[i * N + j] = st; };
+  for (const w of BVL) if (w !== skip && (w.dead || !w.drv)) closeAt(w.x, w.z, w.rad * 0.7); for (let k = NAV.dyn.length - 1; k >= 0; k--) { const d = NAV.dyn[k]; if (d.until < simT) NAV.dyn.splice(k, 1); else closeAt(d.x, d.z, d.r); } T[S] = 0; T[Gc] = 0;
+  const push = (k, f) => { let n = hk.length; hk.push(k); hf.push(f); while (n > 0) { const p = (n - 1) >> 1; if (hf[p] <= f) break; hk[n] = hk[p]; hf[n] = hf[p]; n = p; } hk[n] = k; hf[n] = f; };
+  const pop = () => { const top = hk[0], lk = hk.pop(), lf = hf.pop(), n = hk.length; if (n) { let i = 0; for (;;) { let c = 2 * i + 1; if (c >= n) break; if (c + 1 < n && hf[c + 1] < hf[c]) c++; if (hf[c] >= lf) break; hk[i] = hk[c]; hf[i] = hf[c]; i = c; } hk[i] = lk; hf[i] = lf; } return top; };
+  vis[S] = st; g[S] = 0; from[S] = -1; push(S, 0); let exp = 0, found = false;
+  while (hk.length && exp++ < 9000) {
+    const cur = pop(); if (cur === Gc) { found = true; break; } const ci = (cur / N) | 0, cj = cur % N, cg = g[cur];
+    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N) continue; const nk = ni * N + nj; if (B[nk] || T[nk] === st) continue; if (di && dj && (B[ci * N + nj] || B[ni * N + cj] || T[ci * N + nj] === st || T[ni * N + cj] === st)) continue;
+      const ng = cg + (di && dj ? 1.414 : 1) * C[nk]; if (vis[nk] === st && ng >= g[nk]) continue; vis[nk] = st; g[nk] = ng; from[nk] = cur; push(nk, ng + Math.hypot(ni - gI, nj - gJ) * 0.9); }
+  }
+  if (!found) return null; const cells = []; for (let k = Gc; k >= 0 && cells.length < 900; k = from[k]) cells.push(k); cells.reverse();
+  const pts = cells.map(k => ({ x: NAV.o + ((k % N) + 0.5) * NAV.c, z: NAV.o + (((k / N) | 0) + 0.5) * NAV.c })), out = []; let ax = x0, az = z0, idx = 0;
+  while (idx < pts.length) { let far = idx; for (let k = pts.length - 1; k > idx; k--) if (bvNavLine(ax, az, pts[k].x, pts[k].z, st)) { far = k; break; } out.push(pts[far]); ax = pts[far].x; az = pts[far].z; idx = far + 1; }
+  if (out.length && bvNavFree(gi, gj)) out[out.length - 1] = { x: x1, z: z1 }; return out;
+}
+
+/* ---- bot crews and drivers */
+function bvGunner(v) { if (!v.sp.gun) return null; const g = v.seats.find(s => s.kind === 'gunner' && s.q); if (g) return g; const d = v.seats[0]; return d && d.kind === 'driver' && d.q ? d : null; }
+function bvCrew(v) {                                                   // fresh bots take the driver seat (and the gun seat of a gun vehicle). They do not count in the squads.
+  const need = [], ds = v.seats[0]; if (ds && ds.kind === 'driver' && !ds.q) need.push(ds); if (v.sp.gun) { const gs = v.seats.find(s => s.kind === 'gunner'); if (gs && !gs.q) need.push(gs); }
+  for (const s of need) { const q = spawnBot(v.team, true, { x: v.x, z: v.z }); if (!q) return false; q.bot.follow = false; q.bot.obj = null; if (bvBoard(v, q, s)) q.bot.crew = v; else { removeBot(q); return false; } }
+  return true;
+}
+function bvAIInit(v, delay, reserve) { v.ai = { st: 'park', t: delay, path: null, pi: 0, goal: null, kind: '', plan: 0, mem: [], sq: null, stT: 0, sx: v.x, sz: v.z, rev: 0, revStr: 1, fails: 0, hold: 0, reserve: !!reserve, home: { x: v.x, z: v.z, yaw: v.yaw }, last: simT, arrived: false, req: null, blockT: 0, obj: null }; }
+function bvAIRelease(v, keepCrew) {                                    // a mission ends or the player takes over: the squad that was riding gets out and carries on
+  const A = v.ai; if (!A) return; if (A.sq) BV.sqBusy.delete(A.sq); A.sq = null; A.mem = []; A.path = null; A.req = null; A.st = keepCrew ? 'park' : 'idle'; A.t = keepCrew ? 1e9 : 3; v.rampOpen = false;
+  for (const s of v.seats) if (s.kind === 'pass' && s.q && s.q.bot) { _bvO.rear = true; bvExitSpot(v, 2, _bvO); const q = s.q; bvUnboard(v, q, _bvO); q.bot.cmdUntil = 0; q.run = true; }
+}
+function bvDismount(v) {
+  const A = v.ai; let n = 2; for (const s of v.seats) { if (s.kind !== 'pass' || !s.q) continue; const q = s.q; _bvO.rear = true; bvExitSpot(v, n++, _bvO); bvUnboard(v, q, _bvO); if (q.bot) { q.bot.cmdUntil = 0; q.bot.idle = 0; q.bot.myOrder = null; } q.run = true; if (A && A.obj) setFootOrder(q, A.obj.x + rnd(-8, 8), A.obj.z + rnd(-8, 8)); }
+}
+function bvFindSquad(v) {
+  const pn = v.seats.filter(s => s.kind === 'pass').length; if (pn < 2) return null; const by = new Map();
+  for (const q of people) { const b = q.bot; if (!b || b.team !== v.team || b.crew || b.dead || b.follow || q.vin || q.state === 'rag' || q.hp <= 0 || q.fp || q.hop || !b.sq) continue; let a = by.get(b.sq); if (!a) by.set(b.sq, a = []); a.push(q); }
+  let best = null, bd = 1e9; for (const [id, mem] of by) { if (BV.sqBusy.has(id) || mem.length < 2) continue; let cx = 0, cz = 0; for (const q of mem) { cx += q.x; cz += q.z; } cx /= mem.length; cz /= mem.length; const d = Math.hypot(cx - v.x, cz - v.z); if (d > 75 || d >= bd) continue;
+    mem.sort((a, b) => (a.bot.sqi || 0) - (b.bot.sqi || 0)); const ob = mem[0].bot.obj; if (!ob || Math.hypot(ob.x - cx, ob.z - cz) < 120) continue; bd = d; best = { id, mem: mem.slice(0, pn), obj: ob }; }
+  return best;
+}
+function bvAIPlan(v, x, z) { const A = v.ai; if (simT - (A.lastPlan || -9) < 3 || A.req) return false; A.lastPlan = simT; const r = { v, x, z }; A.req = r; A.path = null; A.arrived = false; BV.planQ.push(r); return true; }
+function bvStand(v, pt, off) { const d = Math.max(1, Math.hypot(v.x - pt.x, v.z - pt.z)); return { x: pt.x + (v.x - pt.x) / d * off, z: pt.z + (v.z - pt.z) / d * off }; }
+function bvPickObjective(v) {
+  const cand = BATTLE.points.filter(p => p.owner !== v.team).sort((a, b) => Math.hypot(a.x - v.x, a.z - v.z) - Math.hypot(b.x - v.x, b.z - v.z));
+  if (cand.length) return cand[Math.min(cand.length - 1, Math.random() < 0.3 ? 1 : 0)];
+  let best = null, bs = -1; for (const p of BATTLE.points) { const s = p.owner === v.team ? (v.team === 'blue' ? p.nr : p.nb) : 0; if (s > bs) { bs = s; best = p; } } return best;
+}
+function bvAIThink(v) {                                                // the mission state machine, a couple of times a second per vehicle
+  const A = v.ai, now = simT, dt = Math.min(2, now - A.last); A.last = now; if (!A || v.dead) return; const ds = v.seats[0], drv = ds && ds.kind === 'driver' ? ds.q : null;
+  if (fp.on && fp.veh === v && fp.vseat === ds) { A.st = 'park'; A.t = 1e9; return; }
+  if (A.st === 'park') { if (BATTLE.t < A.t || (A.reserve && BATTLE.team === v.team && BATTLE.t < 240)) return; A.st = 'idle'; A.t = 0; }
+  if (A.st !== 'idle' && A.st !== 'park' && !drv) { bvAIRelease(v); return; }
+  if (A.abort) { A.abort = false; A.fails = 0; bvAIRelease(v); A.t = 8; return; }
+  if (A.st === 'idle') {
+    A.t -= dt; if (A.t > 0 || v.hp < v.hpMax * 0.3) return; A.t = 3; const key = v.key;
+    if (key === 'fuel_truck' || key === 'quad_atv') { A.st = 'park'; A.t = 1e9; return; }
+    if (v.sp.medic) { const hs = hotSpot(v.team); if (!hs || !bvCrew(v)) return; const s = bvStand(v, hs, 38); A.kind = 'medic'; A.goal = s; if (bvAIPlan(v, s.x, s.z)) A.st = 'go'; return; }
+    if (key === 'jeep' || key === 'apc' || key === 'supply_truck') { const sq = bvFindSquad(v); if (sq) { if (!bvCrew(v)) return; BV.sqBusy.set(sq.id, v); A.sq = sq.id; A.mem = sq.mem; A.obj = sq.obj; A.kind = 'carry'; A.st = 'load'; A.t0 = now; return; } }
+    if (v.sp.gun) { const p = bvPickObjective(v); if (!p) return; if (!bvCrew(v)) return; const s = Math.hypot(v.x - p.x, v.z - p.z) < 60 ? { x: v.x, z: v.z } : bvStand(v, p, v.sp.tracked ? 44 : 34); A.kind = 'combat'; A.obj = p; A.goal = s; if (Math.hypot(v.x - s.x, v.z - s.z) < 8) { A.st = 'hold'; A.hold = 25 + Math.random() * 15; } else if (bvAIPlan(v, s.x, s.z)) A.st = 'go'; return; }
+    return;
+  }
+  if (A.st === 'load') {
+    if (!v.seats[0].q) return; let aboard = 0;
+    for (const q of A.mem.slice()) { if (!people.includes(q) || q.state === 'rag' || !q.bot || q.bot.dead) { A.mem.splice(A.mem.indexOf(q), 1); continue; } if (q.vin === v) { aboard++; continue; } if (q.vin) { A.mem.splice(A.mem.indexOf(q), 1); continue; }
+      const d = Math.hypot(q.x - v.x, q.z - v.z); if (d < v.rad + 2.6) { const s = v.seats.find(z => z.kind === 'pass' && !z.q); if (s && bvBoard(v, q, s)) aboard++; else A.mem.splice(A.mem.indexOf(q), 1); } else if (!q.order || now - (q._bvOrd || 0) > 3) { q._bvOrd = now; setFootOrder(q, v.x, v.z); q.run = true; } }
+    const left = A.mem.filter(q => q.vin !== v).length;
+    if (aboard && (!left || now - A.t0 > 20)) { const P = A.obj, d = Math.max(1, Math.hypot(v.x - P.x, v.z - P.z)), g = { x: P.x + (v.x - P.x) / d * 26, z: P.z + (v.z - P.z) / d * 26 }; A.goal = g; if (bvAIPlan(v, g.x, g.z)) A.st = 'go'; }
+    else if (!aboard && now - A.t0 > 25) bvAIRelease(v); return;
+  }
+  if (A.st === 'go') {
+    if (!A.path && !A.req && A.noPath) { A.noPath = false; A.fails++; if (A.fails > 2) bvAIRelease(v); else A.plan = 0; }
+    if (!A.path && !A.req && simT - (A.lastPlan || -9) > 3 && A.goal && !A.arrived) bvAIPlan(v, A.goal.x, A.goal.z);
+    if (A.arrived) { A.arrived = false; if (A.kind === 'carry') { A.st = 'drop'; A.t = 2.4; v.rampOpen = true; } else if (A.kind === 'medic' || A.kind === 'combat') { A.st = 'hold'; A.hold = 25 + Math.random() * 15; } else if (A.kind === 'back') { A.st = 'idle'; A.t = 4; } }
+    return;
+  }
+  if (A.st === 'drop') { A.t -= dt; if (A.t <= 0) { bvDismount(v); if (A.sq) BV.sqBusy.delete(A.sq); A.sq = null; A.mem = []; v.rampOpen = false; A.kind = 'back'; A.goal = { x: A.home.x, z: A.home.z }; if (v.sp.gun) { A.st = 'idle'; A.t = 2; } else if (bvAIPlan(v, A.goal.x, A.goal.z)) A.st = 'go'; else A.st = 'idle'; } return; }
+  if (A.st === 'hold') {
+    A.hold -= dt;
+    if (A.kind === 'medic') { A.healT = (A.healT || 0) - dt; if (A.healT <= 0) { A.healT = 1.6; let n = 0; for (const q of people) { if (teamOf(q) !== v.team || q.vin || Math.hypot(q.x - v.x, q.z - v.z) > 24) continue;
+        if (q.state === 'rag' && q.bot && !q.bot.revived && q.hp <= 0 && simT - (q.bot.deadAt || 0) < 7) { q.hp = 45; q.bot.dead = false; q.bot.revived = true; q.koUntil = 0; standUp(q); q.bot.revived = false; n++; continue; } if (q.state === 'rag' || q.hp <= 0 || q.hp >= 100) continue; q.hp = Math.min(100, q.hp + 18); n++; }
+        if (n) Snd.fx('foley_heal', v.x, v.z, { gain: 0.5, y: v.y + 1.5, far: 1 }); } }
+    if (A.hold <= 0) { A.st = 'idle'; A.t = 0; } return;
+  }
+}
+function bvAIDrive(v, dt, c) {                                         // steer along the path: aim at the next corner, slow for bends, stop for others in the way, back up and swing round when stuck
+  const A = v.ai; c.thr = 0; c.str = 0; c.hb = false; c.boost = false;
+  if (A.rev > 0) { A.rev -= dt; c.thr = -0.7; c.str = A.revStr; return; }
+  if (A.st !== 'go' || !A.path || A.pi >= A.path.length) { c.hb = true; return; }
+  let w = A.path[A.pi], dx = w.x - v.x, dz = w.z - v.z, d = Math.hypot(dx, dz); const last = () => A.pi >= A.path.length - 1;
+  while (d < (last() ? 3.5 : 5 + Math.abs(v.speed) * 0.25)) { if (last()) { A.pi = A.path.length; A.arrived = true; c.hb = true; return; } A.pi++; w = A.path[A.pi]; dx = w.x - v.x; dz = w.z - v.z; d = Math.hypot(dx, dz); }
+  const diff = wrap(Math.atan2(dx, dz) - v.yaw), sp = v.sp;
+  if (sp.tracked) { if (Math.abs(diff) > 0.35) { c.str = Math.sign(diff); c.thr = Math.abs(diff) > 0.9 ? 0 : 0.35; } else { c.str = clamp(diff * 2.2, -1, 1); c.thr = 0.8; } }
+  else if (Math.abs(diff) > 1.35 && Math.abs(v.speed) < 3) { c.thr = -0.6; c.str = -Math.sign(diff); }
+  else { c.str = clamp(diff * 1.8, -1, 1); c.thr = 0.82 * (1 - Math.min(0.7, Math.abs(diff) * 0.55)); }
+  if (last()) c.thr *= clamp(d / 14, 0.25, 1);
+  const fx = Math.sin(v.yaw), fz = Math.cos(v.yaw);
+  for (const o of BVL) { if (o === v) continue; const ox = o.x - v.x, oz = o.z - v.z, od = Math.hypot(ox, oz); if (od > 24 || od < 0.1) continue; if ((ox * fx + oz * fz) / od < 0.72) continue; const gap = od - v.rad - o.rad;
+    if (gap < 4) { c.thr = Math.min(c.thr, 0); c.hb = true; A.blockT += dt; A.blocker = o; } else if (gap < 12) c.thr = Math.min(c.thr, 0.25); if (o === fp.veh) c.thr *= 0.5; }
+  if (A.blockT > 5) { A.blockT = 0; A.rev = 1.5; A.revStr = Math.random() < 0.5 ? 1 : -1; if (A.blocker) { NAV.dyn.push({ x: A.blocker.x, z: A.blocker.z, r: A.blocker.rad * 0.8, until: simT + 40 }); A.path = null; A.lastPlan = -9; } }
+  A.stT += dt; if (A.stT > 2.5) { A.stT = 0; const mv = Math.hypot(v.x - A.sx, v.z - A.sz); A.sx = v.x; A.sz = v.z; if (mv < 1.5 && Math.abs(c.thr) > 0.2) { A.fails++; A.rev = 1.6; A.revStr = Math.random() < 0.5 ? 1 : -1; A.path = null; A.lastPlan = -9; if (A.fails > 4) A.abort = true; } else if (mv > 6) A.fails = 0; }
+}
+function bvAIGun(v, dt, q) {                                           // the crew gunner looks for the nearest enemy it can see and works the gun
+  const G = v.sp.gun, A = v.gai || (v.gai = { t: 0, x: 0, y: 0, z: 0, has: false, los: false, jx: 0, jz: 0 }); A.t -= dt;
+  if (A.t <= 0) {
+    A.t = 0.3 + Math.random() * 0.2; let best = null, bd = G.range * 0.8, bx = 0, by = 0, bz = 0, ox = v.x, oy = v.y + v.sp.cy + v.sp.hy * 0.7, oz = v.z; A.has = false; A.los = false;
+    for (const e of people) { if (e.vin || e.state === 'rag' || e.hp <= 0 || teamOf(e) === v.team || !teamOf(e)) continue; const d = Math.hypot(e.x - ox, e.z - oz); if (d >= bd || d < 6) continue; if (!losFull(ox, oy, oz, e.x, eyeOf(e), e.z)) continue; bd = d; best = e; bx = e.x; by = e.y + 1.0; bz = e.z; }
+    for (const w of BVL) { if (w.dead || w.team === v.team) continue; const d = Math.hypot(w.x - ox, w.z - oz) * (v.key === 'light_tank' ? 0.6 : 1); if (d >= bd) continue; if (!losFull(ox, oy, oz, w.x, w.y + w.sp.cy, w.z)) continue; bd = d; best = w; bx = w.x; by = w.y + w.sp.cy; bz = w.z; }
+    if (best) { A.has = true; A.los = true; A.x = bx; A.y = by; A.z = bz; A.jx = rnd(-1.4, 1.4); A.jz = rnd(-1.4, 1.4); }
+  }
+  if (A.has) bvGun(v, dt, q, A.x + A.jx, A.y, A.z + A.jz, A.los); else bvGun(v, dt, q, v.x + Math.sin(v.yaw) * 60, v.y + 1.5, v.z + Math.cos(v.yaw) * 60, false);
+}
+
+/* ---- bays: where each vehicle starts, and its rebuilding when it is destroyed */
+function bvSpotOK(x, z, yaw, hx, hz, pt) {
+  if (Math.abs(x) > EXT - 24 || Math.abs(z) > EXT - 24) return false; const c = Math.cos(yaw), s = Math.sin(yaw); let lo = 1e9, hi = -1e9;
+  for (const [ax, az] of [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const lx = ax * hx, lz = az * hz, h = standY(x + lx * c + lz * s, z - lx * s + lz * c); if (h < lo) lo = h; if (h > hi) hi = h; }
+  if (lo < 0.8 || hi - lo > 0.45 + Math.max(hx, hz) * 0.07 || Math.hypot(x - pt.x, z - pt.z) < 8) return false;
+  const me = { x, z, hx, hz, t: yaw }; for (const f of FOOT) { if (Math.abs(f.x - x) > f.hx + f.hz + hx + hz + 2 || Math.abs(f.z - z) > f.hx + f.hz + hx + hz + 2) continue; if (obbOverlap(me, f, 0.8)) return false; }
+  const cell = propGrid(), R = Math.hypot(hx, hz) + 6; for (let i = Math.floor((x - R) / PG_C); i <= Math.floor((x + R) / PG_C); i++) for (let j = Math.floor((z - R) / PG_C); j <= Math.floor((z + R) / PG_C); j++) { const cl = cell.get(pgKey(i, j)); if (!cl) continue; for (const pr of cl) { const b = pr.item.box; if (obbOverlap(me, { x: pr.x, z: pr.z, hx: b[0], hz: b[2], t: pr.mesh.rotation.y }, 0.8)) return false; } }
+  for (const e of AAS) if (Math.hypot(e.x - x, e.z - z) < Math.max(hx, hz) + 4) return false; for (const p of BATTLE.points) if (Math.hypot(p.x - x, p.z - z) < Math.max(hx, hz) + 4) return false;
+  for (const o of BV.bays) if (o.set && o !== BV.cur && Math.hypot(o.x - x, o.z - z) < o.r + Math.max(hx, hz) + 1.5) return false; return true;
+}
+function bvFacing(pt, team) { let best = null, bd = 1e9; for (const p of BATTLE.points) { if (p === pt || p.owner === team && p.owner) continue; const d = Math.hypot(p.x - pt.x, p.z - pt.z); if (d < bd) { bd = d; best = p; } } return best || { x: 0, z: 0 }; }
+function bvFindSpot(bay, hx, hz, minD, maxD) {
+  const pt = bay.pt, f = bvFacing(pt, bay.team), a0 = pt.x * 0.017 + pt.z * 0.011 + bay.idx * 1.7 + (bay.team === 'red' ? 2 : 0); BV.cur = bay;
+  for (let n = 0; n < 70; n++) { const a = a0 + n * 0.97, d = minD + (maxD - minD) * ((n * 7) % 11) / 10, x = pt.x + Math.cos(a) * d, z = pt.z + Math.sin(a) * d, yaw = Math.atan2(f.x - x, f.z - z); if (bvSpotOK(x, z, yaw, hx, hz, pt)) { BV.cur = null; return { x, z, yaw }; } }
+  BV.cur = null; return null;
+}
+function bvSpawnBay(bay) {
+  if (bay.kind === 'heli') return bvHeliSpawn(bay);
+  const sp = BVSPEC[bay.key]; if (!sp) return false;
+  if (!bay.set) { const s = bvFindSpot(bay, sp.box[2] + 0.7, sp.box[3] + 0.7, 14, 46) || bvFindSpot(bay, sp.box[2] + 0.2, sp.box[3] + 0.2, 10, 70); if (!s) { bay.failed = true; return false; } bay.x = s.x; bay.z = s.z; bay.yaw = s.yaw; bay.r = sp.box[3]; bay.set = true; }
+  for (const w of BVL) if (bvBoxDist(w, bay.x, bay.z) < sp.box[3] + 1) return false;
+  for (const q of people) if (!q.vin && Math.hypot(q.x - bay.x, q.z - bay.z) < 2.5) return false;
+  const rr = sp.box[3] + 1.5; clearTreesRect(bay.x - rr, bay.x + rr, bay.z - rr, bay.z + rr); const v = bvMake(bay.key, bay.team, bay.x, bay.z, bay.yaw); if (!v) return false;
+  v.bay = bay; bay.v = v; bay.state = 'ready'; if (bay.key !== 'fuel_truck' && bay.key !== 'quad_atv') bvAIInit(v, 35 + bay.idx * 12 + Math.random() * 25 + (bay.pt.type === 'hq' ? 0 : 20), bay.reserve); else { bvAIInit(v, 1e9, false); v.ai.st = 'park'; } return true;
+}
+function bvLayAll() {                                                  // once the structures are down: every bay of this map, up to the per-side cap
+  if (!BV.ready || BV.mapLaid) return; BV.mapLaid = true; const M = BM(), cnt = { blue: 0, red: 0 }, first = {};
+  for (const [pname, team, list] of (M.veh || [])) { const pt = BATTLE.points.find(p => p.name === pname); if (!pt) continue;
+    list.forEach((key, n) => { if (cnt[team] >= BV.capSide) return; const bay = { kind: 'veh', key, team, pt, state: 'ready', t: 0, delay: 110 + n * 20, v: null, idx: BV.bays.length, x: 0, z: 0, yaw: 0, r: 4, set: false, reserve: false };
+      if (!first[team + key]) { first[team + key] = 1; if (key === 'jeep' || key === 'technical') bay.reserve = true; } BV.bays.push(bay); if (bvSpawnBay(bay)) cnt[team]++; else bay.state = 'rebuilding'; bay.t = bay.set ? 6 : 1e9; }); }
+  const hc = { blue: 0, red: 0 };
+  for (const [pname, team, pre] of (M.heli || [])) { const pt = BATTLE.points.find(p => p.name === pname); if (!pt || hc[team] >= BV.capHeli || !BVH[pre]) continue; const bay = { kind: 'heli', key: pre, team, pt, state: 'ready', t: 0, delay: 150, v: null, idx: BV.bays.length, x: 0, z: 0, yaw: 0, r: 8, set: false }; BV.bays.push(bay); hc[team]++; if (!bvSpawnBay(bay)) { bay.state = 'rebuilding'; bay.t = bay.set ? 6 : 1e9; } }
+}
+function bvBays(dt) {
+  for (const b of BV.bays) { if (b.state !== 'rebuilding' || b.failed) continue; b.t -= dt; if (b.t <= 0) { if (bvSpawnBay(b)) { b.state = 'ready'; if (b.team === BATTLE.team) noteOnce('bvr' + b.idx, 'A ' + (b.kind === 'heli' ? BVH[b.key].name : BVSPEC[b.key].name).toLowerCase() + ' is ready again at ' + b.pt.name + '.'); } else b.t = 6; } }
+}
+function bvClear() {
+  const P = fp.p; if (fp.veh) { const c = fp.veh; if (P) { if (P.vseat) P.vseat.q = null; P.vin = null; P.vseat = null; P.hoist = null; P.obj.visible = !P.fp; P.y = standY(P.x, P.z); } fp.veh = null; fp.vseat = null; if (BV.hud) BV.hud.hidden = true; if (fp.on) { for (const k in fpToolMesh) fpToolMesh[k].visible = k === fp.tool; } void c; }
+  for (const v of BVL.slice()) { for (const s of v.seats) if (s.q) { const q = s.q; s.q = null; q.vin = null; q.vseat = null; q.hoist = null; q.obj.visible = !q.fp; if (q.bot) q.bot.crew = null; } bvRemove(v); }
+  BVL.length = 0;
+  for (let i = AIR.list.length - 1; i >= 0; i--) { const u = AIR.list[i]; if (!u.bv) continue; for (const s of u.seats) if (s.q) { const q = s.q; s.q = null; q.vin = null; q.vseat = null; q.hoist = null; q.obj.visible = !q.fp; q.y = standY(q.x, q.z); } scene.remove(u.g); AIR.list.splice(i, 1); }
+  BV.bays.length = 0; BV.shells.length = 0; BV.sqBusy.clear(); BV.planQ.length = 0; BV.mapLaid = false; NAV.blk = null;
+}
+
+/* ---- flyable helicopters: arcade flight, no rigid body. A unit in AIR.list with bv: true, so enemy guns, rockets and anti-air treat it like any other aircraft. */
+function bvHeliMake(pre, team, x, z, yaw) {
+  if (!D.glb.helis) return null; const hn = nodeByName(D.glb.helis, pre); if (!hn) return null; const kind = pre === 'cobra' ? 'cobra' : pre === 'chinook' ? 'chinook' : 'griffon', S = AIRSPEC[kind], H = BVH[pre];
+  const g = new THREE.Group(), mesh = shadowAll(hn.clone()); g.add(mesh); teamMark(g, team, 0, 0, 0, 0, 'heli'); scene.add(g); g.updateMatrixWorld(true); const nb = (n) => nodeByName({ scene: g }, n);
+  const u = { bv: true, heli: true, pre, kind, team, g, mesh, x, z, y: standY(x, z), hd: yaw, vx: 0, vy: 0, vz: 0, hp: H.hp, hpMax: H.hp, rad: S.rad, life: 1e9, orbit: 0, spd: 0, a: 0, fireT: 0, shellT: 3, leaving: false, rpm: 0, pit: 0, rol: 0, props: [], seats: [], bay: null, hold: false, crashed: false, gT: 0, id: ++BV.n, cd: 0, ammo: 1, eyeY: 2, eyeZ: 3, hitT: -9 };
+  u.mr = nb(pre + '_mainrotor') || nb(pre + '_rotor_front'); u.mr2 = nb(pre + '_rotor_rear'); u.tr = nb(pre + '_tailrotor'); u.ramp = nb(pre + '_ramp'); u.guns = findGuns(g, team);
+  u.blur = []; g.traverse(o => { if (o.isMesh && o.material && /blur/i.test(o.material.name || '')) u.blur.push(o); });
+  { const bb = new THREE.Box3(); mesh.traverse(o => { if (!o.isMesh || !o.geometry) return; let a = o, skip = false; while (a && a !== mesh) { if (a === u.mr || a === u.mr2 || a === u.tr || a === u.ramp || u.blur.includes(a)) { skip = true; break; } a = a.parent; } if (skip) return; o.geometry.computeBoundingBox(); bb.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); }); if (isFinite(bb.max.z)) { u.eyeZ = bb.max.z + 0.4; u.eyeY = Math.max(1.4, bb.max.y * 0.55); } }
+  u.seats.push({ n: null, name: 'pilot', kind: 'driver', q: null, vis: false });
+  u.guns.forEach((G, gi) => u.seats.push({ n: null, name: 'gun' + gi, kind: 'gunner', gi, gun: G, q: null, vis: false }));
+  if (pre !== 'cobra') for (let i = 0; i < 13; i++) { const n = nb(pre + '_seat_' + i); if (!n) continue; n.getWorldPosition(_bvP); const sx = _bvP.x, sy = _bvP.y, sz = _bvP.z;
+    if (pre === 'chinook' && i >= 9) continue; if (pre !== 'chinook' && sz > 1.0) continue; let near = false; for (const G of u.guns) { G.n.getWorldPosition(_bvQ); if (Math.hypot(_bvQ.x - sx, _bvQ.z - sz) < 1.3) near = true; } if (near) continue;
+    u.seats.push({ n, name: 'seat_' + i, kind: 'pass', q: null, vis: true, face: Math.abs(sx) > 0.8 ? Math.sign(sx) * Math.PI / 2 : 0 }); }
+  g.position.set(x, u.y, z); g.rotation.set(0, yaw, 0); AIR.list.push(u); return u;
+}
+function bvHeliSpawn(bay) {
+  const H = BVH[bay.key]; if (!H || !D.glb.helis) { ensureAir(); return false; }
+  if (!bay.set) { const pad = STRUCT.find(s => s.name === 'helipad' && s.p === bay.pt && !BV.bays.some(o => o !== bay && o.set && Math.hypot(o.x - s.x, o.z - s.z) < 6)); const f = bvFacing(bay.pt, bay.team);
+    if (pad) { bay.x = pad.x; bay.z = pad.z; bay.yaw = Math.atan2(f.x - pad.x, f.z - pad.z); bay.set = true; } else { const s = bvFindSpot(bay, 8.5, 8.5, 16, 52); if (!s) { bay.failed = true; return false; } bay.x = s.x; bay.z = s.z; bay.yaw = s.yaw; bay.set = true; } bay.r = 8; }
+  for (const w of BVL) if (bvBoxDist(w, bay.x, bay.z) < 9) return false; for (const u of AIR.list) if (u.bv && Math.hypot(u.x - bay.x, u.z - bay.z) < 9) return false; for (const q of people) if (!q.vin && Math.hypot(q.x - bay.x, q.z - bay.z) < 3) return false;
+  clearTreesRect(bay.x - 9, bay.x + 9, bay.z - 9, bay.z + 9); const u = bvHeliMake(bay.key, bay.team, bay.x, bay.z, bay.yaw); if (!u) return false; u.bay = bay; bay.v = u; bay.state = 'ready'; return true;
+}
+const bvHeliGround = (u) => Math.max(standY(u.x, u.z), 0);
+const bvHeliSpeed = (u) => Math.hypot(u.vx, u.vz);
+const bvHeliOnGround = (u) => u.y - bvHeliGround(u) < 0.6 && bvHeliSpeed(u) < 2 && Math.abs(u.vy) < 1.2;
+const bvHeliCanLeave = (u) => u.y - bvHeliGround(u) < 3 && bvHeliSpeed(u) < 2;
+function bvHeliBoarded(u, seat) {
+  if (seat.kind !== 'driver') { bvHeliGunSeatOn(u, seat); return; } u.hold = false; let n = 0;
+  for (const q of people) { if (!q.bot || teamOf(q) !== u.team || q.vin || q.state === 'rag' || q.hp <= 0 || q.bot.crew || q.fp || !q.bot.follow || Math.hypot(q.x - u.x, q.z - u.z) > 30) continue; const s = u.seats.find(z => z.kind === 'pass' && !z.q); if (!s) break; if (bvBoard(u, q, s)) n++; }
+  if (n) toast(n + (n === 1 ? ' soldier of your squad climbs' : ' soldiers of your squad climb') + ' aboard.');
+}
+function bvHeliGunSeatOn(u, seat) { u.hold = true; }
+function bvHeliLeft(u) { u.hold = false; if (u.y - bvHeliGround(u) > 1) u.autoLand = true; }
+function bvHeliDisembark(u) { let n = 1; for (const s of u.seats) { if (s.kind !== 'pass' || !s.q) continue; const q = s.q, a = u.hd + 1.6 + (n % 2 ? 0 : Math.PI) + n * 0.25; const sx = u.x + Math.sin(a) * (4 + n * 0.6), sz = u.z + Math.cos(a) * (4 + n * 0.6); bvUnboard(u, q, { x: sx, z: sz }); q.run = true; n++; } }
+function bvHeliSeatKey(u, k) {
+  const p = fp.p, cur = fp.vseat; let tgt = k === 1 ? u.seats[0] : u.seats.filter(s => s.kind === 'gunner')[k - 2]; if (!tgt) { toast(k === 1 ? 'No pilot seat.' : 'This helicopter has no seat ' + k + '.'); return; } if (tgt === cur) return; if (tgt.q && tgt.q !== p) { toast('Someone else is in that seat.'); return; }
+  cur.q = null; tgt.q = p; p.vseat = tgt; fp.vseat = tgt; p.obj.visible = false; u.hold = tgt.kind === 'gunner'; fp.fireHeld = false;
+  toast(tgt.kind === 'driver' ? 'You take the controls.' : u.pre === 'cobra' ? 'You man the chin gun. A crewman holds the hover. Right button fires the cannon.' : 'You man a door gun. A crewman holds the hover.');
+}
+function bvHeliWeaponLine(u) {
+  const s = fp.vseat; if (!s || s.kind !== 'gunner') return u.guns.length ? 'Door guns firing on their own. Press 2 or 3 to man one.' : ''; return u.pre === 'cobra' ? 'Chin gun on the left button, cannon ' + (u.cd > 0 ? 'recharging' : 'ready') + ' on the right button' : 'Door gun: left button fires';
+}
+function bvHeliAim(u, G, tx, ty, tz, dt) {                            // one gun swings toward a point (the same geometry as aimGuns)
+  const k = Math.min(1, dt * 9), dx = tx - u.x, dz = tz - u.z, hz = Math.hypot(dx, dz) || 1; let rel = wrap(Math.atan2(dx, dz) - u.hd);
+  if (G.door) { const out = G.side * Math.PI / 2, da = clamp(wrap(rel - out), -1.25, 1.25); rel = out + da; }
+  const psi = wrap(rel - G.rest), pitch = clamp(Math.atan2(u.y - ty, hz), 0, 1.2); G.n.rotation.y += wrap(psi - G.n.rotation.y) * k;
+  if (G.ax === 'z') G.n.rotation.x += (pitch * (G.rest > 1 ? -1 : 1) - G.n.rotation.x) * k; else G.n.rotation.z += (-G.side * pitch - G.n.rotation.z) * k;
+}
+function bvHeliCrash(u) { if (u.crashed) return; u.crashed = true; bvEjectAll(u); damageAir(u, 99999, 'crash'); }
+function bvHeliDowned(u) { if (!u.ejected) { u.ejected = true; if (!u.crashed) bvEjectAll(u); } }
+function bvHeliGone(u) { if (u.bay) { u.bay.state = 'rebuilding'; u.bay.t = u.bay.delay; u.bay.v = null; } noteOnce('bvhd' + u.id, (u.team === BATTLE.team ? 'Your ' : 'The enemy ') + BVH[u.pre].name.toLowerCase() + ' crashed. A new one will be at its pad later.'); }
+function bvHeliOcc(u, dt) {
+  let any = false; for (const s of u.seats) if (s.q) { any = true; break; } if (!any) return; u.g.updateMatrixWorld(true); _bvUp.copy(_bvU).applyQuaternion(u.g.quaternion);
+  for (const s of u.seats) { const q = s.q; if (!q) continue; if (!s.n) { q.x = u.x; q.z = u.z; q.y = u.y; q.fpMoving = false; if (q.body) q.body.position.set(q.x, q.y + 1, q.z); continue; }
+    s.n.getWorldPosition(_bvP); q.x = _bvP.x; q.z = _bvP.z; q.y = _bvP.y - 0.55; q.heading = u.hd + (s.face || 0); q.fpMoving = false; q.obj.position.set(_bvP.x - _bvUp.x * (0.55 + q.footOff), _bvP.y - _bvUp.y * (0.55 + q.footOff), _bvP.z - _bvUp.z * (0.55 + q.footOff));
+    _bvTQ.setFromAxisAngle(_bvU, (s.face || 0) - q.yawOff); q.obj.quaternion.copy(u.g.quaternion).multiply(_bvTQ); if (q.body) { q.body.position.set(q.x, q.y + q.height / 2, q.z); q.body.velocity.set(0, 0, 0); }
+    q.obj.visible = true; if (Math.hypot(u.x - camera.position.x, u.z - camera.position.z) < 90) { animStep(q, dt); poseSit(q, 1); } }
+}
+function bvHeliStep(u, dt) {                                           // called from updateAir for every flyable helicopter
+  const S = BVH[u.pre], ps = u.seats[0], pilot = ps.q, me = fp.on && fp.veh === u, mine = !!pilot && me && fp.p === pilot && fp.vseat === ps, gunMan = me && fp.vseat && fp.vseat.kind === 'gunner';
+  const landing = !!u.autoLand && !pilot && !gunMan; if (landing && bvHeliOnGround(u)) u.autoLand = false; u.rpm = clamp(u.rpm + clamp(((pilot || gunMan || u.hold || landing) ? 1 : 0) - u.rpm, -dt * 0.17, dt * 0.34), 0, 1); const auth = clamp((u.rpm - 0.3) / 0.6, 0, 1);
+  let fw = 0, bank = 0, yin = 0, up = 0; if (mine) { const k = (n) => keys.has(n); fw = clamp((k('w') || k('arrowup') ? 1 : 0) - (k('s') || k('arrowdown') ? 1 : 0) - fp.sy, -1, 1); bank = clamp((k('a') || k('arrowleft') ? 1 : 0) - (k('d') || k('arrowright') ? 1 : 0) - fp.sx, -1, 1); yin = (k('q') ? 1 : 0) - (k('e') ? 1 : 0); up = (k(' ') || fp.vhb > 0 ? 1 : 0) - (k('control') || k('shift') ? 1 : 0); if (isTouch && !up) up = -0.2; }
+  const hs = Math.sin(u.hd), hc = Math.cos(u.hd), gy0 = bvHeliGround(u); let vf = u.vx * hs + u.vz * hc, vl = u.vx * hc - u.vz * hs; const air = u.y > gy0 + 0.25, vmax = S.vmax * auth, tf = fw > 0 ? fw * vmax : fw * vmax * 0.45;
+  vf += clamp(tf - vf, -(fw === 0 ? 3.5 : tf * vf < 0 ? 9 : 6.5) * dt, (fw === 0 ? 3.5 : tf * vf < 0 ? 9 : 6.5) * dt) * (air ? 1 : 0.6); vl += clamp(-vl, -3 * dt, 3 * dt); if (!air) { if (!fw) vf *= Math.exp(-2.4 * dt); vl *= Math.exp(-4 * dt); }
+  u.hd = wrap(u.hd + (yin * 1.15 + bank * 0.6 * (0.35 + Math.min(1, Math.abs(vf) / 12))) * auth * dt);
+  let vt = up > 0 ? S.up * up * auth : up < 0 ? -S.dn * (-up > 0.5 ? 1 : 0.2) : 0; if (landing) vt = -3.2; if (vt < 0) vt = Math.max(vt, -Math.max(1.0, (u.y - gy0) * 0.7)); if (u.rpm < 0.8) vt = Math.min(vt, air && u.rpm < 0.5 ? -9 : 0); u.vy += clamp(vt - u.vy, -8 * dt, 8 * dt);
+  const hs2 = Math.sin(u.hd), hc2 = Math.cos(u.hd); u.vx = vf * hs2 + vl * hc2; u.vz = vf * hc2 - vl * hs2; let nx = u.x + u.vx * dt, nz = u.z + u.vz * dt, ny = u.y + u.vy * dt; const spd = Math.hypot(u.vx, u.vz);
+  if (Math.abs(nx) > EXT - 8) { nx = u.x; u.vx = 0; } if (Math.abs(nz) > EXT - 8) { nz = u.z; u.vz = 0; } ny = Math.min(ny, 230);
+  let ground = Math.max(standY(nx, nz), 0), crash = false;
+  if (auth > 0 || air) { const obs = bvGather(u); const ax = nx, az = nz; for (const o of obs) { if (o.tree) continue; if (Math.abs(o.x - ax) > 8 + o.hx + o.hz || Math.abs(o.z - az) > 8 + o.hx + o.hz) continue; if (!bvSAT(ax, az, 2.0, 2.0, u.hd, o.x, o.z, o.hx, o.hz, o.t, 0.1)) continue;
+      if (ny >= o.top - 0.4) { if (ny < o.top + 2.0) ground = Math.max(ground, o.top); } else { if (spd > 7 && ny < o.top - 1.2) crash = true; nx += _sat.nx * _sat.p; nz += _sat.nz * _sat.p; u.vx *= 0.3; u.vz *= 0.3; } } }
+  if (ny <= ground + 0.02) { const imp = -u.vy; if (imp > 8 || (imp > 4.5 && spd > 15) || spd > 22) crash = true; else if (imp > 5) { u.hp -= 25; Snd.fx('mat_metal_clang_l', u.x, u.z, { gain: 0.8, y: ground }); } ny = ground; u.vy = Math.max(0, u.vy); }
+  u.x = nx; u.z = nz; u.y = ny; if (crash && !u.crashed) { bvHeliCrash(u); return; } if (u.hp <= 0 && !u.down) { damageAir(u, 1, 'crash'); return; }
+  const air2 = u.y > ground + 0.4, pitT = air2 ? clamp(vf / Math.max(10, S.vmax) * 0.3, -0.14, 0.32) : 0, rolT = air2 ? clamp(-bank * 0.38 * (0.35 + Math.min(1, Math.abs(vf) / S.vmax)) - vl * 0.01, -0.5, 0.5) : 0, k = Math.min(1, dt * 3.5); u.pit += (pitT - u.pit) * k; u.rol += (rolT - u.rol) * k;
+  u.g.position.set(u.x, u.y + (u.rpm > 0.5 && air2 ? Math.sin(simT * 1.7 + u.id) * 0.05 : 0), u.z); u.g.rotation.set(u.pit, u.hd, u.rol, 'YXZ');
+  const sp = u.rpm * dt; if (u.mr) u.mr.rotation.y += 38 * sp; if (u.mr2) u.mr2.rotation.y -= 38 * sp; if (u.tr) u.tr.rotation.x += 48 * sp; const bl = u.rpm > 0.55; for (const b of u.blur) b.visible = bl; if (u.ramp) u.ramp.rotation.x = -(bvHeliOnGround(u) && u.pre === 'chinook' && u.rampOpen ? 0.55 : 0);
+  if (u.cd > 0) u.cd -= dt;
+  if (u.rpm > 0.6) { if (gunMan) bvHeliGun(u, dt); else if (pilot) airFire(u, dt); }
+  bvHeliOcc(u, dt);
+  if (u.hp < u.hpMax * 0.35 && Math.random() < dt * 6) puffSmoke(u.x, u.y + 1.5, u.z, 1, true, 1);
+}
+function bvHeliGun(u, dt) {                                            // the player on a door gun or the Cobra chin gun: the gun follows the crosshair
+  const s = fp.vseat, G = s.gun, pt = bvAimPoint(); if (!G || !pt) return; bvHeliAim(u, G, pt.x, pt.y, pt.z, dt); const cob = u.pre === 'cobra'; u.fireT -= dt;
+  if (fp.fireHeld && u.fireT <= 0) { u.fireT = cob ? 0.05 : 0.075; G.n.getWorldPosition(_bvP); const dx = pt.x - _bvP.x, dy = pt.y - _bvP.y, dz = pt.z - _bvP.z, l = Math.hypot(dx, dy, dz) || 1, j = 0.012;
+    const gs = { range: 320, dmg: cob ? 7 : 8, vdmg: cob ? 8 : 7, name: cob ? 'Chin gun' : 'Door gun' }; bvShot(u, fp.p, _bvP.x, _bvP.y, _bvP.z, dx / l + rnd(-j, j), dy / l + rnd(-j, j), dz / l + rnd(-j, j), gs); fxG.emit(_bvP.x, _bvP.y, _bvP.z, 0, 0, 0, 0.05, 1.0, 0.8, [1, 0.85, 0.5, 1]); if (Math.random() < 0.5) Snd.fx(cob ? 'veh_mg_burst' : 'wpn_hmg_fire', u.x, u.z, { gain: 0.9, y: u.y, far: 2, gap: 0.03 }); dis.quake = Math.max(dis.quake, 0.1); }
+  if (cob && BV.rmb && u.cd <= 0) { u.cd = 4; AIR.shells.push({ x: pt.x + rnd(-1.5, 1.5), z: pt.z + rnd(-1.5, 1.5), t: 0.9, T: 0.9, team: u.team, y0: u.y, ox: u.x, oz: u.z, R: 6, dmg: 95, crater: 1.5, depth: 0.5 }); Snd.fx('veh_gun_fire', u.x, u.z, { gain: 0.9, far: 2, y: u.y }); }
+}
+
+/* ---- the per-frame update */
+function bvUpdateVeh(v, dt, t) {
+  const ds = v.seats[0], drv = ds && ds.kind === 'driver' ? ds.q : null; v.drv = !!drv; const playerDrv = !!drv && fp.on && fp.p === drv && fp.veh === v; let ctl = null;
+  if (playerDrv) { bvPlayerCtl(v, BC); ctl = BC; } else if (drv && drv.bot && v.ai && v.ai.st !== 'park') { bvAIDrive(v, dt, BC); ctl = BC; }
+  const moving = ctl || Math.abs(v.speed) > 0.05, was = v.x * 7 + v.z * 3 + v.yaw;
+  if (moving) { if (!ctl) { BC.thr = 0; BC.str = 0; BC.hb = true; BC.boost = false; } bvDrive(v, dt, BC); bvRunOver(v, dt); }
+  { const dd = Math.hypot(v.x - camera.position.x, v.z - camera.position.z), want = fp.veh === v || (v.lodNear ? dd < 170 : dd < 140); if (want !== v.lodNear) { v.lodNear = want; v.m.visible = want; v.farMesh.visible = !want; } v.near = want; }
+  if (moving || v.poseDirty) { bvPose(v, dt, v.near); v.poseDirty = Math.abs(v.so) > 0.001 || Math.abs(v.sv) > 0.01; bvSync(v); } else if (v.speed !== 0) { v.speed = 0; bvSync(v); }
+  if (v.ramp && (v.rampK !== (v.rampOpen ? 1 : 0))) { v.rampK += clamp((v.rampOpen ? 1 : 0) - v.rampK, -dt * 0.8, dt * 0.8); v.ramp.rotation.x = -v.rampK * 1.05; }
+  if (v.sp.gun) { const gs = bvGunner(v); if (gs && gs.q) { if (fp.on && fp.p === gs.q && fp.veh === v) { const pt = bvAimPoint(); if (pt) bvGun(v, dt, gs.q, pt.x, pt.y, pt.z, fp.fireHeld); } else if (gs.q.bot && v.ai) bvAIGun(v, dt, gs.q); } bvGunTick(v, dt); }
+  bvOcc(v, dt, t);
+  if (v.burn) { v.burn += dt; if (Math.random() < dt * 6) puffSmoke(v.x + rnd(-0.6, 0.6), v.y + v.sp.cy * 1.7, v.z + rnd(-0.6, 0.6), 1, true, 1); if (v.hp < v.hpMax * 0.12 && Math.random() < dt * 8) fxG.emit(v.x + rnd(-0.8, 0.8), v.y + v.sp.cy * 1.5, v.z + rnd(-0.8, 0.8), 0, 2, 0, 0.4, 1.2, 1.2, [1, 0.6, 0.2, 0.9]); damageVehicle(v, 2.4 * dt, null, 'Fire', null); }
+  void was;
+}
+function bvUpdate(dt) {
+  BV.frame++;
+  if (!BATTLE.on) { if (BVL.length || BV.bays.length || AIR.list.some(u => u.bv)) bvClear(); if (BV.hud && !BV.hud.hidden) BV.hud.hidden = true; return; }
+  if (!BV.ready) return; const t = simT;
+  bvBays(dt);
+  for (let i = BVL.length - 1; i >= 0; i--) { const v = BVL[i]; if (v.dead) { bvWreckStep(v, dt); continue; } bvUpdateVeh(v, dt, t); }
+  bvShells(dt); bvThreat(dt);
+  BV.aiT -= dt; if (BV.aiT <= 0) { BV.aiT = 0.12; const n = BVL.length; if (n) { BV.aiI = ((BV.aiI || 0) + 1) % n; const v = BVL[BV.aiI]; if (v && v.ai && !v.dead && v.near !== undefined) bvAIThink(v); } }
+  if (BV.planQ.length) { const r = BV.planQ.shift(), v = r.v; if (v && !v.dead && v.ai && v.ai.req === r) { const p = bvNavPath(v.x, v.z, r.x, r.z, v); v.ai.req = null; v.ai.path = p; v.ai.pi = 0; v.ai.arrived = false; if (!p) v.ai.noPath = true; } }
+  bvHudUpdate(dt);
+}
+let bvErrN = 0;
+function updateBV(dt) { try { bvUpdate(dt); } catch (e) { if (bvErrN++ < 6) console.error('bv error', e); window.__bverr = String(e && e.stack || e); } }
+
+/* ---- engines, turrets and fires heard through the sound engine (called from its frame hook) */
+function bvSound(A, L) {
+  const cl = A.cl;
+  for (const v of BVL) {
+    const k = 'bv:' + v.id, d = Math.hypot(v.x - L.x, v.z - L.z), on = d < 170 && !v.dead && (v.drv || Math.abs(v.speed) > 0.3), fam = v.sp.eng, r = cl(Math.abs(v.speed) / (v.sp.vmax + 0.1), 0, 1), EG = on ? (v.drv ? 0.34 : 0.2) : 0, o = { x: v.x, z: v.z, rate: 0.95 + r * 0.25 };
+    A.set(k + ':lo', 'veh_eng_' + fam + '_lo', cl(1 - r * 2, 0, 1) * EG, o); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * EG, o); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', cl(r * 2 - 0.8, 0, 1) * EG, o);
+    A.set(k + ':trv', 'foley_turret_traverse_loop', v.sp.gun && d < 120 && !v.dead ? cl((v.trav || 0) * 0.5, 0, 0.55) : 0, { x: v.x, z: v.z });
+    A.set(k + ':fire', 'veh_fire_on_boat_loop', (v.burn || (v.dead && v.wreckT < 40)) && d < 140 ? 0.45 : 0, { x: v.x, z: v.z });
+  }
+}
+function bvSoundEnd(A) { for (const key in A.inst) if (key.startsWith('bv:')) { const id = +key.split(':')[1]; if (!BVL.some(v => v.id === id)) { const it = A.inst[key]; it.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.3); it.quiet = 99; } } }
+
+/* ---- the Command panel: vehicle bays on the Points tab, flyable helicopters on the Support tab. Only Ready, Rebuilding or In use, never a countdown. */
+function bvBayRow(body, icn, label, note, status, wait, fn) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; b.innerHTML = ic(icn) + '<span><b></b><small></small></span><span class="wst' + (wait ? ' wait' : '') + '"><i></i>' + status + '</span>';
+  b.querySelector('b').textContent = label; b.querySelector('small').textContent = note; b.addEventListener('click', fn); body.append(b); return b;
+}
+function bvTablet(tab, body, head, note) {
+  const team = tabletSide(); if (!BATTLE.on) return;
+  if (tab === 'points') { const list = BV.bays.filter(b => b.kind === 'veh' && b.team === team); if (!list.length) return; head('Vehicle bays', 'depot'); note('Vehicles are built at their bay. Get in with E. A destroyed one is rebuilt later.');
+    for (const b of list) { const v = b.v && !b.v.dead ? b.v : null, st = b.state === 'rebuilding' || !v ? 'Rebuilding' : (v.seats.some(s => s.q && s.q === fp.p) ? 'In use' : 'Ready'); bvBayRow(body, 'depot', BVSPEC[b.key].name, 'at ' + b.pt.name, st, st === 'Rebuilding', () => { if (b.set) camFlyTo(b.x, b.z, 45 * CELL); toggleTablet(false); }); } }
+  else if (tab === 'support') { const list = BV.bays.filter(b => b.kind === 'heli' && b.team === team); if (!list.length) return; head('Flyable helicopters', 'heli'); note('Walk to a parked helicopter and press E. Space climbs, Shift or Ctrl descends. Land before you get out.');
+    for (const b of list) { const u = b.v && !b.v.down ? b.v : null, st = b.state === 'rebuilding' || !u ? 'Rebuilding' : (u.seats[0].q || u.seats.some(s => s.q && s.q === fp.p) ? 'In use' : 'Ready'); bvBayRow(body, 'heli', BVH[b.key].name, 'pad at ' + b.pt.name, st, st === 'Rebuilding', () => { if (b.set) camFlyTo(b.x, b.z, 45 * CELL); toggleTablet(false); }); } }
+}
+/* ---- J in the overview also offers a vehicle seat when the soldier you take over is standing beside one */
+function bvJumpOffer(q) {                                              // J took over a soldier who is standing beside a vehicle: right beside it, the seat is taken; a few steps away, a hint
+  if (!q || !BATTLE.on || fp.veh || !fp.on || fp.p !== q) return; const c = bvNear(q, 7); if (!c) return; const s = bvPickSeat(c, q); if (!s) return;
+  if ((c.heli ? Math.hypot(c.x - q.x, c.z - q.z) - 3.5 : bvBoxDist(c, q.x, q.z)) < 2.6) bvEnter(c, s); else toast('A ' + bvName(c).toLowerCase() + ' is close. Press E to get in.');
+}
+addEventListener('mousedown', (e) => { if (e.button === 2) BV.rmb = true; }); addEventListener('mouseup', (e) => { if (e.button === 2) BV.rmb = false; }); addEventListener('blur', () => { BV.rmb = false; });
+Object.assign(BV, { update: bvUpdate, make: bvMake, spawnBay: bvSpawnBay, layAll: bvLayAll, clear: bvClear, enter: bvEnter, leave: bvLeaveKey, near: bvNear, damage: damageVehicle, navPath: bvNavPath, navBuild: bvNavBuild, nav: NAV, crew: bvCrew, key: bvKey, camera: bvCamera, fpUpdate: bvFpUpdate, prompt: bvPrompt, tryEnter: bvTryEnter, sound: bvSound, soundEnd: bvSoundEnd, tablet: bvTablet, pushOut: bvPushOut, rocketHit: bvRocketHit, blast: bvBlast, jumpOffer: bvJumpOffer, heliStep: bvHeliStep, heliMake: bvHeliMake, heliDowned: bvHeliDowned, heliGone: bvHeliGone, spec: BVSPEC, heliSpec: BVH, ensure: ensureBVeh, cast: bvCast, errN: () => bvErrN });
+/*BV-END*/
 
 /* ---- weapon models, hit effects, and the sounds that go with them */
 let wpP = null; const MUZ = { pistol: [0, 0.07, -0.178], smg: [0, 0.102, -0.37], rifle: [0, 0.125, -0.78], shotgun: [0, 0.052, -0.89], sniper: [0, 0.112, -0.96], carbine: [0, 0.125, -0.66], aa: [0, 0.1, -1.15], lmg: [0, 0.14, -0.85], marksman: [0, 0.125, -0.845], revolver: [0, 0.082, -0.21], rpg: [0, 0.12, -0.55] };
@@ -5681,7 +6539,7 @@ function impactFx(kind, ref, pt, d) {
   let mat = 'dirt', sparks = false, snd = 'imp_dirt';
   if (kind === 'water') { splash(pt.x, pt.z, 0.3); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
   if (kind === 'person') { for (let i = 0; i < 4; i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
-  if (kind === 'boat') { mat = 'metal'; sparks = true; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; sparks = mat === 'metal' || mat === 'concrete'; snd = 'imp_' + mat; } else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; sparks = mat === 'concrete' || mat === 'asphalt'; }
+  if (kind === 'boat' || kind === 'veh') { mat = 'metal'; sparks = true; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; sparks = mat === 'metal' || mat === 'concrete'; snd = 'imp_' + mat; } else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; sparks = mat === 'concrete' || mat === 'asphalt'; }
   const c = (SURF[mat] || SURF.dirt)[0], c2 = (SURF[mat] || SURF.dirt)[1];
   for (let i = 0; i < 7; i++) fxS.emit(pt.x, pt.y + 0.05, pt.z, rnd(-2.2, 2.2), rnd(1, 4), rnd(-2.2, 2.2), rnd(0.35, 0.7), 0.06, 0.15, [c2[0], c2[1], c2[2], 0.9], 9, 0.5);
   fxS.emit(pt.x, pt.y + 0.1, pt.z, 0, 0.7, 0, 0.7, 0.45, 3, c, 0, 1);
@@ -5698,13 +6556,13 @@ function releasePerson(q) {
   if (!q) return; if (q.botSaved) { q.bot = q.botSaved; q.botSaved = null; q.bot.tgt = null; q.bot.coverPt = null; q.bot.atCover = false; q.bot.crouch = false; q.bot.myOrder = null; if (q.roleSaved) { q.role = q.roleSaved; q.roleSaved = null; } }
   if (q.gunSaved) { q.gun = q.gunSaved; q.gunSaved = null; q.gun.tgt = null; }
 }
-function nearestFriend(x, z, notMe) { let best = null, bd = 1e9; for (const q of people) { if (q === notMe || q.state === 'rag' || q.ride || q.hp <= 0 || !(q.bot || q.gun || q.botSaved) || (BATTLE.on && BATTLE.team && teamOf(q) !== BATTLE.team)) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; }
+function nearestFriend(x, z, notMe) { let best = null, bd = 1e9; for (const q of people) { if (q === notMe || q.state === 'rag' || q.ride || q.vin || q.hp <= 0 || !(q.bot || q.gun || q.botSaved) || (BATTLE.on && BATTLE.team && teamOf(q) !== BATTLE.team)) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; }
 function jumpIn() {
   if (fp.on) return; const sp = BATTLE.spec; const src = sp && people.includes(sp) ? sp : null; const q = nearestFriend(src ? src.x : god.tgt.x, src ? src.z : god.tgt.z); if (!q) { toast('Nobody to take over. Place some soldiers or start a battle.'); return; }
-  if (!possess(q)) toast('Could not take over that soldier.');
+  if (!possess(q)) toast('Could not take over that soldier.'); else if (BVL.length) bvJumpOffer(q);
 }
 function specNext(dir) {
-  const c = people.filter(q => (q.bot || q.gun) && q.state !== 'rag' && q.hp > 0 && !q.ride && !(fp.on && fp.p === q)).sort((a, b) => (b.bot && b.bot.tgt ? 1 : 0) - (a.bot && a.bot.tgt ? 1 : 0) || a.id - b.id); if (!c.length) { toast('Nobody to watch.'); return; }
+  const c = people.filter(q => (q.bot || q.gun) && q.state !== 'rag' && q.hp > 0 && !q.ride && !q.vin && !(fp.on && fp.p === q)).sort((a, b) => (b.bot && b.bot.tgt ? 1 : 0) - (a.bot && a.bot.tgt ? 1 : 0) || a.id - b.id); if (!c.length) { toast('Nobody to watch.'); return; }
   const i = BATTLE.spec ? c.indexOf(BATTLE.spec) : -1; BATTLE.spec = c[(i + (dir || 1) + c.length) % c.length]; god.dist = Math.min(god.dist, 38 * CELL); god.follow = null; god.fly = null; toast('Watching a ' + (BATTLE.spec.role || 'soldier') + '. Press J to take over, K for the next one, or Overview to let go.');
 }
 function specUpdate(dt) { const q = BATTLE.spec; if (!q) return; if (!people.includes(q) || fp.on) { BATTLE.spec = null; return; } const k = 1 - Math.exp(-dt * 4); god.tgt.x += (q.x - god.tgt.x) * k; god.tgt.z += (q.z - god.tgt.z) * k; god.tgt.y = q.y; god.yaw += (wrap(q.heading + Math.PI - god.yaw)) * k * 0.5; }
@@ -6502,6 +7360,7 @@ const KEYMAP = [
   ['help', 'Place', 'Pick a kind (Boats, Water, Devices ...) then a thing, then tap to place it. Tap a device in Select to change its settings', 'h'],
   ['help', 'Land', 'Drag to raise, lower, flatten or smooth the island', 'h'],
   ['help', 'Sky', 'Wind, time of day, rain, fog, air temperature, maps and disasters', 'h'],
+  ['help', 'Vehicles', 'In a battle, stand beside a jeep, truck, carrier, tank or parked helicopter of your side and press E. E gets you out. The full list is in the Menu under Controls', 'h'],
   ['help', 'People', 'Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves', 'h'],
   ['fp', 'W A S D, mouse', 'Walk and look. Click the view first', 'h'],
   ['fp', 'Shift', 'Run'],
@@ -6529,6 +7388,16 @@ const KEYMAP = [
   ['boat', 'X', 'Right the boat'],
   ['boat', 'Mouse wheel', 'Camera distance'],
   ['boat', 'H', 'Back to the overview'],
+  ['veh', 'E', 'In a battle: get in a friendly jeep, truck, carrier, tank or helicopter beside you. Driver seat first, then gunner, then passenger. E again gets out (a helicopter must be landed)'],
+  ['veh', 'W S, A D', 'Drive: throttle and brake or reverse, steer left and right. A tank turns on the spot'],
+  ['veh', 'Space, Shift', 'Handbrake and boost in a car or truck. In a helicopter Space climbs and Shift or Ctrl descends'],
+  ['veh', 'Mouse', 'Look around. The camera swings back behind the vehicle when the mouse is still. A gun follows your crosshair'],
+  ['veh', 'Left button', 'Fire the vehicle gun or the tank cannon. The panel shows Ready or Recharging, or Reloading for a machine gun'],
+  ['veh', 'V', 'Chase view or cockpit view'],
+  ['veh', 'X', 'Change seat inside a vehicle: driver, gunner, passenger'],
+  ['veh', 'F', 'Get out (same as E, and works in a helicopter that is under 3 metres up and slow)'],
+  ['veh', 'Helicopter: W S, A D, Q E', 'Fly forward and back, bank and turn, and turn on the spot. E turns right in the air and gets you out on the ground'],
+  ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Support', 'Calls for your side, with Ready, Recharging or Offline shown: Griffon, gunship, attack helicopter, medevac, air strike, artillery, battery barrage, troop transport, boat landing. Shot-down aircraft stay offline for a while'],
   ['tab', 'Squad', 'Follow, hold, or move to your crosshair'],
@@ -6541,7 +7410,7 @@ function controlsNodes() {
   const out = [], head = (t) => { const h = document.createElement('div'); h.className = 'mhead'; h.textContent = t; out.push(h); }, rows = (list) => { const g = document.createElement('div'); g.className = 'keys'; for (const [, k, d] of list) { const b = document.createElement('b'), sp = document.createElement('span'); b.textContent = k; sp.textContent = d; g.append(b, sp); } out.push(g); };
   head('Controls: the overview'); rows(keyRows(['over']));
   head('Controls: first person'); rows(keyRows(['fp']));
-  head('Controls: boats'); rows(keyRows(['boat']));
+  head('Controls: boats'); rows(keyRows(['boat'])); head('Controls: vehicles and helicopters'); rows(keyRows(['veh']));
   head('Command (T)'); rows(keyRows(['tab']));
   return out;
 }
@@ -9199,7 +10068,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
+window.__sc = { BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'] };

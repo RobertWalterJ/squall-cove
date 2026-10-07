@@ -1,0 +1,15 @@
+import sys, collections, math, numpy as np, check, realmap as R
+d, h = check.load(sys.argv[1]); cell = d['cell_m']; sl = R.slope_deg(h, cell)
+land = h > 0.05
+print('land %.0f%%  water %.0f%%  h range %.1f..%.1f  mean land h %.1f' % (100*land.mean(), 100*(1-land.mean()), h.min(), h.max(), h[land].mean()))
+print('land slope: <5 deg %.0f%%, 5-15 %.0f%%, 15-30 %.0f%%, >30 %.0f%%' % tuple(100*((sl[land]>=a)&(sl[land]<b)).mean() for a,b in [(0,5),(5,15),(15,30),(30,99)]))
+print('buildings', len(d['buildings']), dict(collections.Counter(b['m'] for b in d['buildings']).most_common()))
+print('building raw types', dict(collections.Counter(b['t'] for b in d['buildings']).most_common(8)), 'with levels/height:', sum(1 for b in d['buildings'] if b['lv'] or b['ht']))
+def L(p): return sum(math.hypot(p[k+2]-p[k], p[k+3]-p[k+1]) for k in range(0, len(p)-2, 2))
+rc = collections.defaultdict(lambda: [0, 0.0])
+for r in d['roads']: rc[r['c']][0] += 1; rc[r['c']][1] += L(r['p'])
+print('roads', len(d['roads']), {k: (v[0], int(v[1])) for k, v in sorted(rc.items(), key=lambda kv: -kv[1][1])}, 'named:', sum(1 for r in d['roads'] if r['n']))
+print('landcover', dict(collections.Counter(l['k'] for l in d['landcover'])))
+print('harbour', [(x['k'], x['n']) for x in d['harbour']][:12], 'aeroways', [(a['k'], a['ref'], int(L(a['p']))) for a in d['aeroways']])
+print('towers', [(t['k'], t['n'], t['x'], t['z']) for t in d['towers']][:12])
+print('places', [(t['k'], t['n']) for t in d['places']][:8], 'poi', [(t['k'], t['n']) for t in d['poi'] if t['n']][:10])
