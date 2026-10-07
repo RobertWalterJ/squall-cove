@@ -1916,6 +1916,16 @@ function tried(key) {
 const HGT0 = HGT.slice();
 const BED = HGT.slice();                       // bedrock: the ground that was here to begin with. Anything above it is loose material that slumps, soaks and slides.
 const SM = new Float32Array(257 * 257);        // soil moisture 0..1 (drawn through the B channel of the snow texture on land)
+/* ---- physics core: one table of units, and a ledger of what the world holds (loose ground, surface water, soil water, cargo mass), so that anything that invents or loses material shows up as drift */
+const PHYS = Object.freeze({ g: G, rhoW: RHO_W, rhoA: RHO_A, dt: 1 / 60, cell: CELL });
+const LEDGER = { cur: null, t0: null, hist: [], acc: 0 };
+function ledgerTake() {
+  let loose = 0, wat = 0, soil = 0, m = 0; const A = CELL * CELL, n = HGT.length;
+  for (let k = 0; k < n; k++) { const d = HGT[k] - BED[k]; if (d > 0) loose += d; wat += WD[k]; soil += SM[k]; }
+  for (const o of objects) m += o.body.mass;
+  return { t: simT, loose: loose * A, water: wat * A, soil: soil, mass: m, objects: objects.length, boats: boats.length, people: people.length };
+}
+function ledgerTick(dt) { LEDGER.acc += dt; if (LEDGER.acc < 2) return; LEDGER.acc = 0; LEDGER.cur = ledgerTake(); if (!LEDGER.t0) LEDGER.t0 = LEDGER.cur; LEDGER.hist.push(LEDGER.cur); if (LEDGER.hist.length > 90) LEDGER.hist.shift(); }
 function landMark() { land.undo.push(HGT.slice()); if (land.undo.length > 12) land.undo.shift(); if (tool === 'land') renderTray(true); }
 function landRestore(src, msg) { HGT.set(src); if (src === HGT0) BED.set(HGT0); else for (let k = 0; k < HGT.length; k++) if (HGT[k] < BED[k]) BED[k] = HGT[k]; land.dirty = true; land.x0 = land.z0 = -EXT; land.x1 = land.z1 = EXT; commitLand(true); renderTray(true); toast(msg); }
 function landUndo() { const u = land.undo.pop(); if (!u) { toast('Nothing to undo'); return; } landRestore(u, 'Undone'); }
@@ -2955,7 +2965,7 @@ function fireShot(bt, m, tgt) {
   const dx0 = tp.x - from.x, dz0 = tp.z - from.z, d0 = Math.hypot(dx0, dz0), flight = d0 / (w.v * 0.97);
   const ax = tp.x + tv_.x * flight, az = tp.z + tv_.z * flight, ay = tp.y + 1.6;                  // lead the target
   const dx = ax - from.x, dz = az - from.z, d = Math.max(3, Math.hypot(dx, dz)), dy = ay - from.y;
-  const th = 0.5 * Math.asin(clamp(9.82 * d / (w.v * w.v), 0, 0.9)) + Math.atan2(dy, d);
+  const th = 0.5 * Math.asin(clamp(G * d / (w.v * w.v), 0, 0.9)) + Math.atan2(dy, d);
   const crew = boatCrew(bt).length, rock = Math.abs(UPV.clone().applyQuaternion(bt.group.quaternion).z) + Math.abs(UPV.clone().applyQuaternion(bt.group.quaternion).x);
   const sp = w.spread + d * 0.00005 + sea.amp * 0.012 + rock * 0.05 + Math.max(0, 3 - crew) * 0.003;
   const yaw = Math.atan2(dx, dz) + rnd(-sp, sp), pitch = th + rnd(-sp, sp), cp = Math.cos(pitch);
@@ -3075,7 +3085,7 @@ function updateCombat(dt, t) {
     const s = shots[i]; s.age += dt; let alive = s.age < 5;
     const steps = Math.max(1, Math.ceil(Math.hypot(s.vx, s.vz) * dt / 5)), h = dt / steps;
     for (let k = 0; k < steps && alive; k++) {
-      s.vy -= 9.82 * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
+      s.vy -= G * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
       if (k === 0 || Math.random() < 0.5) fxG.emit(s.x, s.y, s.z, 0, 0, 0, 0.1, s.k === 'gun' ? 0.55 : 0.3, -0.5, [1, 0.85, 0.45, 0.9]);
       for (const bt of boats) {
         if (bt === s.owner && s.age < 0.35) continue;
@@ -3255,7 +3265,7 @@ function updateFP(dt, t) {
       const g2 = standY(p.x, p.z);
       if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; }
       if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; }               // walked off a ledge
-      if (fp.air) { fp.vy -= 9.82 * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) fp.land = Math.min(1, -fp.vy / 8); p.y = g2; fp.vy = 0; fp.air = false; } }
+      if (fp.air) { fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) fp.land = Math.min(1, -fp.vy / 8); p.y = g2; fp.vy = 0; fp.air = false; } }
       else p.y += (g2 - p.y) * Math.min(1, 22 * dt);
     }
   }
@@ -4055,7 +4065,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateClimate(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -5110,7 +5120,7 @@ function updateGrains(dt) {
   for (let i = ng - 1; i >= 0; i--) {
     const i3 = i * 3; let x = gP[i3], y = gP[i3 + 1], z = gP[i3 + 2], vx = gV[i3], vy = gV[i3 + 1], vz = gV[i3 + 2];
     const gh = heightAt(x, z), sea = gh < -0.05, wl = sea ? waveH(x, z, simT) : -99, inWater = sea && y < wl;
-    if (inWater) { const d = Math.exp(-dt * 5); vx *= d; vz *= d; vy = Math.max(vy * d - 3 * dt, -(MATP[gK[i]] || MATP[1]).sink); if (gB[i] === 0) { gB[i] = 1; if (Math.random() < 0.35) splash(x, z, 0.25); } } else vy -= 9.82 * dt;
+    if (inWater) { const d = Math.exp(-dt * 5); vx *= d; vz *= d; vy = Math.max(vy * d - 3 * dt, -(MATP[gK[i]] || MATP[1]).sink); if (gB[i] === 0) { gB[i] = 1; if (Math.random() < 0.35) splash(x, z, 0.25); } } else vy -= G * dt;
     x += vx * dt; y += vy * dt; z += vz * dt;
     const g2 = heightAt(x, z);
     let dead = false;
@@ -5677,7 +5687,7 @@ function ensureMonitor(bt) {
   head.rotation.z = 0.5; g.position.set(sp.lx, ly, 0); bt.group.add(g); bt.ffMesh = g; bt.ffHead = head; bt.ffTipX = 1.7 * k;
 }
 function ffSpray(bt, tgt, n) {
-  const sp = ffSpec(bt), tp = tgt.body.position, g = 9.82; bt.group.updateMatrixWorld(true);
+  const sp = ffSpec(bt), tp = tgt.body.position, g = G; bt.group.updateMatrixWorld(true);
   const from = bt.ffHead.localToWorld(new THREE.Vector3(bt.ffTipX, 0, 0));    // the water leaves from the nozzle tip
   const lt = toBoatLocal(tgt, from.x, from.z);
   for (let k = 0; k < n; k++) {
@@ -5709,7 +5719,7 @@ function updateFirefighting(dt, t) {
   ffImp.clear();
   for (let i = 0; i < FF_MAX; i++) {
     if (ffLife[i] <= 0) continue;
-    ffLife[i] -= dt; ffVel[i * 3 + 1] -= 9.82 * dt; ffPos[i * 3] += ffVel[i * 3] * dt; ffPos[i * 3 + 1] += ffVel[i * 3 + 1] * dt; ffPos[i * 3 + 2] += ffVel[i * 3 + 2] * dt;
+    ffLife[i] -= dt; ffVel[i * 3 + 1] -= G * dt; ffPos[i * 3] += ffVel[i * 3] * dt; ffPos[i * 3 + 1] += ffVel[i * 3 + 1] * dt; ffPos[i * 3 + 2] += ffVel[i * 3 + 2] * dt;
     const x = ffPos[i * 3], y = ffPos[i * 3 + 1], z = ffPos[i * 3 + 2], tg = ffTgt[i];
     let done = ffLife[i] <= 0;
     if (!done && tg && ffVel[i * 3 + 1] < 0 && boats.includes(tg) && y < tg.body.position.y + 1.6 && insideHull(tg, x, z, 1.8)) {       // it lands on the deck
@@ -6206,6 +6216,7 @@ function openReport() {
     row('Smuggling: ' + n('smugglerRun') + ' runs, ' + n('drumsLanded') + ' drums landed, ' + n('drumsStashed') + ' hidden, ' + n('drumsSeized') + ' seized, ' + n('unmasked') + ' boats unmasked, ' + n('courierCaught') + ' couriers caught.'),
     row('Information: ' + n('witness') + ' sightings, ' + n('report') + ' reports, ' + n('falseTipFiled') + ' decoy tips, ' + n('emptyReport') + ' reports that led nowhere, ' + n('falsePositive') + ' innocent boats stopped.'),
     row('Building: ' + n('blockPlaced') + ' blocks placed, ' + n('quarried') + ' cut from rubble, ' + n('buildDone') + ' circles finished, ' + n('blockLost') + ' blocks lost, ' + n('sabotage') + ' sabotaged, ' + n('siteTaken') + ' sites taken over.'),
+    row('Ledger: ' + (LEDGER.cur ? Math.round(LEDGER.cur.loose) + ' m3 of loose ground (' + (LEDGER.cur.loose - LEDGER.t0.loose >= 0 ? '+' : '') + Math.round(LEDGER.cur.loose - LEDGER.t0.loose) + ' since the start), ' + Math.round(LEDGER.cur.water) + ' m3 of surface water, ' + Math.round(LEDGER.cur.mass / 1000) + ' t of cargo' : 'not measured yet') + '.'),
     row('Sides: ' + SK.blue.ko + ' guards and ' + SK.red.ko + ' raiders knocked out, ' + n('looted') + ' crates looted, ' + n('siteTaken') + ' sites changed hands.'),
     row('Vehicles: ' + VEHS.length + ' working. Delivered ' + n('vehDelivered') + ' loads, ' + n('truckFire') + ' fires put out, ' + n('ambulanceSave') + ' people treated, ' + n('cranePlaced') + ' blocks set by crane, ' + n('vehPlanted') + ' trees planted by tractor.'),
     row('Salvage: ' + n('salvaged') + ' items fished out, ' + n('salvageSold') + ' sold to the yard. Fishing trips: ' + n('fishTrip') + '.'),
@@ -6753,7 +6764,7 @@ function updateBomber(dt, t) {
   if (!bomber.on) { bomber.auto = (bomber.auto || 0) - dt; if (bomber.auto <= 0) { bomber.auto = 2; if (burning.length >= 8 && simT - bomber.lastEnd > 100 && mode !== 'fp') callBomber(false); } }
   // water in the air
   for (let i = 0; i < BW_MAX; i++) {
-    if (bwLife[i] <= 0) continue; bwLife[i] -= dt; bwVel[i * 3 + 1] -= 9.82 * dt; bwPos[i * 3] += bwVel[i * 3] * dt; bwPos[i * 3 + 1] += bwVel[i * 3 + 1] * dt; bwPos[i * 3 + 2] += bwVel[i * 3 + 2] * dt;
+    if (bwLife[i] <= 0) continue; bwLife[i] -= dt; bwVel[i * 3 + 1] -= G * dt; bwPos[i * 3] += bwVel[i * 3] * dt; bwPos[i * 3 + 1] += bwVel[i * 3 + 1] * dt; bwPos[i * 3 + 2] += bwVel[i * 3 + 2] * dt;
     const x = bwPos[i * 3], y = bwPos[i * 3 + 1], z = bwPos[i * 3 + 2];
     if (y < groundTop(x, z) + 0.3 || bwLife[i] <= 0) {
       bwLife[i] = 0; bwPos[i * 3 + 1] = -9999;
@@ -6788,7 +6799,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
