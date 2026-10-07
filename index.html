@@ -188,6 +188,29 @@ button:disabled{opacity:.45;cursor:default}
   .toast{top:calc(8px + var(--safe-t))}
 }
 #dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
+#burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
+body.sideopen #burger{display:none}
+#side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#side.open{transform:none}
+.sHead{display:flex;gap:6px;align-items:center;padding:calc(8px + var(--safe-t)) 8px 8px;border-bottom:1px solid var(--line)}
+.sTabs{display:flex;gap:4px;flex:1}.sTabs button{flex:1;padding:9px 4px}
+#sBody{flex:1;overflow:auto;padding:8px;overscroll-behavior:contain}
+#sBody input[type=search]{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--paper);font:500 15px var(--f-body);margin-bottom:8px;user-select:text;-webkit-user-select:text}
+.sCat{font:700 12px var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:12px 2px 5px}
+.sItem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin:0 0 4px;padding:8px 9px;text-transform:none;letter-spacing:.01em;font:600 15px var(--f-body)}
+.sItem i{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.25)}
+.sItem small{display:block;font:500 12px var(--f-body);color:var(--muted)}
+.sRow{display:flex;gap:4px;margin-bottom:4px}.sRow .sMain{flex:1;text-align:left;text-transform:none;letter-spacing:.01em;font:600 14px var(--f-body);padding:7px 9px}
+.sRow .sMain small{display:block;font:500 12px var(--f-body);color:var(--muted)}
+.sRow button.sMini{padding:6px 9px;font-size:13px}
+.sChips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.sChips button{padding:6px 9px;font-size:13px}
+.sNote{font:500 13px/1.45 var(--f-body);color:var(--muted);margin:6px 2px}
+.sRange{display:grid;gap:3px;margin:8px 2px}.sRange label{font:600 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+body.sideopen .inst{left:calc(min(332px,90vw) + 10px)}
+body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
+#fpTools{position:absolute;top:calc(12px + var(--safe-t));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5}
+#fpTools button{min-height:44px;padding:0 14px}
+#fpFire{min-height:64px;background:rgba(214,75,44,.7)}
 #marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:4}
 #bJoin,#bDrop{background:var(--panel)}
 #fp{position:absolute;inset:0;pointer-events:none}
@@ -221,6 +244,8 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 
 <div id="marquee" hidden></div>
 <div id="dropTag" hidden></div>
+<button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
+<aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
   <h2 style="margin:0;font:700 24px var(--f-display);letter-spacing:.04em;text-transform:uppercase">Menu</h2>
   <div id="menuMain">
@@ -305,9 +330,10 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="fpPrompt" id="fpPrompt"></div>
     <div class="fpHint" id="fpHint"></div>
     <div class="fpTop"><button id="fpExit" type="button">Leave first person</button></div>
+    <div id="fpTools"></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
-    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
   </div>
   <div id="inspector" hidden role="dialog" aria-label="Device settings">
     <div class="ihead"><b id="iTitle">Device</b><span id="iNote"></span><button id="iClose" type="button">Done</button></div>
@@ -500,11 +526,12 @@ const Snd = (() => {
     // poured grains: the loop level follows how much has landed lately
     for (const k of ['sand', 'earth', 'rock', 'metal']) { A.grains[k] *= 0.78; A.set('grain:' + k, 'grain_' + k + '_pour', cl(A.grains[k] * 0.9, 0, 1), { x: A.grains.x, z: A.grains.z, tc: 0.15 }); }
     // boats: wake wash and engines for the nearest few
-    const near = boats.filter(b => !b.sunk && b.body).map(b => ({ b, d: Math.hypot(b.body.position.x - L.x, b.body.position.z - L.z) })).filter(q => q.d < 150).sort((a, b) => a.d - b.d).slice(0, 4), live = new Set();
+    const near = boats.filter(b => !b.sunk && b.body).map(b => ({ b, d: Math.hypot(b.body.position.x - L.x, b.body.position.z - L.z) })).filter(q => q.d < 150).sort((a, b) => a.d - b.d).slice(0, 3), live = new Set();
+    A.hornT = (A.hornT == null ? 20 : A.hornT) - 0.1; if (A.hornT <= 0) { A.hornT = 28 + Math.random() * 40; const big = near.filter(q => q.b.sp.kind === 'motor' && q.b.sp.L > 12 && Math.hypot(q.b.body.velocity.x, q.b.body.velocity.z) > 1.5 && q.d < 110); if (big.length) { const q = big[Math.floor(Math.random() * big.length)]; A.fx(q.b.sp.L > 30 && Math.random() < 0.5 ? 'veh_horn_long' : 'veh_horn_short', q.b.body.position.x, q.b.body.position.z, { gain: 0.5 }); } }      // a horn now and then, never a drone
     for (const { b, d } of near) {
       const v = Math.hypot(b.body.velocity.x, b.body.velocity.z), p = b.body.position, fam = ENG[b.key], thr = cl(Math.abs(b.throttle || 0), 0, 1), motor = b.sp.kind === 'motor' && !b.sunk && (boatCrew(b).length > 0 || mode === 'helm'); const k = 'eng:' + b.id; live.add(k);
       A.set(k + ':wake', 'water_wake_loop', cl(v / 7, 0, 1) * 0.7, { x: p.x, z: p.z, rate: 0.8 + cl(v / 12, 0, 0.5) });
-      if (fam && motor) { const r = cl(Math.max(thr, v / (b.sp.L * 0.6 + 4)), 0, 1); const lo = cl(1 - r * 2, 0, 1), hi = cl(r * 2 - 0.8, 0, 1), mid = cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1), rate = 0.92 + r * 0.18, w = 0.8, cutI = mode === 'helm' && boats[activeIdx] === b ? 1 : 1;
+      if (fam && motor) { const r = cl(Math.max(thr, v / (b.sp.L * 0.6 + 4)), 0, 1); const lo = cl(1 - r * 2, 0, 1), hi = cl(r * 2 - 0.8, 0, 1) * 0.6, mid = cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * 0.7, rate = 0.92 + r * 0.18, w = (v < 0.4 && thr < 0.1 ? 0.1 : 0.2 + 0.4 * r) * (d > 60 ? 0.6 : 1), cutI = mode === 'helm' && boats[activeIdx] === b ? 1 : 1;
         A.set(k + ':lo', 'veh_eng_' + fam + '_lo', lo * w, { x: p.x, z: p.z, rate }); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', mid * w, { x: p.x, z: p.z, rate }); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', hi * w, { x: p.x, z: p.z, rate }); }
       else if (b.sp.kind === 'sail') A.set(k + ':luff', 'veh_sail_luff', cl((U - 3) / 12, 0, 1) * 0.4, { x: p.x, z: p.z });
       if (b.fire > 0.25) A.set(k + ':fire', 'veh_fire_on_boat_loop', 0.7, { x: p.x, z: p.z });
@@ -2188,7 +2215,7 @@ function dressPerson(p) {
 }
 function makePerson(variant, x, z, ride) {
   const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
-  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, swimK: 0, swimIdle: 0, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
+  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, swimK: 0, swimIdle: 0, fightK: 0, fighting: 0, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
   obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
   const B = (n) => p.bones[bnName(n)];
   obj.updateMatrixWorld(true); p.restW = {}; { const io = obj.matrixWorld.clone().invert(); for (const n of Object.keys(p.bones)) p.restW[n] = io.clone().multiply(p.bones[n].matrixWorld); }
@@ -2768,6 +2795,13 @@ function poseCrewExtras(p, t) {
 }
 const WADE = -0.9;                                    // water deeper than this is over the waist: people swim; shallower and they wade
 function nearestLand(p) { for (let r = 2; r <= 60; r += 3) for (let k = 0; k < 16; k++) { const a = k / 16 * 6.283 + r, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (standY(x, z) >= 0.15) return { x, z }; } return null; }
+function poseFight(p, k, t) {                       // a cartoon scuffle: fists swung in turn, a lunge and a weave
+  const R = p.ax.right, S = Math.sin(t * 9 + p.ph), C = Math.cos(t * 9 + p.ph);
+  blendPose(p, 'upper_arm.R', R, -1.9 + 1.1 * Math.max(0, S), k); blendPose(p, 'upper_arm.L', R, -1.9 + 1.1 * Math.max(0, -S), k);
+  blendPose(p, 'forearm.R', R, 1.2 - 0.9 * Math.max(0, S), k); blendPose(p, 'forearm.L', R, 1.2 - 0.9 * Math.max(0, -S), k);
+  blendPose(p, 'thigh.L', R, 0.35, k * 0.8); blendPose(p, 'thigh.R', R, -0.3 + 0.12 * C, k * 0.8);
+  blendPose(p, 'spine', p.ax.fwd || R, 0.18 * Math.sin(t * 4.5 + p.ph), k * 0.7); blendPose(p, 'chest', R, 0.22 + 0.1 * S, k * 0.7);
+}
 function poseSwim(p, k) {
   const R = p.ax.right, S = Math.sin(p.ph * 1.1), C = Math.cos(p.ph * 1.1), mv = clamp(p.walkK + 0.25, 0.25, 1);
   blendPose(p, 'upper_arm.L', R, -2.6 + 1.5 * S * mv, k); blendPose(p, 'upper_arm.R', R, -2.6 - 1.5 * S * mv, k);
@@ -2815,9 +2849,11 @@ function stepFoot(p, dt, t) {
   p.wk += ((p.near ? 1 : 0) - p.wk) * Math.min(1, 4 * dt);
   p.carryK += ((p.carry ? 1 : 0) - p.carryK) * Math.min(1, 6 * dt);
   animStep(p, dt);
+  p.fighting = Math.max(0, p.fighting - dt); p.fightK += ((p.fighting > 0 && !p.swim ? 1 : 0) - p.fightK) * Math.min(1, 8 * dt);
   if (p.swim) { p.ph += dt * (3 + 4 * p.walkK); poseSwim(p, clamp(p.swimK * 1.2, 0, 1)); }
   else if (p.walkK > 0.02) poseGait(p, p.walkK);
-  if (p.wk > 0.02 && !p.carry) poseWave(p, p.wk, t);
+  if (p.wk > 0.02 && !p.carry && p.fightK < 0.2) poseWave(p, p.wk, t);
+  if (p.fightK > 0.02) poseFight(p, p.fightK, t);
   poseCrewExtras(p, t);
   const swk = p.fp ? 0 : p.swimK; p.obj.position.set(p.x, p.y - p.footOff + 0.6 * swk, p.z); p.obj.rotation.order = 'YXZ'; p.obj.rotation.set(1.22 * swk, p.heading - p.yawOff, 0);
   if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
@@ -3108,10 +3144,10 @@ function enterFP(p) {
   mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
   $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm. Esc (press twice if the mouse is captured) or the button leaves.';
   if (!isTouch) lockPointer();
-  toast('First person'); refreshPanel();
+  fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
 function exitFP() {
-  if (!fp.on) return; const p = fp.p;
+  if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
   fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   if (p && people.includes(p)) {
     p.fp = false; p.obj.visible = true; p.fpMoving = false; if (p.swim) { p.swim = false; topple(p, null); }
@@ -3217,6 +3253,7 @@ function updateFP(dt, t) {
     }
   }
   fp.scanT -= dt; if (fp.scanT <= 0) { fp.scanT = 0.12; fpScan(); }
+  fpToolsUpdate(dt, t);
 }
 function fpCamera(dt, t) {
   const p = fp.p; if (!p) return;
@@ -3253,8 +3290,148 @@ addEventListener('keydown', (e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
+  else if (k === '1' || k === '2' || k === '3') fpSetTool(FPT[+k - 1][0]);
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
+
+/* ================================================================ first-person tools: hands (pick up, carry, throw), fishing rod, rifle (cartoon knock-outs) */
+const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['rifle', 'Rifle', '3']];
+fp.tool = 'hands'; fp.rod = null; fp.cool = 0; fp.kick = 0; fp.fish = { n: 0, kg: 0, log: [] }; fp.ko = 0;
+const fpToolMesh = {};
+(() => {
+  const dark = new THREE.MeshStandardMaterial({ color: 0x24282b, roughness: 0.5, metalness: 0.6 }), wood = new THREE.MeshStandardMaterial({ color: 0x7a5232, roughness: 0.7 }), cane = new THREE.MeshStandardMaterial({ color: 0xc9a86a, roughness: 0.6 });
+  const rifle = new THREE.Group(); { const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.5), dark); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.5, 8), dark); br.rotation.x = Math.PI / 2; br.position.set(0, 0.02, -0.45); const st = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.28), wood); st.position.set(0, -0.03, 0.34); rifle.add(b, br, st); rifle.position.set(0.2, -0.2, -0.55); }
+  const rod = new THREE.Group(); { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.016, 1.5, 6).translate(0, 0.75, 0), cane); r.rotation.x = -Math.PI / 2 + 0.38; const h = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 8), wood); h.rotation.x = Math.PI / 2; h.position.z = 0.05; rod.add(r, h); rod.position.set(0.22, -0.2, -0.45); }
+  for (const [k, m] of [['rifle', rifle], ['rod', rod]]) { m.visible = false; m.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 8; } }); camera.add(m); fpToolMesh[k] = m; }
+})();
+const bobber = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshStandardMaterial({ color: 0xd64b2c, roughness: 0.5 })); bobber.visible = false; scene.add(bobber);
+const lineGeo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 10 }, () => new THREE.Vector3())), lineMesh = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0xf1ece2, transparent: true, opacity: 0.8 })); lineMesh.frustumCulled = false; lineMesh.visible = false; scene.add(lineMesh);
+function fpSetTool(t) {
+  fp.tool = t; if (t !== 'rod') fpRodReset(true);
+  for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === t;
+  $('fpTools').innerHTML = ''; for (const [id, name, key] of FPT) { const b = document.createElement('button'); b.type = 'button'; b.textContent = (isTouch ? '' : key + ' ') + name; b.setAttribute('aria-pressed', String(id === t)); b.addEventListener('click', () => fpSetTool(id)); $('fpTools').append(b); }
+  $('fpFire').textContent = t === 'rifle' ? 'Fire' : t === 'rod' ? 'Cast / reel' : 'Pick up / throw';
+  if (fp.on) toast(t === 'hands' ? 'Hands: click or E picks up, click again throws, G drops' : t === 'rod' ? 'Rod: click to cast onto water, click when the float dips' : 'Rifle: click to fire. People are knocked out, never hurt.');
+}
+function fpRodReset(quiet) { fp.rod = null; bobber.visible = lineMesh.visible = false; if (!quiet && fp.p) Snd.fx('ppl_fishing_reel', fp.p.x, fp.p.z, { gain: 0.5 }); refreshSide(); }
+const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _ray = new THREE.Ray(), _bx = new THREE.Box3(), _hit = new THREE.Vector3(), _w = new THREE.Vector3();
+function fpAim(maxD) {
+  camera.getWorldPosition(_o); camera.getWorldDirection(_d); const me = fp.p; let best = { t: maxD, kind: null, ref: null };
+  for (let t = 0.8; t <= maxD; t += (t < 30 ? 0.6 : 1.4)) { const x = _o.x + _d.x * t, y = _o.y + _d.y * t, z = _o.z + _d.z * t, gh = heightAt(x, z); if (y <= gh) { best = { t, kind: 'land', ref: null }; break; } if (gh < -0.05 && y <= waveH(x, z, simT)) { best = { t, kind: 'water', ref: null }; break; } }
+  for (const q of people) { if (q === me || q.state === 'rag') continue; for (const cy of [0.5, 1.25]) { const cx = q.x - _o.x, cyy = q.y + cy - _o.y, cz = q.z - _o.z, t = cx * _d.x + cyy * _d.y + cz * _d.z; if (t < 0.4 || t >= best.t) continue; const dx = _o.x + _d.x * t - q.x, dy = _o.y + _d.y * t - (q.y + cy), dz = _o.z + _d.z * t - q.z; if (dx * dx + dy * dy + dz * dz < 0.2) { best = { t, kind: 'person', ref: q }; break; } } }
+  _ray.set(_o, _d);
+  for (const bt of boats) { if (bt.sunk) continue; const bp = bt.body.position; if (Math.hypot(bp.x - _o.x, bp.z - _o.z) > maxD + bt.sp.L) continue; _bx.setFromObject(bt.group); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.5 && t < best.t && !(me.ride && me.ride.boat === bt && t < 3)) best = { t, kind: 'boat', ref: bt }; } }
+  for (const o of objects) { if (o.gone) continue; const bp = o.body.position, cx = bp.x - _o.x, cy = bp.y - _o.y, cz = bp.z - _o.z, t0 = cx * _d.x + cy * _d.y + cz * _d.z; if (t0 < 0.4 || t0 > best.t + 3) continue; if (Math.hypot(_o.x + _d.x * t0 - bp.x, _o.y + _d.y * t0 - bp.y, _o.z + _d.z * t0 - bp.z) > 4) continue; _bx.setFromObject(o.mesh); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.4 && t < best.t) best = { t, kind: 'obj', ref: o }; } }
+  best.pt = new THREE.Vector3(_o.x + _d.x * best.t, _o.y + _d.y * best.t, _o.z + _d.z * best.t); return best;
+}
+function fpShoot() {
+  const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag' || p.hop) return; fp.cool = 0.34; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + 0.02);
+  const h = fpAim(300), pt = h.pt; const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95));
+  Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.6, y: p.y + 1.5 });
+  const lg = new THREE.BufferGeometry().setFromPoints([mz, pt]), ln = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.9, depthTest: false })); ln.renderOrder = 9; ln.frustumCulled = false; scene.add(ln); setTimeout(() => { scene.remove(ln); lg.dispose(); }, 70);
+  fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
+  if (h.kind === 'person') { const q = h.ref; try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO');
+    const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } else noteOnce('shotko', 'Knocked out. The medics will collect them.'); }
+  else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, 9, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.03); }
+  else if (h.kind === 'obj') { const o = h.ref; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(_d.x * 80, _d.y * 80 + 12, _d.z * 80), new CANNON.Vec3(pt.x - o.body.position.x, pt.y - o.body.position.y, pt.z - o.body.position.z)); if (o.m && o.m.frag && o.m.str < 120 && Math.random() < 0.3) fracture(o, 'shot'); }
+  else if (h.kind === 'water') splash(pt.x, pt.z, 0.35);
+  else if (h.kind === 'land') fxS.emit(pt.x, pt.y + 0.05, pt.z, 0, 0.9, 0, 0.9, 0.5, 3, [0.72, 0.64, 0.5, 0.5], 0, 1);
+}
+function fpHandsPrimary() {
+  const p = fp.p; if (!p) return;
+  if (p.carry) { dropCarry(p); const o = objects[objects.length - 1]; if (o) { const m = o.body.mass, sp = clamp(10 / Math.sqrt(Math.max(1, m / 6)), 1.8, 10); camera.getWorldPosition(_o); camera.getWorldDirection(_d); o.body.position.set(_o.x + _d.x * 0.9, _o.y + _d.y * 0.9 - 0.2, _o.z + _d.z * 0.9); o.body.velocity.set(_d.x * sp, _d.y * sp + 1.5, _d.z * sp); o.body.wakeUp(); noteOnce('throw', 'Thrown. Heavy things do not go far.'); } }
+  else fpUse();
+}
+function fpRodPrimary() {
+  const p = fp.p, r = fp.rod; if (!p) return;
+  if (!r) {
+    const h = fpAim(70); let x, z; if (h.kind === 'water') { x = h.pt.x; z = h.pt.z; } else if (!h.kind) { x = p.x + Math.sin(fp.yaw) * 18; z = p.z + Math.cos(fp.yaw) * 18; } else { toast('Cast onto open water'); return; }
+    if (-heightAt(x, z) < 0.6) { toast('Too shallow here. Cast further out.'); return; }
+    camera.getWorldPosition(_o); fp.rod = { x, z, state: 'fly', t: 0, bite: 4 + Math.random() * 8, from: { x: _o.x, y: _o.y - 0.3, z: _o.z } }; bobber.visible = lineMesh.visible = true; Snd.fx('ppl_fishing_cast_01', p.x, p.z, { gain: 0.7 });
+  } else if (r.state === 'bite') fpCatch(); else { fpRodReset(); toast('Reeled in. Nothing yet.'); }
+}
+function fpCatch() {
+  const r = fp.rod, p = fp.p, d = -heightAt(r.x, r.z), y = waveH(r.x, r.z, simT);
+  if (Math.random() < 0.03) { const dr = CARGO.find(c => c.id === 'drum'); if (dr) { spawn(dr, r.x, y + 0.6, r.z); updateCount(); toast('You hooked a sealed drum. Somebody lost it.'); fpRodReset(); return; } }
+  const tbl = d < 3 ? [['perch', 0.3], ['roach', 0.2], ['pike', 2.5], ['old boot', 0.4]] : d < 12 ? [['mackerel', 0.6], ['sea bass', 1.8], ['cod', 4], ['flounder', 1.1]] : [['tuna', 22], ['halibut', 14], ['cod', 5], ['mackerel', 0.6]];
+  const f = tbl[Math.floor(Math.random() * tbl.length)], kg = f[1] * (0.6 + Math.random() * 0.9); fp.fish.n++; fp.fish.kg += kg; fp.fish.log.unshift(f[0] + ', ' + kg.toFixed(1) + ' kg'); fp.fish.log.length = Math.min(fp.fish.log.length, 14);
+  splash(r.x, r.z, 0.5); toast(f[0] === 'old boot' ? 'You caught an old boot.' : 'You caught a ' + f[0] + ', ' + kg.toFixed(1) + ' kg.'); npcEv('fishCaught'); fpRodReset(true); Snd.fx('ppl_fishing_reel', p.x, p.z, { gain: 0.7 }); refreshSide();
+}
+function fpPrimary() { if (!fp.on || mode !== 'fp') return; if (fp.tool === 'rifle') fpShoot(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
+function fpToolsUpdate(dt, t) {
+  const p = fp.p; fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6);
+  const rm = fpToolMesh.rifle; if (rm) rm.position.z = -0.55 + fp.kick * 0.07;
+  const r = fp.rod; if (!r || !p) return;
+  if (Math.hypot(p.x - r.x, p.z - r.z) > 75) { fpRodReset(true); toast('Line out of reach. Reeled in.'); return; }
+  const wy = waveH(r.x, r.z, simT); const tip = camera.localToWorld(_w.set(0.22, 0.25, -1.6));
+  if (r.state === 'fly') { r.t += dt; const s = Math.min(1, r.t / 0.7); bobber.position.set(r.from.x + (r.x - r.from.x) * s, r.from.y + (wy - r.from.y) * s + Math.sin(s * Math.PI) * 3.5, r.from.z + (r.z - r.from.z) * s); if (s >= 1) { r.state = 'wait'; r.t = 0; splash(r.x, r.z, 0.2); } }
+  else { const dep = -heightAt(r.x, r.z); r.t += dt; bobber.position.set(r.x, wy + 0.04 + (r.state === 'bite' ? -0.12 * Math.abs(Math.sin(r.t * 9)) : 0.02 * Math.sin(t * 2)), r.z);
+    if (r.state === 'wait') { r.bite -= dt * Math.min(1.5, 0.5 + dep * 0.12) * (1 + wx.rainAmt * 0.4); if (r.bite <= 0) { r.state = 'bite'; r.t = 0; ripple(r.x, r.z, 0.7, 0.08, true); Snd.fx('water_splash_s_01', r.x, r.z, { gain: 0.6 }); noteOnce('bite', 'A bite. Click to reel in.'); } }
+    else if (r.state === 'bite' && r.t > 7) { fpRodReset(true); toast('It got away.'); return; } }
+  const a = lineGeo.attributes.position; for (let i = 0; i < 10; i++) { const u = i / 9, sag = r.state === 'fly' ? 0 : Math.sin(u * Math.PI) * 0.6; a.setXYZ(i, tip.x + (bobber.position.x - tip.x) * u, tip.y + (bobber.position.y - tip.y) * u - sag, tip.z + (bobber.position.z - tip.z) * u); } a.needsUpdate = true;
+}
+$('fpFire').addEventListener('click', fpPrimary);
+
+/* ================================================================ the side pane: Place (everything you can put down), Live (everything that is in the world), Play (drop in, tools, catch) */
+const sideEl = $('side'), sBody = $('sBody'); let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
+const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; if (cls) b.className = cls; if (fn) b.addEventListener('click', fn); if (attrs) for (const k in attrs) b.setAttribute(k, attrs[k]); return b; };
+function setSide(o) { sideOpen = o; sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
+function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
+function renderSide() {
+  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['live', 'Live'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
+  sBody.innerHTML = '';
+  if (sideTab === 'place') {
+    const q = document.createElement('input'); q.type = 'search'; q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
+    q.addEventListener('input', () => { sideQ = q.value.toLowerCase(); fillPlace(list); }); fillPlace(list);
+  } else if (sideTab === 'live') {
+    const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
+    const head = document.createElement('div'); head.className = 'sNote'; head.id = 'sCount'; sBody.append(head); const list = document.createElement('div'); list.id = 'sLive'; sBody.append(list); liveSig = ''; fillLive();
+  } else {
+    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Drop in to walk the cove yourself. The Hands, Rod and Rifle are in your hands in first person (keys 1, 2, 3). V drops in and out.'; sBody.append(n);
+    sBody.append(mkB(fp.on ? 'Leave first person' : 'Drop in (V)', 'sItem', dropIn));
+    const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); };
+    const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Dropping things'; sBody.append(h);
+    rg('Drop height', 0.4, 120, 0.1, dropH, v => { dropH = v; }, v => (+v).toFixed(1) + ' m'); rg('Size', 0.4, 8, 0.1, dropSize, v => { dropSize = v; }, v => 'x' + (+v).toFixed(1));
+    sBody.append(mkB('Pick the boulder', 'sItem', () => { const i = BUILD.findIndex(it => it.id === 'c-rock'); if (i >= 0) { buildSel = i; placeCat = 'cargo'; setTool('build'); toast('Boulder ready. Mouse wheel changes the drop height, [ and ] the size.'); if (matchMedia('(max-width: 800px)').matches) setSide(false); } }));
+    const hc = document.createElement('div'); hc.className = 'sCat'; hc.textContent = 'Your catch: ' + fp.fish.n + ' fish, ' + fp.fish.kg.toFixed(1) + ' kg'; sBody.append(hc);
+    for (const l of fp.fish.log) { const d = document.createElement('div'); d.className = 'sNote'; d.textContent = l; sBody.append(d); }
+    const hk = document.createElement('div'); hk.className = 'sCat'; hk.textContent = 'Knock-outs by you: ' + fp.ko; sBody.append(hk);
+  }
+}
+function refreshSide() { if (sideOpen && sideTab === 'play') renderSide(); }
+function fillPlace(list) {
+  list.innerHTML = ''; let any = false;
+  for (const c of PLACE_CATS) {
+    const items = []; BUILD.forEach((it, i) => { if (!it.erase && c.test(it) && (!sideQ || (it.name + ' ' + (it.note || '')).toLowerCase().includes(sideQ))) items.push([it, i]); }); if (!items.length) continue; any = true;
+    const h = document.createElement('div'); h.className = 'sCat'; h.textContent = c.name; list.append(h);
+    for (const [it, i] of items) { const b = mkB('', 'sItem', () => { buildSel = i; placeCat = c.id; setTool('build'); fillPlace(list); if (matchMedia('(max-width: 800px)').matches) setSide(false); }, { 'aria-pressed': String(tool === 'build' && buildSel === i) }); const sw = document.createElement('i'); sw.style.background = it.sw || '#888'; const t = document.createElement('span'); t.textContent = it.name; if (it.note) { const sm = document.createElement('small'); sm.textContent = (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note; t.append(sm); } b.append(sw, t); list.append(b); }
+  }
+  const ei = BUILD.findIndex(it => it.erase); if (ei >= 0 && !sideQ) { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Other'; list.append(h, mkB('Remove things (tap to erase)', 'sItem', () => { buildSel = ei; setTool('build'); })); }
+  if (!any) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing matches.'; list.append(n); }
+}
+function collectLive() {
+  const rows = [], want = (k) => liveF === 'all' || liveF === k;
+  if (want('people')) for (const p of people) rows.push({ k: 'person', ref: p, label: (p.role || 'Person') + (p.side ? ' (' + p.side + ')' : ''), sub: personStatus1(p) + (p.ag && p.ag.intent ? ' · ' + p.ag.intent : ''), x: p.x, z: p.z });
+  if (want('boats')) for (const b of boats) rows.push({ k: 'boat', ref: b, label: b.sp.name + (isHostile(b) ? ' (hostile)' : b.blue ? ' (blue)' : ''), sub: (b.status || '') + (b.hpMax ? ' · hull ' + hullPct(b) + '%' : ''), x: b.body.position.x, z: b.body.position.z });
+  if (want('vehicles')) for (const v of VEHS) rows.push({ k: 'veh', ref: v, label: v.sp.name, sub: v.task || 'idle', x: v.x, z: v.z });
+  if (want('things')) { const g = new Map(); for (const o of objects) { if (o.gone) continue; const a = g.get(o.c.name) || g.set(o.c.name, []).get(o.c.name); a.push(o); } for (const [n, a] of g) rows.push({ k: 'things', ref: a, label: n + (a.length > 1 ? ' x' + a.length : ''), sub: Math.round(a[0].body.mass) + ' kg each', x: a[0].body.position.x, z: a[0].body.position.z }); }
+  return rows.slice(0, 160);
+}
+function fillLive() {
+  if (!sideOpen || sideTab !== 'live') return; const rows = collectLive(), sig = liveF + '|' + rows.map(r => r.label + r.sub).join('~'); document.getElementById('sCount').textContent = people.length + ' people · ' + boats.length + ' boats · ' + VEHS.length + ' vehicles · ' + objects.length + ' things'; if (sig === liveSig) { liveRows = rows; return; } liveSig = sig; liveRows = rows;
+  const list = document.getElementById('sLive'); list.innerHTML = '';
+  rows.forEach((r, i) => { const d = document.createElement('div'); d.className = 'sRow'; const m = mkB('', 'sMain', () => liveGo(i)); const b = document.createElement('b'); b.textContent = r.label; const sm = document.createElement('small'); sm.textContent = r.sub; m.append(b, sm); d.append(m); if (r.k === 'person') d.append(mkB('Be', 'sMini', () => liveBe(i))); d.append(mkB('X', 'sMini', () => liveDel(i), { 'aria-label': 'Remove' })); list.append(d); });
+  if (!rows.length) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing here yet. Place something from the Place tab.'; list.append(n); }
+}
+function liveGo(i) { const r = liveRows[i]; if (!r) return; if (fp.on) return; let x = r.x, z = r.z; if (r.k === 'things') { const a = r.ref.filter(o => !o.gone); a.sort((p, q) => Math.hypot(p.body.position.x - god.tgt.x, p.body.position.z - god.tgt.z) - Math.hypot(q.body.position.x - god.tgt.x, q.body.position.z - god.tgt.z)); if (a[0]) { x = a[0].body.position.x; z = a[0].body.position.z; } }
+  if (r.k === 'person' || r.k === 'boat') setSel([r.ref]); camFlyTo(x, z, 38 * CELL); }
+function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode === 'god') { enterFP(r.ref); } }
+function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person') removePerson(r.ref); else if (r.k === 'boat') removeBoat(r.ref); else if (r.k === 'veh') removeVehicle(r.ref); else if (r.k === 'things') { const o = r.ref.find(q => !q.gone); if (o) { removeObj(o); updateCount(); } } liveSig = ''; fillLive(); }
+$('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
+sideEl.addEventListener('keydown', (e) => e.stopPropagation());
+setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); }, 900);
+setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); }, 400);
+addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
@@ -3400,7 +3577,7 @@ canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 let lastPType = 'touch';
 canvas.addEventListener('pointerdown', (e) => {
   lastPType = e.pointerType;
-  if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
+  if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); else if (e.button === 0) fpPrimary(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button }); god.fling.set(0, 0); god.fly = null; god._pt = performance.now();
   if (ptrs.size === 1) {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
@@ -6423,7 +6600,7 @@ function updateAgents(dt) {
       const e = g.who; if (!e || !people.includes(e) || e.state === 'rag' || e.ride || e.side === p.side) { ag.goal = null; ag.cool = 0.4; continue; }
       const d = Math.hypot(e.x - p.x, e.z - p.z);
       if (d > 2.3) { g.re = (g.re || 0) - dt; if (!walking || g.re <= 0) { g.re = 1.2; walkAgent(p, e.x, e.z); } ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Chasing a raider'; if (g.t > 70) ag.goal = null; }
-      else { p.order = null; p.heading = Math.atan2(e.x - p.x, e.z - p.z); ag.intent = 'Scuffling'; g.hit -= dt;
+      else { p.order = null; p.heading = Math.atan2(e.x - p.x, e.z - p.z); ag.intent = 'Scuffling'; p.fighting = 0.4; e.fighting = 0.4; g.hit -= dt;
         if (g.hit <= 0) { g.hit = rnd(0.9, 1.7); let allies = 0, foes = 0; for (const q of people) { if (q === p || q.ride || q.state === 'rag') continue; if (Math.hypot(q.x - p.x, q.z - p.z) < 9) { if (q.side === p.side) allies++; else if (q.side === e.side) foes++; } } if (Math.random() < cl2(0.2 + 0.1 * allies - 0.06 * foes, 0.08, 0.6)) knockOut(e, p.heading); } }
     } else if (g.kind === 'raid') {
       const st = g.site; if (!st || !sites.includes(st) || (st.owner || 'Port') !== 'Port') { ag.goal = null; ag.cool = 1; continue; }
@@ -6586,7 +6763,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
