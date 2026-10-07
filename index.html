@@ -2691,6 +2691,11 @@ function poseRifle(p, k, aim, run) {                                // two hands
   if (k < 0.02) return; const R = p.ax.right, U = p.ax.up, a = clamp(aim, 0, 1), r = run ? 1 : 0;
   blendPose(p, 'spine', R, -0.05 - 0.2 * r - 0.06 * a, k); blendPose(p, 'chest', R, -0.04 - 0.08 * r, k); blendPose(p, 'head', R, 0.1 * a + 0.05 * r, k);
 }
+function poseKneel(p, k) {                                          // one knee on the ground, the other foot forward: the steady firing position
+  if (k < 0.02) return; const R = p.ax.right;
+  blendPose(p, 'thigh.R', R, 1.35, k); blendPose(p, 'shin.R', R, -1.45, k); blendPose(p, 'thigh.L', R, -0.35, k); blendPose(p, 'shin.L', R, -1.9, k); blendPose(p, 'spine', R, -0.12, k); blendPose(p, 'chest', R, -0.05, k);
+  const hi = p.info.hips; tv.copy(p.ax.up).multiplyScalar(-0.3 * k).applyQuaternion(hi.WpInv); hi.b.position.add(tv);
+}
 function poseCrouch(p, k) {                                         // down on the heels behind cover
   if (k < 0.02) return; const R = p.ax.right;
   blendPose(p, 'thigh.L', R, 1.15, k); blendPose(p, 'thigh.R', R, 1.0, k); blendPose(p, 'shin.L', R, -2.0, k); blendPose(p, 'shin.R', R, -1.9, k); blendPose(p, 'spine', R, -0.25, k); blendPose(p, 'chest', R, -0.12, k);
@@ -3226,24 +3231,41 @@ function dropGun(p, gm) {                                            // the weap
   gm.updateWorldMatrix(true, false); const wp = new THREE.Vector3(), wq = new THREE.Quaternion(), ws = new THREE.Vector3(); gm.matrixWorld.decompose(wp, wq, ws); p.obj.remove(gm); gm.position.copy(wp); gm.quaternion.copy(wq); gm.scale.copy(ws); scene.add(gm); LOOSE.push({ m: gm, vy: 1.5, vx: rnd(-0.8, 0.8), vz: rnd(-0.8, 0.8), t: 40 }); if (p.bot && p.bot.wmesh === gm) p.bot.wmesh = null; if (p.gunMesh === gm) p.gunMesh = null;
 }
 function armedPose(p, dt) {
-  if (p.state === 'rag') { const g0 = p.gunMesh || (p.bot && p.bot.wmesh); if (g0 && g0.parent === p.obj) dropGun(p, g0); return; }                                         // soldiers hold their weapons in both hands, crouch behind cover and lean into a run
+  if (p.state === 'rag') { const g0 = p.gunMesh || (p.bot && p.bot.wmesh); if (g0 && g0.parent === p.obj) dropGun(p, g0); p.kneelK = p.proneK = p.crouchK = 0; p.flinch = null; p.thT = 0; if (p.bot) p.bot.stance = 0; return; }                                         // soldiers hold their weapons in both hands, crouch behind cover and lean into a run
   const armed = !!(p.gun || p.bot) && !p.swim && p.state !== 'rag' && !p.fp, b = p.bot || p.gun;
   p.armedK = (p.armedK || 0) + ((armed ? 1 : 0) - (p.armedK || 0)) * Math.min(1, 6 * dt); p.crouchK = (p.crouchK || 0) + (((armed && b && b.crouch) ? 1 : 0) - (p.crouchK || 0)) * Math.min(1, 7 * dt);
   let gm = p.gunMesh || (p.bot && p.bot.wmesh); const run = p.runK || 0;
   if (!gm && armed && b && b.w && D.glb.weapons) { gm = botWeapon(b.w); p.obj.add(gm); if (p.bot) p.bot.wmesh = gm; else p.gunMesh = gm; }
-  if (armed || p.armedK > 0.02) { poseRifle(p, p.armedK, p.aim || 0, run > 0.5); poseCrouch(p, p.crouchK); }
+  { const st = p.forceStance !== undefined ? p.forceStance : (armed && b && b.stance) || 0; p.kneelK = (p.kneelK || 0) + ((st === 1 ? 1 : 0) - (p.kneelK || 0)) * Math.min(1, 6 * dt); p.proneK = (p.proneK || 0) + ((st === 2 ? 1 : 0) - (p.proneK || 0)) * Math.min(1, 4 * dt); }
+  if (armed || p.armedK > 0.02) { poseRifle(p, p.armedK * (1 - p.proneK), p.aim || 0, run > 0.5); poseCrouch(p, p.crouchK); poseKneel(p, p.kneelK * (1 - p.crouchK)); }
+  if (p.proneK > 0.05) for (const n of ['thigh.L', 'thigh.R', 'shin.L', 'shin.R']) blendPose(p, n, p.ax.right, 0, Math.min(1, p.proneK * 1.2));
+  if (p.flinch && p.flinch.t > 0) { const f = p.flinch; f.t -= dt; const amp = Math.pow(Math.max(0, f.t) / 0.5, 1.4) * f.s, R_ = p.ax.right, F_ = p.ax.fwd; const back = -0.45 * Math.cos(f.a) * amp, side = 0.4 * Math.sin(f.a) * amp;
+    blendPose(p, 'spine', R_, back, 0.75); blendPose(p, 'chest', R_, back * 0.6, 0.6); blendPose(p, 'head', R_, back * 1.2, 0.7); blendPose(p, 'spine', F_, side, 0.5); blendPose(p, 'head', F_, side * 1.4, 0.6); }
+  if (p.thT > 0) p.thT -= dt;
+  if (p.proneK > 0.02) { p.obj.rotation.order = 'YXZ'; p.obj.rotation.x = 1.45 * p.proneK; p.obj.position.y = p.y - p.footOff + 0.12 * p.proneK; } else if (p.obj.rotation.x && !p.fp && !p.swim && p.state !== 'rag') p.obj.rotation.x = 0;
   if (!gm) return; gm.visible = !p.swim; if (!(armed || p.armedK > 0.02) || !p.ax) return;
   const wt = (b && b.w) || 'rifle', pist = wt === 'pistol' || wt === 'medic' || wt === 'revolver', a = clamp(p.aim || 0, 0, 1), sc = Math.max(0.8, p.height / 1.7), k = p.armedK;
   p.obj.updateMatrixWorld(true); p.invW = p.invW || new THREE.Matrix4(); p.invW.copy(p.obj.matrixWorld).invert(); const oq = p.obj.getWorldQuaternion(ikQ[0]).clone().invert();
   const SR = ikV[0].clone().setFromMatrixPosition(p.info[bnName('upper_arm.R')].b.matrixWorld).applyMatrix4(p.invW), SL = ikV[0].clone().setFromMatrixPosition(p.info[bnName('upper_arm.L')].b.matrixWorld).applyMatrix4(p.invW);
-  const up = p.ax.up, fwd = p.ax.fwd, lat = SR.clone().sub(SL).normalize(), C = SR.clone().add(SL).multiplyScalar(0.5);
+  let up = p.ax.up, fwd = p.ax.fwd; const lat = SR.clone().sub(SL).normalize(), C = SR.clone().add(SL).multiplyScalar(0.5); if (p.proneK > 0.5) { const f2 = up.clone(), u2 = fwd.clone().negate(); up = u2; fwd = f2; }
   // where the weapon sits: up at the shoulder when aiming, low across the chest when ready, tucked in and tilted down when running
   const lowG = C.clone().addScaledVector(lat, 0.1 * sc).addScaledVector(up, (pist ? -0.3 : -0.22) * sc).addScaledVector(fwd, (pist ? 0.3 : 0.24) * sc), aimG = C.clone().addScaledVector(lat, (pist ? 0.03 : 0.11) * sc).addScaledVector(up, (pist ? -0.02 : 0.0) * sc).addScaledVector(fwd, (pist ? 0.55 : 0.3) * sc - (p.recoil || 0) * 0.06), runG = C.clone().addScaledVector(lat, 0.1 * sc).addScaledVector(up, (pist ? -0.28 : -0.2) * sc).addScaledVector(fwd, 0.26 * sc);
-  const G = lowG.lerp(runG, run * (1 - a)).lerp(aimG, a), pitch = (1 - a) * (0.55 + 0.25 * run) + (pist ? 0.05 : 0) - (p.recoil || 0) * 0.04, z = fwd.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(up, -Math.sin(pitch)).normalize(), yG = up.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(fwd, Math.sin(pitch)).normalize(), xG = new THREE.Vector3().crossVectors(yG, z).normalize();
+  let G = lowG.lerp(runG, run * (1 - a)).lerp(aimG, a); if (wt === 'rpg') G = SR.clone().addScaledVector(up, 0.12 * sc).addScaledVector(fwd, 0.12 * sc); else if (wt === 'lmg') G.addScaledVector(up, -0.1 * sc); if (p.thT > 0) G = lowG.clone(); const pitch = (1 - a) * (0.55 + 0.25 * run) + (pist ? 0.05 : 0) - (p.recoil || 0) * 0.04, z = fwd.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(up, -Math.sin(pitch)).normalize(), yG = up.clone().multiplyScalar(Math.cos(pitch)).addScaledVector(fwd, Math.sin(pitch)).normalize(), xG = new THREE.Vector3().crossVectors(yG, z).normalize();
   gm.position.copy(G); gm.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xG, yG, z)); gm.scale.setScalar(sc);
   const grip = (GRIP[wt] || 0.4) * sc, rh = G.clone().addScaledVector(yG, -0.05 * sc).addScaledVector(z, -0.02 * sc), lh = G.clone().addScaledVector(z, grip).addScaledVector(yG, -0.045 * sc).addScaledVector(lat, pist ? -0.025 * sc : 0.0);
   if (pist) lh.copy(rh).addScaledVector(lat, -0.04 * sc).addScaledVector(z, 0.0).addScaledVector(yG, -0.02 * sc);
   const poleR = up.clone().multiplyScalar(-1).addScaledVector(lat, 0.8).addScaledVector(fwd, -0.3), poleL = up.clone().multiplyScalar(-1).addScaledVector(lat, -0.8).addScaledVector(fwd, -0.3);
+  const b0 = b && b.reload > 0 && b.reloadDur ? 1 - b.reload / b.reloadDur : -1;
+  if (b0 >= 0 && !p.thT) {                                           // reload: the left hand takes the magazine out, fetches a new one from the pouch, seats it and charges the weapon
+    const Mw = G.clone().addScaledVector(yG, -0.16 * sc).addScaledVector(z, 0.06 * sc), Pp = C.clone().addScaledVector(lat, -0.14 * sc).addScaledVector(up, -0.42 * sc).addScaledVector(fwd, 0.1 * sc), Ch = G.clone().addScaledVector(z, 0.1 * sc).addScaledVector(yG, 0.06 * sc), base = lh.clone(); let r = b0;
+    if (wt === 'shotgun') { r = (b0 * 3) % 1; if (r < 0.5) lh.lerpVectors(Mw, Pp, r * 2); else lh.lerpVectors(Pp, Mw, (r - 0.5) * 2); }
+    else if (r < 0.2) lh.lerpVectors(base, Mw, r / 0.2); else if (r < 0.45) lh.lerpVectors(Mw, Pp, (r - 0.2) / 0.25); else if (r < 0.75) lh.lerpVectors(Pp, Mw, (r - 0.45) / 0.3); else if (r < 0.9) lh.lerpVectors(Mw, Ch, (r - 0.75) / 0.15); else lh.lerpVectors(Ch, base, (r - 0.9) / 0.1);
+    gm.rotateX(-0.3 * Math.sin(Math.PI * Math.min(1, b0 / 0.85))); blendPose(p, 'head', p.ax.right, 0.25 * Math.sin(Math.PI * Math.min(1, b0)), 0.5);
+  }
+  if (p.thT > 0) {                                                   // throwing: wind up behind the shoulder, swing through, follow on
+    const u = 1 - p.thT / 0.9, wind = C.clone().addScaledVector(lat, 0.3 * sc).addScaledVector(up, (0.3 + 0.1 * u) * sc).addScaledVector(fwd, -0.35 * sc), rel = C.clone().addScaledVector(lat, 0.1 * sc).addScaledVector(up, 0.02 * sc).addScaledVector(fwd, 0.55 * sc);
+    if (u < 0.45) rh.lerpVectors(rh, wind, u / 0.45); else if (u < 0.7) rh.lerpVectors(wind, rel, (u - 0.45) / 0.25); else rh.lerpVectors(rel, rh, (u - 0.7) / 0.3); lh.copy(lowG).addScaledVector(z, 0.2 * sc);
+  }
   ikArm(p, 'R', rh, poleR, k, oq); ikArm(p, 'L', lh, poleL, k, oq);
 }
 function stepFoot(p, dt, t) {
@@ -3310,6 +3332,7 @@ function updatePeople(dt, t) {
     if (!people.includes(p) || p.state === 'rag') continue;
     if (p.hop) { stepHop(p, dt, t); continue; }
     if (p.ride) stepRide(p, dt, t); else stepFoot(p, dt, t);
+    if (!p.fp && p.proneK > 0.02 && p.obj && p.state !== 'rag') { p.obj.rotation.order = 'YXZ'; p.obj.rotation.x = 1.45 * p.proneK; p.obj.position.y = p.y - p.footOff + 0.12 * p.proneK; }
     if (p.fp && p.obj) { const sn = fp.stance || 0; p.stK = (p.stK || 0) + (sn - (p.stK || 0)) * Math.min(1, dt * 6); const pr = clamp(p.stK - 1, 0, 1), cr = Math.min(1, p.stK); if (p.stK > 0.02) { p.obj.rotation.order = 'YXZ'; p.obj.rotation.x = 1.45 * pr; p.obj.position.y = p.y - p.footOff - 0.28 * cr * (1 - pr) + 0.12 * pr; } else if (p.obj.rotation.x) p.obj.rotation.x = 0; }
   }
 }
@@ -4419,13 +4442,16 @@ function losFull(x0, y0, z0, x1, y1, z1) {
 function hurt(q, dmg, from, head) {
   if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q;
   if (q.bot) q.bot.hitT = simT; if (q.gun) q.gun.hitT = simT;
+  { const fa = from ? wrap(Math.atan2(from.x - q.x, from.z - q.z) - (q.heading || 0)) : 0; q.flinch = { t: 0.5, a: fa, s: Math.min(1.2, 0.5 + dmg / 50) }; }
   if (isP) { Snd.fx('foley_breath_hurt', q.x, q.z, { gain: 0.6, gap: 0.5 }); BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
   else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; }
   if (q.hp <= 0) downPerson(q, from);
 }
 function downPerson(q, from) {
   const t = teamOf(q); let dx = 0, dz = 1; if (from) { dx = q.x - from.x; dz = q.z - from.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; }
-  try { topple(q, new CANNON.Vec3(dx * 2.5, 2.4, dz * 2.5)); } catch (e) { } q.koUntil = simT + (BATTLE.on ? 99999 : 22); if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; for (const m of people) if (m !== q && m.bot && m.bot.team === q.bot.team && m.state !== 'rag' && Math.hypot(m.x - q.x, m.z - q.z) < 25) m.bot.morale -= 0.15; }
+  { const run = q.run && q.walkK > 0.5, kn = (q.kneelK || 0) > 0.5, pr = (q.proneK || 0) > 0.5, sq = (q.crouchK || 0) > 0.5, h = q.heading || 0; let ix = dx * 2.5, iy = 2.4, iz = dz * 2.5;
+    if (pr) { ix = iz = 0; iy = 0; } else if (kn) { ix = dx; iz = dz; iy = 0.9; } else if (sq) { ix = dx * 0.8; iz = dz * 0.8; iy = 0.5; } else if (run) { ix = Math.sin(h) * 3.8 + dx; iz = Math.cos(h) * 3.8 + dz; iy = 2.0; }
+    try { topple(q, new CANNON.Vec3(ix, iy, iz)); } catch (e) { } } q.koUntil = simT + (BATTLE.on ? 99999 : 22); if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; for (const m of people) if (m !== q && m.bot && m.bot.team === q.bot.team && m.state !== 'rag' && Math.hypot(m.x - q.x, m.z - q.z) < 25) m.bot.morale -= 0.15; }
   if (BATTLE.on && t) { BATTLE.tickets[t] = Math.max(0, BATTLE.tickets[t] - 1); BATTLE.kills[otherTeam(t)]++; }
   Snd.fx('imp_ko', q.x, q.z, { gain: 0.7, y: q.y + 1 }); const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) Snd.ui('ui_kill', 0.7); if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
   npcEv('battleKO');
@@ -4464,12 +4490,17 @@ function botFire(q, b, e, d) {
   const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + 1.3, ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + 1.1 + (hit ? 0 : rnd(-0.5, 0.5));
   addTracer(sx, sy, sz, ex, ey, ez); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + wsnd(b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
   if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)), q, Math.random() < 0.08); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) { e.bot.alert = Math.max(e.bot.alert, 3); e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.25); } impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d); if (fp.on && fp.p === e) Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), e.x, e.z, { gain: 0.8 }); }
-  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.ammo = w.mag; }
+  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; }
 }
 let sqT = -9, sqMap = new Map();
 function squadOf(q) {                                               // living members of this soldier's squad, leader first
   if (simT - sqT > 1) { sqT = simT; sqMap = new Map(); for (const p of people) { const b = p.bot; if (!b || !b.sq || p.state === 'rag' || b.dead) continue; if (!sqMap.has(b.sq)) sqMap.set(b.sq, []); sqMap.get(b.sq).push(p); } for (const l of sqMap.values()) l.sort((a, c) => (a.bot.sqi || 0) - (c.bot.sqi || 0)); }
   return (q.bot && sqMap.get(q.bot.sq)) || [q];
+}
+function chooseStance(q, b, e, d) {                                 // stand to move, kneel to shoot steadily, go flat when pinned or sniping in the open
+  if (q.order && q.order === b.myOrder && !b.atCover) return 0;
+  if (b.atCover) return b.peek && !b.crouch ? ((b.coverPt && b.coverPt.c && b.coverPt.c.hy * 2 < 1.3) ? 1 : 0) : 0;
+  if ((b.supp || 0) > 0.8) return 2; if (b.cls === 'sniper' && d > 70) return 2; if (d > 45 && !q.order) return 1; return 0;
 }
 function botThink(q, dt) {
   const b = q.bot; if (!b) return;
@@ -4488,7 +4519,7 @@ function botThink(q, dt) {
   const e = b.tgt;
   if (e && e.state !== 'rag' && e.hp > 0) {
     const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz);
-    b.memE = e; b.memT = simT;
+    b.memE = e; b.memT = simT; b.stance = chooseStance(q, b, e, d);
     if (simT - (b.shT || 0) > 1.5) { b.shT = simT; for (const m of squadOf(q)) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } }
     if ((b.supp || 0) > 0.65) { b.crouch = true; if (Math.random() < dt * 1.3) { b.crouch = false; b.supp = 0.55; } if (b.crouch) return; }
     if (d > 9 && d < 30 && simT > (b.gT || 0) && Math.random() < dt * 0.12 && (b.cls === 'rifle' || b.cls === 'smg' || b.cls === 'shotgun')) { b.gT = simT + 22 + Math.random() * 20; throwNadeAt(q, e.x, e.z); }
@@ -4498,6 +4529,7 @@ function botThink(q, dt) {
         if (dc > 1.7 && !b.atCover) { b.crouch = false; q.run = true; if (!q.order || q.order === b.myOrder) { setFootOrder(q, b.coverPt.x, b.coverPt.z); b.myOrder = q.order; } if (b.cool <= 0 && d < 40 && Math.random() < 0.3 && b.reload <= 0) botFire(q, b, e, d); return; }
         b.atCover = true; q.order = null; q.route = null; b.myOrder = null; q.run = false; b.peekT -= dt; if (b.peekT === undefined || isNaN(b.peekT) || b.peekT <= 0) { b.peek = !b.peek; b.peekT = b.peek ? 0.9 + Math.random() * 1.0 : 1.1 + Math.random() * 1.8; }
         b.crouch = !b.peek || b.reload > 0 || (b.hitT && simT - b.hitT < 0.5); if (b.crouch) return;
+        if (b.reload <= 0 && b.cool <= 0 && d <= w.range) botFire(q, b, e, d); return;
       }
     } else { b.crouch = false; b.coverPt = null; b.atCover = false; }
     if (!b.tac) { const r = Math.random(); b.tac = b.cls === 'sniper' ? 'hold' : r < 0.4 ? 'push' : r < 0.65 ? 'flank' : 'hold'; b.pref = b.cls === 'sniper' ? 0.9 : rnd(0.12, 0.4); b.fside = Math.random() < 0.5 ? 1 : -1; }
@@ -4513,7 +4545,7 @@ function botThink(q, dt) {
     return;
   }
   if (b.memE && simT - (b.memT || 0) < 3.5 && b.coverPt && b.memE.state !== 'rag' && b.memE.hp > 0) { b.crouch = true; b.peekT -= dt; if (b.peekT <= 0) { b.peekT = 0.8 + Math.random(); b.crouch = false; b.scan = 0; } if (b.crouch) return; }
-  b.tgt = null; q.run = true; b.crouch = false; b.coverPt = null; b.atCover = false;
+  b.tgt = null; q.run = true; b.crouch = false; b.coverPt = null; b.atCover = false; b.stance = 0;
   // a medic goes for the nearest fallen friend
   if (b.cls === 'medic') { let f = null, fd = 60; for (const a of people) if (a !== q && a.state === 'rag' && teamOf(a) === b.team && a.bot && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 12) { const d = Math.hypot(a.x - q.x, a.z - q.z); if (d < fd) { fd = d; f = a; } }
     if (f) { if (fd > 2.5) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, f.x, f.z); b.myOrder = q.order; } } else { q.order = null; b.rev += dt; if (b.rev > (holdN(b.team, 'depot') ? 1.4 : 2.2)) { b.rev = 0; f.hp = 45; f.bot.dead = false; f.bot.revived = true; f.koUntil = 0; standUp(f); f.bot.revived = false; BATTLE.tickets[b.team] = Math.min(120, BATTLE.tickets[b.team] + 0); noteOnce('rev' + simT, 'A medic got someone back on their feet.'); } } return; } }
@@ -4731,7 +4763,8 @@ function fireAt(kind, pt) {                                         // the fire 
 function targetPoint() { if (TAB.aim === 'marker') return FIRE.marker || null; if (TAB.aim === 'hot') { const hs = hotSpot(tabletSide()); return hs ? { x: hs.x, z: hs.z } : null; } return fp.on ? aimPoint() : null; }
 function setFire(kind) { FIRE.armed = kind; const el = $('fireArm'); if (el) { el.hidden = !kind; el.textContent = kind ? 'Armed: ' + ({ flechette: 'flechette strike', mark: 'target marker', cluster: 'cluster bomb', incendiary: 'incendiary bomb', smoke: 'smoke screen', shock: 'shockwave', lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', mortar: 'mortar rounds', arty: 'artillery', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' }[kind]) + '. Tap the map to fire. Esc stands down.' : ''; } }
 function nadeAt(x, y, z, vx, vy, vz, t, team, smoke) { const m = new THREE.Mesh(nadeGeo, nadeMat); scene.add(m); NADES.push({ x, y, z, vx, vy, vz, t, team, mesh: m, smoke: !!smoke }); }
-function throwNadeAt(q, tx, tz) { const T = 1.5, y0 = q.y + 1.5, ty = heightAt(tx, tz) + 0.2; nadeAt(q.x, y0, q.z, (tx - q.x) / T, (ty - y0 + 0.5 * 9.8 * T * T) / T, (tz - q.z) / T, T + 0.5, teamOf(q)); }
+function throwNadeAt(q, tx, tz) { q.thT = 0.9; setTimeout(() => { if (q.state !== 'rag') throwNadeNow(q, tx, tz); }, 420); }
+function throwNadeNow(q, tx, tz) { const T = 1.5, y0 = q.y + 1.5, ty = heightAt(tx, tz) + 0.2; nadeAt(q.x, y0, q.z, (tx - q.x) / T, (ty - y0 + 0.5 * 9.8 * T * T) / T, (tz - q.z) / T, T + 0.5, teamOf(q)); }
 function fpThrowNade() {
   const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag' || (BATTLE.on && BATTLE.down)) return; if (fp.nades == null) fp.nades = 3; if (fp.nades <= 0) { toast('No grenades left.'); return; }
   fp.nades--; fp.cool = 0.9; camera.getWorldDirection(_d); const o = camera.getWorldPosition(new THREE.Vector3()).addScaledVector(_d, 0.6); nadeAt(o.x, o.y, o.z, _d.x * 17 + fp.vx, _d.y * 17 + 3.5, _d.z * 17 + fp.vz, 3.2, BATTLE.team); Snd.fx('wpn_draw', p.x, p.z, { gain: 0.6 }); toast(fp.nades + ' grenade' + (fp.nades === 1 ? '' : 's') + ' left.');
