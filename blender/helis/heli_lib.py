@@ -35,9 +35,9 @@ def defmat(name, color, rough=0.6, metal=0.0, emit=None, emit_str=4.0, alpha=1.0
 
 def std_palette():
     defmat('heli_glass', '#25303a', 0.08, 0.0, alpha=0.5)
-    defmat('heli_interior', '#2b2d29', 0.9)
+    defmat('heli_interior', '#3a3d36', 0.9)
     defmat('heli_seat', '#3a3d34', 0.85)
-    defmat('heli_seat_canvas', '#5a5a42', 0.95)
+    defmat('heli_seat_canvas', '#6e6c4e', 0.95)
     defmat('heli_black', '#1c1d1e', 0.75)
     defmat('heli_panel_line', '#232526', 0.8)
     defmat('heli_metal', '#7b7f83', 0.4, 0.85)

@@ -63,6 +63,7 @@ VIEWS = {
     '3q_rear': dict(d=(-0.8, 0.45, -0.8), ortho=False),
     '3q_low': dict(d=(0.9, 0.05, 0.7), ortho=False),
     'right': dict(d=(-1, 0, 0), ortho=True),
+    'rq': dict(d=(-0.8, 0.45, 0.75), ortho=False),
 }
 def shoot(path, key, root, size=1100, zoom=1.0, target=None):
     ms = [o for o in objs_of(root) if not ('_blur' in o.name)]

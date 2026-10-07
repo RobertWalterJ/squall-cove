@@ -391,7 +391,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>Land</b><span>Drag to raise, lower, flatten or smooth the island</span>
         <b>Sky</b><span>Wind, time of day, rain, fog, air temperature, maps and disasters</span>
         <b>H</b><span>Take the helm of the selected boat, or back to the overview</span>
-        <b>V</b><span>Drop into first person as the selected person, or back out. In first person 1, 2, 3 pick Hands, Rod, Rifle</span>
+        <b>V</b><span>Drop into first person as the selected person, or back out. In first person 1 to 9 pick Hands, Rod and the weapons, 0 a grenade, minus a charge</span>
         <b>P</b><span>Open or close the side pane (Place, Events, Live, Play)</span>
         <b>Mouse wheel</b><span>With a cargo item or boulder chosen in Place, sets the drop height. [ and ] change its size. Shift and wheel zooms</span>
         <b>N</b><span>Next boat</span>
@@ -399,7 +399,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>Delete</b><span>Remove the selected boat or person, or whatever is under the pointer</span>
         <b>Shift + drag</b><span>Box-select people or boats. Double-click picks every one on screen. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it</span>
         <b>People</b><span>Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves</span>
-        <b>First person</b><span>Select a person and press First person. WASD, mouse, Space jump, E use, G drop, Q jump overboard, H helm</span>
+        <b>First person</b><span>Select a person and press First person. WASD, mouse, Space jump, E use, G drop, Q jump overboard, H helm. R reloads, C crouches, P lies prone, T opens the command tablet, B fires placed charges, Y takes over the nearest friend</span>
         <b>1 to 4 · Tab</b><span>Switch tools · next boat</span>
       </div>
       <div class="keys touch-only">
@@ -845,7 +845,7 @@ function roadGrade(x, z, h) {                                                // 
 /* ---- the Port and mountains plan, all in metres. See MAP-PLAN.md */
 const PORT = {
   apron: [-200, 160, 40, 100], slips: [[-110, -94], [10, 26]], moles: [[160, 172, 100, 240], [-216, -204, 100, 205]],
-  pads: [[-250, 250, -80, 28, 4.4, 30], [-345, -155, -225, -125, 4.5, 24], [115, 305, -245, -145, 4.5, 24], [-350, -318, 38, 72, 6.5, 14], [258, 258, -288, -288, 16, 34]],
+  pads: [[-250, 250, -80, 28, 4.4, 30], [-345, -155, -225, -125, 4.5, 24], [115, 305, -245, -145, 4.5, 24], [-350, -318, 38, 72, 6.5, 14], [305, 305, -32, -32, 3.6, 24]],
 };
 const sstepP = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const boxW = (x, z, x0, x1, z0, z1, m) => { const dx = Math.max(x0 - x, 0, x - x1), dz = Math.max(z0 - z, 0, z - z1); return Math.max(0, 1 - Math.hypot(dx, dz) / m); };
@@ -890,8 +890,9 @@ function genTerrain(H, tpl, seedStr) {
       // the coastline: a ragged main island, a western headland, an eastern peninsula, two islets, with the harbour bay carved out of the south
       const ang = Math.atan2(z + 70, x), Rb = 1 + 0.16 * (fbm(Math.cos(ang) * 1.3 + 7, Math.sin(ang) * 1.3 + 3) - 0.5) * 2 + 0.05 * Math.sin(5 * ang + ph) + 0.025 * Math.sin(11 * ang + ph2);
       let sd = (Rb - Math.hypot(x / 290, (z + 70) / 245)) * 245;
-      sd = Math.max(sd, 36 - segD(-285, 15, -352, 70), (1 - Math.hypot((x - 300) / 62, (z + 15) / 105)) * 62, 40 - Math.hypot(x - 40, z - 300), 26 - Math.hypot(x + 210, z - 335));
+      sd = Math.max(sd, 36 - segD(-285, 15, -352, 70), (1 - Math.hypot((x - 300) / 62, (z + 15) / 105)) * 62);
       { const w = boxW(x, z, -215, 175, 100, 420, 46); if (w > 0) sd = sd * (1 - w) + (-(z - 100) - 6) * w; }                    // the bay in front of the quay
+      sd = Math.max(sd, 40 - Math.hypot(x - 40, z - 300), 26 - Math.hypot(x + 210, z - 335));                                  // the two offshore islets, added after the bay is carved (before, the bay flooded them and the south lighthouse stood under 16 m of water)
       let hl = 0.4 + 2.7 * sstepP(0, 24, sd) + 1.3 * sstepP(24, 95, sd); hl += 1.1 * (fbm(x / 190 + 4, z / 190) - 0.5) * 2 * sstepP(30, 110, sd) + 3.6 * (fbm(x / 105 + 17, z / 105 + 5) - 0.5) * 2 * sstepP(45, 130, sd) + 1.2 * (fbm(x / 38 + 3, z / 38 + 9) - 0.5) * 2 * sstepP(30, 90, sd);                              // rolling country
       hl += 7 * sstepP(0, 9, sd) * sstepP(110, 190, x) * (1 - sstepP(-160, -60, z)) * (1 - sstepP(-40, 10, z)) * 0 + 7 * sstepP(0, 10, sd) * sstepP(150, 230, x) * sstepP(-40, -140, z);                                                  // sea cliffs on the north-east coast
       let mt = 62 * bump(-40, -300, 190) + 48 * bump(140, -275, 150) + 40 * bump(-250, -265, 140) + 14 * bump(255, -95, 90); mt *= 0.6 + 0.8 * fbm(x / 95 + 9, z / 95);
@@ -3798,30 +3799,39 @@ function stockYard(st, kinds) {                                          // a wo
   addSand(st.x + 7, st.z + 6, 18, 3, 'rock');                                                                                                 // a heap of loose rock by the fence
 }
 function layPortBuildings() {
-  const put = (id, x, z, rotDeg) => { const itm = BUILD.find(b => b.id === id); if (!itm) return; const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x, z }); buildRot = sv; };
+  const put = (id, x, z, rotDeg) => {
+    const itm = BUILD.find(b => b.id === id); if (!itm) return;
+    if (groundAt(x, z) < 0.2) return;                                    // never stand a building or prop in the sea (place() would also toast "needs dry land" for every one at start-up)
+    if (itm.box && itm.box[0] > 1.2 && itm.box[1] > 1.2) { const r = Math.hypot(itm.box[0], itm.box[2]) + 1.5; clearRect(x - r, x + r, z - r, z + r); }       // no tree grows through a building
+    const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x, z }); buildRot = sv;
+  };
   const clearRect = (x0, x1, z0, z1) => { for (const t of trees) if (!t.dead && t.x > x0 && t.x < x1 && t.z > z0 && t.z < z1) hideTree(t, false); };
   const clearLine = (pts, w) => { for (let i = 0; i < pts.length - 1; i += 2) { const a = pts[i]; for (const t of trees) if (!t.dead && Math.hypot(t.x - a.x, t.z - a.z) < w) hideTree(t, false); } };
   clearRect(-225, 175, 30, 110); for (const [x0, x1, z0, z1] of PORT.pads) clearRect(x0 - 6, x1 + 6, z0 - 6, z1 + 6); for (const { r, pts } of roadDense()) clearLine(pts, r.w / 2 + 3);
   for (const [a, b] of [[-198, -112], [-92, 8], [28, 158]]) pavedGrid('concrete', (a + b) / 2, 70, b - a, 60, 0, 0.06, 8);                  // the apron, in three pieces between the slips
+  for (const [a, b] of PORT.slips) pavedGrid('concrete', (a + b) / 2, 48, b - a + 4, 16, 0, 0.06, 8, undefined, true);                // the strip of quay in front of each slip mouth, which the three apron pieces leave as bare sand
   for (const st of sites) if (st.kind === 'build') layGravel(st.x, st.z, 26, 22, 0);
   buildRoadMesh();
   scatterStains(-155, 70, 80, 50, 6); scatterStains(-45, 70, 80, 50, 6); scatterStains(95, 70, 100, 50, 7);
   // quay
-  put('b-warehouse', -158, 52, 0); put('b-office', 138, 54, 0); put('b-tank', 108, 58, 0); put('b-silo', 80, 52, 0); put('b-crane', -30, 88, -90); put('b-crane', 100, 90, -90); put('b-guard', -72, 44, 0); put('b-workshop', -118, 52, 0);
-  for (const [c, x] of [['red', 40], ['blue', 52], ['green', 64], ['orange', 76]]) put('p-cont-' + c, x, 50, 0);
+  // (the quay lane runs along z = 46, 7 m wide, so its kerb is at z = 49.5: everything south of it is set back so no footprint touches the road)
+  put('b-warehouse', -158, 58, 0); put('b-office', 138, 57, 0); put('b-tank', 108, 60, 0); put('b-silo', 84, 57, 0); put('b-crane', -30, 88, -90); put('b-crane', 100, 90, -90); put('b-guard', -72, 54.5, 0); put('b-workshop', -124, 55, 0);
+  for (const [c, x] of [['red', 40], ['blue', 52], ['green', 64], ['orange', 72]]) put('p-cont-' + c, x, 53.5, 0);
   for (let x = -190; x <= 150; x += 34) { if ((x > -118 && x < -86) || (x > 2 && x < 34)) continue; put('p-lamp', x, 96, 0); }
   put('p-barrier', 0, 20, 90); put('p-sign', 8, 20, 0);
   // the town: houses facing Main Street from both sides
   const types = ['b-house-a', 'b-house-b', 'b-house-c']; let k = 0;
-  for (const x of [-215, -190, -172, -128, -104, -82, -28, -4, 18, 46, 96, 124, 168, 196, 222]) { if (Math.abs(x + 150) < 10 || Math.abs(x + 50) < 10 || Math.abs(x - 70) < 10 || Math.abs(x - 150) < 10 || Math.abs(x + 100) < 14 || Math.abs(x - 10) < 14 || Math.abs(x - 210) < 14) continue; put(types[k++ % 3], x, -58, 0); put(types[k++ % 3], x + 6, -22, 180); }
-  put('b-workshop', -100, -80, 0); put('b-workshop', 20, -80, 0); put('b-office', 100, -80, 0); put('b-guard', 190, -44, 0); put('b-office', -200, -80, 0); put('b-warehouse', 170, -90, 0); put('b-hangar', -40, -110, 0);
+  const crossHouseX = [];                                                  // the houses beside the four cross streets are placed below at cx +/- 14; keep Main Street's own south-side houses clear of them
+  for (const cx of [-150, -50, 70, 150]) crossHouseX.push(cx - 14, cx + 14);
+  for (const x of [-215, -190, -172, -128, -104, -82, -28, -4, 18, 46, 96, 124, 168, 196, 222]) { if (Math.abs(x + 150) < 10 || Math.abs(x + 50) < 10 || Math.abs(x - 70) < 10 || Math.abs(x - 150) < 10 || Math.abs(x + 100) < 14 || Math.abs(x - 10) < 14 || Math.abs(x - 210) < 14 || Math.abs(x + 195) < 11 || Math.abs(x - 112) < 14) continue; put(types[k++ % 3], x, -58, 0); if (!crossHouseX.some(q => Math.abs(x + 6 - q) < 9)) put(types[k++ % 3], x + 6, -22, 180); }
+  put('b-workshop', -100, -80, 0); put('b-workshop', 20, -80, 0); put('b-office', 100, -80, 0); put('b-guard', 190, -50, 0); put('b-office', -214, -80, 0); put('b-warehouse', 170, -90, 0); put('b-hangar', -40, -110, 0);
   for (const cx of [-150, -50, 70, 150]) for (const zz of [-22, -6, 12, 28]) { if (Math.abs(cx + 100) < 16 && zz > -10) continue; put(types[k++ % 3], cx + 14, zz, 90); put(types[k++ % 3], cx - 14, zz, -90); }
   for (let x = -190; x <= 190; x += 30) if (Math.abs(x + 150) > 9 && Math.abs(x + 50) > 9 && Math.abs(x - 70) > 9 && Math.abs(x - 150) > 9) put('p-lamp', x, -33.5, 0);
   for (const [x, z] of [[-60, 20], [-30, 22], [40, 18], [95, 24], [130, 20], [-170, 20], [-110, 22]]) put('p-pallets', x, z, rnd(0, 180));
   for (const yx of [-150, -45, 90]) for (let i = -2; i <= 2; i++) { put('p-fence', yx + i * 4.1, 93, 0); }
   // the camp, the lighthouse headland, the farms' outbuildings are placed with their features
   put('light', 40, 292, 0);
-  put('b-tent', 235, -300, 0); put('b-tent', 255, -292, 0); put('b-tent', 275, -300, 90); put('b-bunker', 262, -270, 0); put('p-barrier', 222, -262, 0);
+  put('b-tent', 282, -44, 0); put('b-tent', 302, -36, 0); put('b-tent', 322, -44, 90); put('b-bunker', 309, -14, 0); put('p-barrier', 268, -28, 90);        // the raider camp on the east peninsula (the old spot, north-east at 258,-288, is open sea on this coastline)
   layFarms(put); ensureProps2().then(() => layScenery(put)).catch(() => { });
 }
 let ambT = 0;
@@ -3840,14 +3850,14 @@ setInterval(() => { if (typeof simT === 'number' && !document.hidden) portSupply
 const FARMS = []; let fieldMat = null;
 function fieldTexture() { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const c = cv.getContext('2d'); c.fillStyle = '#6b4a2e'; c.fillRect(0, 0, 256, 256); for (let i = 0; i < 16; i++) { c.fillStyle = i % 2 ? '#5a3d25' : '#7a5636'; c.fillRect(0, i * 16, 256, 9); } for (let i = 0; i < 1400; i++) { c.fillStyle = 'rgba(' + (60 + Math.random() * 50) + ',' + (40 + Math.random() * 30) + ',24,0.35)'; c.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 function layScenery(put) {                                         // the things that make the island lived in
-  put('x-water_tower', 40, -68, 0); put('x-radio_mast', -300, -230, 0); put('x-fuel_pump', 28, 36, 0); put('x-bus_stop', -80, -30, 0); put('x-bus_stop', 120, -30, 180); put('x-phone_box', 8, -32, 0);
+  put('x-water_tower', 40, -68, 0); put('x-radio_mast', -172, -212, 0); put('x-fuel_pump', 28, 36, 0); put('x-bus_stop', -80, -30, 0); put('x-bus_stop', 120, -30, 180); put('x-phone_box', 3, -32, 0);
   for (const [x, z] of [[-10, -62], [0, -64], [10, -62], [20, -64]]) put('x-market_stall', x, z, 0); for (const [x, z] of [[-30, -62], [-34, -56], [30, -58]]) put('x-bench', x, z, rnd(0, 180));
   put('x-picnic_table', -60, -60, 0); put('x-picnic_table', 60, -58, 0);
   for (const [x, z, r] of [[-120, 94, 0], [-60, 96, 0], [60, 96, 0], [120, 94, 0]]) put('x-life_ring_post', x, z, r);
-  put('x-fishing_hut', -210, 140, 0); put('x-signboard', -176, 40, 0); put('x-signboard', 196, 40, 0); put('x-rowboat_beached', 250, 100, 25); put('x-rowboat_beached', 262, 116, -20); put('x-fishing_hut', 285, 120, 90);
+  put('x-fishing_hut', -210, 140, 0); put('x-signboard', -176, 40, 0); put('x-signboard', 196, 40, 0); put('x-rowboat_beached', 226, 98, 25); put('x-rowboat_beached', 218, 108, -20); put('x-fishing_hut', 206, 100, 90);
   for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, d = rnd(0, 22); put('x-hay_bale', -235 + Math.cos(a) * d - 20, -160 + Math.sin(a) * d * 0.7, rnd(0, 360)); }
-  put('x-barn', -150, -112, 0); put('x-windmill', -150, -190, 0); put('x-barn', 275, -112, 0); put('x-windmill', 290, -226, 0); put('x-hay_rack', -128, -150, 0); put('x-log_pile', -300, -150, 0); put('x-tyre_stack', 30, 98, 0);
-  put('x-tent_large', 232, -318, 0); put('x-camo_net', 262, -310, 0); put('x-tent_large', 288, -300, 90); for (const x of [-325, -330, -340]) put('x-sand_dune_grass', x, 80 + rnd(-10, 10), 0); for (let i = 0; i < 18; i++) put('x-sand_dune_grass', 215 + rnd(0, 80), 70 + rnd(0, 60), rnd(0, 360));
+  put('x-barn', -150, -112, 0); put('x-windmill', -150, -190, 0); put('x-barn', 262, -92, 0); put('x-windmill', 262, -204, 0); put('x-hay_rack', -128, -150, 0); put('x-log_pile', -262, -140, 0); put('x-tyre_stack', 30, 93, 0);
+  put('x-tent_large', 279, -62, 0); put('x-camo_net', 309, -56, 0); put('x-tent_large', 335, -44, 90); for (const x of [-325, -330, -340]) put('x-sand_dune_grass', x, 80 + rnd(-10, 10), 0); for (let i = 0; i < 18; i++) put('x-sand_dune_grass', 196 + rnd(0, 38), 66 + rnd(0, 40), rnd(0, 360));
 }
 function layFarms(put) {
   if (!fieldMat) fieldMat = new THREE.MeshStandardMaterial({ map: fieldTexture(), roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
@@ -3855,7 +3865,7 @@ function layFarms(put) {
     const st = addSite('farm', f.cx, f.cz); if (!st) continue; const fields = [];
     for (let i = 0; i < 2; i++) { const w = f.w * 0.47, cx = f.cx + (i - 0.5) * w * 1.08; const m = pavedGrid('field', cx, f.cz, w, f.d, 0, 0.07, 6, fieldMat.clone(), true); m.material.color.setHex(0xb08a60); fields.push(m); }
     const farm = { st, fields, grow: Math.random() * 0.3, t: 0, cart: { x: f.house[0] + 12, z: f.house[1] + 10 } }; FARMS.push(farm);
-    put('b-house-b', f.house[0], f.house[1], 0); put('b-workshop', f.barn[0], f.barn[1], 0); put('b-silo', f.barn[0] + (f.barn[0] < 0 ? -18 : 18), f.barn[1], 0);
+    put('b-house-b', f.house[0], f.house[1], 0); put('b-workshop', f.barn[0], f.barn[1], 0); put('b-silo', f.barn[0] < 0 ? f.barn[0] - 18 : 262, f.barn[0] < 0 ? f.barn[1] : f.barn[1] - 9, 0);
     for (let k = 0; k < 2; k++) { const q = makePerson(Math.floor(Math.random() * 16), f.cx + rnd(-20, 20), f.cz + rnd(-15, 15)); q.y = standY(q.x, q.z); q.role = 'Farmer'; q.farm = farm; q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'Tending the crops'; farm.farmers = (farm.farmers || []).concat(q); }
     for (let k = 0; k < 3; k++) { const x = farm.cart.x + rnd(-1, 1), z = farm.cart.z + k * 1.4; spawn(CARGO.find(c => c.id === 'sack'), x, standY(x, z) + 0.6, z); }
   }
@@ -3873,7 +3883,7 @@ function updateFarms(dt) {
 function portDay() {                                               // a scripted day so each mechanic can be watched in turn
   const ev = (n) => EVENTS.find(e => e[0] === n)[2];
   ev('Smuggling run')(); later(60, ev('Raider attack')); later(130, ev('Landing party')); later(230, ev('Developer rush')); later(330, ev('Foreign invasion'));
-  toast('The day is running: a smuggler now, raiders at 1 min, a landing at 2 min, developers at 4 min, an invasion at 5 min.');
+  toast('The day is running: a smuggler now, then raiders, a landing party, developers and an invasion in turn.');
 }
 setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); }, 3000);
 
@@ -3926,10 +3936,20 @@ function buildRoadMesh() {
     }
     for (let i = 0; i < n - 1; i++) { const a = i * 2, b = a + 1, c = a + 2, d = a + 3; idx.push(a, b, c, b, d, c); }
     const mk = (uv, mat, ro, lift) => { const p2 = pos.slice(); if (lift) for (let q = 1; q < p2.length; q += 3) p2[q] += lift; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p2, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); const m = new THREE.Mesh(g, mat); m.receiveShadow = true; m.renderOrder = ro; scene.add(m); pavedMeshes.push(m); };
-    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03); for (let q = 0; q < pts.length; q += 2) maskGrass(pts[q].x, pts[q].z, r.w + 1, 4.5, 0);
+    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03); for (let q = 0; q < pts.length; q += 2) maskGrass(pts[q].x, pts[q].z, r.w + 2, r.w + 2, 0);       // a square, so an east-west road (Main Street is 9 m wide) is covered across its full width, not just the middle 4.5 m
     for (const p of pts) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i2 = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i2 >= 0 && j >= 0 && i2 < 64 && j < 64) ROADCELL[i2 * 64 + j] = 1; }
   }
-  for (const [x, z] of ROAD_JUNCTIONS) pavedGrid('asphalt', x, z, 11, 11, Math.PI / 4, 0.055, 8);
+  // each junction gets one clean asphalt patch where the side road meets the through road. It sits above the road markings, so the side road's centre and edge lines stop at the kerb instead of striping across the through road, and the through road's edge line does not run across the mouth of the side road. (The old 11 m diamond poked its corners out onto the grass.)
+  const jm = PAVE.asphalt.clone(); jm.polygonOffsetFactor = -9; jm.polygonOffsetUnits = -9; const dense = roadDense();
+  for (const [jx, jz] of ROAD_JUNCTIONS) {
+    let side = null, hwT = 0;
+    for (const r of ROADS) { const a = r.pts[0], b = r.pts[r.pts.length - 1]; if (Math.hypot(a[0] - jx, a[1] - jz) < 1) side = { r, o: r.pts[1] }; else if (Math.hypot(b[0] - jx, b[1] - jz) < 1) side = { r, o: r.pts[r.pts.length - 2] }; }
+    if (!side) continue;
+    for (const { r, pts } of dense) if (r !== side.r && pts.some(p => Math.hypot(p.x - jx, p.z - jz) < 1.5)) hwT = Math.max(hwT, r.w / 2);
+    if (!hwT) continue;
+    const dx = side.o[0] - jx, dz = side.o[1] - jz, dl = Math.hypot(dx, dz) || 1, ux = dx / dl, uz = dz / dl;
+    pavedGrid('asphalt', jx + ux * 0.55, jz + uz * 0.55, 2 * hwT - 0.1, side.r.w, Math.atan2(dz, dx), 0.1, 8, jm);
+  }
 }
 const ROADCELL = new Uint8Array(64 * 64);
 function paveRoad(pts, w, marks) {                                                      // an asphalt strip along a polyline, with a centre line
@@ -3951,7 +3971,7 @@ const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['ri
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
 function kitButtons(host, after) { const h = document.createElement('div'); h.className = 'sChips'; for (const k in LOADOUTS) { const b = document.createElement('button'); b.type = 'button'; b.textContent = LOADOUTS[k].name; b.title = LOADOUTS[k].note; b.setAttribute('aria-pressed', String((BATTLE.kit || 'assault') === k)); b.addEventListener('click', () => { BATTLE.kit = k; after(); }); h.append(b); } host.append(h); const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Loadout: ' + LOADOUTS[BATTLE.kit || 'assault'].name + ', ' + LOADOUTS[BATTLE.kit || 'assault'].note + '.'; host.append(n); }
 const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, kills: { blue: 0, red: 0 }, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: 'blue', plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow' };
-const BPT_DEFS = [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -40, -245, null], ['Landing beach', 250, 90, 'red'], ['Raider camp', 258, -288, 'red']];
+const BPT_DEFS = [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -68, -228, null], ['Landing beach', 228, 84, 'red'], ['Raider camp', 305, -32, 'red']];
 const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red' : null), otherTeam = (t) => t === 'blue' ? 'red' : 'blue';
 const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
 const tracers = (() => { const N = 160, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
@@ -3969,19 +3989,19 @@ function battleStart() {
   if (MAP.t !== 'port') { toast('Battles are played on the Port and mountains map. Opening it.'); startMap('port', 'port'); return; }
   ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
-  for (const bt of boats.slice()) if (boatCrew(bt).length === 0) { }
-  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag); ensureProps2().then(() => { if (BATTLE.on) layCover(); }).catch(() => { }); ensureAir().then(() => { if (BATTLE.on) layAA(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
+  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); ensureAir().then(() => { if (BATTLE.on && BATTLE.gen === gen) layAA(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
   document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle: Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
   if (BATTLE.team === 'red') for (const q of people) if (q.bot) { /* teams are fixed; the player joins the red side below */ }
 }
 function layCover() {
   const itm = (id) => BUILD.find(b => b.id === id); BATTLE.coverStart = props.length;
-  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
+  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2 || groundAt(x, z) < 0.3) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
 function battleStop(quiet) { removeCover(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
+  BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
 const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle', 'shotgun', 'rifle'];
@@ -4097,7 +4117,7 @@ function botThink(q, dt) {
 
 /* ---- reinforcements and air support: paratroop waves, boat landings, a Griffon with a door gunner, and a gunship with a minigun and a howitzer */
 const AIR = { list: [], chutes: [], shells: [], cd: { blue: { gr: 0, gs: 0, pa: 0, bt: 0, st: 0, ar: 0 }, red: { gr: 0, gs: 0, pa: 0, bt: 0, st: 0, ar: 0 } }, off: { blue: {}, red: {} }, autoT: 10 };
-let airGP = null; const ensureAir = () => airGP || (airGP = loadGLB('air').then(g => { D.glb.air = g; }).catch(e => { airGP = null; }));
+let airGP = null; const ensureAir = () => airGP || (airGP = Promise.all([loadGLB('air').then(g => { D.glb.air = g; }), loadGLB('helis').then(g => { D.glb.helis = g; g.scene.traverse(o => { if (o.isMesh && o.material && /blur/.test(o.material.name || '')) o.material.depthWrite = false; }); })]).catch(e => { airGP = null; }));
 function airNode(name, fb) { if (D.glb.air) { const n = nodeByName(D.glb.air, name); if (n) return shadowAll(n.clone()); } return fb(); }
 const mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, metalness: 0.1 });
 function box3(w, h, d, c, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.position.set(x, y, z); m.castShadow = true; return m; }
@@ -4114,13 +4134,13 @@ function teamMark(g, team, span, len, yLow, yHigh) {                // a big col
 }
 function airSpawn(team, kind, center) {
   const hs = center || hotSpot(team); if (!hs) return null; const a = Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship';
-  const mesh = gun ? airNode('gunship', stubGunship) : airNode('griffon', stubGriffon); g.add(mesh); if (gun) teamMark(g, team, 5, 11, -2.1, 2.5); else teamMark(g, team, 2.4, 4, 0.55, 3.2); scene.add(g);
+  const hm = ['griffon', 'griffon', 'huey', 'blackhawk'][Math.floor(Math.random() * 4)], hn = !gun && D.glb.helis ? nodeByName(D.glb.helis, hm) : null, mesh = gun ? airNode('gunship', stubGunship) : hn ? shadowAll(hn.clone()) : airNode('griffon', stubGriffon); g.add(mesh); if (gun) teamMark(g, team, 5, 11, -2.1, 2.5); else teamMark(g, team, 2.4, 4, 0.55, 3.2); scene.add(g);
   const u = { manual: !!center, kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? 130 : 45, hd: 0, tgt: hs, hp: gun ? 380 : 120, hpMax: gun ? 380 : 120, rad: gun ? 18 : 6, life: gun ? 85 : 70, orbit: gun ? 95 : 42, spd: gun ? 42 : 24, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false };
-  u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nodeByName({ scene: g }, 'griffon_mainrotor'); u.tr = nodeByName({ scene: g }, 'griffon_tailrotor'); u.props = [0, 1, 2, 3].map(i => nodeByName({ scene: g }, 'gunship_prop_' + i)).filter(Boolean);
+  u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_mainrotor'); u.tr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_tailrotor'); u.props = [0, 1, 2, 3].map(i => nodeByName({ scene: g }, 'gunship_prop_' + i)).filter(Boolean);
   AIR.list.push(u); return u;
 }
 function callAir(team, kind) {
-  const k = kind === 'griffon' ? 'gr' : 'gs', c = AIR.cd[team]; if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c[k] > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c[k]) + ' more seconds'); return false; }
+  const k = kind === 'griffon' ? 'gr' : 'gs', c = AIR.cd[team]; if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c[k] > 0) { if (team === BATTLE.team) toast('The ' + (kind === 'griffon' ? 'Griffon' : 'gunship') + ' is not ready yet.'); return false; }
   ensureAir(); const u = airSpawn(team, kind); if (!u) return false; c[k] = kind === 'griffon' ? 70 : 140; if (team === BATTLE.team) toast(kind === 'griffon' ? 'A Griffon is on its way. The door gunner will cover your people.' : 'The gunship is inbound. Keep your people clear of the shell impacts.'); else noteOnce('air' + kind + Math.floor(simT / 30), 'The ' + BATTLE.redKind + ' have air support coming in.'); return true;
 }
 function airFire(u, dt) {
@@ -4194,14 +4214,14 @@ function updateAir(dt) {
     if (q.y <= gy + 0.02) { q.hoist = null; scene.remove(c.mesh); AIR.chutes.splice(i, 1); Snd.fx('foley_land_soft', q.x, q.z, { gain: 0.6 }); } }
 }
 function paraWave(team, n) {
-  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.pa > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c.pa) + ' more seconds'); return false; } c.pa = 90;
+  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.pa > 0) { if (team === BATTLE.team) toast('The paratroopers are not ready yet.'); return false; } c.pa = 90;
   const hs = BATTLE.points.filter(p => p.owner === team), zone = hs.length ? hs[Math.floor(Math.random() * hs.length)] : spawnPointOf(team), a = Math.random() * 6.283; let made = 0;
   for (let i = 0; i < n && people.length < MAX_PEOPLE && BATTLE.tickets[team] > 6; i++) { const q = spawnBot(team, false, { x: zone.x + Math.cos(a) * 30 + rnd(-14, 14), z: zone.z + Math.sin(a) * 30 + rnd(-14, 14) }); if (!q) break; BATTLE.tickets[team] -= 1; made++;
     q.hoist = { chute: true }; const m = airNode('parachute', stubChute); scene.add(m); q.y = 90 + rnd(0, 40); AIR.chutes.push({ q, mesh: m, y: q.y, vy: 0 }); }
   if (made) { if (team === BATTLE.team) toast(made + ' paratroopers are dropping in.'); else noteOnce('para' + Math.floor(simT / 30), 'Parachutes over the ridge: ' + BATTLE.redKind + ' reinforcements.'); } ensureAir(); return made > 0;
 }
 function boatWave(team) {
-  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.bt > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c.bt) + ' more seconds'); return false; } c.bt = 120;
+  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.bt > 0) { if (team === BATTLE.team) toast('The landing boats are not ready yet.'); return false; } c.bt = 120;
   return landingParty(team, 8, 2, team === 'red' && BATTLE.redKind === 'Invaders' ? 'invasion' : 'raid');
 }
 function airAuto(dt) {
@@ -4240,7 +4260,7 @@ function gunneryFire(bt, pt) {
   if (!bt || !bt.mounts || !bt.mounts.length || bt.sunk) { toast('This ship has no guns.'); return; }
   const tgt = { body: { position: { x: pt.x, y: (pt.y || 0) - 1.6, z: pt.z }, velocity: { x: 0, y: 0, z: 0 } } }; let fired = 0, wait = 0;
   for (const m of bt.mounts) { if (m.k === 'mg') { for (let i = 0; i < 6; i++) MANQ.push({ bt, m, tgt, t: i * 0.11 }); fired++; } else if (m.cd <= 0) { fireShot(bt, m, tgt); m.cd = m.w.reload; fired++; } else wait = Math.max(wait, m.cd); if (m.mesh) m.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(pt.z - bt.body.position.z), pt.x - bt.body.position.x) - boatYaw(bt)); }
-  if (!fired && wait) toast('Reloading. ' + Math.ceil(wait) + ' seconds.');
+  if (!fired && wait) toast('The guns are reloading.');
 }
 function updateManQ(dt) { for (let i = MANQ.length - 1; i >= 0; i--) { const j = MANQ[i]; j.t -= dt; if (j.t > 0) continue; MANQ.splice(i, 1); if (!j.bt.sunk && boats.includes(j.bt)) fireShot(j.bt, j.m, j.tgt); } }
 
@@ -4278,7 +4298,7 @@ function fpPlaceC4() {
   const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag') return; if (fp.c4 == null) fp.c4 = 3; if (fp.c4 <= 0) { toast('No charges left.'); return; } const h = fpAim(7, 0); if (!h.pt) { toast('Aim at the ground or a wall within a few metres.'); return; }
   fp.c4--; fp.cool = 0.7; const m = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.1, 0.18), new THREE.MeshStandardMaterial({ color: 0x5a5f4a, emissive: 0x330000 })); m.position.set(h.pt.x, h.pt.y + 0.06, h.pt.z); scene.add(m); CHARGES.push({ x: h.pt.x, y: h.pt.y, z: h.pt.z, mesh: m }); toast('Charge placed. ' + fp.c4 + ' left. Press B to detonate.');
 }
-function detonateC4() { if (!CHARGES.length) { toast('No charges placed.'); return; } for (const c of CHARGES.splice(0)) { scene.remove(c.mesh); blast(c.x, c.y, c.z, { R: 11, dmg: 230, crater: 4, depth: 1.1, owner: null }); } }
+function detonateC4() { if (!CHARGES.length) { toast('No charges placed.'); return; } for (const c of CHARGES.splice(0)) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); blast(c.x, c.y, c.z, { R: 11, dmg: 230, crater: 4, depth: 1.1, owner: null }); } }
 function updateBombs(dt) {
   for (let i = BOMBS.length - 1; i >= 0; i--) { const b = BOMBS[i]; b.vy -= b.g * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; if (b.trail || Math.random() < 0.3) { puffSmoke(b.x, b.y, b.z, 1, false, 0.6); fxG.emit(b.x, b.y, b.z, 0, 0, 0, 0.1, 1.4, -0.5, [1, 0.7, 0.3, 0.9]); }
     if (b.y <= Math.max(heightAt(b.x, b.z), waveH(b.x, b.z, simT) - 0.2)) { BOMBS.splice(i, 1); blast(b.x, b.y, b.z, { R: b.R, dmg: b.dmg, crater: b.crater, depth: b.depth, owner: null }); } }
