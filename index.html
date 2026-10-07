@@ -1970,7 +1970,8 @@ const BUILD = [
   { cat: 'Island', id: 'pine', name: 'Pine', note: 'tree', node: 'pine2', glb: 'nature', sw: '#2f5d46', land: true },
   { cat: 'Island', id: 'broad', name: 'Oak', note: 'tree', node: 'broadleaf1', glb: 'nature', sw: '#5c7a44', land: true },
   { cat: 'Island', id: 'palm', name: 'Palm', note: 'tree', node: 'palm1', glb: 'nature', sw: '#8a9a44', land: true },
-  { cat: 'Island', id: 'rockb', name: 'Boulder', note: 'rock', node: 'boulder2', glb: 'nature', sw: '#8a8780', collide: 1.2 },
+  { cat: 'Island', id: 'c-boulder', name: 'Boulder', note: 'real rock, drops from height (wheel) and size ([ ])', cargo: CARGO.findIndex(c => c.id === 'rock'), sw: '#8a8780' },
+  { cat: 'Island', id: 'rockb', name: 'Fixed boulder', note: 'scenery, never moves', node: 'boulder2', glb: 'nature', sw: '#8a8780', collide: 1.2 },
   { cat: 'Island', id: 'light', name: 'Lighthouse', note: 'landmark', node: 'lighthouse', glb: 'harbour', sw: '#efe6cf', land: true, collide: 2.1 },
   { cat: 'Island', id: 'buoy', name: 'Race mark', note: 'buoy', buoy: 'buoy0', sw: '#e3a948' },
   { cat: 'People', id: 'person', name: 'Person', note: 'walks, topples', person: 1, sw: '#7d9fb3' },
@@ -1984,16 +1985,23 @@ const BUILD = [
   { cat: 'People', id: 'p-fire', name: 'Firefighter', note: 'puts out fires', person: 1, role: 'Firefighter', sw: '#d53b2e' },
   { cat: 'People', id: 'p-forest', name: 'Forester', note: 'plants and replants trees', person: 1, role: 'Forester', sw: '#4f9a3a' },
   { cat: 'People', id: 'p-build', name: 'Builder', note: 'builds at build sites', person: 1, role: 'Builder', sw: '#c9743a' },
-  { cat: 'Sides', id: 's-guard', name: 'Guard (blue)', note: 'defends yards and sites, stops raiders', person: 1, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-guard5', name: 'Guard squad (5)', note: 'five blue guards', person: 5, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-raider', name: 'Raider (red)', note: 'raids yards, fights guards', person: 1, role: 'Raider', side: 'red', sw: '#c0392b' },
-  { cat: 'Sides', id: 's-raider5', name: 'Raider band (5)', note: 'five red raiders', person: 5, role: 'Raider', side: 'red', sw: '#c0392b' },
-  { cat: 'Sides', id: 's-bboat-s', name: 'Blue patrol boat', note: 'armed, defends the cove', boat: 'bay', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-bboat-l', name: 'Blue patrol cutter', note: 'armed, bigger', boat: 'hero', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-swatrib', name: 'Response RIB (blue)', note: 'fast, one light gun', boat: 'swatrib', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-landing', name: 'Foreign landing craft', note: 'beaches and lands troops', boat: 'landing', side: 'red', sw: '#4a5a3a' },
-  { cat: 'Sides', id: 's-rboat-s', name: 'Red raider runner', note: 'fast, one light gun', boat: 'runner', side: 'red', sw: '#c0392b' },
-  { cat: 'Sides', id: 's-rboat-l', name: 'Red raider gunboat', note: 'fast, two light guns', boat: 'gunboat', side: 'red', sw: '#c0392b' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-guard', name: 'Port guard', note: 'defends yards and sites, stops raiders', person: 1, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-guard5', name: 'Port guard squad (5)', note: 'five guards', person: 5, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-swat5', name: 'SWAT team (5)', note: 'black gear, hunts the criminals', person: 5, role: 'SWAT', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-bboat-s', name: 'Coast Guard Bay boat', note: 'armed lifeboat', boat: 'bay', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-bboat-l', name: 'Coast Guard Hero cutter', note: 'armed patrol cutter', boat: 'hero', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Port and Coast Guard (blue)', id: 's-swatrib', name: 'Response RIB', note: 'fast, one light gun', boat: 'swatrib', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Factions', grp: 'Raiders (red)', id: 's-raider', name: 'Raider', note: 'raids yards, fights guards', person: 1, role: 'Raider', side: 'red', sw: '#c0392b' },
+  { cat: 'Factions', grp: 'Raiders (red)', id: 's-raider5', name: 'Raider band (5)', note: 'five raiders', person: 5, role: 'Raider', side: 'red', sw: '#c0392b' },
+  { cat: 'Factions', grp: 'Raiders (red)', id: 's-rboat-s', name: 'Raider runner', note: 'fast, one light gun, robs sailboats', boat: 'runner', side: 'red', sw: '#c0392b' },
+  { cat: 'Factions', grp: 'Raiders (red)', id: 's-rboat-l', name: 'Raider gunboat', note: 'fast, two light guns', boat: 'gunboat', side: 'red', sw: '#c0392b' },
+  { cat: 'Factions', grp: 'Foreign invaders (red)', id: 's-invader', name: 'Invader soldier', note: 'olive fatigues, pushes inland', person: 1, role: 'Invader', side: 'red', sw: '#4a5a3a' },
+  { cat: 'Factions', grp: 'Foreign invaders (red)', id: 's-invader5', name: 'Invader squad (5)', note: 'five soldiers', person: 5, role: 'Invader', side: 'red', sw: '#4a5a3a' },
+  { cat: 'Factions', grp: 'Foreign invaders (red)', id: 's-landing', name: 'Landing craft', note: 'beaches and lands troops', boat: 'landing', side: 'red', sw: '#4a5a3a' },
+  { cat: 'Factions', grp: 'Smugglers', id: 'f-smug', name: 'Smuggler run', note: 'a disguised boat lands drums on a quiet beach', fac: 'smuggler', sw: '#7a6a52' },
+  { cat: 'Factions', grp: 'Developers', id: 'f-dev', name: 'Developer crew', note: 'rival builders: their own sites, the same stone', fac: 'dev', sw: '#3c5a8f' },
+  { cat: 'Factions', grp: 'Traders and watchers', id: 'f-salv', name: 'Salvage tug', note: 'collects floating cargo and sells it to the yard', fac: 'salvage', sw: '#d9822b' },
+  { cat: 'Factions', grp: 'Traders and watchers', id: 'f-watch', name: 'Informant', note: 'stands and watches, reports what they see', fac: 'informant', sw: '#c9b46a' },
   { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
   { cat: 'Vehicles', id: 'v-firetruck', name: 'Fire truck', note: 'puts out fires', veh: 'firetruck', sw: '#c83228' },
   { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
@@ -2002,10 +2010,6 @@ const BUILD = [
   { cat: 'Vehicles', id: 'v-tractor', name: 'Tractor', note: 'plants trees', veh: 'tractor', sw: '#3f8f3a' },
   { cat: 'Vehicles', id: 'v-patrol', name: 'Port patrol', note: 'catches couriers', veh: 'patrolcar', sw: '#e8ecef' },
   { cat: 'Vehicles', id: 'v-quad', name: 'Quad bike', note: 'patrols and reports', veh: 'quadbike', sw: '#c83228' },
-  { cat: 'Factions', id: 'f-smug', name: 'Smuggler run', note: 'a disguised boat lands drums on a quiet beach', fac: 'smuggler', sw: '#7a6a52' },
-  { cat: 'Factions', id: 'f-salv', name: 'Salvage tug', note: 'collects floating cargo and sells it to the yard', fac: 'salvage', sw: '#d9822b' },
-  { cat: 'Factions', id: 'f-dev', name: 'Developer crew', note: 'rival builders: their own sites, the same stone', fac: 'dev', sw: '#3c5a8f' },
-  { cat: 'Factions', id: 'f-watch', name: 'Informant', note: 'stands and watches, reports what they see', fac: 'informant', sw: '#c9b46a' },
   { cat: 'Sites', id: 'site-plant', name: 'Plant site', note: 'foresters plant here', site: 'plant', sw: '#5fbf4a' },
   { cat: 'Sites', id: 'site-build', name: 'Build site', note: 'builders raise a stone circle', site: 'build', sw: '#e0883a' },
   { cat: 'Sites', id: 'site-yard', name: 'Cargo yard', note: 'dock workers stack cargo here', site: 'yard', sw: '#a8794a' },
@@ -2039,7 +2043,7 @@ const BUILD = [
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
 let dropH = 1.3, dropSize = 1;                                   // things dropped from the Place tool: how high above the ground or sea, and how big (scale of the model)
-const isDropItem = (it) => !!it && it.cargo !== undefined;
+const isDropItem = (it) => !!it && (it.cargo !== undefined || ['sandpile', 'earthpile', 'rockdump', 'scrap'].includes(it.id));
 let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false, multiTap = false, lpTimer = 0, buildGroup = 'things';
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
@@ -3425,15 +3429,15 @@ function fillPlace(list) {
   for (const c of PLACE_CATS) {
     const items = []; BUILD.forEach((it, i) => { if (!it.erase && c.test(it) && (!sideQ || (it.name + ' ' + (it.note || '')).toLowerCase().includes(sideQ))) items.push([it, i]); }); if (!items.length) continue; any = true;
     const h = document.createElement('div'); h.className = 'sCat'; h.textContent = c.name; list.append(h);
-    for (const [it, i] of items) { const b = mkB('', 'sItem', () => { buildSel = i; placeCat = c.id; setTool('build'); fillPlace(list); if (matchMedia('(max-width: 800px)').matches) setSide(false); }, { 'aria-pressed': String(tool === 'build' && buildSel === i) }); const sw = document.createElement('i'); sw.style.background = it.sw || '#888'; const t = document.createElement('span'); t.textContent = it.name; if (it.note) { const sm = document.createElement('small'); sm.textContent = (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note; t.append(sm); } b.append(sw, t); list.append(b); }
+    let lastGrp = null; for (const [it, i] of items) { if (it.grp && it.grp !== lastGrp) { lastGrp = it.grp; const gh = document.createElement('div'); gh.className = 'sNote'; gh.style.fontWeight = '700'; gh.textContent = it.grp; list.append(gh); } const b = mkB('', 'sItem', () => { buildSel = i; placeCat = c.id; setTool('build'); fillPlace(list); if (matchMedia('(max-width: 800px)').matches) setSide(false); }, { 'aria-pressed': String(tool === 'build' && buildSel === i) }); const sw = document.createElement('i'); sw.style.background = it.sw || '#888'; const t = document.createElement('span'); t.textContent = it.name; if (it.note) { const sm = document.createElement('small'); sm.textContent = (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note; t.append(sm); } b.append(sw, t); list.append(b); }
   }
   const ei = BUILD.findIndex(it => it.erase); if (ei >= 0 && !sideQ) { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Other'; list.append(h, mkB('Remove things (tap to erase)', 'sItem', () => { buildSel = ei; setTool('build'); })); }
   if (!any) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing matches.'; list.append(n); }
 }
 function collectLive() {
   const rows = [], want = (k) => liveF === 'all' || liveF === k;
-  if (want('people')) for (const p of people) rows.push({ k: 'person', ref: p, label: (p.role || 'Person') + (p.side ? ' (' + p.side + ')' : ''), sub: (() => { const a = personStatus1(p), b = p.ag && p.ag.intent ? p.ag.intent : ''; return b && !a.includes(b) ? a + ' · ' + b : a; })(), x: p.x, z: p.z });
-  if (want('boats')) for (const b of boats) rows.push({ k: 'boat', ref: b, label: b.sp.name + (isHostile(b) ? ' (hostile)' : b.blue ? ' (blue)' : ''), sub: (b.status || '') + (b.hpMax ? ' · hull ' + hullPct(b) + '%' : ''), x: b.body.position.x, z: b.body.position.z });
+  if (want('people')) for (const p of people) rows.push({ k: 'person', ref: p, label: (p.role || 'Person') + (p.side ? ' (' + (p.role === 'Invader' ? 'Invaders' : p.side === 'red' ? 'Raiders' : 'Port') + ')' : ''), sub: (() => { const a = personStatus1(p), b = p.ag && p.ag.intent ? p.ag.intent : ''; return b && !a.includes(b) ? a + ' · ' + b : a; })(), x: p.x, z: p.z });
+  if (want('boats')) for (const b of boats) rows.push({ k: 'boat', ref: b, label: b.sp.name + (isHostile(b) ? (b.key === 'landing' || (b.landing && b.landing.role === 'Invader') ? ' (Invaders)' : b.threat === 'smuggler' ? ' (Smugglers)' : ' (Raiders)') : b.blue ? ' (Port)' : ''), sub: (b.status || '') + (b.hpMax ? ' · hull ' + hullPct(b) + '%' : ''), x: b.body.position.x, z: b.body.position.z });
   if (want('vehicles')) for (const v of VEHS) rows.push({ k: 'veh', ref: v, label: v.sp.name, sub: v.task || 'idle', x: v.x, z: v.z });
   if (want('things')) { const g = new Map(); for (const o of objects) { if (o.gone) continue; const a = g.get(o.c.name) || g.set(o.c.name, []).get(o.c.name); a.push(o); } for (const [n, a] of g) rows.push({ k: 'things', ref: a, label: n + (a.length > 1 ? ' x' + a.length : ''), sub: Math.round(a[0].body.mass) + ' kg each', x: a[0].body.position.x, z: a[0].body.position.z }); }
   return rows.slice(0, 160);
@@ -3838,7 +3842,6 @@ const PLACE_CATS = [
   { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
   { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
   { id: 'vehicles', name: 'Vehicles', test: it => it.cat === 'Vehicles' },
-  { id: 'sides', name: 'Sides', test: it => it.cat === 'Sides' },
   { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
   { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
   { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump', 'rockfount', 'scrap', 'scrapfount'].includes(it.id) },
@@ -3881,6 +3884,7 @@ function renderTray(force = true) {
       if (mode === 'helm' && it.cargo === undefined) return;
       if (mode !== 'helm' && (it.erase || !curCat.test(it))) return;
       if (mode !== 'helm' && curCat.id === 'boats' && it.cat !== cat) { cat = it.cat; tray.append(sep(cat === 'Coast Guard' ? 'Coast Guard' : 'Yachts and tugs')); }
+      if (mode !== 'helm' && curCat.id === 'factions' && it.grp !== cat) { cat = it.grp; tray.append(sep(cat)); }
       tray.append(chip(it.name, (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note, it.sw, i === buildSel, () => { buildSel = i; renderTray(); if (it.hold) noteOnce('holdtip', 'Press and hold on the map to apply ' + it.name.toLowerCase() + '. Drag while holding to move it. A quick tap gives one puff.'); }));
     });
     if (mode !== 'helm') { const ei = BUILD.findIndex(it => it.erase); tray.append(sep('')); tray.append(chip('Remove', 'tap a thing', '#d64b2c', buildSel === ei, () => { buildSel = ei; renderTray(); }, 'chip mini')); }
@@ -5114,11 +5118,11 @@ function spawnGrain(x, y, z, vx, vy, vz, vol, kind, size) {
   const n = ng++, c = GCOL[kind] || GCOL[1], sh = 0.85 + Math.random() * 0.3; gP[n * 3] = x; gP[n * 3 + 1] = y; gP[n * 3 + 2] = z; gV[n * 3] = vx; gV[n * 3 + 1] = vy; gV[n * 3 + 2] = vz; gM[n] = vol; gK[n] = kind; gS[n] = size || 0.2; gB[n] = 0;
   const ca = grainMesh.instanceColor.array; ca[n * 3] = c[0] * sh; ca[n * 3 + 1] = c[1] * sh; ca[n * 3 + 2] = c[2] * sh;
 }
-function dumpGrains(x, z, vol, R, kind) { const n = Math.min(300, Math.round(vol * 1.5 + 40)); grainQ.push({ x, z, R, kind, v: vol / n, left: n }); }
+function dumpGrains(x, z, vol, R, kind) { const n = Math.min(300, Math.round(vol * 1.5 + 40)); grainQ.push({ x, z, R, kind, v: vol / n, left: n, h: Math.max(3, dropH > 2 ? dropH : 14) }); }
 function updateGrains(dt) {
   for (const q of grainQ) {                                                                    // a dump pours over a second or two instead of appearing
     const emit = Math.min(q.left, Math.max(1, Math.round(240 * dt)));
-    for (let e = 0; e < emit; e++) { const a = Math.random() * 6.283, r = q.R * Math.sqrt(Math.random()), lx = q.x + Math.cos(a) * r, lz = q.z + Math.sin(a) * r, y0 = Math.max(heightAt(lx, lz), 0) + 14 + Math.random() * 9, T = Math.sqrt(2 * 14 / 9.8) + 0.4, sx = q.x + rnd(-0.8, 0.8), sz = q.z + rnd(-0.8, 0.8); spawnGrain(sx, y0, sz, (lx - sx) / T, 0, (lz - sz) / T, q.v, q.kind, 0.16 + Math.random() * 0.14); }
+    for (let e = 0; e < emit; e++) { const a = Math.random() * 6.283, r = q.R * Math.sqrt(Math.random()), lx = q.x + Math.cos(a) * r, lz = q.z + Math.sin(a) * r, y0 = Math.max(heightAt(lx, lz), 0) + q.h + Math.random() * Math.min(9, q.h * 0.5), T = Math.sqrt(2 * q.h / 9.8) + 0.4, sx = q.x + rnd(-0.8, 0.8), sz = q.z + rnd(-0.8, 0.8); spawnGrain(sx, y0, sz, (lx - sx) / T, 0, (lz - sz) / T, q.v, q.kind, 0.16 + Math.random() * 0.14); }
     q.left -= emit;
   }
   for (let i = grainQ.length - 1; i >= 0; i--) if (grainQ[i].left <= 0) grainQ.splice(i, 1);
@@ -6000,7 +6004,7 @@ let treeLavaT = 0, plantT = 0;
    Smugglers do not arrive as pirates: they come as an ordinary civilian boat with a fisher's crew, toss sealed drums ashore at the quietest stretch of coast, and send a courier dressed as a dock worker to hide them.
    What gives them away is what people SEE (a drop in view of a fisher, a photographer, a hiker), what those people REPORT (informants take time to walk it to the Coast Guard, and a hidden smuggler agent can sell a false tip),
    and what the Coast Guard CHECKS (spot inspections that sometimes stop an innocent boat and cost the public's trust). Dock workers hauling loose cargo can pick the drums up and seize them by accident. */
-const FACTIONS = { 'Civilian': { 'Coast Guard': 0.6, 'Port': 0.5, 'Raiders': -0.9, 'Smugglers': 0 }, 'Coast Guard': { 'Civilian': 0.6, 'Port': 0.7, 'Raiders': -1, 'Smugglers': -0.9 },
+const FACTIONS = { 'Invaders': { 'Civilian': -0.8, 'Coast Guard': -1, 'Port': -1, 'Raiders': 0.2, 'Smugglers': 0, 'Developers': -0.5 }, 'Developers': { 'Civilian': 0.3, 'Coast Guard': 0.2, 'Port': -0.2, 'Raiders': -0.6, 'Smugglers': -0.2, 'Invaders': -0.5 }, 'Civilian': { 'Coast Guard': 0.6, 'Port': 0.5, 'Raiders': -0.9, 'Smugglers': 0, 'Invaders': -0.8 }, 'Coast Guard': { 'Civilian': 0.6, 'Port': 0.7, 'Raiders': -1, 'Smugglers': -0.9 },
   'Port': { 'Civilian': 0.5, 'Coast Guard': 0.7, 'Raiders': -0.8, 'Smugglers': -0.5 }, 'Raiders': { 'Civilian': -0.9, 'Coast Guard': -1, 'Port': -0.8, 'Smugglers': -0.3 }, 'Smugglers': { 'Civilian': 0, 'Coast Guard': -0.9, 'Port': -0.5, 'Raiders': -0.3 } };
 const rel = (a, b) => a === b ? 1 : ((FACTIONS[a] || {})[b] ?? 0);
 const ECON = { trust: 0.7, rumours: [], events: [], stashed: 0, seized: 0, falseTips: 0, falsePos: 0, unmasked: 0 };

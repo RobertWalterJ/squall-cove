@@ -75,7 +75,8 @@
   "pass": true,
   "lines": [
    "analytical breaking tip load = (sigma_f*S - M_selfweight)/L = 8298.0 N; first break at 8464.0 N (2.00 %)",
-   "bars broken 9, separate connected pieces 2 (sizes 5,40), tip chunk fell to y=-309.06 m from 5 m"
+   "bars broken 9, separate connected pieces 2 (sizes 5,40), tip chunk fell to y=-309.06 m from 5 m",
+   "pieces() API: total mass 7.200 kg vs beam 7.200 kg; free piece 40 particles, mass 6.75 kg; after removePiece(): 1 piece(s) left in the world"
   ],
   "data": {
    "breakLoad": 8463.977680000002,
@@ -108,7 +109,7 @@
   "name": "(extra) determinism: identical seed gives bit-identical state",
   "pass": true,
   "lines": [
-   "checksum run A 5aba4e6f  run B 5aba4e6f  (240 frames, 136 particles, 211 breaks)"
+   "checksum run A f1d10c71  run B f1d10c71  (240 frames, 136 particles, 131 breaks)"
   ],
   "data": {}
  },
@@ -116,25 +117,25 @@
   "name": "(6) frame cost, ~3000 particles",
   "pass": true,
   "lines": [
-   "phone tier   (4 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 3.97 ms, p95 5.36 ms, max 6.12 ms per 60 Hz frame (72 ground/collider contacts)",
-   "default tier (8 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 7.53 ms, p95 9.28 ms, max 10.92 ms per 60 Hz frame (72 ground/collider contacts)",
-   "quality tier (8 substeps x 2 sweeps): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 12.31 ms, p95 14.37 ms, max 17.81 ms per 60 Hz frame (72 ground/collider contacts)",
-   "phone tier, sleeping on, scene at rest (no wind): 21/22 pieces asleep, 1440/2886 particles awake | mean 2.53 ms per frame",
-   "budget: phone tier mean <= 5.5 ms on this PC (node v24.18.0); estimated phone cost = 11.9-19.8 ms (3-5x slower core, NOT measured on a phone)"
+   "phone tier   (4 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 3.80 ms, p95 4.06 ms, max 5.85 ms per 60 Hz frame (72 ground/collider contacts)",
+   "default tier (8 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 6.96 ms, p95 7.27 ms, max 10.59 ms per 60 Hz frame (72 ground/collider contacts)",
+   "quality tier (8 substeps x 2 sweeps): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 11.52 ms, p95 12.00 ms, max 12.61 ms per 60 Hz frame (72 ground/collider contacts)",
+   "phone tier, sleeping on, scene at rest (no wind): 21/22 pieces asleep, 1440/2886 particles awake | mean 2.35 ms per frame",
+   "budget: phone tier mean <= 5.5 ms on this PC (node v24.18.0); estimated phone cost = 11.4-19.0 ms (3-5x slower core, NOT measured on a phone)"
   ],
   "data": {
-   "ms": 3.969226333333336,
-   "p95": 5.359300000000076,
+   "ms": 3.8018879999999853,
+   "p95": 4.0590000000001965,
    "particles": 2886
   }
  },
  {
-  "name": "(9a) rigid ball hits a free plank: energy does not grow, momentum is exchanged",
-  "pass": true,
+  "name": "(9a) 80 kg ball hits a free 36 kg plank (flat): total energy must not exceed the ball energy, 30-case sweep",
+  "pass": false,
   "lines": [
-   "8 substeps, damping 0.2, 3 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 7.6 % (free plank, no gravity)  [ok]",
-   "8 substeps, damping 0.2, 6 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 5.1 % (free plank, no gravity)  [ok]",
-   "4 substeps, damping 1, 10 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 9.4 % (free plank, no gravity)  [ok]"
+   "13/30 cases keep total kinetic energy (soft + ball) <= 1.1 x the ball's initial energy; worst case 45.6 x   (sweep: substeps 4/8/16 x damping 0.2/1 x speed 2..10 m/s)",
+   "pass count by impact speed: 2 m/s: 4/6, 4 m/s: 4/6, 6 m/s: 2/6, 8 m/s: 2/6, 10 m/s: 1/6",
+   "KNOWN LIMITATION when this fails: fast impacts on stiff members are not energy-faithful (a bar near fracture stores kJ; contact push + fracture releases it). See NOTES.md."
   ],
   "data": {}
  },
@@ -143,7 +144,7 @@
   "pass": false,
   "lines": [
    "standing 6 s: breaks 0, pieces 1, height 2.529 m (2.53 m nominal)",
-   "after the hit: max total kinetic energy (soft + ball) 3.13e+4 J vs ball energy 1440.000 J (ratio 21.72); max z-momentum 1191.629 vs 480.000 kg m/s (ratio 2.48); breaks 304, pieces 40",
+   "after the hit: max total kinetic energy (soft + ball) 3.29e+4 J vs ball energy 1440.000 J (ratio 22.83); max z-momentum 1029.487 vs 480.000 kg m/s (ratio 2.14); breaks 304, pieces 40",
    "KNOWN LIMITATION when this fails: stiff stone blocks + one Gauss-Seidel sweep do not conserve momentum/energy in violent impacts (see NOTES.md)."
   ],
   "data": {}
@@ -152,7 +153,7 @@
   "name": "(8) sleeping: settles, sleeps, wakes on contact (opt-in)",
   "pass": true,
   "lines": [
-   "tip 0.182 mm vs EB 0.183 mm (-0.67 %), fell asleep at t=4.6 s, asleep cost 0.0058 ms/frame, woke when a collider arrived: true"
+   "tip 0.182 mm vs EB 0.183 mm (-0.67 %), fell asleep at t=4.6 s, asleep cost 0.0050 ms/frame, woke when a collider arrived: true"
   ],
   "data": {}
  }
