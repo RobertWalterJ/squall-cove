@@ -1,17 +1,36 @@
-/* Squall Cove service worker. Touches ONLY its own caches (squall-cove-vN). Bump VERSION on each release. */
-const VERSION = 'v9.2.0';      // v9.1.0: static start menu in index.html (nothing heavy loads until Start), Lemnos real maps (assets/map_lemnos_*.json fetched on demand, runtime-cached cache-first), cheats panel. Earlier: battle command; helis.glb, air.glb, weapons.glb runtime-cached.
+/* Squall Cove service worker. Touches ONLY its own caches. Two kinds:
+   squall-cove-vN        the page and icons. Replaced on each release (bump VERSION).
+   squall-cove-assets-aN heavy, rarely changing files (assets/ and audio/). NOT replaced on a release, so a
+                         release downloads about 1.5 MB, not 18 to 46 MB. Bump ASSETS only if an asset file
+                         changes its CONTENT under the same name (this re-downloads everything once). */
+const VERSION = 'v9.3.0';      // v9.3.0: stable asset cache split out (releases no longer re-download assets); phone edition. v9.2.0: static start menu, Lemnos real maps, cheats panel.
+const ASSETS = 'a1';
 const CACHE = 'squall-cove-' + VERSION;
-const MINE = /^squall-cove-v[\d.]+$/;
-self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png', 'assets/map_lemnos_myrina_thumb.jpg', 'assets/map_lemnos_mudros_thumb.jpg', 'assets/map_lemnos_airport_thumb.jpg']).catch(() => {}))); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => MINE.test(k) && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+const ACACHE = 'squall-cove-assets-' + ASSETS;
+const MINE = /^squall-cove-(v[\d.]+|assets-a[\d.]+)$/;
+const isAsset = (p) => /\/squall-cove\/(assets|audio)\//.test(p);
+self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {})).then(() => caches.open(ACACHE)).then(c => c.addAll(['assets/map_lemnos_myrina_thumb.jpg', 'assets/map_lemnos_mudros_thumb.jpg', 'assets/map_lemnos_airport_thumb.jpg']).catch(() => {}))); });
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const ks = (await caches.keys()).filter(k => MINE.test(k));
+    const ac = await caches.open(ACACHE);
+    // One-time move: assets held by older per-version caches are copied into the stable cache before those caches go.
+    for (const k of ks) {
+      if (k === CACHE || k === ACACHE || !/^squall-cove-v/.test(k)) continue;
+      try { const old = await caches.open(k); for (const rq of await old.keys()) { if (isAsset(new URL(rq.url).pathname) && !(await ac.match(rq))) { const rs = await old.match(rq); if (rs) await ac.put(rq, rs); } } } catch (err) { }
+    }
+    await Promise.all(ks.filter(k => k !== CACHE && k !== ACACHE).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
 self.addEventListener('fetch', (e) => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin || !url.pathname.startsWith('/squall-cove/')) return;   // other apps and CDNs: not ours
   if (url.pathname.endsWith('/manifest.webmanifest')) return;                                                         // never cached, always fresh
-  const own = () => caches.open(CACHE);
+  const bucket = () => caches.open(isAsset(url.pathname) ? ACACHE : CACHE);
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => { if (r.ok) own().then(c => c.put('index.html', r.clone())); return r; }).catch(() => own().then(c => c.match('index.html'))));
+    e.respondWith(fetch(req).then(r => { if (r.ok) caches.open(CACHE).then(c => c.put('index.html', r.clone())); return r; }).catch(() => caches.open(CACHE).then(c => c.match('index.html'))));
     return;
   }
-  e.respondWith(own().then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
+  e.respondWith(bucket().then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
 });

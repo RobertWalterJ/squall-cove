@@ -14,9 +14,10 @@
 <style id="bootcss">
 #boot{display:none;position:fixed;inset:0;z-index:100;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(165deg,#12323d 0%,#0c1a20 55%,#16241f 100%);color:#f1ece2;font:500 16px/1.45 Barlow,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
 html.boot #boot{display:block}
-html.boot body>*:not(#boot):not(script):not(svg):not(style):not(link):not(title){visibility:hidden}
+html.boot body>*:not(#boot):not(script):not(svg):not(style):not(link):not(title){visibility:hidden!important;pointer-events:none!important}
+html.boot #phoneStack,html.boot #cmdBtn,html.boot #burger,html.boot #cheatChip,html.boot #intro,html.boot .hud,html.boot canvas{display:none!important}
 #boot *{box-sizing:border-box}
-#boot .bw{width:min(880px,100%);margin:0 auto;padding:22px 16px 40px}
+#boot .bw{width:min(880px,100%);margin:0 auto;padding:calc(22px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));box-sizing:border-box}
 #boot h1{margin:0;font:700 clamp(40px,9vw,76px)/1 "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.04em}
 #boot .btag{margin:8px 0 18px;color:#d8cfbd;font-size:17px}
 #boot h2{margin:22px 0 8px;font:700 20px "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.03em;color:#e8cf8a}
@@ -43,6 +44,11 @@ html.boot body>*:not(#boot):not(script):not(svg):not(style):not(link):not(title)
 #boot .bfoot{margin-top:20px;color:#9fa9a5;font-size:13px}
 #boot .berr{color:#ffb4a4;margin-top:10px}
 html.nb #boot{display:none}
+#boot .bed{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 6px}
+#boot .bed span{font:700 18px "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.04em;color:#e8cf8a}
+#boot .bed button{min-height:44px;padding:8px 12px;font-size:15px}
+html.ed-phone #boot .bmaps{grid-template-columns:1fr}
+@media (orientation:landscape) and (max-height:480px){html.ed-phone #boot .bmaps,#boot .bmode,#boot .bopts{grid-template-columns:repeat(2,1fr)}#boot .bw{padding:12px 16px 24px}#boot h1{font-size:34px}#boot .btag{margin:4px 0 8px}}
 </style>
 <script>
 (function () {
@@ -56,6 +62,16 @@ html.nb #boot{display:none}
     else if (ss.getItem('sc-booted') === '1' && nav.type === 'reload') skip = true;
   } catch (e) { skip = true; }
   window.__BOOTSKIP = skip;
+  /* Edition: phone or desktop. ?edition= beats the saved choice; with neither, a small touch screen means phone. Tablets stay desktop. */
+  var edn = 'desktop';
+  try {
+    var qe = new URLSearchParams(location.search).get('edition'), se = localStorage.getItem('squall-cove-edition');
+    if (qe === 'phone' || qe === 'desktop') { edn = qe; localStorage.setItem('squall-cove-edition', qe); }
+    else if (se === 'phone' || se === 'desktop') edn = se;
+    else edn = (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 700) ? 'phone' : 'desktop';
+  } catch (e) {}
+  window.__ED = { id: edn, phone: edn === 'phone' };
+  document.documentElement.classList.add('ed-' + edn);
   document.documentElement.classList.add(skip ? 'nb' : 'boot');
   window.__bip = null;
   addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__bip = e; });
@@ -67,8 +83,9 @@ html.nb #boot{display:none}
 <div id="boot" role="dialog" aria-modal="true" aria-labelledby="bootTitle"><div class="bw">
 <h1 id="bootTitle">Squall Cove</h1>
 <p class="btag">A harbour sandbox of boats, weather, people and the odd war.</p>
+<div class="bed" id="bEd"><span id="bEdT">Phone edition</span><button type="button" id="bEdSw">Switch to desktop edition</button></div>
 <h2>What do you want to play?</h2>
-<div class="bmode" id="bMode" role="group" aria-label="Mode">
+<div class="bmode" id="bootMode" role="group" aria-label="Mode">
 <button type="button" data-mode="sandbox" aria-pressed="true"><b>Sandbox</b><small>Build, sail and watch. Any map.</small></button>
 <button type="button" data-mode="battle" aria-pressed="false"><b>Battle</b><small>Capture points. Battle maps only.</small></button></div>
 <h2>Map</h2>
@@ -119,6 +136,7 @@ html.nb #boot{display:none}
   function lsg(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   var touch = matchMedia('(pointer: coarse)').matches;
+  var ED = window.__ED || { id: 'desktop', phone: false }, PH = ED.phone; D.body.classList.add('ed-' + ED.id);
   var MB = { base: 11.1, town: 2.7, build: 7.6, men: 7.4, skins: 12.7, sound: 6.6 };
   var KEYF = { base: 'assets/people.glb.b64.txt', town: 'assets/port.glb.b64.txt', build: 'assets/battle.glb.b64.txt', men: 'assets/bveh.glb.b64.txt', skins: 'assets/troops2.glb.b64.txt', sound: 'audio/amb_sea_calm.ogg' };
   var MAPS = {
@@ -128,7 +146,7 @@ html.nb #boot{display:none}
   };
   KEYF['m_lemnos_myrina'] = 'assets/map_lemnos_myrina.json'; KEYF['m_lemnos_mudros'] = 'assets/map_lemnos_mudros.json'; KEYF['m_lemnos_airport'] = 'assets/map_lemnos_airport.json';
   var KITS = [['assault', 'Assault'], ['marksman', 'Marksman'], ['heavy', 'Heavy'], ['engineer', 'Engineer'], ['spotter', 'Spotter'], ['medic', 'Medic'], ['scout', 'Sniper'], ['tankhunter', 'Tank hunter'], ['trooper', 'Trooper'], ['breacher', 'Breacher'], ['aa', 'Air defence']];
-  var S = { map: 'cove', mode: 'sandbox', sound: true, skins: null, quality: touch ? 'low' : 'high', voices: true, saved: false, b: { side: 'blue', red: 'Raiders', size: touch ? 5 : 9, tixAuto: true, tix: 100, kit: 'assault', cmdFree: false, how: 'begin' } };
+  var S = { map: 'cove', mode: 'sandbox', sound: true, skins: null, quality: touch ? 'low' : 'high', voices: true, saved: false, b: { side: 'blue', red: 'Raiders', size: PH ? 6 : touch ? 5 : 9, tixAuto: true, tix: 100, kit: 'assault', cmdFree: false, how: 'begin' } };
   var cached = {}, started = false;
   try {
     var sv = JSON.parse(lsg('squall-cove-boot') || 'null');
@@ -140,9 +158,12 @@ html.nb #boot{display:none}
     if (lsg('squall-cove-voices') === '0') S.voices = false;
     var pf = JSON.parse(lsg('squall-cove-prefs') || '{}'); if (pf.sound && pf.sound.on === false) S.sound = false;
   } catch (e) {}
+  var PHONE_OFF = { urban: 1, desert: 1, lemnos_myrina: 1, lemnos_mudros: 1, lemnos_airport: 1 };      // phone edition offers Cove, large cove and Port; the rest stay on the desktop edition
+  var SZMAX = PH ? 14 : touch ? 10 : 70; S.b.size = Math.min(SZMAX, Math.max(3, +S.b.size || 6));
+  if (PH && PHONE_OFF[S.map]) S.map = 'port';
   if (S.mode === 'battle' && !MAPS[S.map].b) S.map = 'port';
   var origMap = S.map, origMode = S.mode;
-  function skinsOn() { return S.skins === null ? S.mode === 'battle' : S.skins; }
+  function skinsOn() { return S.skins === null ? (S.mode === 'battle' && !PH) : S.skins; }
   function groups() {
     var m = MAPS[S.map], g = ['base'];
     if (m.town) g.push('town'); if (m.real) g.push('m_' + m.t);
@@ -156,8 +177,8 @@ html.nb #boot{display:none}
   function paint() {
     var m = MAPS[S.map], bat = S.mode === 'battle';
     boot.classList.toggle('bat', bat);
-    $$('#bMode button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
-    $$('#bMaps .bmap').forEach(function (b) { var id = b.dataset.map, dis = bat && !MAPS[id].b; b.setAttribute('aria-pressed', String(id === S.map)); b.disabled = dis; $('[data-sz]', b).textContent = dis ? 'Sandbox only' : 'Download ' + fmt(totalMb(id)); });
+    $$('#bootMode button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
+    $$('#bMaps .bmap').forEach(function (b) { var id = b.dataset.map, dis = bat && !MAPS[id].b; b.hidden = PH && !!PHONE_OFF[id]; b.setAttribute('aria-pressed', String(id === S.map)); b.disabled = dis; $('[data-sz]', b).textContent = dis ? 'Sandbox only' : 'Download ' + fmt(totalMb(id)); });
     var o = { sound: S.sound, skins: skinsOn(), quality: S.quality === 'high', voices: S.voices }, names = { sound: 'Sound', skins: 'Soldier skins', quality: 'Quality', voices: 'Squad voices' };
     $$('#bOpts button').forEach(function (b) { var k = b.dataset.opt, v = o[k]; b.setAttribute('aria-pressed', String(v)); $('b', b).textContent = names[k] + ': ' + (k === 'quality' ? (v ? 'high' : 'low') : (v ? 'on' : 'off')); });
     $('[data-osz]').textContent = 'about 7 MB. Loads now, more arrives while you play.';
@@ -167,7 +188,7 @@ html.nb #boot{display:none}
     $$('#bCmd button').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.v === 'free') === S.b.cmdFree)); });
     $$('#bHow button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.how)); });
     $$('#bKit button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.kit)); });
-    var sz = $('#bSize'), tx = $('#bTix'); sz.max = touch ? 10 : 70; sz.value = S.b.size; $('#bSizeL').textContent = 'Soldiers per side: ' + S.b.size;
+    var sz = $('#bSize'), tx = $('#bTix'); sz.max = SZMAX; sz.value = S.b.size; $('#bSizeL').textContent = 'Soldiers per side: ' + S.b.size;
     var auto = Math.round(Math.min(400, Math.max(60, 40 + 6 * S.b.size))); tx.value = S.b.tixAuto ? auto : S.b.tix; tx.disabled = S.b.tixAuto; $('#bTixL').textContent = 'Tickets per side: ' + tx.value;
     $('#bSizeT').textContent = 'Download size ' + fmt(totalMb(S.map)) + (S.sound ? ' (sound arrives in two parts)' : '');
     var go = $('#bGo'); go.textContent = (S.saved && S.map === origMap && S.mode === origMode ? 'Continue: ' : 'Start: ') + m.n + (bat ? ' (battle)' : '');
@@ -177,7 +198,7 @@ html.nb #boot{display:none}
     try {
       if (!window.caches) return;
       caches.keys().then(function (ks) {
-        ks = ks.filter(function (k) { return /^squall-cove-v[\d.]+$/.test(k); });
+        ks = ks.filter(function (k) { return /^squall-cove-(v[\d.]+|assets-a[\d.]+)$/.test(k); });
         var ps = [];
         Object.keys(KEYF).forEach(function (g) { ps.push(Promise.all(ks.map(function (k) { return caches.open(k).then(function (c) { return c.match(new URL(KEYF[g], location.href).href); }); })).then(function (r) { cached[g] = r.some(function (x) { return !!x; }); })); });
         return Promise.all(ps);
@@ -187,7 +208,7 @@ html.nb #boot{display:none}
   var kitHost = $('#bKit');
   KITS.forEach(function (k) { var b = D.createElement('button'); b.type = 'button'; b.dataset.v = k[0]; b.textContent = k[1]; kitHost.appendChild(b); });
   function on(sel, fn) { $$(sel).forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) return; fn(b); paint(); }); }); }
-  on('#bMode button', function (b) { S.mode = b.dataset.mode; if (S.mode === 'battle' && !MAPS[S.map].b) S.map = 'port'; });
+  on('#bootMode button', function (b) { S.mode = b.dataset.mode; if (S.mode === 'battle' && !MAPS[S.map].b) S.map = 'port'; });
   on('#bMaps .bmap', function (b) { S.map = b.dataset.map; });
   on('#bOpts button', function (b) { var k = b.dataset.opt; if (k === 'sound') S.sound = !S.sound; else if (k === 'skins') S.skins = !skinsOn(); else if (k === 'quality') S.quality = S.quality === 'high' ? 'low' : 'high'; else S.voices = !S.voices; });
   on('#bSide button', function (b) { S.b.side = b.dataset.v; });
@@ -232,7 +253,10 @@ html.nb #boot{display:none}
     launch(cfg);
   }
   $('#bGo').addEventListener('click', start);
-  $('#bVer').textContent = 'v9.1 start menu';
+  $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
+  $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
+  $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
+  $('#bVer').textContent = 'v9.3 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -602,6 +626,164 @@ html[data-text="easy"] :is(#tablet,#bSetup .sc,#bSpawn,#side,#menuSheet .card,#b
 html[data-text="easy"] :is(.wrow,.card2,.chips button,.sItem,.mrow){padding-top:12px;padding-bottom:12px}
 html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important} }
+/* ================================================================ PHONE EDITION (body.ed-phone) and touch first person (body.touch)
+   One owner for every bottom-left/bottom-right slot, so nothing sits on anything else:
+   top right  = .actions column (Edit, More, Menu, Log)      bottom = #phoneStack (a flex column, so items stack, never overlap)
+   FP         = tools row + Exit + Command on top, thumb clusters at the bottom corners, one toast lane at the top right. */
+#phoneStack{display:none}
+body.ed-phone #phoneStack{position:fixed;left:8px;right:8px;bottom:calc(var(--bh,140px) + var(--safe-b));z-index:6;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:6px;pointer-events:none;max-height:calc(100dvh - 190px - var(--safe-t))}
+body.ed-phone #phoneStack > *{pointer-events:auto;position:static!important;inset:auto!important;transform:none!important;margin:0!important;width:auto!important;max-width:none!important;box-sizing:border-box}
+body.ed-phone #phoneStack > #feedCol{pointer-events:none;max-height:96px;overflow:hidden;flex:0 1 auto;min-height:0}
+body.ed-phone #feedCol > :not(#killFeed){max-height:none}
+body.ed-phone #notes > :not(:last-child),body.ed-phone #sideFeed > :not(:last-child){display:none}
+body.ed-phone #feedCol:has(#notes > *) #sideFeed{display:none}
+body.ed-phone #killFeed > :not(:nth-last-child(-n+2)){display:none}
+body.ed-phone #phoneStack > #bTip{display:flex}
+body.ed-phone #phoneStack > #bTip[hidden]{display:none!important}
+body.ed-phone #phoneStack > #bBtns{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+body.ed-phone #phoneStack > #bBtns button{flex:1 1 auto;min-width:0;min-height:48px;padding:0 10px;font-size:16px}
+body.ed-phone #phoneStack > #bBtns .ic{width:18px;height:18px}
+body.ed-phone #phoneStack > #bHint{text-align:center;font-size:14px;padding:5px 10px}
+body.ed-phone #phoneStack > #objective{display:flex;max-width:none}
+body.ed-phone #phoneStack > #objective[hidden]{display:none!important}
+body.ed-phone #phoneStack > #legend{text-align:center}
+body.ed-phone #phoneStack > #legend[hidden],body.ed-phone #phoneStack > #fireArm[hidden]{display:none!important}
+body.ed-phone #phoneStack > #fireArm{text-align:center;border-radius:12px}
+body.ed-phone #selBar{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 0;justify-content:flex-start}
+body.ed-phone #selBar::-webkit-scrollbar{display:none}
+body.ed-phone #selBar > *{flex:none}
+body.ed-phone #selBar .grp{display:flex;flex-wrap:nowrap;gap:6px}
+body.ed-phone #selBar .grp:not(:has(button:not([hidden]))){display:none}
+body.ed-phone #selBar button{min-height:48px;padding:0 14px;font-size:16px;white-space:nowrap}
+body.ed-phone.ui-min:not(:has(.actions.open)) #selBar > button:not(#bMode):not(#bDesel):not(#bHeli):not(#bFP){display:none}
+body.ed-phone #selBar > button[hidden]{display:none}
+body.ed-phone #cmdRow{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;pointer-events:none}
+body.ed-phone #cmdRow > *{pointer-events:auto;position:static!important;inset:auto!important;margin:0!important}
+body.ed-phone #cmdRow > [hidden]{display:none!important}
+body.ed-phone #cmdRow #calmBtn{min-height:48px;min-width:0;padding:0 16px;font-size:16px}
+body.ed-phone #cmdRow #cmdBtn{margin-left:auto!important}
+body.ed-phone #selFloat{display:none!important}
+body.ed-phone:has(#sculpt:not([hidden])) #phoneStack,body.ed-phone:has(#placeBtn:not([hidden])) #phoneStack{bottom:calc(var(--bh,140px) + 110px + var(--safe-b))}
+body.ed-phone:has(#sculpt:not([hidden])) #cmdBtn,body.ed-phone:has(#placeBtn:not([hidden])) #cmdBtn,body.ed-phone:has(#sculpt:not([hidden])) #calmBtn,body.ed-phone:has(#placeBtn:not([hidden])) #calmBtn{display:none}
+body.ed-phone:has(#inspector:not([hidden])) #phoneStack{display:none}
+body.ed-phone #phoneStack > #bTip{font-size:14px}
+/* the top right column */
+body.ed-phone .actions{max-width:84px;align-items:stretch}
+body.ed-phone .actions > button{min-width:64px}
+body.ed-phone .actions #burger{position:static;border-radius:8px;border-left:1px solid var(--line);padding:8px 10px;font-size:12.5px;top:auto}
+body.ed-phone.sideopen .actions #burger{display:none}
+body.ed-phone[data-mode="fp"] .actions #burger{display:none}
+body.ed-phone .inst{max-width:calc(100vw - 108px)}
+body.ed-phone.battle .inst{top:calc(58px + var(--safe-t))}
+body.ed-phone.battle[data-mode="god"] #bHud,body.ed-phone #bHud{top:calc(8px + var(--safe-t));left:8px;transform:none;align-items:flex-start;max-width:calc(100vw - 92px)}
+body.ed-phone.sideopen #bHud{left:8px}
+body.ed-phone #bTick{padding:5px 8px;gap:6px;font-size:14px;max-width:100%;box-sizing:border-box}
+body.ed-phone #bTick .bPts i{width:11px;height:11px}
+body.ed-phone #bTick .bPts{gap:3px;flex-wrap:nowrap}
+/* the side pane: a little narrower so the world still shows */
+body.ed-phone #side{width:min(300px,86vw)}
+/* sheets */
+body.ed-phone .sc .sf .big{min-height:52px;font-size:19px}
+body.ed-phone .sc .sf button{min-height:44px}
+body.ed-phone #tablet .tbOpts{padding:6px 0}
+body.ed-phone .cards:not(.two){grid-template-columns:1fr}
+body.ed-phone .cards.two .card2{min-height:52px;padding:6px 10px;grid-template-columns:30px 1fr}
+body.ed-phone .cards.two .card2 span{display:none}
+body.ed-phone .cards.two .card2 .ic{grid-row:auto}
+body.ed-phone #bSpawn .dpRow{position:sticky;bottom:0;background:var(--panel);padding:8px 0 2px;margin-top:2px}
+body.ed-phone #bSpawn{padding:12px 12px 10px;gap:10px}
+body.ed-phone #mCheats{display:none}
+body.ed-phone #cheatChip{display:none}
+/* every control a fingertip can reach: 44px at least */
+body.ed-phone #trayTog,body.ed-phone #objective button,body.ed-phone #inspector .ifoot button,body.ed-phone #inspector .ihead button,body.ed-phone .mback,body.ed-phone #hudOn,body.ed-phone #tmap .tmSide .tbOpt button,body.ed-phone .tbOpt button{min-height:44px}
+
+/* ---------------------------------------------------------------- touch first person */
+body.touch .fpTop{display:flex;flex-direction:column;gap:6px;align-items:flex-end;right:8px;top:calc(8px + var(--safe-t));z-index:6}
+body.touch .fpTop button{min-height:46px;min-width:96px;padding:0 12px;font-size:16px;font-weight:700}
+body.touch #fpTab{background:var(--brass);color:var(--ink);border-color:var(--brass)}
+html[data-theme="red"] body.touch #fpTab,html[data-theme="green"] body.touch #fpTab{color:#020a04}
+body.touch #fpTools{top:calc(8px + var(--safe-t));left:8px;max-width:calc(100vw - 124px)}
+body.touch #fpLook{width:66%}
+body.touch #fpStick::after{inset:-28px}
+body.touch .fpBtns{display:contents}
+body.touch .fpBtns button{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;min-width:0;min-height:0;width:52px;height:52px;padding:0;font:600 12px/1.1 var(--f-body);letter-spacing:0;border-radius:14px;background:rgba(12,26,32,.86);border:1.5px solid var(--line);z-index:5;touch-action:none}
+body.touch .fpBtns button .ic{width:20px;height:20px}
+body.touch .fpBtns button[hidden]{display:none}
+body.touch #fpFire{right:14px;bottom:calc(28px + var(--safe-b));width:104px;height:72px;border-radius:36px;font:700 18px var(--f-display);background:rgba(214,75,44,.86);border-color:rgba(255,255,255,.35)}
+body.touch #fpUse{right:14px;bottom:calc(108px + var(--safe-b));width:104px}
+body.touch #fpSquad{right:14px;bottom:calc(168px + var(--safe-b));width:104px;display:none}
+body.touch #fpReload{right:130px;bottom:calc(28px + var(--safe-b));display:none}
+body.touch #fpZoom{right:130px;bottom:calc(86px + var(--safe-b));display:none}
+body.touch #fpHelm{right:130px;bottom:calc(144px + var(--safe-b))}
+body.touch #fpDrop{right:190px;bottom:calc(144px + var(--safe-b))}
+body.touch #fpJump{left:150px;bottom:calc(28px + var(--safe-b))}
+body.touch #fpStance{left:150px;bottom:calc(86px + var(--safe-b))}
+body.touch #fpHDn{right:130px;bottom:calc(28px + var(--safe-b));display:none}
+body.touch #fpHUp{right:130px;bottom:calc(86px + var(--safe-b));display:none}
+body.touch #fpHL{left:150px;bottom:calc(28px + var(--safe-b));display:none}
+body.touch #fpHR{left:150px;bottom:calc(86px + var(--safe-b));display:none}
+body.touch #fp.tu-reload #fpReload,body.touch #fp.tu-zoom #fpZoom,body.touch #fp.tu-squad #fpSquad{display:grid}
+body.touch #fp.tu-heli #fpHDn,body.touch #fp.tu-heli #fpHUp,body.touch #fp.tu-heli #fpHL,body.touch #fp.tu-heli #fpHR{display:grid}
+body.touch #fp.tu-heli #fpJump,body.touch #fp.tu-veh #fpStance,body.touch #fp.tu-heli #fpStance{display:none}
+body.touch .fpBtns button.on{border-color:var(--brass);color:var(--brass);box-shadow:inset 0 0 0 2px var(--brass)}
+body.touch .fpPrompt{bottom:calc(250px + var(--safe-b));max-width:calc(100vw - 24px)}
+body.touch #bStat{left:14px;bottom:calc(168px + var(--safe-b));min-width:150px}
+body.touch[data-mode="fp"] #bHud{top:calc(78px + var(--safe-t));left:8px;transform:none;align-items:flex-start;max-width:calc(100vw - 124px)}
+body.touch[data-mode="fp"] #bTick{padding:4px 8px;gap:6px;font-size:13px}
+body.touch[data-mode="fp"] #bTick .bPts i{width:10px;height:10px}
+body.touch[data-mode="fp"] #bTick .bPts{gap:3px;flex-wrap:nowrap}
+body.touch .fpHint{top:calc(78px + var(--safe-t));max-width:calc(100vw - 124px)}
+body.touch #sqHud{top:calc(124px + var(--safe-t));width:140px}
+body.touch #sqWheel .s{width:84px;min-height:52px;margin:-26px 0 0 -42px;font-size:12px}
+body.touch #sqWheel .c{top:-70px;min-width:0;width:104px;font-size:14px}
+body.touch #fp:has(#sqWheel:not([hidden])) .fpPrompt{display:none}
+body.ed-phone.sideopen .actions,body.ed-phone.sideopen #phoneStack{display:none}
+body.touch #sqWheel .sq{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;width:68px;height:44px;margin:0;padding:2px;border-radius:10px;font:600 12px/1.1 var(--f-body);background:var(--panel);border:1.5px solid var(--line);color:var(--paper);pointer-events:auto}
+body.touch #sqWheel .sq .ic{width:16px;height:16px}
+/* one toast lane for first person: top right, under Command */
+body.touch[data-mode="fp"] #feedCol{left:auto;right:8px;top:calc(116px + var(--safe-t));bottom:auto;width:min(210px,calc(100vw - 180px));max-height:96px;align-items:flex-end}
+body.touch[data-mode="fp"] #feedCol > *{justify-items:end}
+body.ed-phone[data-mode="fp"] #phoneStack{display:contents}
+body.ed-phone[data-mode="fp"] #phoneStack > :not(#feedCol){display:none!important}
+body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;left:auto!important;right:8px!important;top:calc(116px + var(--safe-t))!important;bottom:auto!important;width:min(210px,calc(100vw - 180px))!important}
+
+@media (orientation:landscape) and (max-height:480px){
+  body.ed-phone .sheet{padding:6px}
+  body.ed-phone .sc{max-height:calc(100dvh - 12px)}
+  body.ed-phone .sc .sh{padding:6px 12px}body.ed-phone .sc .sh h2{font-size:20px}
+  body.ed-phone .sc .sb{padding:8px 12px;gap:12px}
+  body.ed-phone .sc .sf{padding:8px 12px;flex-wrap:nowrap}
+  body.ed-phone .sc .sf button{flex:1 1 0;min-height:44px}
+  body.ed-phone .sc .sf .big{flex:2 1 0;min-height:44px;font-size:18px}
+  body.ed-phone #tablet{max-height:calc(100dvh - 12px);width:min(640px,96vw)}
+  body.ed-phone #tablet .tbHead{padding:4px 12px;font-size:19px}body.ed-phone #tablet .tbHead button{min-height:44px}
+  body.ed-phone #tbTabs{padding:4px 12px}body.ed-phone #tbTabs button{min-height:44px}
+  body.ed-phone .tbOpts{position:static!important}
+  body.ed-phone #bSpawn{max-height:calc(100dvh - 12px);width:min(720px,96vw);padding:10px 12px 8px;gap:8px}
+  body.ed-phone #bSpawn h3{font-size:20px}
+  body.ed-phone .help{padding:8px}
+  body.ed-phone .help .card{padding:12px 14px;gap:8px;max-height:calc(100dvh - 16px);overflow-y:auto}
+  body.ed-phone .card h1{font-size:26px}
+  body.ed-phone .mgrid{grid-template-columns:repeat(3,1fr)}
+  body.ed-phone #phoneStack{left:8px;right:84px;max-height:calc(100dvh - 140px - var(--safe-t))}
+  body.ed-phone .actions{max-height:calc(100dvh - 24px - var(--safe-t) - var(--safe-b))}
+  body.ed-phone .inst{max-width:calc(100vw - 108px)}
+  body.ed-phone #phoneStack > #feedCol{max-height:60px}
+  body.ed-phone:has(#sculpt:not([hidden])) #phoneStack,body.ed-phone:has(#placeBtn:not([hidden])) #phoneStack{bottom:calc(var(--bh,140px) + var(--safe-b));right:230px}
+  body.touch .fpPrompt{bottom:calc(100px + var(--safe-b));max-width:min(54vw,420px)}
+  body.touch #bStat{left:214px;bottom:calc(24px + var(--safe-b))}
+  body.touch #sqWheel .c{display:none}
+  body.touch #sqHud{left:14px;right:auto;top:calc(104px + var(--safe-t));gap:2px}
+  body.touch #sqHud .r{padding:2px 6px;font-size:12px}
+  body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{left:300px!important;right:auto!important;top:calc(80px + var(--safe-t))!important;align-items:flex-start;width:min(240px,34vw)!important}
+  body.touch[data-mode="fp"] #feedCol > *{justify-items:start}
+  #boot .bed{margin-bottom:2px}
+}
+body.hud-off #phoneStack{display:none}
+body.ed-phone:has(#bHud[hidden]) #phoneStack > :is(#bBtns,#bHint){display:none!important}
+body.ed-phone .actions > #burger{display:block!important}
+body.ed-phone.sideopen .actions > #burger,body.ed-phone[data-mode="fp"] .actions > #burger{display:none!important}
+body.ed-phone .actions > #burger{position:static!important;left:auto;top:auto;z-index:auto;border-radius:8px;border-left:1px solid var(--line);padding:8px 10px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -642,6 +824,12 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
 <symbol id="i-belt" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M8 8v8M13 8v8M18 8v8"/></symbol>
 <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3l9-9a4 4 0 0 0-2-2z"/></symbol>
 <symbol id="i-binoc" viewBox="0 0 24 24"><circle cx="7" cy="16" r="4"/><circle cx="17" cy="16" r="4"/><path d="M7 12V6h3v6M17 12V6h-3v6M10 15h4"/></symbol>
+<symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="i-squad" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M7 20a5 5 0 0 1 10 0M1 19a4 4 0 0 1 5-3M23 19a4 4 0 0 0-5-3"/></symbol>
 <symbol id="i-chevrons" viewBox="0 0 24 24"><path d="M5 8l7-5 7 5M5 14l7-5 7 5M5 20l7-5 7 5"/></symbol>
 <symbol id="i-door" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M15 12h.01M9 8l6 8"/></symbol>
 <symbol id="i-aa" viewBox="0 0 24 24"><path d="M12 2c3 3 3 8 3 12H9c0-4 0-9 3-12zM9 14l-3 4M15 14l3 4M12 17v5"/></symbol>
@@ -772,7 +960,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
     <div id="fpTools"></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
-    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Command</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Command</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button><button id="fpReload" type="button"><svg class="ic" aria-hidden="true"><use href="#i-reload"/></svg><span>Reload</span></button><button id="fpZoom" type="button"><svg class="ic" aria-hidden="true"><use href="#i-scope"/></svg><span>Zoom</span></button><button id="fpSquad" type="button"><svg class="ic" aria-hidden="true"><use href="#i-squad"/></svg><span>Squad</span></button><button id="fpHUp" type="button"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg><span>Climb</span></button><button id="fpHDn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg><span>Descend</span></button><button id="fpHL" type="button"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg><span>Turn</span></button><button id="fpHR" type="button"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg><span>Turn</span></button></div>
   </div>
   <div id="inspector" hidden role="dialog" aria-label="Device settings">
     <div class="ihead"><b id="iTitle">Device</b><span id="iNote"></span><button id="iClose" type="button">Done</button></div>
@@ -826,6 +1014,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
 window.__scUp = true;
+const ED = window.__ED || { id: 'desktop', phone: false };            // the edition: phone or desktop (chosen in the head script, switchable on the start menu)
+document.body.classList.add('ed-' + ED.id);
 const BOOT = window.__BOOT || null;                                 // the choices made on the start menu (null on the old direct path: ?nointro=1, ?legacy=1, a reload)
 const $ = (id) => document.getElementById(id);
 var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
@@ -838,6 +1028,19 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch); if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if (matchMedia('(pointer: coarse)').matches) { const tp = document.querySelector('.fpTop'), tb = document.getElementById('fpTab'); if (tp && tb) tp.append(tb); }      // Command leaves the thumb column and sits under the exit button
+if (ED.phone) {                                                    // one flex column owns the bottom edge, so toasts, hints, selection actions and the Command button can never sit on one another
+  const acts = document.querySelector('.actions'), g = (id) => document.getElementById(id);
+  const stack = document.createElement('div'); stack.id = 'phoneStack';
+  const sel = document.createElement('div'); sel.id = 'selBar'; sel.setAttribute('role', 'toolbar'); sel.setAttribute('aria-label', 'Selection actions');
+  for (const id of ['bMode', 'bJoin', 'bBoat', 'bZoom', 'bCenter', 'bFollow']) sel.append(g(id));
+  for (const gr of acts.querySelectorAll(':scope > .grp')) sel.append(gr);
+  for (const id of ['bDesel', 'bHeli', 'bFP', 'bRight']) sel.append(g(id));
+  const row = document.createElement('div'); row.id = 'cmdRow'; row.append(g('calmBtn'), g('cmdBtn'));
+  stack.append(g('feedCol'), g('bTip'), g('objective'), g('legend'), g('fireArm'), g('bHint'), sel, g('bBtns'), row);
+  document.body.append(stack); acts.prepend(g('burger'));
+}
+
 let installEv = window.__bip || null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstallTop'); if (b && !(matchMedia('(display-mode: standalone)').matches || navigator.standalone)) b.hidden = false; });
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const setInstallNote = () => { const n = document.getElementById('installNote'), b2 = document.getElementById('bInstall2'); if (!n) return; if (standalone) { n.textContent = ''; return; } b2.hidden = !installEv; n.textContent = installEv ? 'Tap Install to add Squall Cove to your home screen.' : 'To install: open this page in Chrome, tap the three dots at the top right, then Install app or Add to Home screen. On iPhone use Safari, Share, then Add to Home Screen.'; };
@@ -4292,6 +4495,7 @@ function fpResumeFromHelm() {
   fp.helm = null; mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; if (fp.p && fp.p.ride) fp.betaPrev = boatYaw(fp.p.ride.boat); refreshPanel(); renderTray(); toast('Back on your feet');
 }
 function updateFP(dt, t) {
+  if (isTouch) fpTouchUi();
   const p = fp.p; if (!p || !people.includes(p)) { if (fp.on) exitFP(); return; }
   if (p.state === 'rag') { fp.air = false; $('fpPrompt').textContent = (isTouch ? 'Tap Jump' : 'Space') + ': get up'; return; }
   if (p.hop) { p.fpMoving = true; return; }
@@ -4450,7 +4654,7 @@ function fpCatch() {
 }
 function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0 || CHEAT.ammo) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = w.reloadT || 1.7; fp.reloadTool = fp.tool; Snd.fx('wpn_reload_mag_out', fp.p.x, fp.p.z, { gain: 0.6 }); setTimeout(() => { if (fp.on && fp.p) Snd.fx(fp.tool === 'shotgun' ? 'wpn_pump_shotgun' : fp.tool === 'sniper' ? 'wpn_reload_bolt' : 'wpn_reload_mag_in', fp.p.x, fp.p.z, { gain: 0.6 }); }, 900); }
 function fpFireGun() {
-  const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { Snd.fx('wpn_dry_click', p.x, p.z, { gain: 0.5 }); fpReload(); return; }
+  const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; if (isTouch) fpAssist(); fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { Snd.fx('wpn_dry_click', p.x, p.z, { gain: 0.5 }); fpReload(); return; }
   if (!CHEAT.ammo) fp.ammo[id]--; { const sf = surfaceAt(p.x, p.z); setTimeout(() => Snd.fx('wpn_shell_' + (sf === 'concrete' || sf === 'asphalt' ? 'concrete' : 'dirt'), p.x + 0.5, p.z, { gain: 0.35 }), 380); } fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + (0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)) * (w.recoil || 1)); fp.yaw += (Math.random() - 0.5) * 0.006 * (w.recoil || 1); fp.flash = 0.05;
   { const sn = 'wpn_' + wsnd(id) + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
@@ -4479,7 +4683,29 @@ function fpToolsUpdate(dt, t) {
     else if (r.state === 'bite' && r.t > 7) { fpRodReset(true); toast('It got away.'); return; } }
   const a = lineGeo.attributes.position; for (let i = 0; i < 10; i++) { const u = i / 9, sag = r.state === 'fly' ? 0 : Math.sin(u * Math.PI) * 0.6; a.setXYZ(i, tip.x + (bobber.position.x - tip.x) * u, tip.y + (bobber.position.y - tip.y) * u - sag, tip.z + (bobber.position.z - tip.z) * u); } a.needsUpdate = true;
 }
-$('fpFire').addEventListener('pointerdown', () => { fp.fireHeld = true; fpPrimary(); }); $('fpFire').addEventListener('pointerup', () => { fp.fireHeld = false; });
+{ const fb = $('fpFire'); let fid = null, fx = 0, fy = 0;      // hold Fire and slide the thumb to steer the aim, so one thumb can shoot and look at once
+  fb.addEventListener('pointerdown', (e) => { fp.fireHeld = true; fpPrimary(); if (e.pointerType !== 'mouse') { fid = e.pointerId; fx = e.clientX; fy = e.clientY; try { fb.setPointerCapture(e.pointerId); } catch (er) { } } });
+  fb.addEventListener('pointermove', (e) => { if (e.pointerId !== fid) return; fp.yaw -= (e.clientX - fx) * 0.0068; fp.pitch = clamp(fp.pitch - (e.clientY - fy) * 0.0068, -1.45, 1.45); fx = e.clientX; fy = e.clientY; });
+  const fEnd = (e) => { fp.fireHeld = false; if (e.pointerId === fid) fid = null; }; fb.addEventListener('pointerup', fEnd); fb.addEventListener('pointercancel', fEnd); }
+$('fpReload').addEventListener('click', () => fpReload());
+$('fpZoom').addEventListener('click', () => { if (fp.on && !fp.veh && zoomFov(fp.tool)) fp.zoom = !fp.zoom; });
+$('fpSquad').addEventListener('click', () => { if (SQD.wheel) sqdWheelClose(false); else sqdWheelOpen(); });
+for (const [id, k, v] of [['fpHUp', 'hup', 1], ['fpHDn', 'hup', -1], ['fpHL', 'hyaw', 1], ['fpHR', 'hyaw', -1]]) { const b = $(id); b.addEventListener('pointerdown', (e) => { fp[k] = v; try { b.setPointerCapture(e.pointerId); } catch (er) { } b.classList.add('on'); }); const up = () => { fp[k] = 0; b.classList.remove('on'); }; b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); }
+let tuSig = '';
+function fpTouchUi() {                                           // which touch buttons make sense right now
+  const fe = $('fp'), v = fp.veh, heli = !!(v && v.heli), w = WPN[fp.tool], gun = !v && !fp.man && !!w && fp.tool !== 'aa' && fp.tool !== 'rpg';
+  const sig = [v ? 1 : 0, heli ? 1 : 0, gun && w.mag ? 1 : 0, !v && !fp.man && zoomFov(fp.tool) ? 1 : 0, BATTLE.on && !v ? 1 : 0].join('');
+  if (sig === tuSig) { const z = $('fpZoom'); if (z) z.classList.toggle('on', !!fp.zoom); return; } tuSig = sig;
+  fe.classList.toggle('tu-veh', !!v); fe.classList.toggle('tu-heli', heli && !ED.phone); fe.classList.toggle('tu-reload', gun && !!w.mag); fe.classList.toggle('tu-zoom', !v && !fp.man && !!zoomFov(fp.tool)); fe.classList.toggle('tu-squad', BATTLE.on && !v);
+  if (!heli) { fp.hup = 0; fp.hyaw = 0; }
+}
+function fpAssist() {                                            // touch aim assist: a gentle pull toward an enemy that is already near the crosshair
+  if (!isTouch || !fp.p || !BATTLE.on || fp.veh || fp.man) return; const me = fp.p, ox = me.x, oy = (me.y || 0) + 1.5, oz = me.z; let best = null, bd = 0.085;
+  for (const q of people) { if (!q.bot || q.bot.dead || q.state === 'rag' || q.vin || q.bot.team === BATTLE.team) continue; const dx = q.x - ox, dy = q.y + 1.2 - oy, dz = q.z - oz, d = Math.hypot(dx, dy, dz); if (d < 3 || d > 220) continue;
+    const ey = wrap(Math.atan2(dx, dz) - fp.yaw), ep = Math.asin(clamp(dy / d, -1, 1)) - fp.pitch, e = Math.hypot(ey * Math.cos(fp.pitch), ep); if (e < bd) { bd = e; best = { ey, ep }; } }
+  if (!best) return; fp.yaw += best.ey * 0.3; fp.pitch = clamp(fp.pitch + best.ep * 0.3, -1.45, 1.45);
+  const cp = Math.cos(fp.pitch); camera.lookAt(camera.position.x + Math.sin(fp.yaw) * cp, camera.position.y + Math.sin(fp.pitch), camera.position.z + Math.cos(fp.yaw) * cp); camera.updateMatrixWorld();
+}
 
 /* ================================================================ the side pane: Place (everything you can put down), Live (everything that is in the world), Play (drop in, tools, catch) */
 const sideEl = $('side'), sBody = $('sBody'); let placeEl = null, placeCache = null; let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
@@ -5067,7 +5293,7 @@ function kitButtons(host, after, cols) {                              // the loa
   for (const k in LOADOUTS) { const L = LOADOUTS[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String((BATTLE.kit || 'assault') === k)); b.innerHTML = ic(CLS_IC[k] || 'rifle') + '<b></b><span></span>'; b.querySelector('b').textContent = L.name; b.querySelector('span').textContent = L.note.charAt(0).toUpperCase() + L.note.slice(1); b.addEventListener('click', () => { BATTLE.kit = k; after(); }); g.append(b); }
   host.append(g);
 }
-const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, tix0: 80, tix: 100, tixAuto: true, cmdFree: false, kills: { blue: 0, red: 0 }, myKills: 0, myDeaths: 0, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: null, plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow', spawnN: { blue: 0, red: 0 }, sqObj: {}, won: null };       // team is null while nobody is playing: the AI then calls air, paras, boats and batteries for both sides
+const BATTLE = { on: false, over: false, size: ED.phone ? 6 : isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, tix0: 80, tix: 100, tixAuto: true, cmdFree: false, kills: { blue: 0, red: 0 }, myKills: 0, myDeaths: 0, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: null, plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow', spawnN: { blue: 0, red: 0 }, sqObj: {}, won: null };       // team is null while nobody is playing: the AI then calls air, paras, boats and batteries for both sides
 const startTickets = () => Math.round(clamp(BATTLE.tixAuto ? 40 + 6 * BATTLE.size : BATTLE.tix, 60, 400)), tixCap = () => Math.max(120, BATTLE.tix0 || 80);
 const CMD = { cd: { blue: 0, red: 0 } };                              // the shared recharge of the command tablet's fire control, one per side
 const livingCount = () => { let n = 0; for (const p of people) if (p.state !== 'rag' && !(p.bot && p.bot.dead)) n++; return n; }, peopleCap = () => BATTLE.on ? (isTouch ? 40 : 220) : MAX_PEOPLE;      // fallen soldiers do not count against the cap in a battle
@@ -5832,7 +6058,7 @@ function battleHud(force) {
   const st = $('bStat'), pp = fp.on && fp.p; if (st.hidden === !!pp) st.hidden = !pp;
   if (pp) { const w = WPN[fp.tool], hp = Math.round(clamp(pp.hp === undefined ? 100 : pp.hp, 0, 100)); const stH = '<div class="hp"><b style="transform:scaleX(' + (hp / 100) + ')"></b></div><div class="hpn">Health ' + hp + '</div>' + (w ? '<div>' + w.name + ' ' + ((fp.ammo && fp.ammo[fp.tool] != null) ? fp.ammo[fp.tool] : w.mag) + ' / ' + w.mag + (fp.reload > 0 ? ' reloading' : '') + '</div>' : ''); if (stH !== bHudSig.s) { bHudSig.s = stH; st.innerHTML = stH; } } else bHudSig.s = '';
   if (!fp.on) { const spec = !!(BATTLE.spec && people.includes(BATTLE.spec)); if (bHudSig.o !== spec) { bHudSig.o = spec; $('bOver').hidden = !spec; } const hint = objectiveHint(); if (hint !== bHudSig.h) { bHudSig.h = hint; $('bHint').textContent = hint; } }
-  const ex = BATTLE.on ? 'Overview (V)' : 'Leave first person (V)'; if (bHudSig.x !== ex) { bHudSig.x = ex; $('fpExit').textContent = ex; }
+  const ex = ED.phone ? (BATTLE.on ? 'Overview' : 'Leave') : BATTLE.on ? 'Overview (V)' : 'Leave first person (V)'; if (bHudSig.x !== ex) { bHudSig.x = ex; $('fpExit').textContent = ex; }
 }
 function switchSide(team) {                                           // change which side you play, any time you are down or watching
   if (!BATTLE.on || team === BATTLE.team) return; BATTLE.team = team; const me = fp.on && fp.p; if (me) { me.side = team; me.fromHostile = team === 'red'; if (me.bot) me.bot.team = team; } dpSel = null; bHudSig.t = ''; battleHud(true);
@@ -5876,7 +6102,7 @@ const STRUCT = [];                                                    // every b
 const TYPE_TEX = {};
 let bkP = null, t2P = null;
 const ensureBattleKit = () => bkP || (bkP = loadGLB('battle').then(g => { D.glb.battle = g; }).catch(e => { bkP = null; throw e; }));
-const ensureTroops2 = () => t2P || (t2P = (BOOT && BOOT.skins === false) ? Promise.resolve() : loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
+const ensureTroops2 = () => t2P || (t2P = (BOOT ? BOOT.skins === false : ED.phone) ? Promise.resolve() : loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
 const SNDW = { lmg: 'rifle', marksman: 'sniper', revolver: 'pistol', carbine: 'rifle', medic: 'pistol', rpg: 'shotgun' };
 const wsnd = (w) => SNDW[w] || w;                                      // which recorded gun sound stands in for each weapon
 const NEWT = new Set(['atmine', 'lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
@@ -6161,7 +6387,7 @@ function updateKit(dt) {
 }
 function kitStart(gen) {
   evInit(); const live = () => BATTLE.on && BATTLE.gen === gen;
-  if (!D.glb.troops2 && !(BOOT && BOOT.skins === false)) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
+  if (!D.glb.troops2 && !(BOOT ? BOOT.skins === false : ED.phone)) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
   Promise.all([ensureAir(), ensureBattleKit().catch(() => null), ensureEmplace2()]).then(() => { if (!live()) return; layAA(); layBattleKit(); return ensureBVeh(); }).then(() => { if (live()) bvLayAll(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
 }
 function reskinBots() {                                                // the troops file arrives a little after the battle starts: swap the first bots over to the new skins
@@ -6986,7 +7212,7 @@ function bvHeliOcc(u, dt) {
 function bvHeliStep(u, dt) {                                           // called from updateAir for every flyable helicopter
   const S = BVH[u.pre], ps = u.seats[0], pilot = ps.q, me = fp.on && fp.veh === u, mine = !!pilot && me && fp.p === pilot && fp.vseat === ps, gunMan = me && fp.vseat && fp.vseat.kind === 'gunner';
   const landing = !!u.autoLand && !pilot && !gunMan; if (landing && bvHeliOnGround(u)) u.autoLand = false; u.rpm = clamp(u.rpm + clamp(((pilot || gunMan || u.hold || landing) ? 1 : 0) - u.rpm, -dt * 0.17, dt * 0.34), 0, 1); const auth = clamp((u.rpm - 0.3) / 0.6, 0, 1);
-  let fw = 0, bank = 0, yin = 0, up = 0; if (mine) { const k = (n) => keys.has(n); fw = clamp((k('w') || k('arrowup') ? 1 : 0) - (k('s') || k('arrowdown') ? 1 : 0) - fp.sy, -1, 1); bank = clamp((k('a') || k('arrowleft') ? 1 : 0) - (k('d') || k('arrowright') ? 1 : 0) - fp.sx, -1, 1); yin = (k('q') ? 1 : 0) - (k('e') ? 1 : 0); up = (k(' ') || fp.vhb > 0 ? 1 : 0) - (k('control') || k('shift') ? 1 : 0); if (isTouch && !up) up = -0.2; }
+  let fw = 0, bank = 0, yin = 0, up = 0; if (mine) { const k = (n) => keys.has(n); fw = clamp((k('w') || k('arrowup') ? 1 : 0) - (k('s') || k('arrowdown') ? 1 : 0) - fp.sy, -1, 1); bank = clamp((k('a') || k('arrowleft') ? 1 : 0) - (k('d') || k('arrowright') ? 1 : 0) - fp.sx, -1, 1); yin = (k('q') ? 1 : 0) - (k('e') ? 1 : 0) + (fp.hyaw || 0); up = (k(' ') || fp.vhb > 0 ? 1 : 0) - (k('control') || k('shift') ? 1 : 0) + (fp.hup || 0); yin = clamp(yin, -1, 1); up = clamp(up, -1, 1); if (isTouch && !up) up = -0.2; }
   const hs = Math.sin(u.hd), hc = Math.cos(u.hd), gy0 = bvHeliGround(u); let vf = u.vx * hs + u.vz * hc, vl = u.vx * hc - u.vz * hs; const air = u.y > gy0 + 0.25, vmax = S.vmax * auth, tf = fw > 0 ? fw * vmax : fw * vmax * 0.45;
   vf += clamp(tf - vf, -(fw === 0 ? 3.5 : tf * vf < 0 ? 9 : 6.5) * dt, (fw === 0 ? 3.5 : tf * vf < 0 ? 9 : 6.5) * dt) * (air ? 1 : 0.6); vl += clamp(-vl, -3 * dt, 3 * dt); if (!air) { if (!fw) vf *= Math.exp(-2.4 * dt); vl *= Math.exp(-4 * dt); }
   u.hd = wrap(u.hd + (yin * 1.15 + bank * 0.6 * (0.35 + Math.min(1, Math.abs(vf) / 12))) * auth * dt);
@@ -7686,7 +7912,7 @@ $('bJoin').addEventListener('click', () => enterFP(selPerson || null));
 function setQuality(q) {
   quality = q; try { localStorage.setItem('sc-quality', q); } catch (e) {}
   $('bQual').textContent = 'Quality: ' + (q === 'high' ? 'High' : 'Low');
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, q === 'high' ? 2.5 : 2));    // phones render at up to 2x so edges stay crisp; Low only trims shadows and trees
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, ED.phone ? 1.5 : q === 'high' ? 2.5 : 2));    // phones render at up to 2x so edges stay crisp; Low only trims shadows and trees
   sunLight.shadow.mapSize.set(q === 'high' ? 2048 : 1024, q === 'high' ? 2048 : 1024);
   if (sunLight.shadow.map) { sunLight.shadow.map.dispose(); sunLight.shadow.map = null; }
   terrainMat.defines.TRIPLANAR = q === 'high' ? 'true' : 'false'; terrainMat.needsUpdate = true;
@@ -7898,7 +8124,7 @@ function runBootPlan() {                                              // what th
 }
 function bootBattle() {                                               // a battle chosen on the start menu begins straight away with those choices
   const b = BOOT && BOOT.b; if (!b || !isBattleMap()) return;
-  SETUP.side = b.side === 'red' ? 'red' : 'blue'; BATTLE.redKind = b.red === 'Invaders' ? 'Invaders' : 'Raiders'; BATTLE.size = clamp(b.size || BATTLE.size, 3, isTouch ? 10 : 70); BATTLE.tixAuto = b.tixAuto !== false; if (b.tix) BATTLE.tix = b.tix; if (b.kit && LOADOUTS[b.kit]) BATTLE.kit = b.kit; BATTLE.cmdFree = !!b.cmdFree;
+  SETUP.side = b.side === 'red' ? 'red' : 'blue'; BATTLE.redKind = b.red === 'Invaders' ? 'Invaders' : 'Raiders'; BATTLE.size = clamp(b.size || BATTLE.size, 3, ED.phone ? 14 : isTouch ? 10 : 70); BATTLE.tixAuto = b.tixAuto !== false; if (b.tix) BATTLE.tix = b.tix; if (b.kit && LOADOUTS[b.kit]) BATTLE.kit = b.kit; BATTLE.cmdFree = !!b.cmdFree;
   let n = 0; const go = () => { if (mapLaid || (MAP.t === 'port' && sites.length) || n++ > 40) setupGo(b.how || 'begin'); else setTimeout(go, 300); }; setTimeout(go, 600);
 }
 { const done = () => { progress(1, 'Ready', true); setTimeout(() => $('loading').classList.add('done'), 250); if (BOOT && BOOT.mode === 'battle') bootBattle(); };
@@ -10695,10 +10921,10 @@ function renderSetup() {
   const chips = (g, items, cur, fn) => { const c = document.createElement('div'); c.className = 'chips'; for (const [v, n] of items) c.append(mkB(n, '', () => { fn(v); renderSetup(); }, { 'aria-pressed': String(cur === v) })); g.append(c); return c; };
   const say1 = (g, t, top) => { const n = document.createElement('p'); n.className = 'grp-n'; if (top) n.style.marginTop = '12px'; n.textContent = t; g.append(n); };
   { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick a map. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
-    for (const k of BATTLE_KEYS) { const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
+    for (const k of BATTLE_KEYS) { if (ED.phone && k !== 'port' && MAP.t !== k) continue; const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
   { const g = grp('Sides and enemy'); say1(g, 'You fight for, or command, this side.'); chips(g, [['blue', 'Port'], ['red', redN]], side, v => { SETUP.side = v; }); say1(g, 'Port is always the blue side. The red side is:', true); chips(g, [['Raiders', 'Raiders'], ['Invaders', 'Invaders']], redN, v => { BATTLE.redKind = v; }); }
   { const g = grp('Army'); const rg = (label, min, max, step, val, fn, dis) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; i.disabled = !!dis; l.textContent = label + ': ' + val; i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + i.value; }); w.append(l, i); g.append(w); return { i, l }; };
-    let tx = null; rg('Soldiers per side', 3, isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; if (BATTLE.tixAuto && tx) { tx.i.value = startTickets(); tx.l.textContent = 'Tickets per side: ' + startTickets(); } });
+    let tx = null; rg('Soldiers per side', 3, ED.phone ? 14 : isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; if (BATTLE.tixAuto && tx) { tx.i.value = startTickets(); tx.l.textContent = 'Tickets per side: ' + startTickets(); } });
     say1(g, 'Tickets run down as soldiers fall. The side that runs out loses.', true); chips(g, [['auto', 'Tickets: auto'], ['hand', 'Tickets: by hand']], BATTLE.tixAuto ? 'auto' : 'hand', v => { BATTLE.tixAuto = v === 'auto'; if (!BATTLE.tixAuto) BATTLE.tix = startTickets(); });
     tx = rg('Tickets per side', 60, 400, 10, startTickets(), v => { BATTLE.tix = v; BATTLE.tixAuto = false; }, BATTLE.tixAuto);
     say1(g, 'Command power is fire control and support.', true); chips(g, [['free', 'Free'], ['cost', 'Costs tickets']], BATTLE.cmdFree ? 'free' : 'cost', v => { BATTLE.cmdFree = v === 'free'; }); }
@@ -10947,12 +11173,19 @@ function sqdUiInit() {
   const mk = document.createElement('div'); mk.id = 'sqMarks'; fpEl.appendChild(mk); SQD.marksEl = mk;
   const wh = document.createElement('div'); wh.id = 'sqWheel'; wh.hidden = true; fpEl.appendChild(wh); SQD.wheelEl = wh;
   const c = document.createElement('div'); c.className = 'c'; c.textContent = 'Squad orders'; wh.appendChild(c); SQD.wheelC = c;
-  SQD_RING.forEach((id, i) => { const od = SQD_ORD.find(x => x[0] === id), a = -Math.PI / 2 + i * Math.PI / 4, b = document.createElement('button'); b.type = 'button'; b.className = 's'; b.style.left = Math.cos(a) * 150 + 'px'; b.style.top = Math.sin(a) * 118 + 'px'; b.innerHTML = ic(od[3]) + '<span></span><span class="k">' + (i + 1) + '</span>'; b.children[1].textContent = od[1].replace(' to my crosshair', '').replace(' this point', '').replace(' me', ''); b.addEventListener('click', () => { sqdWheelClose(true, i); }); wh.appendChild(b); });
+  SQD_RING.forEach((id, i) => { const od = SQD_ORD.find(x => x[0] === id), a = -Math.PI / 2 + i * Math.PI / 4, b = document.createElement('button'); b.type = 'button'; b.className = 's'; b.dataset.a = a; b.style.left = Math.cos(a) * 150 + 'px'; b.style.top = Math.sin(a) * 118 + 'px'; b.innerHTML = ic(od[3]) + '<span></span><span class="k">' + (i + 1) + '</span>'; b.children[1].textContent = od[1].replace(' to my crosshair', '').replace(' this point', '').replace(' me', ''); b.addEventListener('click', () => { sqdWheelClose(true, i); }); wh.appendChild(b); });
+  if (isTouch) { const tl = [['Ping', 'marker', () => sqdPing(), -36, -24], ['Mount', 'door', () => sqdSet('mount'), 36, -24], ['Heal', 'cross', () => sqdSet('heal'), -36, 26], ['Hold fire', 'bunker', () => sqdToggleFire(), 36, 26]];
+    for (const [nm, icn, fn, x, y] of tl) { const b = document.createElement('button'); b.type = 'button'; b.className = 'sq'; b.style.left = x + 'px'; b.style.top = y + 'px'; b.style.transform = 'translate(-50%,-50%)'; b.innerHTML = ic(icn) + '<span>' + nm + '</span>'; b.addEventListener('click', () => { fn(); sqdWheelClose(false); }); if (nm === 'Hold fire') SQD.hfBtn = b; wh.appendChild(b); } }
   SQD.v3 = new THREE.Vector3();
 }
-function sqdWheelOpen() { if (SQD.wheel || !BATTLE.on || !fp.on || !fp.p) return; sqdUiInit(); if (!SQD.on) sqdBind(fp.p); SQD.wheel = true; SQD.wx = SQD.wy = 0; SQD.sel = -1; SQD.wheelEl.hidden = false; sqdWheelPaint(); }
+function sqdWheelFit() {                                          // slices keep clear of the screen edges on a narrow phone
+  if (!SQD.wheelEl) return; const rx = clamp(innerWidth / 2 - 54, 100, 150), ry = clamp(innerHeight / 2 - 150, 88, 118);
+  SQD.wheelEl.querySelectorAll('.s').forEach((b) => { const a = +b.dataset.a; b.style.left = Math.cos(a) * rx + 'px'; b.style.top = Math.sin(a) * ry + 'px'; });
+  if (SQD.hfBtn) SQD.hfBtn.children[1].textContent = SQD.hf ? 'Free fire' : 'Hold fire';
+}
+function sqdWheelOpen() { if (SQD.wheel || !BATTLE.on || !fp.on || !fp.p) return; sqdUiInit(); if (!SQD.on) sqdBind(fp.p); sqdWheelFit(); SQD.wheel = true; SQD.wx = SQD.wy = 0; SQD.sel = -1; SQD.wheelEl.hidden = false; sqdWheelPaint(); }
 function sqdWheelMove(dx, dy) { SQD.wx = clamp(SQD.wx + dx, -120, 120); SQD.wy = clamp(SQD.wy + dy, -120, 120); const r = Math.hypot(SQD.wx, SQD.wy); SQD.sel = r < 28 ? -1 : (Math.round((Math.atan2(SQD.wy, SQD.wx) + Math.PI / 2) / (Math.PI / 4)) + 8) % 8; sqdWheelPaint(); }
-function sqdWheelPaint() { const sl = SQD.wheelEl.querySelectorAll('.s'); sl.forEach((b, i) => b.classList.toggle('on', i === SQD.sel)); SQD.wheelC.textContent = SQD.sel >= 0 ? SQD_ORD.find(x => x[0] === SQD_RING[SQD.sel])[1] : 'Move the mouse, or press 1 to 8'; }
+function sqdWheelPaint() { const sl = SQD.wheelEl.querySelectorAll('.s'); sl.forEach((b, i) => b.classList.toggle('on', i === SQD.sel)); SQD.wheelC.textContent = SQD.sel >= 0 ? SQD_ORD.find(x => x[0] === SQD_RING[SQD.sel])[1] : isTouch ? 'Tap an order' : 'Move the mouse, or press 1 to 8'; }
 function sqdWheelClose(run, idx) { if (!SQD.wheel) return; SQD.wheel = false; if (SQD.wheelEl) SQD.wheelEl.hidden = true; const i = idx !== undefined ? idx : SQD.sel; if (run && i >= 0) sqdSet(SQD_RING[i]); }
 function sqdHud(force) {
   const hud = SQD.hudEl; if (!hud) return; const show = fp.on && SQD.on && SQD.mates.length > 0; if (hud.hidden === show) hud.hidden = !show; if (!show) { hud.textContent = ''; SQD.hudSig = ''; return; }
@@ -11381,7 +11614,7 @@ function chRender() {
     const res = document.createElement('p'); res.className = 'grp-n'; res.id = 'chRes'; res.setAttribute('aria-live', 'polite'); res.style.marginTop = '8px'; g.append(inp, res); }
   body.scrollTop = y;
 }
-function chOpen() { try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) { } $('cheatSheet').hidden = false; chRender(); }
+function chOpen() { if (ED.phone) return; try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) { } $('cheatSheet').hidden = false; chRender(); }
 function chClose() { $('cheatSheet').hidden = true; }
 $('chClose').addEventListener('click', chClose); $('mCheats').addEventListener('click', () => { closeMenu(); chOpen(); });
 KEY_ROUTE.unshift((e) => { if ((e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; if (e.key === '`' || e.key === '~') { e.preventDefault(); keyStop = true; if ($('cheatSheet').hidden) chOpen(); else chClose(); } else if (e.key === 'Escape' && !$('cheatSheet').hidden) { e.preventDefault(); keyStop = true; chClose(); } });

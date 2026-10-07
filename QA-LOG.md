@@ -34,3 +34,6 @@ Method: read all 19 screenshots in qa/, then checked the code. For positions I r
 ## Checked and found fine
 
 Marking texture crop (no stop line or zebra rows reach the roads), road strips and uv wrapping, stop lines (none on roads), apron and slip alignment, battleStop mesh cleanup for flags, AA emplacements, aircraft and parachutes, missile/bomb/shell loops (splice during reverse iteration is correct), renderTablet button wiring and the T / Escape / B key handlers (each bound once), blast() (no undefined variables found).
+
+## 2026-10-07 phone edition phases 1-4
+Changed: ED edition (auto, ?edition=, switcher), phone layout (#phoneStack, #selBar), touch first-person controls, sw.js v9.3.0 stable asset cache, boot id clash fixed. Tested: tools/edition-check.mjs at 390x844, 844x390, 1400x860: all ok (desktop pass needs a quiet server).
