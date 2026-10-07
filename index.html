@@ -223,7 +223,7 @@ body.sideopen #burger{display:none}
 #side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 #side.open{transform:none}
 .sHead{display:flex;gap:6px;align-items:center;padding:calc(8px + var(--safe-t)) 8px 8px;border-bottom:1px solid var(--line)}
-.sTabs{display:flex;gap:4px;flex:1}.sTabs button{flex:1;padding:9px 4px}
+.sHead{align-items:flex-start}.sTabs{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 0;min-width:0}.sTabs button{flex:1 1 auto;min-width:0;padding:9px 8px}#sClose{flex:none}
 #sBody{flex:1;overflow:auto;padding:8px;overscroll-behavior:contain}
 #sBody input[type=search]{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--paper);font:500 15px var(--f-body);margin-bottom:8px;user-select:text;-webkit-user-select:text}
 .sCat{font:700 12px var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:12px 2px 5px}
@@ -4129,12 +4129,18 @@ function hotSpot(team) {
   let best = null, bs = 0; for (const p of BATTLE.points) { const c = people.filter(q => teamOf(q) === otherTeam(team) && q.state !== 'rag' && Math.hypot(q.x - p.x, q.z - p.z) < 40).length + (p.owner === otherTeam(team) ? 1 : 0); if (c > bs) { bs = c; best = p; } }
   return best || BATTLE.points[0];
 }
-function teamMark(g, team, span, len, yLow, yHigh) {                // a big colour on the belly and the back: blue for the Port, red for the other side
-  const col = team === 'blue' ? 0x2f6bd6 : team === 'red' ? 0xd63a2a : 0xe0b020, m = new THREE.MeshBasicMaterial({ color: col }); const a = new THREE.Mesh(new THREE.BoxGeometry(span, 0.12, len), m); a.position.y = yLow; const b = a.clone(); b.position.y = yHigh; g.add(a, b);
+function teamMark(g, team, a, b, c, d, kind) {                       // team colours are painted into the aircraft's own materials: the whole belly, stripes down the tail, wing tips
+  const col = new THREE.Color(team === 'blue' ? 0x2f6bd6 : team === 'red' ? 0xd63a2a : 0xe0b020), cs = col.r.toFixed(4) + ', ' + col.g.toFixed(4) + ', ' + col.b.toFixed(4), k = kind || 'heli';
+  const zone = k === 'gunship' ? 'step(vLP.z, -9.5) * step(1.8, vLP.y) + step(13.5, abs(vLP.x))' : k === 'jet' ? 'step(3.2, abs(vLP.x)) + step(vLP.z, -5.0) * step(0.6, vLP.y)' : 'step(vLP.z, -3.0) * step(fract(vLP.z * 0.62), 0.3) + step(vLP.z, -6.2) * step(1.2, vLP.y)';
+  const cache = new Map();
+  g.traverse(o => { if (!o.isMesh || !o.material) return; const ms = Array.isArray(o.material) ? o.material : [o.material]; const out = ms.map(m => { if (m.transparent || /glass|blur|light|nav/i.test(m.name || '')) return m; const key = m.uuid; if (cache.has(key)) return cache.get(key); const nm = m.clone(); nm.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLP; varying float vNY;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvLP = position; vNY = normal.y;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vLP; varying float vNY;').replace('#include <color_fragment>', '#include <color_fragment>\n{ float under = smoothstep(0.3, 0.7, -vNY); float z = clamp(' + zone + ', 0.0, 1.0); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(' + cs + '), clamp(under * 0.95 + z * 0.9, 0.0, 1.0)); }');
+    }; nm.customProgramCacheKey = () => 'teampaint-' + team + '-' + k; cache.set(key, nm); return nm; }); o.material = Array.isArray(o.material) ? out : out[0]; });
 }
 function airSpawn(team, kind, center) {
   const hs = center || hotSpot(team); if (!hs) return null; const a = Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship';
-  const hm = ['griffon', 'griffon', 'huey', 'blackhawk'][Math.floor(Math.random() * 4)], hn = !gun && D.glb.helis ? nodeByName(D.glb.helis, hm) : null, mesh = gun ? airNode('gunship', stubGunship) : hn ? shadowAll(hn.clone()) : airNode('griffon', stubGriffon); g.add(mesh); if (gun) teamMark(g, team, 5, 11, -2.1, 2.5); else teamMark(g, team, 2.4, 4, 0.55, 3.2); scene.add(g);
+  const hm = ['griffon', 'griffon', 'huey', 'blackhawk'][Math.floor(Math.random() * 4)], hn = !gun && D.glb.helis ? nodeByName(D.glb.helis, hm) : null, mesh = gun ? airNode('gunship', stubGunship) : hn ? shadowAll(hn.clone()) : airNode('griffon', stubGriffon); g.add(mesh); teamMark(g, team, 0, 0, 0, 0, gun ? 'gunship' : 'heli'); scene.add(g);
   const u = { manual: !!center, kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? 130 : 45, hd: 0, tgt: hs, hp: gun ? 380 : 120, hpMax: gun ? 380 : 120, rad: gun ? 18 : 6, life: gun ? 85 : 70, orbit: gun ? 95 : 42, spd: gun ? 42 : 24, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false };
   u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_mainrotor'); u.tr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_tailrotor'); u.props = [0, 1, 2, 3].map(i => nodeByName({ scene: g }, 'gunship_prop_' + i)).filter(Boolean);
   AIR.list.push(u); return u;
@@ -4270,7 +4276,7 @@ function stubJet() { const g = new THREE.Group(); g.add(box3(1.4, 1.3, 14, 0x8a9
 function dropBomb(x, y, z, vx, vz, o) { BOMBS.push({ x, y, z, vx, vy: 0, vz, g: 9.8, ...o }); }
 function callStrike(team, pt, free) {
   const c = AIR.cd[team]; if (!free && c) { if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c.st > 0) { if (team === BATTLE.team) toast(AIR.off[team].st ? 'The strike aircraft is offline.' : 'Strike aircraft are rearming.'); return false; } c.st = 85; }
-  const hd = Math.random() * 6.283, sx = Math.sin(hd), sz = Math.cos(hd), g = new THREE.Group(); g.add(airNode('jet', stubJet)); teamMark(g, team, 9, 8, -0.7, 0.8); scene.add(g);
+  const hd = Math.random() * 6.283, sx = Math.sin(hd), sz = Math.cos(hd), g = new THREE.Group(); g.add(airNode('jet', stubJet)); teamMark(g, team, 0, 0, 0, 0, 'jet'); scene.add(g);
   AIR.list.push({ kind: 'strike', team, g, mesh: g.children[0], x: pt.x - sx * 540, z: pt.z - sz * 540, y: 100, hd, spd: 120, hp: 70, hpMax: 70, rad: 7, trav: 0, drops: 0, life: 99, props: [], px: pt.x, pz: pt.z }); toast('Air strike inbound.'); return true;
 }
 function callArty(team, pt, free, spec) {
