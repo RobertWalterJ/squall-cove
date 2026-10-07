@@ -244,18 +244,29 @@ def winch_loop(dur, r, clicks_per_s=12, motor=90.0, level=1.0):
     return (y * 0.9 + saw * 0.55 + rumble) * level
 
 
-def seal(x):
-    """Rotate a (seamless, circular) loop so that its first and last samples both sit near zero at a flat spot.
-    The loop is continuous across the rotation point (it is circular), and the file-level seam (last vs first sample)
-    becomes tiny, which also keeps the 20 Hz high-pass start-up transient in synthlib.normalize negligible."""
+def seal(x, sr=SR, ncand=240):
+    """Rotate a (seamless, circular) loop so that the saved file's last sample meets its first sample smoothly.
+    The loop is circular, so any rotation stays continuous; we search rotations whose end points sit near zero and keep
+    the one with the smallest jump after the same 20 Hz first-order high-pass that synthlib.normalize applies."""
     x = np.asarray(x, dtype=np.float64)
     x = x - x.mean(axis=0)
     a = np.abs(x / (x.std(axis=0) + 1e-12))
     if a.ndim == 2:
         a = a.max(axis=1)
     cost = a + np.roll(a, 1)
-    s = int(np.argmin(cost))
-    return np.roll(x, -s, axis=0)
+    pool = np.argsort(cost)[:max(ncand * 8, 400)]
+    r = S.rng(99)
+    cand = r.choice(pool, size=min(ncand, len(pool)), replace=False)
+    sos = S._sos('hp', 20.0, sr, 1)
+    best = None; best_s = int(pool[0])
+    for s_ in cand:
+        y = np.roll(x, -int(s_), axis=0)
+        z = signal.sosfilt(sos, y, axis=0)
+        sd = z.std(axis=0) + 1e-12
+        m = float(np.max(np.abs(z[-1] - z[0]) / sd))
+        if best is None or m < best:
+            best, best_s = m, int(s_)
+    return np.roll(x, -best_s, axis=0)
 
 
 def trim(x, dur, fade=0.15, sr=SR):

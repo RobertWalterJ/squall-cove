@@ -1,4 +1,4 @@
-assets 627, total 17.6 MB
+assets 704, total 18.5 MB
 id | bus | dur s | peak dB | LUFS | centroid Hz | KB
 amb_birds_day | amb | 22.0 | -8.3 | -26.0 | 3066 | 268
 amb_crickets_night | amb | 16.0 | -10.4 | -26.0 | 3431 | 271
@@ -73,18 +73,18 @@ grain_metal_pour | mat | 5.0 | -13.6 | -28.0 | 7149 | 71
 grain_rock_pour | mat | 5.0 | -7.7 | -26.0 | 3341 | 76
 grain_sand_pour | mat | 5.0 | -11.8 | -28.0 | 6487 | 48
 heat_hold_hiss_loop | mat | 5.0 | -12.4 | -27.0 | 1113 | 50
-hold_cold | ui | 4.0 | -17.8 | -30.0 | 2032 | 33
-hold_earth | ui | 4.0 | -17.1 | -30.0 | 262 | 32
-hold_electricity | ui | 4.0 | -20.4 | -30.0 | 210 | 35
-hold_fire | ui | 4.0 | -14.2 | -30.0 | 247 | 44
-hold_heat | ui | 4.0 | -16.8 | -30.0 | 528 | 32
-hold_lava | ui | 4.0 | -14.8 | -30.0 | 202 | 32
-hold_lightning_charge | ui | 4.0 | -20.4 | -30.0 | 180 | 23
-hold_metal | ui | 4.0 | -16.4 | -30.0 | 3855 | 33
-hold_rock | ui | 4.0 | -12.6 | -30.0 | 1841 | 35
-hold_sand | ui | 4.0 | -17.8 | -30.0 | 3122 | 33
-hold_seed | ui | 4.0 | -13.3 | -30.0 | 1883 | 37
-hold_water | ui | 4.0 | -16.4 | -30.0 | 877 | 31
+hold_cold | ui | 4.0 | -17.4 | -30.0 | 2033 | 33
+hold_earth | ui | 4.0 | -17.3 | -30.0 | 263 | 32
+hold_electricity | ui | 4.0 | -20.2 | -30.0 | 209 | 35
+hold_fire | ui | 4.0 | -14.6 | -30.0 | 237 | 43
+hold_heat | ui | 4.0 | -16.5 | -30.0 | 530 | 31
+hold_lava | ui | 4.0 | -14.9 | -30.0 | 198 | 32
+hold_lightning_charge | ui | 4.0 | -20.3 | -30.0 | 179 | 24
+hold_metal | ui | 4.0 | -16.4 | -30.0 | 3853 | 33
+hold_rock | ui | 4.0 | -12.4 | -30.0 | 1845 | 35
+hold_sand | ui | 4.0 | -16.9 | -30.0 | 3127 | 32
+hold_seed | ui | 4.0 | -13.1 | -30.0 | 1880 | 37
+hold_water | ui | 4.0 | -15.7 | -30.0 | 873 | 32
 lava_crust_crack_01 | mat | 0.8 | -8.3 | -30.5 | 547 | 7
 lava_crust_crack_02 | mat | 0.8 | -8.4 | -28.2 | 472 | 7
 lava_crust_crack_03 | mat | 0.8 | -8.5 | -31.3 | 486 | 8
@@ -295,16 +295,45 @@ mat_wood_thump_03 | mat | 0.6 | -4.9 | -21.6 | 130 | 6
 mat_wood_thump_04 | mat | 0.6 | -5.0 | -22.7 | 171 | 6
 mat_wood_thump_05 | mat | 0.6 | -5.0 | -20.7 | 182 | 6
 mat_wood_thump_06 | mat | 0.6 | -5.1 | -22.2 | 121 | 6
-mus_pad_dawn | mus | 40.0 | -17.5 | -28.0 | 223 | 470
-mus_pad_day | mus | 40.0 | -17.6 | -28.0 | 171 | 428
+mus_pad_dawn | mus | 40.0 | -17.2 | -28.0 | 223 | 470
+mus_pad_day | mus | 40.0 | -17.4 | -28.0 | 171 | 428
 mus_pad_dusk | mus | 40.0 | -16.6 | -28.0 | 215 | 394
-mus_pad_night | mus | 40.0 | -21.0 | -30.0 | 95 | 352
-mus_sting_arrival | mus | 6.47 | -6.0 | -21.6 | 457 | 55
-mus_sting_discovery | mus | 5.42 | -5.9 | -21.4 | 1002 | 53
-mus_sting_loss | mus | 6.86 | -6.0 | -22.7 | 169 | 59
-mus_sting_success | mus | 6.01 | -5.9 | -19.4 | 660 | 56
-mus_storm_layer | mus | 40.0 | -16.7 | -30.0 | 61 | 364
-mus_tension_layer | mus | 40.0 | -18.7 | -30.0 | 77 | 359
+mus_pad_night | mus | 40.0 | -21.5 | -30.0 | 95 | 352
+mus_sting_arrival | mus | 3.8 | -6.0 | -19.3 | 458 | 34
+mus_sting_discovery | mus | 3.2 | -5.9 | -19.2 | 1002 | 37
+mus_sting_loss | mus | 4.0 | -6.0 | -20.3 | 169 | 38
+mus_sting_success | mus | 3.8 | -5.9 | -17.4 | 660 | 39
+mus_storm_layer | mus | 40.0 | -16.8 | -30.0 | 61 | 364
+mus_tension_layer | mus | 40.0 | -18.8 | -30.0 | 77 | 359
+npc_circle_done_fanfare | ui | 2.5 | -6.1 | -21.0 | 597 | 16
+npc_contraband_seized_sting | ui | 2.2 | -5.9 | -17.9 | 158 | 11
+npc_courier_caught_sting | ui | 1.8 | -5.9 | -19.4 | 299 | 11
+npc_decoy_blip | ui | 0.55 | -5.7 | -17.8 | 972 | 5
+npc_developer_arrive | ui | 1.7 | -6.4 | -21.6 | 452 | 11
+npc_disaster_alert | ui | 2.6 | -5.9 | -20.4 | 159 | 10
+npc_drop_thud_sand_01 | ppl | 0.5 | -2.9 | -18.9 | 124 | 7
+npc_drop_thud_sand_02 | ppl | 0.5 | -3.0 | -18.8 | 132 | 7
+npc_drop_thud_sand_03 | ppl | 0.5 | -3.2 | -20.4 | 131 | 7
+npc_drop_thud_sand_04 | ppl | 0.5 | -3.2 | -18.6 | 135 | 7
+npc_report_blip | ui | 0.5 | -5.7 | -18.1 | 1063 | 5
+npc_rescue_start_alert | ui | 1.4 | -6.0 | -18.9 | 556 | 10
+npc_rescue_success | ui | 2.5 | -6.1 | -20.9 | 632 | 16
+npc_sabotage_topple_01 | ppl | 1.5 | -2.8 | -19.6 | 284 | 16
+npc_sabotage_topple_02 | ppl | 1.5 | -3.1 | -19.6 | 300 | 16
+npc_sabotage_topple_03 | ppl | 1.5 | -3.1 | -19.4 | 287 | 15
+npc_sabotage_topple_04 | ppl | 1.5 | -3.2 | -19.7 | 278 | 16
+npc_salvage_sold_coin | ui | 1.0 | -5.9 | -18.9 | 1468 | 7
+npc_salvage_winch_loop | ppl | 4.0 | -15.7 | -28.0 | 388 | 29
+npc_site_taken_sting | ui | 2.0 | -6.0 | -21.6 | 232 | 11
+npc_smuggler_arrive_low_engine | ppl | 4.0 | -15.8 | -30.0 | 61 | 20
+npc_stash_cover_01 | ppl | 0.9 | -3.0 | -15.9 | 2479 | 10
+npc_stash_cover_02 | ppl | 0.9 | -3.3 | -16.8 | 2485 | 11
+npc_stash_cover_03 | ppl | 0.9 | -2.8 | -17.7 | 2466 | 12
+npc_stash_cover_04 | ppl | 0.9 | -3.4 | -18.3 | 2489 | 10
+npc_threat_alert | ui | 1.4 | -5.9 | -20.8 | 241 | 9
+npc_trust_down | ui | 0.9 | -5.9 | -20.2 | 429 | 8
+npc_trust_up | ui | 0.8 | -6.1 | -20.0 | 523 | 8
+npc_unmask_sting | ui | 2.2 | -5.9 | -21.4 | 568 | 13
 pile_slump_large_01 | mat | 3.2 | -3.4 | -23.1 | 418 | 40
 pile_slump_large_02 | mat | 3.2 | -3.4 | -22.8 | 408 | 38
 pile_slump_large_03 | mat | 3.2 | -2.9 | -22.6 | 415 | 39
@@ -313,25 +342,65 @@ pile_slump_small_01 | mat | 1.3 | -7.9 | -28.0 | 416 | 16
 pile_slump_small_02 | mat | 1.3 | -8.1 | -26.7 | 460 | 16
 pile_slump_small_03 | mat | 1.3 | -8.1 | -26.7 | 438 | 16
 pile_slump_small_04 | mat | 1.3 | -8.2 | -29.0 | 336 | 17
+ppl_axe_chop_01 | ppl | 0.9 | -4.2 | -22.8 | 389 | 8
+ppl_axe_chop_02 | ppl | 0.9 | -3.2 | -23.4 | 423 | 8
+ppl_axe_chop_03 | ppl | 0.9 | -2.4 | -23.3 | 401 | 8
+ppl_axe_chop_04 | ppl | 0.9 | -2.8 | -22.9 | 330 | 8
+ppl_binocular_click | ppl | 0.14 | -3.2 | -16.4 | 2129 | 4
 ppl_breath | ppl | 1.6 | -3.5 | -18.5 | 2190 | 16
+ppl_camera_shutter_01 | ppl | 0.25 | -3.5 | -20.7 | 1334 | 4
+ppl_camera_shutter_02 | ppl | 0.25 | -2.8 | -18.2 | 1389 | 4
+ppl_camera_shutter_03 | ppl | 0.25 | -3.2 | -19.3 | 1413 | 4
+ppl_camera_shutter_04 | ppl | 0.25 | -3.5 | -18.3 | 1524 | 4
 ppl_cough_01 | ppl | 0.9 | -3.6 | -22.3 | 1117 | 6
 ppl_cough_02 | ppl | 0.9 | -3.1 | -23.1 | 1075 | 6
 ppl_cough_03 | ppl | 0.9 | -3.5 | -24.6 | 1037 | 7
+ppl_drum_slosh_01 | ppl | 1.3 | -3.1 | -18.0 | 826 | 14
+ppl_drum_slosh_02 | ppl | 1.3 | -2.9 | -17.6 | 921 | 14
+ppl_drum_slosh_03 | ppl | 1.3 | -3.0 | -16.7 | 864 | 14
+ppl_drum_slosh_04 | ppl | 1.3 | -3.1 | -16.8 | 884 | 14
+ppl_fishing_cast_01 | ppl | 1.2 | -2.9 | -21.2 | 2121 | 10
+ppl_fishing_cast_02 | ppl | 1.2 | -2.6 | -20.0 | 1942 | 10
+ppl_fishing_cast_03 | ppl | 1.2 | -3.4 | -22.3 | 2002 | 10
+ppl_fishing_cast_04 | ppl | 1.2 | -3.5 | -22.2 | 2128 | 10
+ppl_fishing_reel | ppl | 4.0 | -11.0 | -30.0 | 772 | 40
 ppl_grunt_topple_01 | ppl | 0.28 | -2.8 | -15.3 | 852 | 5
 ppl_grunt_topple_02 | ppl | 0.31 | -3.4 | -16.6 | 735 | 5
 ppl_grunt_topple_03 | ppl | 0.34 | -3.2 | -18.6 | 679 | 6
 ppl_grunt_topple_04 | ppl | 0.37 | -2.4 | -17.8 | 836 | 6
+ppl_hammer_tap_01 | ppl | 0.6 | -3.3 | -21.3 | 3222 | 6
+ppl_hammer_tap_02 | ppl | 0.6 | -4.0 | -23.3 | 2858 | 6
+ppl_hammer_tap_03 | ppl | 0.6 | -2.9 | -22.4 | 3148 | 6
+ppl_hammer_tap_04 | ppl | 0.6 | -3.6 | -20.8 | 3389 | 6
+ppl_haul_grunt_01 | ppl | 0.5 | -2.9 | -18.4 | 880 | 7
+ppl_haul_grunt_02 | ppl | 0.55 | -3.0 | -17.0 | 817 | 7
+ppl_haul_grunt_03 | ppl | 0.6 | -3.0 | -17.0 | 766 | 8
+ppl_haul_grunt_04 | ppl | 0.65 | -3.1 | -18.0 | 687 | 8
 ppl_laugh_small_01 | ppl | 1.1 | -3.1 | -22.4 | 791 | 8
 ppl_laugh_small_02 | ppl | 1.1 | -3.0 | -19.5 | 808 | 9
 ppl_laugh_small_03 | ppl | 1.1 | -3.1 | -22.0 | 814 | 8
-ppl_murmur_loop_s | ppl | 12.0 | -8.3 | -30.0 | 338 | 84
-ppl_shiver | ppl | 2.4 | -14.0 | -30.0 | 1682 | 22
+ppl_murmur_loop_m | ppl | 12.0 | -8.9 | -28.0 | 386 | 84
+ppl_murmur_loop_s | ppl | 12.0 | -8.6 | -30.0 | 366 | 84
+ppl_radio_chatter_loop | ppl | 12.0 | -6.5 | -30.0 | 1044 | 89
+ppl_radio_click_01 | ppl | 0.1 | -2.8 | -20.8 | 1371 | 4
+ppl_radio_click_02 | ppl | 0.1 | -3.1 | -22.2 | 1403 | 4
+ppl_radio_click_03 | ppl | 0.1 | -3.5 | -23.3 | 1338 | 4
+ppl_radio_click_04 | ppl | 0.1 | -3.2 | -22.3 | 1179 | 4
+ppl_radio_squelch_01 | ppl | 0.28 | -7.4 | -19.6 | 2521 | 5
+ppl_radio_squelch_02 | ppl | 0.31 | -8.3 | -19.8 | 2570 | 6
+ppl_radio_squelch_03 | ppl | 0.34 | -7.7 | -19.8 | 2555 | 6
+ppl_radio_squelch_04 | ppl | 0.37 | -7.5 | -19.6 | 2634 | 6
+ppl_shiver | ppl | 2.4 | -14.2 | -30.0 | 1676 | 22
 ppl_shout_boat_01 | ppl | 2.66 | -3.1 | -19.1 | 644 | 19
 ppl_shout_boat_02 | ppl | 2.66 | -3.1 | -19.5 | 665 | 20
 ppl_shout_boat_03 | ppl | 2.66 | -2.9 | -19.0 | 641 | 19
 ppl_shout_help_01 | ppl | 2.22 | -3.1 | -19.1 | 679 | 17
 ppl_shout_help_02 | ppl | 2.22 | -3.3 | -19.3 | 687 | 17
 ppl_shout_help_03 | ppl | 2.22 | -3.3 | -18.5 | 691 | 17
+ppl_shovel_dig_01 | ppl | 0.8 | -3.0 | -20.5 | 1382 | 10
+ppl_shovel_dig_02 | ppl | 0.8 | -3.0 | -20.4 | 1455 | 11
+ppl_shovel_dig_03 | ppl | 0.8 | -3.1 | -20.7 | 1467 | 10
+ppl_shovel_dig_04 | ppl | 0.8 | -3.7 | -20.8 | 1478 | 10
 ppl_step_deck_01 | ppl | 0.55 | -6.2 | -21.5 | 501 | 6
 ppl_step_deck_02 | ppl | 0.55 | -6.0 | -21.4 | 540 | 6
 ppl_step_deck_03 | ppl | 0.55 | -6.3 | -22.0 | 519 | 6
@@ -348,14 +417,14 @@ ppl_step_grass_05 | ppl | 0.55 | -6.0 | -20.5 | 480 | 6
 ppl_step_grass_06 | ppl | 0.55 | -5.9 | -21.3 | 691 | 6
 ppl_step_grass_07 | ppl | 0.55 | -5.8 | -22.8 | 469 | 6
 ppl_step_grass_08 | ppl | 0.55 | -6.1 | -23.1 | 652 | 6
-ppl_step_gravel_01 | ppl | 0.55 | -5.6 | -24.1 | 5623 | 6
-ppl_step_gravel_02 | ppl | 0.55 | -6.4 | -24.2 | 5513 | 6
-ppl_step_gravel_03 | ppl | 0.55 | -6.7 | -23.3 | 5772 | 6
-ppl_step_gravel_04 | ppl | 0.55 | -6.7 | -27.7 | 5732 | 6
-ppl_step_gravel_05 | ppl | 0.55 | -6.4 | -25.4 | 5438 | 6
-ppl_step_gravel_06 | ppl | 0.55 | -6.2 | -23.6 | 5735 | 6
-ppl_step_gravel_07 | ppl | 0.55 | -6.9 | -24.4 | 5562 | 6
-ppl_step_gravel_08 | ppl | 0.55 | -6.6 | -23.4 | 5459 | 6
+ppl_step_gravel_01 | ppl | 0.55 | -6.5 | -23.3 | 4591 | 6
+ppl_step_gravel_02 | ppl | 0.55 | -6.1 | -25.0 | 4606 | 6
+ppl_step_gravel_03 | ppl | 0.55 | -6.9 | -23.6 | 4823 | 6
+ppl_step_gravel_04 | ppl | 0.55 | -6.3 | -27.9 | 4773 | 6
+ppl_step_gravel_05 | ppl | 0.55 | -7.9 | -24.9 | 4411 | 6
+ppl_step_gravel_06 | ppl | 0.55 | -6.9 | -23.7 | 4768 | 6
+ppl_step_gravel_07 | ppl | 0.55 | -5.7 | -23.5 | 4579 | 6
+ppl_step_gravel_08 | ppl | 0.55 | -6.0 | -23.8 | 4465 | 6
 ppl_step_metal_01 | ppl | 0.55 | -6.0 | -18.3 | 1898 | 6
 ppl_step_metal_02 | ppl | 0.55 | -6.0 | -18.3 | 1792 | 6
 ppl_step_metal_03 | ppl | 0.55 | -5.9 | -19.2 | 1888 | 6
@@ -364,22 +433,22 @@ ppl_step_metal_05 | ppl | 0.55 | -6.1 | -20.4 | 2023 | 6
 ppl_step_metal_06 | ppl | 0.55 | -6.1 | -18.0 | 1743 | 6
 ppl_step_metal_07 | ppl | 0.55 | -6.0 | -19.2 | 1534 | 6
 ppl_step_metal_08 | ppl | 0.55 | -6.3 | -18.7 | 1629 | 6
-ppl_step_rock_01 | ppl | 0.55 | -6.1 | -26.3 | 2180 | 5
-ppl_step_rock_02 | ppl | 0.55 | -6.5 | -27.6 | 3121 | 5
-ppl_step_rock_03 | ppl | 0.55 | -6.3 | -28.7 | 2594 | 5
-ppl_step_rock_04 | ppl | 0.55 | -6.8 | -26.6 | 2348 | 5
-ppl_step_rock_05 | ppl | 0.55 | -7.2 | -27.7 | 2202 | 5
-ppl_step_rock_06 | ppl | 0.55 | -5.7 | -27.2 | 2588 | 5
-ppl_step_rock_07 | ppl | 0.55 | -6.5 | -28.7 | 2290 | 5
-ppl_step_rock_08 | ppl | 0.55 | -5.7 | -27.6 | 2927 | 5
-ppl_step_sand_01 | ppl | 0.55 | -6.5 | -25.1 | 2358 | 6
-ppl_step_sand_02 | ppl | 0.55 | -6.4 | -24.8 | 2558 | 5
-ppl_step_sand_03 | ppl | 0.55 | -5.9 | -24.7 | 2264 | 6
-ppl_step_sand_04 | ppl | 0.55 | -6.4 | -24.2 | 1964 | 5
-ppl_step_sand_05 | ppl | 0.55 | -6.5 | -23.6 | 2502 | 6
-ppl_step_sand_06 | ppl | 0.55 | -5.6 | -26.2 | 2305 | 6
-ppl_step_sand_07 | ppl | 0.55 | -7.0 | -27.4 | 2356 | 6
-ppl_step_sand_08 | ppl | 0.55 | -5.6 | -23.2 | 2282 | 6
+ppl_step_rock_01 | ppl | 0.55 | -6.8 | -27.0 | 2926 | 5
+ppl_step_rock_02 | ppl | 0.55 | -7.0 | -28.5 | 3249 | 5
+ppl_step_rock_03 | ppl | 0.55 | -6.7 | -27.0 | 3113 | 5
+ppl_step_rock_04 | ppl | 0.55 | -6.6 | -26.7 | 3028 | 5
+ppl_step_rock_05 | ppl | 0.55 | -5.3 | -27.7 | 2798 | 5
+ppl_step_rock_06 | ppl | 0.55 | -6.3 | -29.0 | 3422 | 5
+ppl_step_rock_07 | ppl | 0.55 | -6.2 | -26.8 | 3046 | 5
+ppl_step_rock_08 | ppl | 0.55 | -6.8 | -28.2 | 3678 | 5
+ppl_step_sand_01 | ppl | 0.55 | -6.2 | -24.9 | 1975 | 5
+ppl_step_sand_02 | ppl | 0.55 | -6.6 | -25.1 | 2179 | 6
+ppl_step_sand_03 | ppl | 0.55 | -6.6 | -24.8 | 1796 | 6
+ppl_step_sand_04 | ppl | 0.55 | -6.1 | -24.3 | 1618 | 6
+ppl_step_sand_05 | ppl | 0.55 | -6.9 | -24.3 | 2181 | 6
+ppl_step_sand_06 | ppl | 0.55 | -6.0 | -24.3 | 2044 | 6
+ppl_step_sand_07 | ppl | 0.55 | -6.1 | -26.9 | 2016 | 6
+ppl_step_sand_08 | ppl | 0.55 | -5.7 | -23.5 | 1932 | 6
 ppl_step_snow_01 | ppl | 0.55 | -6.9 | -26.3 | 5191 | 6
 ppl_step_snow_02 | ppl | 0.55 | -7.2 | -26.0 | 5168 | 6
 ppl_step_snow_03 | ppl | 0.55 | -6.7 | -24.6 | 4783 | 7
@@ -404,9 +473,17 @@ ppl_step_wood_05 | ppl | 0.55 | -6.0 | -20.8 | 306 | 6
 ppl_step_wood_06 | ppl | 0.55 | -6.0 | -22.2 | 292 | 6
 ppl_step_wood_07 | ppl | 0.55 | -6.0 | -21.5 | 299 | 6
 ppl_step_wood_08 | ppl | 0.55 | -5.9 | -22.1 | 280 | 6
-ppl_whistle_lifeguard_01 | ppl | 0.55 | -2.8 | -7.8 | 2864 | 6
-ppl_whistle_lifeguard_02 | ppl | 0.75 | -3.0 | -7.6 | 2944 | 8
-ppl_whistle_lifeguard_03 | ppl | 0.9 | -3.0 | -7.6 | 3035 | 9
+ppl_stone_place_01 | ppl | 1.0 | -3.2 | -23.3 | 319 | 9
+ppl_stone_place_02 | ppl | 1.0 | -2.8 | -22.9 | 295 | 9
+ppl_stone_place_03 | ppl | 1.0 | -3.1 | -22.2 | 333 | 9
+ppl_stone_place_04 | ppl | 1.0 | -3.2 | -22.0 | 333 | 9
+ppl_tree_plant_pat_01 | ppl | 0.7 | -3.0 | -18.4 | 128 | 7
+ppl_tree_plant_pat_02 | ppl | 0.7 | -3.0 | -18.9 | 132 | 7
+ppl_tree_plant_pat_03 | ppl | 0.7 | -2.9 | -19.8 | 126 | 7
+ppl_tree_plant_pat_04 | ppl | 0.7 | -3.2 | -19.0 | 136 | 7
+ppl_whistle_lifeguard_01 | ppl | 0.55 | -13.9 | -18.8 | 2864 | 6
+ppl_whistle_lifeguard_02 | ppl | 0.75 | -14.0 | -18.6 | 2944 | 7
+ppl_whistle_lifeguard_03 | ppl | 0.9 | -14.0 | -18.6 | 3035 | 8
 quake_crack_01 | mat | 1.8 | -3.4 | -20.9 | 387 | 18
 quake_crack_02 | mat | 1.8 | -3.3 | -21.2 | 260 | 18
 quake_crack_03 | mat | 1.8 | -3.2 | -21.7 | 232 | 16
@@ -420,26 +497,26 @@ sprout_chime_01 | mat | 1.4 | -14.0 | -28.1 | 1291 | 10
 sprout_chime_02 | mat | 1.4 | -14.2 | -28.6 | 1296 | 11
 sprout_chime_03 | mat | 1.4 | -14.2 | -28.6 | 1294 | 10
 sprout_chime_04 | mat | 1.4 | -14.2 | -28.6 | 1296 | 11
-ui_close | ui | 0.48 | -10.1 | -23.2 | 523 | 5
-ui_deselect | ui | 0.28 | -10.0 | -21.6 | 516 | 5
-ui_erase | ui | 0.46 | -10.5 | -24.6 | 277 | 5
-ui_error | ui | 0.4 | -10.0 | -20.0 | 140 | 5
-ui_log_open | ui | 0.42 | -10.1 | -23.8 | 455 | 5
-ui_new_world | ui | 0.7 | -10.1 | -22.7 | 576 | 8
-ui_open | ui | 0.48 | -10.0 | -22.9 | 562 | 6
-ui_place | ui | 0.4 | -10.2 | -24.1 | 287 | 4
-ui_select | ui | 0.28 | -9.9 | -21.0 | 559 | 5
+ui_close | ui | 0.48 | -10.1 | -23.3 | 524 | 5
+ui_deselect | ui | 0.28 | -10.0 | -22.4 | 527 | 5
+ui_erase | ui | 0.46 | -10.5 | -24.7 | 278 | 5
+ui_error | ui | 0.4 | -10.0 | -20.4 | 141 | 5
+ui_log_open | ui | 0.42 | -10.1 | -23.9 | 456 | 5
+ui_new_world | ui | 0.7 | -10.1 | -22.7 | 574 | 8
+ui_open | ui | 0.48 | -10.0 | -23.2 | 561 | 6
+ui_place | ui | 0.4 | -10.2 | -24.3 | 287 | 5
+ui_select | ui | 0.28 | -9.9 | -21.9 | 560 | 5
 ui_slider_tick | ui | 0.06 | -11.8 | -19.6 | 1232 | 4
-ui_tab | ui | 0.1 | -10.0 | -17.2 | 898 | 4
-ui_tap | ui | 0.16 | -10.0 | -18.9 | 594 | 4
-ui_toast_alert | ui | 0.7 | -10.0 | -22.1 | 365 | 6
-ui_toast_good | ui | 1.86 | -10.8 | -28.5 | 993 | 10
-ui_toast_info | ui | 1.76 | -10.0 | -28.9 | 929 | 9
-ui_toast_warn | ui | 1.76 | -10.0 | -28.0 | 411 | 10
-ui_toggle_off | ui | 0.3 | -10.0 | -22.1 | 399 | 5
-ui_toggle_on | ui | 0.3 | -10.0 | -21.1 | 811 | 5
-ui_try_done | ui | 0.7 | -10.0 | -22.5 | 888 | 6
-ui_undo | ui | 0.4 | -10.0 | -22.2 | 455 | 5
+ui_tab | ui | 0.1 | -10.0 | -19.8 | 909 | 4
+ui_tap | ui | 0.16 | -10.0 | -21.4 | 597 | 4
+ui_toast_alert | ui | 0.7 | -10.0 | -22.2 | 365 | 6
+ui_toast_good | ui | 0.7 | -10.8 | -24.3 | 991 | 6
+ui_toast_info | ui | 0.7 | -10.0 | -24.9 | 929 | 6
+ui_toast_warn | ui | 0.7 | -10.0 | -24.0 | 411 | 7
+ui_toggle_off | ui | 0.3 | -10.0 | -22.8 | 406 | 5
+ui_toggle_on | ui | 0.3 | -10.0 | -22.0 | 800 | 5
+ui_try_done | ui | 0.7 | -10.0 | -22.5 | 887 | 6
+ui_undo | ui | 0.4 | -10.0 | -22.3 | 460 | 5
 veh_anchor_chain_01 | veh | 1.6 | -3.2 | -19.7 | 2843 | 22
 veh_anchor_chain_02 | veh | 1.6 | -3.3 | -20.9 | 2744 | 21
 veh_anchor_chain_03 | veh | 1.6 | -3.3 | -21.0 | 2947 | 22
@@ -452,27 +529,27 @@ veh_buoy_bell_01 | veh | 4.0 | -3.0 | -19.1 | 2974 | 21
 veh_buoy_bell_02 | veh | 4.0 | -3.0 | -18.5 | 3009 | 19
 veh_buoy_bell_03 | veh | 4.0 | -3.1 | -19.1 | 2775 | 21
 veh_buoy_bell_04 | veh | 4.0 | -3.0 | -17.3 | 2712 | 25
-veh_eng_hover_hi | veh | 5.0 | -9.8 | -22.5 | 1476 | 44
-veh_eng_hover_lo | veh | 5.0 | -12.3 | -25.0 | 488 | 38
-veh_eng_hover_mid | veh | 5.0 | -9.8 | -24.0 | 976 | 41
-veh_eng_icebreaker_hi | veh | 5.0 | -8.2 | -22.5 | 76 | 45
-veh_eng_icebreaker_lo | veh | 5.0 | -9.0 | -25.0 | 62 | 30
-veh_eng_icebreaker_mid | veh | 5.0 | -7.7 | -24.0 | 71 | 41
-veh_eng_lifeboat_hi | veh | 5.0 | -10.4 | -22.5 | 325 | 76
-veh_eng_lifeboat_lo | veh | 5.0 | -13.0 | -25.0 | 123 | 59
-veh_eng_lifeboat_mid | veh | 5.0 | -12.3 | -24.0 | 197 | 68
-veh_eng_outboard_hi | veh | 5.0 | -10.9 | -22.5 | 473 | 35
-veh_eng_outboard_lo | veh | 5.0 | -13.8 | -25.0 | 189 | 30
-veh_eng_outboard_mid | veh | 5.0 | -10.3 | -24.0 | 308 | 34
-veh_eng_patrol_hi | veh | 5.0 | -11.9 | -22.5 | 201 | 63
-veh_eng_patrol_lo | veh | 5.0 | -10.8 | -25.0 | 118 | 65
-veh_eng_patrol_mid | veh | 5.0 | -12.0 | -24.0 | 119 | 70
-veh_eng_tug_hi | veh | 5.0 | -11.5 | -22.5 | 144 | 60
-veh_eng_tug_lo | veh | 5.0 | -9.1 | -25.0 | 86 | 48
-veh_eng_tug_mid | veh | 5.0 | -9.7 | -24.0 | 112 | 45
-veh_fire_hose_spray_loop | veh | 4.0 | -13.5 | -26.0 | 3085 | 36
-veh_fire_on_boat_loop | veh | 5.0 | -7.6 | -25.0 | 611 | 63
-veh_foghorn | veh | 6.14 | -4.2 | -20.2 | 428 | 40
+veh_eng_hover_hi | veh | 5.0 | -9.2 | -22.5 | 1462 | 44
+veh_eng_hover_lo | veh | 5.0 | -11.7 | -25.0 | 495 | 38
+veh_eng_hover_mid | veh | 5.0 | -10.1 | -24.0 | 981 | 41
+veh_eng_icebreaker_hi | veh | 5.0 | -9.0 | -22.5 | 93 | 46
+veh_eng_icebreaker_lo | veh | 5.0 | -9.3 | -25.0 | 71 | 31
+veh_eng_icebreaker_mid | veh | 5.0 | -8.2 | -24.0 | 84 | 42
+veh_eng_lifeboat_hi | veh | 5.0 | -9.5 | -22.5 | 651 | 76
+veh_eng_lifeboat_lo | veh | 5.0 | -10.8 | -25.0 | 250 | 60
+veh_eng_lifeboat_mid | veh | 5.0 | -11.5 | -24.0 | 420 | 67
+veh_eng_outboard_hi | veh | 5.0 | -11.0 | -22.5 | 807 | 43
+veh_eng_outboard_lo | veh | 5.0 | -13.0 | -25.0 | 339 | 59
+veh_eng_outboard_mid | veh | 5.0 | -11.0 | -24.0 | 521 | 65
+veh_eng_patrol_hi | veh | 5.0 | -12.0 | -22.5 | 440 | 53
+veh_eng_patrol_lo | veh | 5.0 | -11.0 | -25.0 | 211 | 64
+veh_eng_patrol_mid | veh | 5.0 | -11.0 | -24.0 | 243 | 70
+veh_eng_tug_hi | veh | 5.0 | -10.0 | -22.5 | 310 | 61
+veh_eng_tug_lo | veh | 5.0 | -9.4 | -25.0 | 162 | 49
+veh_eng_tug_mid | veh | 5.0 | -9.0 | -24.0 | 230 | 57
+veh_fire_hose_spray_loop | veh | 4.0 | -13.6 | -26.0 | 3068 | 36
+veh_fire_on_boat_loop | veh | 5.0 | -8.0 | -25.0 | 595 | 63
+veh_foghorn | veh | 4.2 | -4.2 | -18.6 | 428 | 31
 veh_gun_fire_01 | veh | 2.2 | -3.1 | -22.8 | 90 | 16
 veh_gun_fire_02 | veh | 2.2 | -3.0 | -24.2 | 101 | 16
 veh_gun_fire_03 | veh | 2.2 | -3.0 | -21.4 | 103 | 16
@@ -481,9 +558,9 @@ veh_gun_shell_fly_01 | veh | 1.4 | -2.8 | -19.1 | 1553 | 14
 veh_gun_shell_fly_02 | veh | 1.4 | -3.5 | -19.1 | 1618 | 14
 veh_gun_shell_fly_03 | veh | 1.4 | -3.0 | -19.6 | 1472 | 14
 veh_gun_shell_fly_04 | veh | 1.4 | -3.7 | -20.0 | 1515 | 14
-veh_heli_rotor_loop | veh | 4.0 | -3.0 | -24.7 | 142 | 41
-veh_heli_wash_loop | veh | 4.0 | -9.4 | -26.0 | 893 | 35
-veh_heli_whine_loop | veh | 4.0 | -19.1 | -30.0 | 2580 | 34
+veh_heli_rotor_loop | veh | 4.0 | -3.2 | -24.7 | 141 | 42
+veh_heli_wash_loop | veh | 4.0 | -9.5 | -26.0 | 895 | 36
+veh_heli_whine_loop | veh | 4.0 | -19.6 | -30.0 | 2579 | 34
 veh_horn_long | veh | 2.2 | -2.9 | -14.7 | 536 | 19
 veh_horn_short | veh | 0.65 | -3.0 | -16.2 | 604 | 8
 veh_hull_breach_01 | veh | 1.8 | -2.8 | -22.0 | 1417 | 20
@@ -494,14 +571,14 @@ veh_hull_creak_01 | veh | 1.8 | -3.1 | -18.8 | 189 | 19
 veh_hull_creak_02 | veh | 1.8 | -2.9 | -18.4 | 180 | 19
 veh_hull_creak_03 | veh | 1.8 | -3.1 | -18.1 | 213 | 19
 veh_hull_creak_04 | veh | 1.8 | -3.1 | -17.5 | 170 | 19
-veh_hull_hit_heavy_01 | veh | 1.5 | -2.9 | -23.2 | 110 | 13
-veh_hull_hit_heavy_02 | veh | 1.5 | -3.0 | -20.6 | 106 | 13
-veh_hull_hit_heavy_03 | veh | 1.5 | -3.0 | -23.0 | 113 | 13
-veh_hull_hit_heavy_04 | veh | 1.5 | -3.0 | -22.3 | 125 | 13
-veh_hull_hit_light_01 | veh | 0.7 | -3.0 | -20.9 | 233 | 6
-veh_hull_hit_light_02 | veh | 0.7 | -3.1 | -20.8 | 256 | 6
-veh_hull_hit_light_03 | veh | 0.7 | -3.1 | -20.8 | 312 | 6
-veh_hull_hit_light_04 | veh | 0.7 | -3.1 | -21.6 | 220 | 6
+veh_hull_hit_heavy_01 | veh | 1.5 | -2.9 | -21.2 | 105 | 13
+veh_hull_hit_heavy_02 | veh | 1.5 | -2.9 | -22.2 | 103 | 13
+veh_hull_hit_heavy_03 | veh | 1.5 | -3.2 | -22.3 | 114 | 13
+veh_hull_hit_heavy_04 | veh | 1.5 | -3.4 | -25.1 | 124 | 14
+veh_hull_hit_light_01 | veh | 0.7 | -3.3 | -21.3 | 234 | 6
+veh_hull_hit_light_02 | veh | 0.7 | -2.9 | -20.6 | 261 | 6
+veh_hull_hit_light_03 | veh | 0.7 | -3.0 | -20.5 | 312 | 6
+veh_hull_hit_light_04 | veh | 0.7 | -3.0 | -20.3 | 219 | 6
 veh_ice_crunch_hull_01 | veh | 1.4 | -3.7 | -24.8 | 1307 | 19
 veh_ice_crunch_hull_02 | veh | 1.4 | -3.2 | -27.0 | 588 | 20
 veh_ice_crunch_hull_03 | veh | 1.4 | -3.2 | -23.7 | 1594 | 20
@@ -510,9 +587,9 @@ veh_mg_burst_01 | veh | 3.22 | -3.1 | -24.8 | 314 | 20
 veh_mg_burst_02 | veh | 3.05 | -3.3 | -26.0 | 304 | 18
 veh_mg_burst_03 | veh | 3.47 | -3.4 | -24.6 | 285 | 22
 veh_mg_burst_04 | veh | 3.17 | -3.1 | -25.8 | 323 | 20
-veh_prop_big_loop | veh | 4.0 | -12.0 | -24.0 | 207 | 31
-veh_prop_small_loop | veh | 4.0 | -12.9 | -24.0 | 227 | 31
-veh_prop_wash_loop | veh | 5.0 | -10.7 | -26.0 | 333 | 40
+veh_prop_big_loop | veh | 4.0 | -12.4 | -24.0 | 206 | 31
+veh_prop_small_loop | veh | 4.0 | -13.4 | -24.0 | 225 | 31
+veh_prop_wash_loop | veh | 5.0 | -11.1 | -26.0 | 332 | 40
 veh_rope_rattle_01 | veh | 0.9 | -3.5 | -20.1 | 1658 | 12
 veh_rope_rattle_02 | veh | 0.9 | -3.1 | -21.2 | 1566 | 12
 veh_rope_rattle_03 | veh | 0.9 | -3.6 | -21.5 | 1651 | 12
@@ -521,20 +598,20 @@ veh_sail_flap_01 | veh | 1.0 | -3.0 | -25.1 | 2937 | 10
 veh_sail_flap_02 | veh | 1.0 | -2.7 | -22.6 | 3056 | 9
 veh_sail_flap_03 | veh | 1.0 | -2.9 | -22.8 | 2836 | 8
 veh_sail_flap_04 | veh | 1.0 | -3.7 | -25.3 | 2926 | 10
-veh_sail_luff | veh | 4.0 | -10.2 | -27.0 | 2346 | 38
+veh_sail_luff | veh | 4.0 | -10.2 | -27.0 | 2350 | 38
 veh_sheet_creak_01 | veh | 0.9 | -3.9 | -18.7 | 3946 | 11
 veh_sheet_creak_02 | veh | 0.9 | -3.1 | -19.1 | 4441 | 11
 veh_sheet_creak_03 | veh | 0.9 | -3.0 | -19.1 | 3934 | 11
 veh_sheet_creak_04 | veh | 0.9 | -3.4 | -18.7 | 3951 | 11
 veh_ship_bell | veh | 6.0 | -4.2 | -18.3 | 965 | 30
-veh_sinking_gurgle | veh | 5.0 | -10.7 | -26.0 | 323 | 44
-veh_siren_wail | veh | 4.0 | -20.3 | -24.0 | 1117 | 20
-veh_siren_yelp | veh | 4.0 | -19.3 | -24.0 | 1156 | 29
+veh_sinking_gurgle | veh | 5.0 | -10.8 | -26.0 | 323 | 44
+veh_siren_wail | veh | 4.0 | -20.3 | -24.0 | 1116 | 21
+veh_siren_yelp | veh | 4.0 | -19.9 | -24.0 | 1157 | 29
 veh_water_drop_whoosh_01 | veh | 1.8 | -3.3 | -22.0 | 1033 | 18
 veh_water_drop_whoosh_02 | veh | 1.8 | -3.6 | -20.6 | 1012 | 18
 veh_water_drop_whoosh_03 | veh | 1.8 | -2.8 | -21.3 | 927 | 18
 veh_water_drop_whoosh_04 | veh | 1.8 | -3.2 | -21.1 | 845 | 18
-veh_winch_loop | veh | 4.0 | -12.6 | -26.0 | 1078 | 37
+veh_winch_loop | veh | 4.0 | -12.6 | -26.0 | 1075 | 37
 water_boil_hiss | water | 5.0 | -12.3 | -26.0 | 4984 | 50
 water_bubbles_01 | water | 1.3 | -12.5 | -27.7 | 1450 | 16
 water_bubbles_02 | water | 1.3 | -12.4 | -29.9 | 1206 | 15
@@ -628,32 +705,4 @@ wx_thunder_near_04 | wx | 8.5 | -3.0 | -21.7 | 191 | 60
 wx_tornado_loop | wx | 12.0 | -6.6 | -22.0 | 549 | 185
 wx_tsunami_rumble | wx | 6.0 | -2.8 | -22.0 | 368 | 45
 
-PROBLEMS 28
-ppl_shiver: loop seam -5.1 dB re rms
-hold_heat: loop seam -5.4 dB re rms
-hold_cold: loop seam 2.7 dB re rms
-hold_water: loop seam 3.0 dB re rms
-hold_lightning_charge: loop seam -2.5 dB re rms
-hold_electricity: loop seam 3.4 dB re rms
-hold_sand: loop seam -4.9 dB re rms
-hold_rock: loop seam 4.1 dB re rms
-hold_seed: loop seam 0.3 dB re rms
-mus_pad_day: loop seam -3.3 dB re rms
-mus_pad_dusk: loop seam -2.8 dB re rms
-mus_tension_layer: loop seam -3.0 dB re rms
-mus_storm_layer: loop seam 1.6 dB re rms
-veh_eng_tug_lo: loop seam -2.4 dB re rms
-veh_eng_tug_mid: loop seam -3.3 dB re rms
-veh_eng_patrol_lo: loop seam -5.6 dB re rms
-veh_eng_icebreaker_lo: loop seam 2.2 dB re rms
-veh_eng_hover_mid: loop seam 5.4 dB re rms
-veh_eng_hover_hi: loop seam -1.1 dB re rms
-veh_prop_wash_loop: loop seam 5.5 dB re rms
-veh_sail_luff: loop seam -0.0 dB re rms
-veh_siren_yelp: loop seam 0.5 dB re rms
-veh_sinking_gurgle: loop seam 5.9 dB re rms
-veh_fire_on_boat_loop: loop seam 4.0 dB re rms
-veh_fire_hose_spray_loop: loop seam -4.0 dB re rms
-veh_winch_loop: loop seam 3.1 dB re rms
-veh_heli_wash_loop: loop seam 9.4 dB re rms
-veh_hull_hit_heavy_02: too similar to veh_hull_hit_heavy_01 (xcorr 0.84)
+PROBLEMS 0

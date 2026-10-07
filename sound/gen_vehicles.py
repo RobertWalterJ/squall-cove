@@ -15,7 +15,7 @@ def save(name, x, **kw):
     kw.setdefault('max_dist', 200); kw.setdefault('weight', 3.0); kw.setdefault('quality', 4)
     bus = kw.pop('bus')
     if kw.get('loop'):
-        x = C.seal(x)
+        x = C.seal(x, kw.get('sr', SR))
     return S.save(name, x, bus, **kw)
 
 
@@ -38,7 +38,7 @@ ENGINES = {
                      lpc=(900, 1500, 2400), body=[(110, 1.5, 4), (300, 2, 3), (900, 2, 2)], knock=0.2, core=False, seed=200,
                      desc='6-cyl fast diesel'),
     'patrol': dict(tilt=3.0, cyl=6, stroke=4, rpm=(900, 1500, 2300), rng=(700, 2500), load=(0.7, 0.75, 0.85), rough=0.14, exh=0.9,
-                   lpc=(700, 1100, 1700), body=[(70, 1.5, 6), (140, 2, 4), (320, 2, 2)], knock=0.2, core=False, seed=300,
+                   lpc=(650, 1300, 2000), body=[(70, 1.5, 6), (140, 2, 4), (320, 2, 2)], knock=0.2, core=False, seed=300,
                    twin=1.011, desc='twin diesel, detuned'),
     'icebreaker': dict(tilt=1.5, cyl=6, stroke=2, rpm=(90, 140, 195), rng=(70, 200), load=(0.95, 0.95, 1.0), rough=0.45, exh=1.0,
                        lpc=(300, 420, 600), body=[(45, 1.2, 8), (85, 1.5, 6), (120, 2, 4)], knock=0.15, core=False, seed=400,
@@ -241,7 +241,7 @@ def render_horns_bells():
     save('veh_horn_short', horn((196, 247), 0.65, 0.05, 0.12, 800), weight=6, rate=(0.92, 1.08), tags=['horn'])
     save('veh_horn_long', horn((196, 247), 2.2, 0.07, 0.35, 801), weight=6, rate=(0.92, 1.08), tags=['horn'])
     fg = horn((98, 104.5), 3.0, 0.35, 0.8, 802, hmax=16, tilt=0.55, droop=0.03, rise=0.04, rise_t=0.15)
-    fg = C.echo(fg, 2.4, 0.3, 802, 0.8, 0.8)
+    fg = C.trim(C.echo(fg, 2.4, 0.3, 802, 0.8, 0.8), 4.2, 1.0)
     save('veh_foghorn', fg, weight=8, max_dist=400, rate=(0.94, 1.06), tags=['horn'], peak=-4)
 
     # ship bell: single strike, six second ring

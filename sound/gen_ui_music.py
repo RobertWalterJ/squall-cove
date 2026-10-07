@@ -19,7 +19,7 @@ def save(name, x, **kw):
     if sr == 32000:
         x = C.r32_circ(x) if (circ or kw.get('loop')) else C.r32(x)
     if kw.get('loop'):
-        x = C.seal(x)
+        x = C.seal(x, 32000 if sr == 32000 else SR)
     return S.save(name, x, bus, sr=sr, **kw)
 
 

@@ -20,7 +20,7 @@
   "peakDb": -9.3,
   "rmsDb": -24.0,
   "lufs": -25.0,
-  "seamDb": -68.0,
+  "seamDb": -88.3,
   "tags": [
    "engine",
    "tug"
@@ -68,7 +68,7 @@
   "peakDb": -9.1,
   "rmsDb": -23.2,
   "lufs": -24.0,
-  "seamDb": -45.0,
+  "seamDb": -69.4,
   "tags": [
    "engine",
    "tug"
@@ -116,7 +116,7 @@
   "peakDb": -9.8,
   "rmsDb": -21.9,
   "lufs": -22.5,
-  "seamDb": -39.1,
+  "seamDb": -105.4,
   "tags": [
    "engine",
    "tug"
@@ -164,7 +164,7 @@
   "peakDb": -10.9,
   "rmsDb": -24.2,
   "lufs": -25.0,
-  "seamDb": -48.0,
+  "seamDb": -84.5,
   "tags": [
    "engine",
    "lifeboat"
@@ -212,7 +212,7 @@
   "peakDb": -11.6,
   "rmsDb": -23.7,
   "lufs": -24.0,
-  "seamDb": -42.5,
+  "seamDb": -99.3,
   "tags": [
    "engine",
    "lifeboat"
@@ -260,7 +260,7 @@
   "peakDb": -9.5,
   "rmsDb": -22.5,
   "lufs": -22.5,
-  "seamDb": -43.2,
+  "seamDb": -73.8,
   "tags": [
    "engine",
    "lifeboat"
@@ -308,7 +308,7 @@
   "peakDb": -11.1,
   "rmsDb": -24.2,
   "lufs": -25.0,
-  "seamDb": -37.7,
+  "seamDb": -75.3,
   "tags": [
    "engine",
    "patrol"
@@ -353,10 +353,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -10.8,
+  "peakDb": -10.7,
   "rmsDb": -23.3,
   "lufs": -24.0,
-  "seamDb": -47.2,
+  "seamDb": -84.3,
   "tags": [
    "engine",
    "patrol"
@@ -401,10 +401,10 @@
   "dur": 5.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -12.0,
+  "peakDb": -11.8,
   "rmsDb": -22.2,
   "lufs": -22.5,
-  "seamDb": -60.1,
+  "seamDb": -95.2,
   "tags": [
    "engine",
    "patrol"
@@ -452,7 +452,7 @@
   "peakDb": -9.3,
   "rmsDb": -23.2,
   "lufs": -25.0,
-  "seamDb": -34.6,
+  "seamDb": -74.0,
   "tags": [
    "engine",
    "icebreaker"
@@ -500,7 +500,7 @@
   "peakDb": -8.1,
   "rmsDb": -22.4,
   "lufs": -24.0,
-  "seamDb": -36.5,
+  "seamDb": -63.4,
   "tags": [
    "engine",
    "icebreaker"
@@ -548,7 +548,7 @@
   "peakDb": -8.9,
   "rmsDb": -20.9,
   "lufs": -22.5,
-  "seamDb": -23.9,
+  "seamDb": -94.9,
   "tags": [
    "engine",
    "icebreaker"
@@ -596,7 +596,7 @@
   "peakDb": -12.8,
   "rmsDb": -24.5,
   "lufs": -25.0,
-  "seamDb": -39.1,
+  "seamDb": -75.7,
   "tags": [
    "engine",
    "outboard"
@@ -644,7 +644,7 @@
   "peakDb": -10.8,
   "rmsDb": -23.8,
   "lufs": -24.0,
-  "seamDb": -46.7,
+  "seamDb": -96.9,
   "tags": [
    "engine",
    "outboard"
@@ -692,7 +692,7 @@
   "peakDb": -11.0,
   "rmsDb": -22.7,
   "lufs": -22.5,
-  "seamDb": -46.0,
+  "seamDb": -85.5,
   "tags": [
    "engine",
    "outboard"
@@ -740,7 +740,7 @@
   "peakDb": -11.9,
   "rmsDb": -24.3,
   "lufs": -25.0,
-  "seamDb": -36.9,
+  "seamDb": -84.1,
   "tags": [
    "engine",
    "hover"
@@ -786,7 +786,7 @@
   "peakDb": -9.3,
   "rmsDb": -23.8,
   "lufs": -24.0,
-  "seamDb": -33.7,
+  "seamDb": -75.6,
   "tags": [
    "engine",
    "hover"
@@ -832,7 +832,7 @@
   "peakDb": -9.5,
   "rmsDb": -22.7,
   "lufs": -22.5,
-  "seamDb": -25.0,
+  "seamDb": -67.3,
   "tags": [
    "engine",
    "hover"
@@ -878,7 +878,7 @@
   "peakDb": -10.9,
   "rmsDb": -24.7,
   "lufs": -26.0,
-  "seamDb": -21.2,
+  "seamDb": -70.3,
   "tags": [
    "water"
   ]
@@ -904,7 +904,7 @@
   "peakDb": -9.3,
   "rmsDb": -28.0,
   "lufs": -27.0,
-  "seamDb": -75.3,
+  "seamDb": -76.5,
   "tags": [
    "sail"
   ]
@@ -1392,12 +1392,12 @@
   "weight": 8,
   "lazy": true,
   "group": "boats",
-  "dur": 6.14,
+  "dur": 4.2,
   "ch": 1,
   "sr": 44100,
   "peakDb": -4.0,
-  "rmsDb": -19.9,
-  "lufs": -20.2,
+  "rmsDb": -18.3,
+  "lufs": -18.6,
   "seamDb": null,
   "tags": [
    "horn"
@@ -1554,7 +1554,7 @@
   "peakDb": -20.6,
   "rmsDb": -24.5,
   "lufs": -24.0,
-  "seamDb": -59.4,
+  "seamDb": -44.8,
   "tags": [
    "siren"
   ]
@@ -1577,10 +1577,10 @@
   "dur": 4.0,
   "ch": 1,
   "sr": 44100,
-  "peakDb": -20.9,
+  "peakDb": -20.8,
   "rmsDb": -24.6,
   "lufs": -24.0,
-  "seamDb": -50.6,
+  "seamDb": -44.0,
   "tags": [
    "siren"
   ]
@@ -2230,7 +2230,7 @@
   "peakDb": -10.6,
   "rmsDb": -24.9,
   "lufs": -26.0,
-  "seamDb": -25.9,
+  "seamDb": -70.6,
   "tags": [
    "water"
   ]
@@ -2256,7 +2256,7 @@
   "peakDb": -7.4,
   "rmsDb": -23.7,
   "lufs": -25.0,
-  "seamDb": -25.4,
+  "seamDb": -74.9,
   "tags": [
    "fire"
   ]
@@ -2282,7 +2282,7 @@
   "peakDb": -13.7,
   "rmsDb": -27.3,
   "lufs": -26.0,
-  "seamDb": -62.8,
+  "seamDb": -88.0,
   "tags": [
    "water"
   ]
@@ -2308,7 +2308,7 @@
   "peakDb": -12.0,
   "rmsDb": -26.0,
   "lufs": -26.0,
-  "seamDb": -47.2,
+  "seamDb": -84.8,
   "tags": [
    "winch"
   ]
@@ -2542,7 +2542,7 @@
   "peakDb": -3.0,
   "rmsDb": -21.5,
   "lufs": -24.7,
-  "seamDb": -30.3,
+  "seamDb": -53.8,
   "tags": [
    "heli"
   ],
@@ -2572,7 +2572,7 @@
   "peakDb": -19.5,
   "rmsDb": -31.6,
   "lufs": -30.0,
-  "seamDb": -87.5,
+  "seamDb": -102.4,
   "tags": [
    "heli"
   ]
@@ -2598,7 +2598,7 @@
   "peakDb": -9.1,
   "rmsDb": -25.9,
   "lufs": -26.0,
-  "seamDb": -29.6,
+  "seamDb": -74.1,
   "tags": [
    "heli"
   ]
@@ -2624,7 +2624,7 @@
   "peakDb": -13.4,
   "rmsDb": -23.3,
   "lufs": -24.0,
-  "seamDb": -33.7,
+  "seamDb": -94.8,
   "tags": [
    "prop"
   ],
@@ -2654,7 +2654,7 @@
   "peakDb": -12.0,
   "rmsDb": -23.1,
   "lufs": -24.0,
-  "seamDb": -26.7,
+  "seamDb": -63.1,
   "tags": [
    "prop"
   ],

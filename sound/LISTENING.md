@@ -1,6 +1,6 @@
 # Listening checklist (the sounds were designed and measured, not heard)
 
-I could not listen to any of these. They are built from physical models and checked by numbers (levels, spectra, loop seams, variant differences). Please play the Large map on desktop with headphones, then tell me what is wrong. Menu > Sandbox has Sound and Music settings. Press any key or tap once to start audio.
+I could not listen to any of these. They are built from physical models and checked by numbers (levels, spectra, loop seams, variant differences). Please play the Large map on desktop with headphones, then tell me what is wrong. Menu > Sandbox settings has Sound, Music and Cove life. Press any key or tap once to start audio.
 
 ## Scenes to try, and what to listen for
 

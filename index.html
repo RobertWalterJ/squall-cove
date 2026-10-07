@@ -235,7 +235,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
   </div>
   <div class="mhead">Settings</div>
   <div class="mgrid">
-    <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats</small></button><button id="bQual" type="button">Quality: High</button>
+    <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats, sound</small></button><button id="bQual" type="button">Quality: High</button>
     <button id="mHide" type="button">Hide buttons</button><button id="bHelp" type="button">Help</button>
     <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
   </div>
@@ -508,7 +508,7 @@ const Snd = (() => {
       if (b.fire > 0.25) A.set(k + ':fire', 'veh_fire_on_boat_loop', 0.7, { x: p.x, z: p.z });
     }
     for (const k in A.inst) if (k.startsWith('eng:') && !live.has(k.split(':').slice(0, 2).join(':'))) { const it = A.inst[k]; it.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.3); it.quiet = 99; }
-    for (const v of VEHS) { const d = Math.hypot(v.x - L.x, v.z - L.z); if (d > 170) continue; const k = 'veh:' + v.id, r = cl(v.speed / (v.sp.v + 0.1), 0, 1), fam = v.sp.eng; A.set(k + ':lo', 'veh_eng_' + fam + '_lo', cl(1 - r * 2, 0, 1) * 0.55, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * 0.55, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', cl(r * 2 - 0.8, 0, 1) * 0.55, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); if (v.siren) A.set(k + ':sir', 'veh_siren_wail', 0.7, { x: v.x, z: v.z }); if (v.spraying) A.set(k + ':hose', 'veh_fire_hose_spray_loop', 0.8, { x: v.x, z: v.z }); }
+    for (const v of VEHS) { const d = Math.hypot(v.x - L.x, v.z - L.z); if (d > 170) continue; const k = 'veh:' + v.id, r = cl(v.speed / (v.sp.v + 0.1), 0, 1), fam = v.sp.eng; const run_ = v.speed > 0.15 || v.hold ? 1 : 0, EG = 0.32 * run_; A.set(k + ':lo', 'veh_eng_' + fam + '_lo', cl(1 - r * 2, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', cl(r * 2 - 0.8, 0, 1) * EG, { x: v.x, z: v.z, rate: 0.95 + r * 0.2 }); if (v.siren && v.speed > 0.5) A.set(k + ':sir', 'veh_siren_wail', 0.45, { x: v.x, z: v.z }); else A.set(k + ':sir', 'veh_siren_wail', 0, { x: v.x, z: v.z }); if (v.spraying) A.set(k + ':hose', 'veh_fire_hose_spray_loop', 0.8, { x: v.x, z: v.z }); }
     if (heli.on && heli.g) A.set('air:heli', 'veh_heli_rotor_loop', 0.9, { x: heli.pos.x, z: heli.pos.z }); else A.set('air:heli', 'veh_heli_rotor_loop', 0);
     if (bomber.on && bomber.g) A.set('air:bomb', 'veh_prop_big_loop', 0.9, { x: bomber.pos.x, z: bomber.pos.z }); else A.set('air:bomb', 'veh_prop_big_loop', 0);
     if (dis.tornados && dis.tornados.length) { const tn = dis.tornados[0]; A.set('wx:torn', 'wx_tornado_loop', 0.9, { x: tn.x, z: tn.z }); } else A.set('wx:torn', 'wx_tornado_loop', 0);
@@ -543,7 +543,7 @@ const sea = { amp: 0.25 };
    Crests are sharpened with a second harmonic (peaked crests, flat troughs). Near shore the waves lose height as the water shoals, and the orbital motion fades with depth. */
 const WS = WAVES.map(w => ({ off: Math.atan2(w[1], w[0]) - Math.atan2(WAVES[0][1], WAVES[0][0]), km: w[2] / WAVES[0][2], a0: w[3], a: w[3], ph: w[4], dx: w[0], dz: w[1], k: w[2] }));
 const swell = { ang: -Math.PI / 2, k: 0.16, U: 6.2 };
-const waveU = { uWv: { value: WS.map(() => new THREE.Vector4()) }, uWph: { value: new THREE.Vector4() } };
+const waveU = { uWv: { value: WS.map(() => new THREE.Vector4()) }, uWph: { value: new THREE.Vector4() }, uWhite: { value: 0 } };
 const smooth01 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const shoal = (x, z) => 0.12 + 0.88 * smooth01(0, 2.4, -heightAt(x, z));
 function advanceWaves(dt) {
@@ -552,7 +552,8 @@ function advanceWaves(dt) {
   swell.k += (kT - swell.k) * (1 - Math.exp(-dt / 90)); const spread = 1.25 - 0.55 * smooth01(3, 16, U), chop = smooth01(2, 14, U);
   WS.forEach((w, i) => { const ang = swell.ang + w.off * spread; w.dx = Math.cos(ang); w.dz = Math.sin(ang); w.k = swell.k * w.km; w.ph += Math.sqrt(G * w.k) * dt; w.a = w.a0 * (i === 3 ? 0.3 + 0.9 * chop : i === 2 ? 0.7 + 0.5 * chop : 1); });
 }
-function syncWaveU() { WS.forEach((w, i) => waveU.uWv.value[i].set(w.dx, w.dz, w.k, w.a)); waveU.uWph.value.set(WS[0].ph, WS[1].ph, WS[2].ph, WS[3].ph); }
+function syncWaveU() { waveU.uWhite.value = Math.min(1, 3.8e-6 * Math.pow(Math.max(0, swell.U), 3.4) * 4);          // whitecap cover: about 1 percent of the sea at 10 m/s, several percent in a gale
+  WS.forEach((w, i) => waveU.uWv.value[i].set(w.dx, w.dz, w.k, w.a)); waveU.uWph.value.set(WS[0].ph, WS[1].ph, WS[2].ph, WS[3].ph); }
 let climHDirty = true;                              // set whenever the ground changes, so the air grid refreshes its heights
 const tWin = { x: 0, y: 0, z: 0 };                 // scratch: the wind at one place
 const surge = { level: 0 };
@@ -569,17 +570,17 @@ const ripTex = new THREE.DataTexture(rip.H, RN, RN, THREE.RedFormat, THREE.Float
 function ripH(x, z) {
   if (!rip.act) return 0; const fx = x - rip.ox, fz = z - rip.oz; if (fx < 1 || fz < 1 || fx > RN - 2 || fz > RN - 2) return 0;
   const i = Math.floor(fz) * RN + Math.floor(fx), ax = fx - Math.floor(fx), az = fz - Math.floor(fz), H = rip.H;
-  return (H[i] * (1 - ax) + H[i + 1] * ax) * (1 - az) + (H[i + RN] * (1 - ax) + H[i + RN + 1] * ax) * az;
+  return 0.5 * ((H[i] * (1 - ax) + H[i + 1] * ax) * (1 - az) + (H[i + RN] * (1 - ax) + H[i + RN + 1] * ax) * az);      // physics feels half of what the water shader shows
 }
 function ripRecentre(x, z) {
   if (!Number.isFinite(x) || !Number.isFinite(z)) return;
   rip.ox = Math.round(x - RN / 2); rip.oz = Math.round(z - RN / 2); rip.H.fill(0); rip.P.fill(0); rip.init = true; rip.act = false; ripU.uRipO.value.set(rip.ox, rip.oz);
   for (let i = 0; i < RN; i++) for (let j = 0; j < RN; j++) rip.M[i * RN + j] = heightAt(rip.ox + j + 0.5, rip.oz + i + 0.5) < -0.12 ? 1 : 0;       // ripples live on open water only
 }
-function ripple(x, z, r, h) {                              // a smooth bump (or dip, if h < 0) of radius r metres and height h metres
+function ripple(x, z, r, h, ring) {                         // a smooth bump (or dip, if h < 0) of radius r metres and height h metres; ring = a rim of water pushed outwards, nothing under the centre
   if (!rip.init) ripRecentre(x, z); let fx = x - rip.ox, fz = z - rip.oz; if (fx < 3 || fz < 3 || fx > RN - 4 || fz > RN - 4) return;
-  const R_ = Math.ceil(r), cx = Math.floor(fx), cz = Math.floor(fz);
-  for (let a = -R_; a <= R_; a++) for (let b = -R_; b <= R_; b++) { const d = Math.hypot(cx + b + 0.5 - fx, cz + a + 0.5 - fz); if (d > r) continue; const k = (cz + a) * RN + cx + b; if (!rip.M[k]) continue; rip.H[k] += h * 0.5 * (1 + Math.cos(Math.PI * d / r)); }
+  const rr = ring ? r * 1.7 : r, R_ = Math.ceil(rr), cx = Math.floor(fx), cz = Math.floor(fz);
+  for (let a = -R_; a <= R_; a++) for (let b = -R_; b <= R_; b++) { const d = Math.hypot(cx + b + 0.5 - fx, cz + a + 0.5 - fz); if (d > rr) continue; const k = (cz + a) * RN + cx + b; if (!rip.M[k]) continue; const v = ring ? h * Math.exp(-(((d - r) / (r * 0.4 + 0.3)) ** 2)) : h * 0.5 * (1 + Math.cos(Math.PI * d / r)); rip.H[k] = Math.max(-0.6, Math.min(0.6, rip.H[k] + v)); }
   rip.act = true;
 }
 function stepRipples(dt) {
@@ -588,7 +589,7 @@ function stepRipples(dt) {
   if (!rip.init) return;
   // sources: heavy things entering the water, and the bow and stern of moving boats
   for (const o of objects) { const p = o.body.position, w = waveH(p.x, p.z, simT) + 0.0, wet = p.y < w + 0.2 && heightAt(p.x, p.z) < -0.15; const vy = o.body.velocity.y;
-    if (wet && !o.wasWet && vy < -0.8) { const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.2 + 0.7 * m3, Math.min(0.5, 0.025 * m3 * -vy)); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); Snd.fx(m3 > 1.5 ? 'water_object_in_large' : 'water_object_in_small', p.x, p.z, { gain: 0.9, y: p.y }); if (m3 > 1.5) tried('ripple'); }
+    if (!wet) o.dryT = (o.dryT || 0) + dt; if (wet && !o.wasWet && vy < -2.2 && (o.dryT || 0) > 0.4 && simT - (o.splT || -9) > 5) { o.splT = simT; o.dryT = 0; const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.0 + 0.6 * m3, Math.min(0.3, 0.02 * m3 * -vy), true); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); Snd.fx(m3 > 1.5 ? 'water_object_in_large' : 'water_object_in_small', p.x, p.z, { gain: 0.9, y: p.y }); if (m3 > 1.5) tried('ripple'); }
     o.wasWet = wet; }
   for (const bt of boats) { if (bt.sunk) continue; const b = bt.body, v = Math.hypot(b.velocity.x, b.velocity.z); if (v < 0.7) continue;
     const L = bt.sp.L, B = bt.sp.B; const q = b.quaternion, fxv = 1 - 2 * (q.y * q.y + q.z * q.z), fzv = 2 * (q.x * q.z - q.w * q.y);   // local +x (the bow) in world
@@ -621,9 +622,12 @@ function waveVel(x, z, t, out) {
   out.set(u, w, v); return out;
 }
 const WAVE_GLSL = `
-uniform float uTime; uniform float uAmp; uniform vec4 uWv[4]; uniform vec4 uWph;
+uniform float uTime; uniform float uAmp; uniform float uWhite; uniform vec4 uWv[4]; uniform vec4 uWph;
 float waveH(vec2 p){ float h = 0.0;
   for (int i = 0; i < 4; i++) { vec4 w = uWv[i]; float th = w.z * dot(w.xy, p) - uWph[i]; h += w.w * (sin(th) - 0.22 * cos(2.0 * th)); }
+  return h * uAmp; }
+float waveShort(vec2 p){ float h = 0.0;
+  for (int i = 2; i < 4; i++) { vec4 w = uWv[i]; float th = w.z * dot(w.xy, p) - uWph[i]; h += w.w * (sin(th) - 0.22 * cos(2.0 * th)); }
   return h * uAmp; }
 vec2 waveGrad(vec2 p){ vec2 g = vec2(0.0);
   for (int i = 0; i < 4; i++) { vec4 w = uWv[i]; float th = w.z * dot(w.xy, p) - uWph[i]; g += w.w * w.z * (cos(th) + 0.44 * sin(2.0 * th)) * w.xy; }
@@ -1003,6 +1007,11 @@ const bearing = (x, z) => ((Math.atan2(x, -z) * 180 / Math.PI) + 360) % 360;
 const windU = { uWind: { value: new THREE.Vector2(0, -1) }, uWindStr: { value: 0.5 }, uBlow: { value: 0.2 }, uTime: terrainU.uTime };
 /* gusts: bands of stronger wind that travel downwind. In a light breeze they come and go; in a gale the air is nearly always blowing. */
 const GUST_GLSL = `
+vec2 windDirAt(vec2 p, vec2 wd, float t){
+  float a = 0.55 * (sin(p.x * 0.021 + p.y * 0.013 - t * 0.35) + 0.6 * sin(p.y * 0.034 - p.x * 0.017 - t * 0.23 + 1.3));
+  float m = 1.0 + 0.35 * sin(p.x * 0.03 - p.y * 0.02 - t * 0.6);
+  float c = cos(a), s = sin(a); return vec2(wd.x * c - wd.y * s, wd.x * s + wd.y * c) * m;
+}
 float gustAt(vec2 p, vec2 wd, float t, float blow){
   float s = dot(p, wd), c = dot(p, vec2(-wd.y, wd.x));
   float a = sin(s * 0.040 - t * (0.9 + blow * 1.6) + sin(c * 0.021) * 1.7);
@@ -1022,10 +1031,11 @@ function swayMaterial(src, height, stiff) {
         { float hh = clamp(transformed.y / ${height.toFixed(2)}, 0.0, 1.5); float k = hh * hh * ${stiff.toFixed(3)} * uWindStr;
           vec3 ip = vec3(instanceMatrix[3]);
           float ph = uTime * 1.3 + ip.x * 0.21 + ip.z * 0.17;
+          vec2 wdl = windDirAt(ip.xz, uWind, uTime);
           float gust = gustAt(ip.xz, uWind, uTime, uBlow);
           float lean = 0.14 + 1.15 * gust;
-          transformed.x += uWind.x * k * lean + k * (0.12 + 0.3 * gust) * sin(ph * 2.7 + transformed.y);
-          transformed.z += uWind.y * k * lean + k * (0.12 + 0.3 * gust) * cos(ph * 2.3 + transformed.x); }`);
+          transformed.x += wdl.x * k * lean + k * (0.12 + 0.3 * gust) * sin(ph * 2.7 + transformed.y);
+          transformed.z += wdl.y * k * lean + k * (0.12 + 0.3 * gust) * cos(ph * 2.3 + transformed.x); }`);
   };
   swayMaterials.push(m); return m;
 }
@@ -1211,11 +1221,11 @@ const waterU = { ...waveU, ...ripU, tSnow: { value: snowTex }, uTime: terrainU.u
 const waterMat = new THREE.ShaderMaterial({
   uniforms: waterU, transparent: true, depthWrite: false, fog: true,
   vertexShader: `${WAVE_GLSL}${RIP_GLSL}
-    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk; uniform sampler2D tSnow, tH;
+    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk; varying float vShort; uniform sampler2D tSnow, tH;
     float terrH(vec2 p){ vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     #include <fog_pars_vertex>
-    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5); vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz)); vW = wp.xyz;
+    void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float iv = 1.0 - clamp(texture2D(tSnow, (wp.xz / ${CELL}.0 + 128.5) / 257.0).b * 6.0, 0.0, 1.0); float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv; vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5); vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz)); vShort = waveShort(wp.xz) / max(0.02, uAmp * 0.62); vW = wp.xyz;
       vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
@@ -1223,10 +1233,13 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTime, uAmp, uWindStr, uBlow; uniform sampler2D tSky, tH, tN, tSnow; uniform vec3 uSun, uSunCol, uSkyTint; uniform vec2 uWind;
     ${GUST_GLSL}
     uniform vec4 uFoam[${MAXFOAM}]; uniform vec4 uWake[${MAXWAKE}];
-    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk;
+    varying vec3 vW; varying vec2 vG; varying float vCrest; varying vec2 vBrk; varying float vShort; uniform float uWhite;
     #include <common>
     #include <fog_pars_fragment>
     ${EQUI}
+    float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+    ${quality === 'high' ? 'float cellular(vec2 p){ vec2 i = floor(p), f = fract(p); float d = 1.0; for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 g = vec2(float(x), float(y)); vec2 o = vec2(h21(i + g), h21(i + g + 17.3)); o = 0.5 + 0.5 * sin(uTime * 0.7 + 6.283 * o); d = min(d, length(g + o - f)); } return d; }' : 'float cellular(vec2 p){ return 1.0 - vnoise(p * 2.0); }'}
     float H(vec2 p){ if (abs(p.x) > ${EXT}.0 || abs(p.y) > ${EXT}.0) return -9.3; vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     void main(){
@@ -1237,7 +1250,7 @@ const waterMat = new THREE.ShaderMaterial({
       vec2 d2 = texture2D(tN, vW.xz * 0.043 - vec2(uWind.y, -uWind.x) * uTime * 0.007 + 0.5).xy * 2.0 - 1.0;
       float gst = gustAt(vW.xz, uWind, uTime, uBlow);
       vec2 det = (d1 * 0.6 + d2 * 0.4) * (0.35 + uAmp) * (1.0 + gst * (0.7 + uBlow)) * (1.0 - smoothstep(30.0, 160.0, dist));
-      vec3 n = normalize(vec3(-vG.x + det.x * 0.55, 1.0, -vG.y - det.y * 0.55));
+      float chopK = 0.55 + 0.9 * clamp(uAmp, 0.0, 1.0); vec3 n = normalize(vec3(-vG.x + det.x * chopK, 1.0, -vG.y - det.y * chopK));
       float fres = 0.02 + 0.98 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
       vec3 R = reflect(-V, n); R.y = abs(R.y);
       vec3 refl = textureLod(tSky, equirectUv2(normalize(R)), 1.0).rgb;
@@ -1289,13 +1302,19 @@ const waterMat = new THREE.ShaderMaterial({
         col = mix(col, ic, cover); alpha = mix(alpha, 0.98, cover);
       }
       {                                                     // whitecaps: tall crests, steep waves that are breaking, surf lines where the swell meets the shoaling bottom, and lace left on the swash
-        float lace = texture2D(tN, vW.xz * 0.06 + uTime * 0.015).x - 0.5, lace2 = texture2D(tN, vW.xz * 0.21 - uTime * 0.03).y;
-        float fo = smoothstep(0.74, 0.96, vCrest + 0.34 * lace) * smoothstep(0.34, 0.8, uAmp);
-        float brk = smoothstep(0.30, 0.55, vBrk.x * (0.6 + uAmp)) * smoothstep(0.35, 0.75, vCrest + 0.3 * lace) * smoothstep(0.22, 0.55, uAmp); fo = max(fo, brk);
-        float Hw = uAmp * 1.6, surf = smoothstep(Hw * 1.3 + 0.7, 0.12, vBrk.y) * smoothstep(0.0, 0.5, vCrest + 0.45 * lace + 0.25);
-        float swash = smoothstep(0.5, 0.02, vBrk.y) * (0.5 + 0.5 * lace2) * (0.3 + uAmp);
-        fo = max(fo, max(surf * 0.95, swash * 0.75));
-        col = mix(col, vec3(0.93, 0.96, 0.98) * (uSunCol * 0.4 + 0.55), fo * 0.88); alpha = max(alpha, fo * 0.92); }
+        vec2 wd = normalize(uWind + vec2(0.0001)), pr = vec2(-wd.y, wd.x), sp = vec2(dot(vW.xz, wd) * 0.5, dot(vW.xz, pr) * 1.9);          // wind-stretched coordinates: foam trails off in streaks
+        float froth = vnoise(sp * 0.33) * 0.5 + vnoise(sp * 0.9 + 3.1) * 0.3 + vnoise(sp * 2.6 + 7.7) * 0.2, lace2 = texture2D(tN, vW.xz * 0.21 - uTime * 0.03).y;
+        float bub = 1.0 - cellular(sp * vec2(1.7, 1.2) + 4.0);                               // bubble cells: bright centres, dark seams
+        float seed = vShort * 0.5 + vCrest * 0.5 + (froth - 0.5) * 0.7, th = 1.0 - uWhite * 3.0;
+        float capCov = smoothstep(th, th + 0.25, seed) * smoothstep(0.02, 0.12, uWhite);                  // scattered whitecaps whose number follows the wind
+        float brk = smoothstep(0.30, 0.55, vBrk.x * (0.6 + uAmp)) * smoothstep(0.35, 0.75, vCrest + 0.12 * (froth - 0.5)) * smoothstep(0.22, 0.55, uAmp);
+        float Hw = uAmp * 1.6, surf = smoothstep(Hw * 1.3 + 0.7, 0.12, vBrk.y) * smoothstep(0.0, 0.5, vCrest + 0.25), swash = smoothstep(0.5, 0.02, vBrk.y) * (0.5 + 0.5 * lace2) * (0.3 + uAmp);
+        float cov = max(max(capCov, brk * 0.7), max(surf * 0.9, swash * 0.7));
+        float lacey = smoothstep(0.32, 0.72, froth + (cov - 0.5) * 0.55);                      // lace and clumps: thick where the foam is heavy, strands where it thins
+        float fo = smoothstep(0.1, 0.55, cov * (0.12 + 0.88 * lacey));
+        vec3 thin = vec3(0.60, 0.78, 0.82), bubbly = vec3(0.98, 1.0, 1.0); vec3 foamCol = mix(thin, bubbly, clamp(0.2 + 0.55 * lacey + 0.45 * pow(bub, 1.4), 0.0, 1.0)) * (uSunCol * 0.42 + 0.58);
+        col += vec3(0.10, 0.20, 0.20) * smoothstep(0.0, 0.5, cov) * (1.0 - fo);                  // aerated water: a lighter turquoise halo around the foam
+        col = mix(col, foamCol, fo * 0.92); alpha = max(alpha, fo * 0.94); }
       col = mix(col, vec3(0.80, 0.90, 0.94) * (uSunCol * 0.5 + 0.4), iceW * 0.9); alpha = mix(alpha, 0.97, iceW);
       gl_FragColor = vec4(col, alpha);
       #include <tonemapping_fragment>
@@ -1316,7 +1335,7 @@ const farLand = (() => {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true })); m.frustumCulled = false; m.renderOrder = 0; scene.add(m); return m;
 })();
-const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);').replace('vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5);', 'vCrest = -1.0;').replace('vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz));', 'vBrk = vec2(0.0, 99.0);'), fragmentShader: waterMat.fragmentShader });
+const farMat = new THREE.ShaderMaterial({ uniforms: waterU, transparent: true, depthWrite: false, fog: true, vertexShader: waterMat.vertexShader.replace('float sh = 0.12 + 0.88 * smoothstep(0.0, 2.4, -terrH(wp.xz)); wp.y += (waveH(wp.xz) * sh + ripH(wp.xz)) * iv; vG = (waveGrad(wp.xz) * sh + ripG(wp.xz) * 2.6) * iv;', 'vG = vec2(0.0);').replace('vCrest = waveH(wp.xz) / max(0.05, uAmp * 2.5);', 'vCrest = -1.0;').replace('vBrk = vec2(length(waveGrad(wp.xz)) * 0.7, -terrH(wp.xz));', 'vBrk = vec2(0.0, 99.0);').replace('vShort = waveShort(wp.xz) / max(0.02, uAmp * 0.62);', 'vShort = -1.0;'), fragmentShader: waterMat.fragmentShader });
 const farWater = new THREE.Mesh(new THREE.PlaneGeometry(9000 * CELL, 9000 * CELL, 1, 1).rotateX(-Math.PI / 2), farMat);
 farWater.renderOrder = 1; farWater.frustumCulled = false; scene.add(farWater);
 
@@ -1337,7 +1356,7 @@ function boxPoints(hx, hy, hz, cy = 0, nx = 2, nz = 2, ny = 2) {
 }
 function makeFloater(body, o) {
   const N = o.pts.length, Vi = o.volume / N, mi = body.mass / N, ki = RHO_W * G * Vi / o.slab;
-  const f = { body, pts: o.pts, slab: o.slab, Vi, mi, cv: 2 * 0.45 * Math.sqrt(ki * mi), kH: o.kH ?? 0.7, kA: o.kA ?? 1.5, area: o.area ?? 0, rad: o.rad ?? 1, wet: 0 };
+  const f = { body, pts: o.pts, slab: o.slab, Vi, mi, cv: 2 * (o.zeta ?? 0.45) * Math.sqrt(ki * mi), kH: o.kH ?? 0.7, kA: o.kA ?? 1.5, area: o.area ?? 0, rad: o.rad ?? 1, wet: 0 };
   floaters.push(f); return f;
 }
 function applyBuoyancy(f, t, dt) {
@@ -1584,7 +1603,7 @@ function spawn(c, x, y, z) {
   body.angularVelocity.set((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3); settle(body);
   world.addBody(body);
   const mesh = pr.obj.clone(); scene.add(mesh);
-  const fl = makeFloater(body, { pts, slab, volume, kH: 0.6, area, rad });
+  const fl = makeFloater(body, { pts, slab, volume, kH: 0.6, area, rad, zeta: 0.85 });         // cargo is heavily damped in heave: light drums and balls ride the sea instead of pumping
   const ob = { body, mesh, fl, c, pr, m: MATB[c.id] || MATB.crate, T: (MATB[c.id] || MATB.crate).ice ? -4 : 14, burn: 0, load: 0, dmg: 0, vol: volume, size: s.clone() }; body.sco = ob; body.addEventListener('collide', e => onImpact(ob, e)); objects.push(ob);
   while (objects.length > MAX_OBJ) { let far = frags.length ? null : objects[0], fd = -1; if (frags.length) { depositFrag(frags[0]); } else { const ft = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt; for (const q of objects) { const d = Math.hypot(q.body.position.x - ft.x, q.body.position.z - ft.z); if (d > fd) { fd = d; far = q; } } removeObj(far); } }       // fragments go first, then the cargo furthest from you, so a stack you are building keeps its base
   updateCount();
@@ -1917,6 +1936,14 @@ const BUILD = [
   { cat: 'People', id: 'p-fire', name: 'Firefighter', note: 'puts out fires', person: 1, role: 'Firefighter', sw: '#d53b2e' },
   { cat: 'People', id: 'p-forest', name: 'Forester', note: 'plants and replants trees', person: 1, role: 'Forester', sw: '#4f9a3a' },
   { cat: 'People', id: 'p-build', name: 'Builder', note: 'builds at build sites', person: 1, role: 'Builder', sw: '#c9743a' },
+  { cat: 'Sides', id: 's-guard', name: 'Guard (blue)', note: 'defends yards and sites, stops raiders', person: 1, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-guard5', name: 'Guard squad (5)', note: 'five blue guards', person: 5, role: 'Guard', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-raider', name: 'Raider (red)', note: 'raids yards, fights guards', person: 1, role: 'Raider', side: 'red', sw: '#c0392b' },
+  { cat: 'Sides', id: 's-raider5', name: 'Raider band (5)', note: 'five red raiders', person: 5, role: 'Raider', side: 'red', sw: '#c0392b' },
+  { cat: 'Sides', id: 's-bboat-s', name: 'Blue patrol boat', note: 'armed, defends the cove', boat: 'bay', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-bboat-l', name: 'Blue patrol cutter', note: 'armed, bigger', boat: 'hero', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-rboat-s', name: 'Red raider boat', note: 'armed, hunts boats', boat: 'bay', side: 'red', sw: '#c0392b' },
+  { cat: 'Sides', id: 's-rboat-l', name: 'Red raider cutter', note: 'armed, bigger', boat: 'hero', side: 'red', sw: '#c0392b' },
   { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
   { cat: 'Vehicles', id: 'v-firetruck', name: 'Fire truck', note: 'puts out fires', veh: 'firetruck', sw: '#c83228' },
   { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
@@ -1980,7 +2007,7 @@ function place(item, p) {
   if (item.mat) return placeMaterial(item, p);
   if (item.veh) return placeVehicle(item, p);
   if (item.fac) return placeFaction(item, p);
-  if (item.person) return placePeople(item.person, p, item.role);
+  if (item.person) return placePeople(item.person, p, item.role, item.side);
   if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, waveH(x, z, simT)) + 1.3, z); return; }       // it appears right at the ring, just above the ground or the water
   if (item.boat && boats.length >= MAX_BOATS) { toast('That is as many boats as ' + (isTouch ? 'a phone' : 'this device') + ' keeps afloat (' + MAX_BOATS + '). Remove one first.'); return; }
   if (item.boat) {
@@ -1991,7 +2018,7 @@ function place(item, p) {
     if (h > -(sp.D - sp.fb) - 0.4) { toast('Too shallow for the ' + sp.name); return; }
     for (const o of boats) if (Math.hypot(o.body.position.x - x, o.body.position.z - z) < (o.sp.L + sp.L) * 0.42) { toast('Too close to the ' + o.sp.name); return; }   // overlapping hulls would fling each other apart
     const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2 + buildRot);
-    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; ensureSkipper(nb); selectBoat(nb); toast(sp.name + ' launched'); return;
+    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; if (item.side) { sideCrew(nb, item.side); } else ensureSkipper(nb); selectBoat(nb); toast(item.side ? (item.side === 'red' ? 'A red ' : 'A blue ') + sp.name + ' launched' : sp.name + ' launched'); return;
   }
   if (item.buoy) { if (h > -1) { toast('Marks go in the water'); return; } addBuoy(x, z, item.buoy); return; }
   if (item.land && h < 0.2) { toast(item.name + ' needs dry land'); return; }
@@ -2117,6 +2144,8 @@ const ROLE_KIT = {
   'Lifeguard':    { top: '#d8342a', bottom: '#d8342a', kit: [['cap', 'head', HEAD, [0, 0, 0], '#f2f2ee', '#d8342a'], ['tube', 'chest', [0, 1.15, 0.02], [0, 0, 0]]] },
   'Skipper':      { top: '#1d2a44', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1d2a44', '#e3e0d4'], ['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
   'Developer':    { top: '#2f4f8f', bottom: '#2a2f3a', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#eef0f2'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.1, -0.04]]] },
+  'Guard':        { top: '#1f3a6e', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1f3a6e', '#e3e0d4'], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.14]], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
+  'Raider':       { top: '#3a2a2a', bottom: '#2b2b2f', kit: [['beanie', 'head', HEAD, [0, 0, 0], '#1b1b1d'], ['scarf', 'head', [0, 1.43, 0.06], [0, 0, 0], '#b3321f']] },
   'Villager':     { top: '#8a7a5a', bottom: '#5a5040', kit: [] },
   'Survivor':     { top: '#ee7a1c', bottom: '#3a4a5a', kit: [['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
 };
@@ -2204,7 +2233,7 @@ function giveBody(p) {
   });
   world.addBody(b); p.body = b;
 }
-function placePeople(n, pt, role) {
+function placePeople(n, pt, role, side) {
   if (people.length >= MAX_PEOPLE) { toast('That is a full cove: ' + MAX_PEOPLE + ' people'); return; }
   // on a boat deck?
   for (const bt of boats) {
@@ -2218,7 +2247,7 @@ function placePeople(n, pt, role) {
   for (let k = 0; k < n && people.length < MAX_PEOPLE; k++) {
     const a = k * 2.4 + Math.random(), r = n > 1 ? 1.2 + Math.random() * 1.8 : 0, x = pt.x + Math.cos(a) * r, z = pt.z + Math.sin(a) * r, gy = standY(x, z);
     if (gy < 0.15) continue;
-    const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = gy; if (role) q.role = role; placed.push(q);
+    const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = gy; if (role) q.role = role; if (side) { q.side = side; if (side === 'red') q.fromHostile = true; } placed.push(q);
   }
   if (!placed.length) { toast('People need dry land or a boat deck'); return; }
   toast(placed.length > 1 ? placed.length + ' people' : 'Person arrived'); selectPerson(placed[0]); updateCount();
@@ -2824,7 +2853,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 function puffSmoke(x, y, z, n, dark, big) { for (let i = 0; i < n; i++) fxS.emit(x + rnd(-0.4, 0.4), y, z + rnd(-0.4, 0.4), rnd(-0.6, 0.6) + wind.v.x * 0.25, rnd(1.2, 3.2), rnd(-0.6, 0.6) + wind.v.z * 0.25, rnd(2.5, 5.5), rnd(0.9, 1.6) * (big || 1), 4, dark ? [0.14, 0.14, 0.15, 0.42] : [0.7, 0.7, 0.72, 0.32], -0.25, 0.25); }
 function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(-4, 4), rnd(1, 6), rnd(-4, 4), rnd(0.25, 0.6), rnd(0.12, 0.28), -0.6, [1, rnd(0.55, 0.8), 0.25, 1], 9, 0.8); }
 function splash(x, z, big) {
-  Snd.splash(x, z, big); const y = waveH(x, z, simT); ripple(x, z, 0.9 + 1.1 * big, Math.min(0.45, 0.05 * big));
+  Snd.splash(x, z, big); const y = waveH(x, z, simT); ripple(x, z, 0.8 + 0.9 * big, Math.min(0.3, 0.04 * big), true);
   for (let i = 0; i < 10 * big; i++) fxS.emit(x + rnd(-0.3, 0.3), y, z + rnd(-0.3, 0.3), rnd(-1.8, 1.8) * big, rnd(3, 7) * Math.sqrt(big), rnd(-1.8, 1.8) * big, rnd(0.7, 1.4), rnd(0.25, 0.55) * big, 0.6, [0.85, 0.93, 0.97, 0.75], 9, 0.5);
   fxS.emit(x, y + 0.1, z, 0, 1.0, 0, 1.2, 1.2 * big, 5, [0.9, 0.96, 1, 0.55], 0, 1);
 }
@@ -3343,7 +3372,9 @@ function personAtScreen(cx, cy) {
 }
 const twoInfo = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; };
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+let lastPType = 'touch';
 canvas.addEventListener('pointerdown', (e) => {
+  lastPType = e.pointerType;
   if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button }); god.fling.set(0, 0); god.fly = null; god._pt = performance.now();
   if (ptrs.size === 1) {
@@ -3437,6 +3468,8 @@ function tapAt(cx, cy, btn, mods) {
     if (sp.length === 1 && sp[0] === pe) setSel([]); else setSel([pe]);
     return;
   }
+  // desktop: left click only selects (empty ground deselects), right click gives the orders
+  if (lastPType === 'mouse' && btn !== 2 && !pe && !bt && (sp.length || sb.length) && !add) { setSel([]); return; }
   // people selected: pick something up, board a boat, or walk
   if (sp.length && btn !== 2) {
     if (ob && (!bt || od <= bd)) { orderPickup(sp, ob); return; }
@@ -3581,6 +3614,7 @@ const PLACE_CATS = [
   { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
   { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
   { id: 'vehicles', name: 'Vehicles', test: it => it.cat === 'Vehicles' },
+  { id: 'sides', name: 'Sides', test: it => it.cat === 'Sides' },
   { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
   { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
   { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump', 'rockfount', 'scrap', 'scrapfount'].includes(it.id) },
@@ -4326,6 +4360,7 @@ function impactMeteor(m) {
   if (heightAt(x, z) < 0) splash(x, z, 6);
 }
 function updateDisasters(dt, t) {
+  if (LATER.length) runLater();
   // surge: the sea level the water and the physics share
   let target = 0;
   if (dis.tsunami) { const s = dis.tsunami; s.t += dt; target = s.t < 14 ? -3.2 * ease(s.t / 14) : s.t < 24 ? -3.2 + 9.2 * ease((s.t - 14) / 10) : s.t < 46 ? 6 : s.t < 100 ? 6 * (1 - ease((s.t - 46) / 54)) : 0; if (s.t > 100) dis.tsunami = null; }
@@ -5060,10 +5095,42 @@ const DISASTERS = [
   ['Volcano', 'Builds an island or a cone at the middle of the view.', () => startVolcano(aimPt())],
   ['Deluge', 'Rain so heavy the land floods.', startDeluge],
 ];
+/* ---- arrivals (new things come in or are left) and events (somebody turns up and behaves) */
+const LATER = []; const later = (sec, fn) => LATER.push({ at: simT + sec, fn });
+function runLater() { for (let i = LATER.length - 1; i >= 0; i--) if (simT >= LATER[i].at) { const f = LATER[i].fn; LATER.splice(i, 1); try { f(); } catch (e) { } } }
+function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.length < MAX_PEOPLE; i++) { const x = cp.x + (i % 3) * 1.5, z = cp.z + Math.floor(i / 3) * 1.5; const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.role = side === 'red' ? 'Raider' : 'Guard'; q.side = side; if (side === 'red') q.fromHostile = true; out.push(q); } return out; }
+function sideBoat(side, key, from, to) { const bt = makeBoat(key, null, null, from.x, from.z, Math.atan2(to.z - from.z, to.x - from.x)); sideCrew(bt, side); bt.anchor = null; orderTo(bt, to.x, to.z); return bt; }
+function landingParty(side, n, boats_) {
+  const L = landingSpot(), e = edgeSpot(); if (!L || !e) { toast('No shore to land on'); return false; }
+  for (let b = 0; b < boats_; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }; const bt = sideBoat(side, 'bay', from, { x: L.sea.x + b * 9, z: L.sea.z + b * 5 }); bt.landing = true; }
+  later(34, () => { squadAt(side, n, L.cp); noteOnce('land' + side + simT, side === 'red' ? 'A landing party has come ashore.' : 'A response team has come ashore.'); for (const bt of boats.slice()) if (bt.landing) { bt.landing = false; const x = bt.body.position.x, z = bt.body.position.z; if (side === 'red') { const q = people.find(w => w.ride && w.ride.boat === bt); if (q) { /* crew stays aboard, raids the coast */ } } const dd = Math.hypot(x, z) || 1; orderTo(bt, x / dd * (EXT + 6), z / dd * (EXT + 6)); } });
+  return true;
+}
+const ARRIVALS = [
+  ['Supply drop', 'Crates fall from the sky at the middle of the view.', () => { const p = aimPt(); for (let i = 0; i < 6; i++) { const c = CARGO[Math.floor(Math.random() * CARGO.length)]; spawn(c, p.x + rnd(-5, 5), 40 + i * 4, p.z + rnd(-5, 5)); } toast('A supply drop falls from the sky.'); }],
+  ['Shipwreck', 'A wreck breaks up offshore and its cargo drifts in.', () => { const e = edgeSpot(); if (!e) return; const x = e.x * 0.7, z = e.z * 0.7; for (let i = 0; i < 7; i++) spawn(CARGO[Math.floor(Math.random() * CARGO.length)], x + rnd(-8, 8), 3 + i, z + rnd(-8, 8)); spawnSalvage(); toast('A wreck has broken up offshore. Cargo is drifting in.'); }],
+  ['Stone delivery', 'A load of stone blocks is left at the nearest yard.', () => { const y = yardPt(aimPt()); const sc = CARGO.find(c => /stone|block|rock/i.test(c.id)) || CARGO[0]; for (let i = 0; i < 8; i++) spawn(sc, y.x + rnd(-4, 4), 4 + i * 1.3, y.z + rnd(-4, 4)); toast('Stone has been left at a yard.'); }],
+  ['Meteor shower', 'Rocks fall across the cove and leave craters and rubble.', () => { for (let i = 0; i < 5; i++) later(i * 2.2, () => startMeteor({ x: rnd(-EXT * 0.5, EXT * 0.5), z: rnd(-EXT * 0.5, EXT * 0.5) })); }],
+  ['Fleet arrives', 'Three boats of every kind sail in from the edge.', () => { const e = edgeSpot(); if (!e) return; for (const k of ['bay', 'bollard', 'hero']) { if (boats.length > MAX_BOATS - 2) break; const bt = makeBoat(k, null, null, e.x + rnd(-15, 15), e.z + rnd(-15, 15), Math.atan2(-e.z, -e.x)); crewOn(bt, 1); bt.anchor = null; const sp = coastPoint(Math.random() * 6.283, -12); if (sp) orderTo(bt, sp.x, sp.z); } toast('A small fleet sails in.'); }],
+];
+const EVENTS = [
+  ['Smuggling run', 'A fishing boat comes in and drops drums. Can the Coast Guard tell?', () => { if (!spawnSmuggler()) toast('A run is already under way.'); else toast('A boat is coming in. It looks like any other.'); }],
+  ['Raider attack', 'A red raider boat hunts boats and yards.', () => { const e = edgeSpot(), L = landingSpot(); if (!e || !L) return; sideBoat('red', 'bay', e, L.sea); toast('A red raider boat is closing on the cove.'); }],
+  ['Landing party', 'Red raiders come ashore and go for the yards.', () => landingParty('red', 5, 1)],
+  ['Foreign invasion', 'A red flotilla lands troops while the Port defends.', () => { if (landingParty('red', 8, 2)) { later(10, () => landingParty('blue', 4, 1)); toast('A foreign flotilla is on the horizon.'); } }],
+  ['SWAT team', 'A blue response team arrives to fight the criminals.', () => landingParty('blue', 5, 1)],
+  ['Gang fight', 'Two bands of guards and raiders meet at the middle of the view.', () => { const p = aimPt(); squadAt('blue', 4, { x: p.x - 9, z: p.z }); squadAt('red', 4, { x: p.x + 9, z: p.z }); toast('Two bands face each other.'); }],
+  ['Developer rush', 'Rival developers arrive and compete for building sites.', () => { spawnDevelopers(3) ? toast('A developer crew arrives.') : toast('No room'); }],
+  ['Salvage tug', 'A tug comes in for floating cargo.', () => { spawnSalvage() ? 0 : toast('A salvage tug is already here.'); }],
+];
 function disastersSheet() {
   const rows = [menuBtn('Calm all', 'Stops every storm and eruption.', () => { calm(); closeMenu(); }), menuBtn('Restore the cove', worldUndo.length ? 'Go back to before the last disaster (' + worldUndo.length + ' saved)' : 'Nothing to restore yet', restoreWorld)];
   if (prefs.gentle) rows.push(menuHead('Gentle mode is on, so disasters are off. Change it in Menu, Sandbox.'));
-  else { rows.push(menuHead('Pick a disaster. It starts at the middle of the view.')); for (const [n, d, fn] of DISASTERS) rows.push(menuBtn(n, d, () => { if (!gateDisaster()) return; pushWorldUndo(); closeMenu(); fn(); })); }
+  else {
+    rows.push(menuHead('Destructive. These start at the middle of the view.')); for (const [n, d, fn] of DISASTERS) rows.push(menuBtn(n, d, () => { if (!gateDisaster()) return; pushWorldUndo(); closeMenu(); fn(); }));
+    rows.push(menuHead('Arrivals. New things come in or are left behind.')); for (const [n, d, fn] of ARRIVALS) rows.push(menuBtn(n, d, () => { closeMenu(); fn(); }));
+    rows.push(menuHead('Events. People turn up and behave.')); for (const [n, d, fn] of EVENTS) rows.push(menuBtn(n, d, () => { closeMenu(); fn(); }));
+  }
   openMenu(rows);
 }
 $('mSandbox').addEventListener('click', sandboxSheet);
@@ -5211,7 +5278,11 @@ function computeWinds() {
       const hh = Math.max(0, CHG[c] - 4), sp = Math.min(0.35, hh * 0.012); TU[c] += wind.v.x * sp; TV[c] += wind.v.z * sp; }              // wind speeds up over ridges
   }
 }
-function windAt(x, z, out) { out.x = wind.v.x + csample(TU, x, z); out.z = wind.v.z + csample(TV, x, z); out.y = 0; return out; }
+/* the wind is never one wind: broad veering and surging bands pass over the cove, so one place is pushed one way while another is pulled across it (same field as the tree shader) */
+function windAt(x, z, out) {
+  const t = simT, a = 0.55 * (Math.sin(x * 0.021 + z * 0.013 - t * 0.35) + 0.6 * Math.sin(z * 0.034 - x * 0.017 - t * 0.23 + 1.3)), m = 1 + 0.35 * Math.sin(x * 0.03 - z * 0.02 - t * 0.6), c = Math.cos(a), s = Math.sin(a);
+  const ux = wind.v.x + csample(TU, x, z), uz = wind.v.z + csample(TV, x, z); out.x = (ux * c - uz * s) * m; out.z = (ux * s + uz * c) * m; out.y = 0; return out;
+}
 /* ---- a view of the wind: arrows for the surface or for the air aloft */
 let windView = 0, windViewT = 0;
 const WVN = 16 * 16 * 6, wvPos = new Float32Array(WVN * 3), wvGeo = new THREE.BufferGeometry();
@@ -5760,16 +5831,16 @@ function placeFaction(item, p) {
    a build site with stone waiting for the crane truck, a plant site for the tractor, a courier or a smuggler's run for the Port patrol. They drive on the ground (slope, water, trees and heat are avoided with a path search on the land map),
    and they compete with the people doing the same job: a forklift can lift what hands cannot, a crane places blocks that builders would have carried. */
 const VSPEC = {
-  ambulance: { name: 'Ambulance', v: 9, turn: 1.0, L: 6.0, siren: true, eng: 'tug', desc: 'drives to the injured and treats them' },
-  firetruck: { name: 'Fire truck', v: 7, turn: 0.8, L: 8.5, siren: true, eng: 'patrol', desc: 'drives to fires and puts them out' },
-  forklift: { name: 'Forklift', v: 3.2, turn: 1.4, L: 3.2, eng: 'tug', desc: 'lifts heavy cargo and stone to where it is needed' },
-  cargotruck: { name: 'Cargo truck', v: 6, turn: 0.9, L: 7.0, eng: 'tug', desc: 'collects loose cargo and brings it to the yard' },
-  patrolcar: { name: 'Port patrol', v: 10, turn: 1.1, L: 4.8, siren: false, eng: 'lifeboat', desc: 'patrols the land and catches couriers' },
-  tractor: { name: 'Tractor', v: 4.5, turn: 1.0, L: 4.0, eng: 'tug', desc: 'plants trees at plant sites' },
-  quadbike: { name: 'Quad bike', v: 8, turn: 1.6, L: 2.0, eng: 'outboard', desc: 'patrols the coast and reports what it sees' },
-  cranetruck: { name: 'Crane truck', v: 3.5, turn: 0.7, L: 9.0, eng: 'icebreaker', desc: 'sets stone blocks into build sites' },
+  ambulance: { name: 'Ambulance', v: 5.5, turn: 1.0, L: 6.0, siren: true, eng: 'tug', desc: 'drives to the injured and treats them' },
+  firetruck: { name: 'Fire truck', v: 4.5, turn: 0.8, L: 8.5, siren: true, eng: 'patrol', desc: 'drives to fires and puts them out' },
+  forklift: { name: 'Forklift', v: 2.4, turn: 1.4, L: 3.2, eng: 'tug', desc: 'lifts heavy cargo and stone to where it is needed' },
+  cargotruck: { name: 'Cargo truck', v: 3.8, turn: 0.9, L: 7.0, eng: 'tug', desc: 'collects loose cargo and brings it to the yard' },
+  patrolcar: { name: 'Port patrol', v: 5.5, turn: 1.1, L: 4.8, siren: false, eng: 'lifeboat', desc: 'patrols the land and catches couriers' },
+  tractor: { name: 'Tractor', v: 3.0, turn: 1.0, L: 4.0, eng: 'tug', desc: 'plants trees at plant sites' },
+  quadbike: { name: 'Quad bike', v: 5, turn: 1.6, L: 2.0, eng: 'outboard', desc: 'patrols the coast and reports what it sees' },
+  cranetruck: { name: 'Crane truck', v: 2.2, turn: 0.7, L: 9.0, eng: 'icebreaker', desc: 'sets stone blocks into build sites' },
 };
-const VEHS = [], vehTree = new Float32Array(64 * 64); let vehP = null, vehTreeT = -99, vehN = 0;
+let VEH_LAST = -99; const VEHS = [], vehTree = new Float32Array(64 * 64); let vehP = null, vehTreeT = -99, vehN = 0;
 const ensureVehicles = () => vehP || (vehP = Promise.race([loadGLB('vehicles').then(g => (D.glb.vehicles = g)), new Promise(r => setTimeout(() => r(null), 8000))]).catch(e => null));      // no model file (or a slow one): plain boxes stand in
 function vehGrid() {                                                 // trees per land-map cell, for steering around forest
   if (simT - vehTreeT < 30) return; vehTreeT = simT; vehTree.fill(0);
@@ -5777,7 +5848,7 @@ function vehGrid() {                                                 // trees pe
   for (const p of props) if (p.item && p.item.land) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64) vehTree[i * 64 + j] += 2; }
 }
 const vcell = (x, z) => [Math.max(0, Math.min(63, Math.round((W2G(x) - 2) / 4))), Math.max(0, Math.min(63, Math.round((W2G(z) - 2) / 4)))];
-const cellOK = (i, j) => { const c = i * 64 + j; if (LM.h[c] < 0.55 || LM.slope[c] > 0.5 || vehTree[c] >= 4) return false; const gk = (i * 4 + 2) * TN + j * 4 + 2; return !(GT[gk] > 70 || LV[gk] > 0.01 || WD[gk] > 0.25); };
+const cellOK = (i, j) => { const c = i * 64 + j; if (LM.h[c] < 0.55 || LM.slope[c] > 0.26 || vehTree[c] >= 3) return false; const gk = (i * 4 + 2) * TN + j * 4 + 2; return !(GT[gk] > 70 || LV[gk] > 0.01 || WD[gk] > 0.25); };
 function findPath(x0, z0, x1, z1) {
   if (!LM.ready) return null; vehGrid(); let [sj, si] = vcell(x0, z0), [gj, gi] = vcell(x1, z1);
   const snap = (i, j) => { if (cellOK(i, j)) return [i, j]; for (let r = 1; r < 6; r++) for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) { if (Math.max(Math.abs(a), Math.abs(b)) !== r) continue; const ii = i + a, jj = j + b; if (ii >= 0 && jj >= 0 && ii < 64 && jj < 64 && cellOK(ii, jj)) return [ii, jj]; } return null; };
@@ -5785,19 +5856,20 @@ function findPath(x0, z0, x1, z1) {
   const hh = (c) => Math.hypot((c % N) - G[1], ((c / N) | 0) - G[0]); let guard = 0;
   while (open.length && guard++ < 4000) {
     let bi = 0; for (let q = 1; q < open.length; q++) if (open[q][1] < open[bi][1]) bi = q; const [cur] = open.splice(bi, 1)[0]; if (cur === goal) break; const ci = (cur / N) | 0, cj = cur % N;
-    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N || !cellOK(ni, nj)) continue; const nc = ni * N + nj, cost = g.get(cur) + Math.hypot(di, dj) * (1 + LM.slope[nc] * 5 + vehTree[nc] * 0.8); if (!g.has(nc) || cost < g.get(nc)) { g.set(nc, cost); from.set(nc, cur); open.push([nc, cost + hh(nc) * 1.05]); } }
+    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N || !cellOK(ni, nj)) continue; const nc = ni * N + nj, cost = g.get(cur) + Math.hypot(di, dj) * (1 + LM.slope[nc] * 16 + vehTree[nc] * 1.2); if (!g.has(nc) || cost < g.get(nc)) { g.set(nc, cost); from.set(nc, cur); open.push([nc, cost + hh(nc) * 1.05]); } }
   }
   if (!from.has(goal) && S[0] * N + S[1] !== goal) return null; const path = []; let c = goal; while (c !== undefined && path.length < 400) { path.push({ x: G2W((c % N) * 4 + 2), z: G2W(((c / N) | 0) * 4 + 2) }); c = from.get(c); } path.reverse(); path.push({ x: x1, z: z1 }); return path;
 }
-const MAXVEH = matchMedia('(pointer: coarse)').matches ? 3 : 6;
+const MAXVEH = matchMedia('(pointer: coarse)').matches ? 2 : 4;
 function makeVehicle(key, x, z, yaw, opt) {
   const sp = VSPEC[key]; if (!sp || VEHS.length >= MAXVEH + 2) return null; const g = new THREE.Group(); scene.add(g); let node = D.glb.vehicles ? nodeByName(D.glb.vehicles, key) : null; const wheels = [];
   if (node) { const m = node.clone(); g.add(shadowAll(m)); m.traverse(o => { if (/_wheel_/.test(o.name)) wheels.push({ n: o, q0: o.quaternion.clone(), spin: 0, front: /_wheel_F/.test(o.name) }); }); g.userData.model = m; }
   else { const b = new THREE.Mesh(new THREE.BoxGeometry(sp.L, 1.6, sp.L * 0.4), new THREE.MeshStandardMaterial({ color: { ambulance: 0xf1f1ec, firetruck: 0xc83228, forklift: 0xe8b824, cargotruck: 0x2f4a7a, patrolcar: 0xe8ecef, tractor: 0x3f8f3a, quadbike: 0xc83228, cranetruck: 0xe5841c }[key] || 0x888888 })); b.position.y = 1; b.castShadow = true; g.add(b); }
-  const v = { key, sp, g, wheels, x, z, y: standY(x, z), yaw: yaw || 0, speed: 0, steer: 0, path: null, pi: 0, goal: null, load: [], t: 0, idle: 0, id: ++vehN, placed: !!(opt && opt.placed), task: '', work: 0, retire: 0, born: simT };
+  const bd = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC, collisionFilterGroup: 1, collisionFilterMask: 1 }); bd.addShape(new CANNON.Box(new CANNON.Vec3(sp.L * 0.5, 0.9, Math.max(0.8, sp.L * 0.17))), new CANNON.Vec3(0, 1.0, 0)); bd.vmass = sp.L * 420; world.addBody(bd);
+  const v = { key, sp, g, wheels, body: bd, x, z, y: standY(x, z), yaw: yaw || 0, speed: 0, steer: 0, path: null, pi: 0, goal: null, load: [], t: 0, idle: 0, id: ++vehN, placed: !!(opt && opt.placed), task: '', work: 0, retire: 0, born: simT };
   g.userData.veh = v; VEHS.push(v); return v;
 }
-function removeVehicle(v) { scene.remove(v.g); const i = VEHS.indexOf(v); if (i >= 0) VEHS.splice(i, 1); }
+function removeVehicle(v) { if (v.body) world.removeBody(v.body); scene.remove(v.g); const i = VEHS.indexOf(v); if (i >= 0) VEHS.splice(i, 1); }
 function vehGo(v, x, z, why) { const p = findPath(v.x, v.z, x, z); if (!p) return false; v.path = p; v.pi = 0; v.goal = { x, z }; v.task = why || v.task; return true; }
 const vehHome = (v) => { const y = yardPt({ x: v.x, z: v.z }); return { x: y.x, z: y.z }; };
 function vehHeight(x, z) { return standY(x, z); }
@@ -5807,12 +5879,17 @@ function vehMove(v, dt) {
   let want = 0; if (tx !== null && v.path) { const da = Math.atan2(tz - v.z, tx - v.x), diff = Math.atan2(Math.sin(da - v.yaw), Math.cos(da - v.yaw)); v.steer += (cl2(diff, -0.6, 0.6) - v.steer) * Math.min(1, dt * 4); const lastLeg = v.pi >= v.path.length - 1, d = Math.hypot(tx - v.x, tz - v.z); want = sp.v * (1 - Math.min(0.75, Math.abs(diff) * 0.8)) * (lastLeg ? cl2(d / 10, 0.25, 1) : 1); }
   else v.steer *= 0.9; if (v.hold) want = 0;
   const hnow = standY(v.x, v.z), hf = standY(v.x + Math.cos(v.yaw) * 2, v.z + Math.sin(v.yaw) * 2), slope = (hf - hnow) / 2; want *= 1 - cl2(slope * 1.4, -0.2, 0.7);
-  v.speed += (want - v.speed) * Math.min(1, dt * 1.6); v.yaw += v.steer * Math.min(1, v.speed / 3) * sp.turn * dt * (v.speed > 0.2 ? 1 : 0);
+  const accel = Math.min(3.2, 900 / (sp.L * 420) * 3.4 + 1.0), dv = want - v.speed; v.speed += Math.max(-4.5 * dt, Math.min(accel * dt, dv));         // engine power over mass limits how fast it gathers speed; brakes are stronger
+  if (v.tipped) { v.speed = 0; if (simT > v.tipUntil) { v.tipped = false; v.tipK = 0; noteOnce('righted', 'A tipped vehicle was winched upright.'); } }
+  v.yaw += v.steer * Math.min(1, v.speed / 3) * sp.turn * dt * (v.speed > 0.2 ? 1 : 0);
   const nx = v.x + Math.cos(v.yaw) * v.speed * dt, nz = v.z + Math.sin(v.yaw) * v.speed * dt;
   if (standY(nx, nz) < 0.3 && v.speed > 0.1) { v.speed = 0; v.path = null; v.blocked = (v.blocked || 0) + 1; } else { v.x = nx; v.z = nz; }
   const L = sp.L * 0.4, W = 1.0, hF = standY(v.x + Math.cos(v.yaw) * L, v.z + Math.sin(v.yaw) * L), hB = standY(v.x - Math.cos(v.yaw) * L, v.z - Math.sin(v.yaw) * L), hL = standY(v.x - Math.sin(v.yaw) * W, v.z + Math.cos(v.yaw) * W), hR = standY(v.x + Math.sin(v.yaw) * W, v.z - Math.cos(v.yaw) * W);
-  v.y += ((hF + hB + hL + hR) / 4 - v.y) * Math.min(1, dt * 8); const pitch = Math.atan2(hF - hB, 2 * L), roll = Math.atan2(hR - hL, 2 * W);
-  v.g.position.set(v.x, v.y, v.z); v.g.rotation.order = 'YXZ'; v.g.rotation.set(-pitch * 0.9, -v.yaw, roll * 0.9);
+  v.y += (Math.max((hF + hB) / 2, (hL + hR) / 2, hnow) - 0.04 - v.y) * Math.min(1, dt * 10); const pitch = Math.atan2(hF - hB, 2 * L), roll = Math.atan2(hR - hL, 2 * W);
+  if (!v.tipped && Math.abs(roll) > 0.42 && v.speed > 3) { v.tipped = true; v.tipUntil = simT + 20; v.speed = 0; v.path = null; v.hold = false; npcEv('vehTipped'); noteOnce('tipped', 'A vehicle rolled over on a side slope. It will be winched upright in a moment.'); }
+  v.tipK = v.tipped ? Math.min(1, (v.tipK || 0) + dt * 2.5) : Math.max(0, (v.tipK || 0) - dt * 1.2);
+  v.g.position.set(v.x, v.y + v.tipK * 0.4, v.z); v.g.rotation.order = 'YZX'; v.g.rotation.set(roll * 0.95 + (roll >= 0 ? 1 : -1) * v.tipK * 1.45, -v.yaw, pitch * 0.95);
+  if (v.body) { v.body.position.set(v.x, v.y, v.z); v.body.quaternion.setFromEuler(0, -v.yaw, 0); v.body.velocity.set(Math.cos(v.yaw) * v.speed, 0, Math.sin(v.yaw) * v.speed); v.body.interpolatedPosition && v.body.interpolatedPosition.copy(v.body.position); }
   for (const w of v.wheels) { w.spin -= v.speed * dt / 0.45; w.n.quaternion.copy(w.q0).multiply(vq.setFromAxisAngle(vAxY, w.front ? v.steer * 0.7 : 0)).multiply(vq2.setFromAxisAngle(vAxZ, w.spin)); }
   // people in the way get knocked over (cartoon): the medics collect them
   if (v.speed > 2.4) for (const q of people) { if (q.ride || q.state === 'rag' || q.fp) continue; if (Math.hypot(q.x - v.x, q.z - v.z) < 1.5 && !q._vhit) { q._vhit = simT; topple(q, new CANNON.Vec3(Math.cos(v.yaw) * 2, 2.2, Math.sin(v.yaw) * 2)); noteOnce('vhit', 'A vehicle knocked someone over. Medics will help them up.'); } }
@@ -5831,7 +5908,7 @@ function vehThink(v) {
     if (best) { best.vclaim = v; v.target = best; if (vehGo(v, best.body.position.x, best.body.position.z, 'Going for the ' + best.c.name)) return; best.vclaim = null; }
     if (v.load.length) { const h = v.deliver || y; if (vehGo(v, h.x, h.z, 'Taking cargo to the yard')) return; } return home();
   }
-  if (k === 'patrolcar' || k === 'quadbike') { const L = LM.ready ? lmLookouts() : []; const stops = [vehHome(v), ...L.map(o => ({ x: o.x, z: o.z })), pierInfo ? { x: pierInfo.c.x, z: pierInfo.c.z } : null].filter(Boolean); const c = ECON.courierSeen && Math.hypot(ECON.courierSeen.x - v.x, ECON.courierSeen.z - v.z) < 200 ? ECON.courierSeen : null; const tgt = c || stops[(Math.random() * stops.length) | 0]; if (tgt && vehGo(v, tgt.x, tgt.z, c ? 'Checking on a suspicious courier' : 'Patrolling')) return; v.idle = (v.idle || 0) + 1; return; }
+  if (k === 'patrolcar' || k === 'quadbike') { const L = LM.ready ? lmLookouts() : []; const stops = [vehHome(v), ...L.map(o => ({ x: o.x, z: o.z })), pierInfo ? { x: pierInfo.c.x, z: pierInfo.c.z } : null].filter(Boolean); const rd = k === 'patrolcar' ? people.filter(q => q.side === 'red' && !q.ride && q.state !== 'rag' && Math.hypot(q.x - v.x, q.z - v.z) < 160).sort((a, b) => Math.hypot(a.x - v.x, a.z - v.z) - Math.hypot(b.x - v.x, b.z - v.z))[0] : null, c = rd || (ECON.courierSeen && Math.hypot(ECON.courierSeen.x - v.x, ECON.courierSeen.z - v.z) < 200 ? ECON.courierSeen : null); if (!c && simT - (v.lastLeg || -99) < 30) { v.hold = true; v.holdT = (v.holdT || 0) + 1.2; if (v.holdT > 28) { v.hold = false; v.holdT = 0; v.lastLeg = simT; } return; } const tgt = c || stops[(Math.random() * stops.length) | 0]; v.lastLeg = simT; if (tgt && vehGo(v, tgt.x, tgt.z, c ? 'Checking on a suspicious courier' : 'Patrolling')) return; v.idle = (v.idle || 0) + 1; return; }
   if (k === 'tractor') { const st = sites_().find(q => q.kind === 'plant' && q.planted < 10); if (st) { v.target = st; if (Math.hypot(st.x - v.x, st.z - v.z) > 8) { if (vehGo(v, st.x, st.z, 'Driving to a plant site')) return; } else { v.planting = true; return; } } v.planting = false; return home(); }
   if (k === 'cranetruck') { const st = sites_().find(q => q.kind === 'build' && !q.done && nextSlot(q) >= 0); const free = freeBlocks().filter(o => !o.vclaim || o.vclaim === v); if (st && free.length) { v.target = st; if (Math.hypot(st.x - v.x, st.z - v.z) > 9) { if (vehGo(v, st.x + 6, st.z, 'Driving to the build site')) return; } else { v.crane = true; return; } } v.crane = false; return home(); }
   return home();
@@ -5849,6 +5926,7 @@ function vehWork(v, dt) {
   if (k === 'tractor' && v.planting && v.target) { v.hold = true; v.pT = (v.pT || 0) + dt; if (v.pT > 5) { v.pT = 0; const st = v.target; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = rnd(2, 8), x = st.x + Math.cos(a) * d, z = st.z + Math.sin(a) * d; if (safeSpot(x, z) && !trees.some(t => !t.dead && Math.hypot(t.x - x, t.z - z) < 2.4) && !props.some(q => Math.hypot(q.x - x, q.z - z) < 2.4)) { if (plantTree(x, z)) { st.planted++; agentStat.planted++; npcEv('vehPlanted'); } break; } } if (st.planted >= 10) { v.planting = false; v.hold = false; v.path = null; } } }
   if (k === 'cranetruck' && v.crane && v.target) { v.hold = true; v.cT = (v.cT || 0) + dt; const boom = v.g.userData.model && nodeByName(v.g.userData.model, 'cranetruck_boom'); if (boom) boom.rotation.y = Math.sin(v.cT * 1.4) * 0.5; if (v.cT > 4) { v.cT = 0; const st = v.target, fb = freeBlocks().filter(o => !o.vclaim || o.vclaim === v).sort((a, b) => Math.hypot(a.body.position.x - st.x, a.body.position.z - st.z) - Math.hypot(b.body.position.x - st.x, b.body.position.z - st.z))[0]; if (fb && placeBlock(st, fb)) { npcEv('blockPlaced'); npcEv('cranePlaced'); } if (st.stage >= BSLOTS) { st.done = true; st.flag.material.color.setHex(0x8a8f94); toast('A crane truck finished a stone circle.'); npcEv('buildDone'); v.crane = false; v.hold = false; } } }
   if ((k === 'patrolcar' || k === 'quadbike')) for (const q of people.slice()) {                  // the Port patrol catches couriers it sees, and sometimes stops an innocent dock worker
+    if (q.side === 'red' && !q.ride && q.state !== 'rag' && Math.hypot(q.x - v.x, q.z - v.z) < 13 && Math.random() < dt * 0.4) { knockOut(q, v.yaw); noteOnce('pat-ko', 'The Port patrol drove a raider off.'); }
     if (q.ride || Math.hypot(q.x - v.x, q.z - v.z) > 20) continue; if (q.trueRole === 'Courier' && !q._pstop && Math.random() < dt * 0.7 && los(v.x, v.z, v.y + 1.5, q.x, q.z, q.y + 1)) { removePerson(q); npcEv('courierCaught'); noteOnce('patrolcatch', 'The Port patrol caught a courier and seized the cargo.'); for (const o of objects) if (o.contraband && Math.hypot(o.body.position.x - q.x, o.body.position.z - q.z) < 40) { o.contraband = false; ECON.seized++; npcEv('drumsSeized'); } ECON.trust = Math.min(1, ECON.trust + 0.05); }
     else if (q.role === 'Dock worker' && q.carry && !q.trueRole && !q._pstop && Math.random() < dt * 0.02) { q._pstop = simT; ECON.trust = Math.max(0.05, ECON.trust - 0.03); npcEv('falsePositive'); noteOnce('patrolfp', 'The Port patrol stopped an honest dock worker. People trust it a little less.'); }
   }
@@ -5859,7 +5937,7 @@ function updateVehicles(dt) {
     vehMove(v, dt); vehWork(v, dt);
     if (v.blocked > 3) { v.blocked = 0; v.path = null; v.think = 0.1; if (v.target && v.target.vclaim === v) v.target.vclaim = null; }
     const idle = !v.path && !v.hold && !v.target && v.speed < 0.3 && !v.load.length; v.idle = idle ? (v.idle || 0) + dt : 0;
-    if (!v.placed && v.idle > 50) { v.retire = (v.retire || 0) + dt; if (v.retire > 10) { removeVehicle(v); npcEv('vehRetired'); } } else v.retire = 0;
+    if (!v.placed && v.idle > 25) { v.retire = (v.retire || 0) + dt; if (v.retire > 6) { removeVehicle(v); npcEv('vehRetired'); } } else v.retire = 0;
   }
 }
 function placeVehicle(item, p) {
@@ -5868,8 +5946,8 @@ function placeVehicle(item, p) {
 }
 let vehDT = 0;
 function vehDispatch(dt) {                                                           // work turns up and the right vehicle comes
-  vehDT -= dt; if (vehDT > 0) return; vehDT = 6; const Lf = prefs.life || 'lively'; if (Lf === 'quiet' || !LM.ready || VEHS.length >= MAXVEH) return; const have = (k) => VEHS.some(v => v.key === k), y = yardPt(null);
-  const spawn_ = (k) => { if (have(k)) return; ensureVehicles().then(() => { if (have(k) || VEHS.length >= MAXVEH) return; const a = Math.random() * 6.283, x = y.x + Math.cos(a) * 6, z = y.z + Math.sin(a) * 6; if (!safeSpot(x, z)) return; const v = makeVehicle(k, x, z, a, {}); if (v) { npcEv('vehDispatched'); noteOnce('vd' + k, VSPEC[k].name + ' arrives: ' + VSPEC[k].desc + '.'); } }); };
+  vehDT -= dt; if (vehDT > 0) return; vehDT = 8; const Lf = prefs.life || 'lively'; if (Lf === 'quiet' || !LM.ready || VEHS.length >= MAXVEH - (Lf === 'busy' ? 0 : 1) || simT - (VEH_LAST || -99) < (Lf === 'busy' ? 40 : 75)) return; const have = (k) => VEHS.some(v => v.key === k), y = yardPt(null);
+  const spawn_ = (k) => { if (have(k)) return; ensureVehicles().then(() => { if (have(k) || VEHS.length >= MAXVEH) return; const a = Math.random() * 6.283, x = y.x + Math.cos(a) * 6, z = y.z + Math.sin(a) * 6; if (!safeSpot(x, z)) return; const v = makeVehicle(k, x, z, a, {}); if (v) { VEH_LAST = simT; npcEv('vehDispatched'); noteOnce('vd' + k, VSPEC[k].name + ' arrives: ' + VSPEC[k].desc + '.'); } }); };
   if (burning.length >= 3) spawn_('firetruck');
   if (people.some(injured)) spawn_('ambulance');
   if (objects.filter(o => !o.placed && !o.gone && standY(o.body.position.x, o.body.position.z) > 0.4 && Math.hypot(o.body.position.x - y.x, o.body.position.z - y.z) > 8 && (liftNeed(o) > 2 || o.body.mass > 260)).length >= 2) spawn_('forklift');
@@ -5899,9 +5977,27 @@ function openReport() {
     row('Smuggling: ' + n('smugglerRun') + ' runs, ' + n('drumsLanded') + ' drums landed, ' + n('drumsStashed') + ' hidden, ' + n('drumsSeized') + ' seized, ' + n('unmasked') + ' boats unmasked, ' + n('courierCaught') + ' couriers caught.'),
     row('Information: ' + n('witness') + ' sightings, ' + n('report') + ' reports, ' + n('falseTipFiled') + ' decoy tips, ' + n('emptyReport') + ' reports that led nowhere, ' + n('falsePositive') + ' innocent boats stopped.'),
     row('Building: ' + n('blockPlaced') + ' blocks placed, ' + n('quarried') + ' cut from rubble, ' + n('buildDone') + ' circles finished, ' + n('blockLost') + ' blocks lost, ' + n('sabotage') + ' sabotaged, ' + n('siteTaken') + ' sites taken over.'),
+    row('Sides: ' + SK.blue.ko + ' guards and ' + SK.red.ko + ' raiders knocked out, ' + n('looted') + ' crates looted, ' + n('siteTaken') + ' sites changed hands.'),
     row('Vehicles: ' + VEHS.length + ' working. Delivered ' + n('vehDelivered') + ' loads, ' + n('truckFire') + ' fires put out, ' + n('ambulanceSave') + ' people treated, ' + n('cranePlaced') + ' blocks set by crane, ' + n('vehPlanted') + ' trees planted by tractor.'),
     row('Salvage: ' + n('salvaged') + ' items fished out, ' + n('salvageSold') + ' sold to the yard. Fishing trips: ' + n('fishTrip') + '.'),
     menuHead(secrets.length ? 'Secrets right now' : 'No secrets right now'), ...secrets.map(t => row(t))]);
+}
+/* ---- v8.5 sides: blue guards and boats against red raiders, placed by the player, who then fight it out. Nobody is hurt: a fight ends with someone knocked out, and the medics collect them. */
+const SIDE_OPP = { blue: 'red', red: 'blue' }, SK = { blue: { ko: 0 }, red: { ko: 0 } };
+function sideCrew(nb, side) {
+  crewOn(nb, 2); for (const q of people) if (q.ride && q.ride.boat === nb) { q.side = side; q.role = side === 'red' ? 'Raider' : 'Guard'; if (side === 'red') q.fromHostile = true; }
+  if (side === 'red') { nb.side = 'hostile'; nb.raider = true; nb.threat = 'raider'; nb.anchor = null; } else nb.blue = true;
+}
+function skirmishThink(p, ag) {
+  let best = null, bd = 80; for (const q of people) { if (q.side !== SIDE_OPP[p.side] || q.ride || q.state === 'rag' || q.fp) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; best = q; } }
+  if (best) { ag.goal = { kind: 'fight', who: best, t: 0, hit: rnd(0.4, 1.2) }; ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Going after a raider'; walkAgent(p, best.x, best.z); return true; }
+  if (p.side === 'red') { const y = sites.find(q => q.kind === 'yard' && (q.owner || 'Port') === 'Port') || sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === 'Port'); if (y) { ag.goal = { kind: 'raid', site: y, t: 0 }; ag.intent = 'Heading for the yard'; walkAgent(p, y.x + rnd(-4, 4), y.z + rnd(-4, 4)); return true; } return false; }
+  const g = sites.find(q => (q.kind === 'yard' || q.kind === 'build') && (q.owner || 'Port') === 'Port'); if (g) { if (Math.hypot(p.x - g.x, p.z - g.z) > 14) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Returning to the post'; walkAgent(p, g.x + rnd(-6, 6), g.z + rnd(-6, 6)); return true; } ag.cool = 2.5; ag.intent = 'On guard'; return true; }
+  return false;
+}
+function knockOut(e, from) {
+  topple(e, new CANNON.Vec3(Math.sin(from) * 2.2, 2.4, Math.cos(from) * 2.2)); e.koUntil = simT + 16; npcEv('skirmishKO'); (SK[e.side] || (SK[e.side] = { ko: 0 })).ko++;
+  noteOnce('ko' + e.side, (e.side === 'red' ? 'A raider' : 'A guard') + ' was knocked out. Medics will come for them.');
 }
 let obsT = 0;
 function observe(dt) {
@@ -6141,11 +6237,12 @@ function placeBlock(st, o) {
 let siteT = 0;
 function siteTick(dt) {                                       // blocks that have been knocked, burned or crushed out of place free their slot again; neglected sites can be taken over
   siteT -= dt; if (siteT > 0) return; siteT = 2;
-  for (const st of sites) { if (st.kind !== 'build') continue;
+  for (const st of sites) { if (st.kind !== 'build' && st.kind !== 'yard') continue; const base = st.kind === 'build' ? 0xe0883a : 0xa8794a, colOf = (o) => o === 'Raiders' ? 0xc0392b : o === 'Developers' ? 0x3c5a8f : base;
     if (st.slots) { for (let i = 0; i < BSLOTS; i++) { const o = st.slots[i]; if (!o) continue; const sl = buildSlot(st, i), gone = o.gone || !objects.includes(o); if (gone || Math.hypot(o.body.position.x - sl.x, o.body.position.z - sl.z) > 1.5 || o.body.position.y > standY(sl.x, sl.z) + 2.6) { st.slots[i] = null; if (!gone) o.placed = false; npcEv('blockLost'); } }
       st.stage = st.slots.filter(Boolean).length; if (st.done && st.stage < BSLOTS) { st.done = false; st.flag.material.color.setHex((st.owner || 'Port') === 'Developers' ? 0x3c5a8f : 0xe0883a); } }
-    let mine = 0, rival = 0; const own = st.owner || 'Port'; for (const p of people) { if (p.ride || p.state === 'rag' || Math.hypot(p.x - st.x, p.z - st.z) > 11) continue; const f = p.role === 'Developer' ? 'Developers' : p.role === 'Builder' ? 'Port' : null; if (f === own) mine++; else if (f) rival++; }
-    if (rival >= 2 && mine === 0 && !st.done) { st.contestT = (st.contestT || 0) + 2; if (st.contestT >= 20) { st.owner = own === 'Port' ? 'Developers' : 'Port'; st.contestT = 0; st.flag.material.color.setHex(st.owner === 'Developers' ? 0x3c5a8f : 0xe0883a); npcEv('siteTaken'); toast((st.owner === 'Developers' ? 'Rival developers' : 'The Port builders') + ' took over a neglected build site.'); } } else st.contestT = 0;
+    const own = st.owner || 'Port', cnt = { Port: 0, Developers: 0, Raiders: 0 }; for (const p of people) { if (p.ride || p.state === 'rag' || Math.hypot(p.x - st.x, p.z - st.z) > 11) continue; const f = p.role === 'Developer' ? 'Developers' : (p.role === 'Raider' || p.side === 'red') ? 'Raiders' : (p.role === 'Builder' || p.role === 'Guard' || p.role === 'Dock worker' || p.side === 'blue') ? 'Port' : null; if (f) cnt[f]++; }
+    let riv = null; for (const f of ['Raiders', 'Developers', 'Port']) if (f !== own && cnt[f] >= 2 && (!riv || cnt[f] > cnt[riv])) riv = f;
+    if (riv && cnt[own] === 0 && !st.done) { st.contestT = (st.contestT || 0) + 2; if (st.contestT >= 20) { st.owner = riv; st.contestT = 0; st.flag.material.color.setHex(colOf(riv)); npcEv('siteTaken'); toast((riv === 'Raiders' ? 'Raiders' : riv === 'Developers' ? 'Rival developers' : 'The Port') + ' took over ' + (st.kind === 'yard' ? 'a cargo yard' : 'a build site') + '.'); } } else st.contestT = 0;
   }
 }
 const agentStat = { photos: 0, crates: 0, fish: 0, helped: 0, ferried: 0, planted: 0, built: 0 }, poiVisits = {};
@@ -6191,12 +6288,13 @@ function freeCrate(p) {
   for (const o of objects) { if (o.placed || (BLOCKS.has(o.c.id) && sites.some(q => q.kind === 'build' && !q.done && Math.hypot(q.x - o.body.position.x, q.z - o.body.position.z) < 16))) continue; if (o.claimed && o.claimed !== p && people.includes(o.claimed) && simT - (o.claimT || 0) < 25) continue; const op = o.body.position; if (liftNeed(o) > 2 || standY(op.x, op.z) < 0.3 || Math.abs(op.y - standY(op.x, op.z)) > 1.6) continue; if (Math.hypot(op.x - yard.x, op.z - yard.z) < 6 || Math.hypot(o.body.velocity.x, o.body.velocity.z) > 0.8) continue; const d = Math.hypot(op.x - p.x, op.z - p.z); if (d < bd && d < 90 && safeSpot(op.x, op.z)) { bd = d; best = o; } }
   return best;
 }
-function yardPt(p) { let best = null, bd = 1e9; for (const st of sites) if (st.kind === 'yard') { const d = p ? Math.hypot(st.x - p.x, st.z - p.z) : 0; if (d < bd) { bd = d; best = st; } } if (best) return { x: best.x, z: best.z, site: best }; if (LM.ready && !LM.yardAuto) LM.yardAuto = lmBest('yard'); if (LM.yardAuto) return { x: LM.yardAuto.x, z: LM.yardAuto.z }; if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
+function yardPt(p) { let best = null, bd = 1e9; const anyPort = sites.some(q => q.kind === 'yard' && (q.owner || 'Port') === 'Port'); for (const st of sites) if (st.kind === 'yard' && (!anyPort || (st.owner || 'Port') === 'Port')) { const d = p ? Math.hypot(st.x - p.x, st.z - p.z) : 0; if (d < bd) { bd = d; best = st; } } if (best) return { x: best.x, z: best.z, site: best }; if (LM.ready && !LM.yardAuto) LM.yardAuto = lmBest('yard'); if (LM.yardAuto) return { x: LM.yardAuto.x, z: LM.yardAuto.z }; if (pierInfo) return { x: pierInfo.c.x - pierInfo.dir.x * 9, z: pierInfo.c.z - pierInfo.dir.z * 9 }; return { x: 0, z: 0 }; }
 let yardN = 0;
 function agentUnsafe(p) { const k = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); for (let a = -4; a <= 4; a += 2) for (let b = -4; b <= 4; b += 2) if (LV[k + a * TN + b] > 0.01 || GT[k + a * TN + b] > 330) return { dx: -b, dz: -a }; for (const t of burning) if (Math.hypot(t.x - p.x, t.z - p.z) < 7) return { dx: p.x - t.x, dz: p.z - t.z }; return null; }
 function think(p, ag) {
   const role = p.role;
   if (p.trueRole === 'Courier') { courierThink(p, ag); return; }
+  if (p.side && skirmishThink(p, ag)) return;
   if (p.carry && (p.role === 'Builder' || p.role === 'Developer') && BLOCKS.has(p.carry.c.id)) { const fac0 = p.role === 'Developer' ? 'Developers' : 'Port', st = sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === fac0); if (st) { const sl = buildSlot(st, Math.max(0, nextSlot(st))), ux = Math.cos(sl.ang), uz = Math.sin(sl.ang); ag.goal = { kind: 'deliver', x: sl.x + ux * 1.3, z: sl.z + uz * 1.3, site: st }; ag.intent = 'Carrying stone to the build site'; walkAgent(p, ag.goal.x, ag.goal.z); return; } }
   if (p.carry) { const y = yardPt(p), a = yardN++ % 24; ag.goal = { kind: 'deliver', x: y.x + (a % 6) * 1.6 - 4, z: y.z + Math.floor(a / 6) * 1.6 - 2.4, yard: y.site }; ag.intent = 'Carrying cargo to the yard'; walkAgent(p, ag.goal.x, ag.goal.z); return; }
   if (role === 'Dock worker') { const o = freeCrate(p); if (o) { const need = liftNeed(o); if (need === 1 || people.some(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30)) { o.claimed = p; o.claimT = simT; const team = [p]; if (need > 1) { const m = people.find(q => q !== p && q.role === 'Dock worker' && !q.ride && !q.carry && !q.job && Math.hypot(q.x - p.x, q.z - p.z) < 30); if (m) team.push(m); } if (team.length >= need) { team.forEach((q, i) => { cancelJob(q); const a = i / need * Math.PI * 2 + 0.6; q.job = { type: 'pickup', obj: o, team, phase: 'walk', off: { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9 }, age: 0, t: 0 }; if (q !== p) { q.ag = q.ag || { stats: {} }; q.ag.intent = 'Helping lift ' + o.c.name; q.ag.goal = { kind: 'help' }; } }); ag.goal = { kind: 'haul', obj: o, t: 0 }; ag.intent = 'Going for the ' + o.c.name; return; } } } }
@@ -6235,6 +6333,7 @@ function think(p, ag) {
 }
 function updateAgents(dt) {
   for (const p of people) {
+    if (p.state === 'rag' && p.koUntil && simT > p.koUntil && standY(p.x, p.z) > 0.25 && !p.swim) { p.koUntil = 0; standUp(p); }
     if (p.fp || p.hoist || p.state === 'rag' || p.hop || p === selPerson && p.order && !p.ag) continue;
     const ag = p.ag || (p.ag = { goal: null, think: rnd(0.2, 2), intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null });
     if (p.ride) {
@@ -6283,6 +6382,15 @@ function updateAgents(dt) {
     } else if (g.kind === 'stash') {
       if (!walking) { if (p.carry) { dropCarry(p); const ob = objects[objects.length - 1]; ob.contraband = true; ob.stashed = true; ECON.stashed++; npcEv('drumsStashed'); logEvent('stash', p.x, p.z); } ag.goal = null; ag.cool = 1; } else if (g.t > 70) ag.goal = null;
     } else if (g.kind === 'depart') { if (!walking || g.t > 80) { npcEv('courierLeft'); removePerson(p); continue; }
+    } else if (g.kind === 'fight') {
+      const e = g.who; if (!e || !people.includes(e) || e.state === 'rag' || e.ride || e.side === p.side) { ag.goal = null; ag.cool = 0.4; continue; }
+      const d = Math.hypot(e.x - p.x, e.z - p.z);
+      if (d > 2.3) { g.re = (g.re || 0) - dt; if (!walking || g.re <= 0) { g.re = 1.2; walkAgent(p, e.x, e.z); } ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Chasing a raider'; if (g.t > 70) ag.goal = null; }
+      else { p.order = null; p.heading = Math.atan2(e.x - p.x, e.z - p.z); ag.intent = 'Scuffling'; g.hit -= dt;
+        if (g.hit <= 0) { g.hit = rnd(0.9, 1.7); let allies = 0, foes = 0; for (const q of people) { if (q === p || q.ride || q.state === 'rag') continue; if (Math.hypot(q.x - p.x, q.z - p.z) < 9) { if (q.side === p.side) allies++; else if (q.side === e.side) foes++; } } if (Math.random() < cl2(0.2 + 0.1 * allies - 0.06 * foes, 0.08, 0.6)) knockOut(e, p.heading); } }
+    } else if (g.kind === 'raid') {
+      const st = g.site; if (!st || !sites.includes(st) || (st.owner || 'Port') !== 'Port') { ag.goal = null; ag.cool = 1; continue; }
+      if (!walking) { ag.intent = 'Raiding the ' + (st.kind === 'yard' ? 'yard' : 'build site'); g.loot = (g.loot || 0) + dt; if (g.loot > 7) { g.loot = 0; let best = null, bd = 16; for (const o of objects) { if (o.placed || o.gone || o.salv || o.body.mass > 500) continue; const d = Math.hypot(o.body.position.x - st.x, o.body.position.z - st.z); if (d < bd) { bd = d; best = o; } } if (best) { removeObj(best); updateCount(); ECON.loot = (ECON.loot || 0) + 1; npcEv('looted'); noteOnce('loot', 'Raiders are carrying cargo off from a yard.'); } } } else if (g.t > 45) ag.goal = null;
     } else if (g.kind === 'sabotage') {
       if (!walking) { const site = g.site, bl = site && site.slots && site.slots.filter(Boolean); if (bl && bl.length && bl.every(o => o && objects.includes(o))) { const o = bl[(Math.random() * bl.length) | 0], m = o.body.mass; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(rnd(-1, 1) * m * 1.6, m * 1.1, rnd(-1, 1) * m * 1.6), o.body.position); npcEv('sabotage'); noteOnce('sabotage', 'Rival developers knocked over a block of the Port circle. The builders will put it back.'); } ag.goal = null; ag.cool = 10; } else if (g.t > 50) ag.goal = null;
     } else if (g.kind === 'quarry') {
@@ -6315,7 +6423,7 @@ function stepFerry(p, ag, dt) {
   } else if (f.t > 60) { bt.ferry = null; ag.goal = null; }
 }
 function openPeople() {
-  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1) + (p.trueRole ? ' · secretly a ' + (p.trueRole === 'Agent' ? 'smuggler agent' : p.trueRole.toLowerCase()) : '') + (p.informant ? ' · informant' : ''); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.planted ? ' · ' + st.planted + ' planted' : '', st.built ? ' · ' + st.built + ' built' : '', st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
+  const rows = people.map((p, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mrow'; const l = document.createElement('b'), t = document.createElement('span'); const st = p.ag && p.ag.stats || {}; l.textContent = p.role + ' ' + (i + 1) + (p.side ? ' · ' + p.side + ' side' : '') + (p.trueRole ? ' · secretly a ' + (p.trueRole === 'Agent' ? 'smuggler agent' : p.trueRole.toLowerCase()) : '') + (p.informant ? ' · informant' : ''); t.textContent = ((p.ag && p.ag.intent) || (p.ride ? 'Aboard the ' + p.ride.boat.sp.name : 'Looking around')) + [st.planted ? ' · ' + st.planted + ' planted' : '', st.built ? ' · ' + st.built + ' built' : '', st.photos ? ' · ' + st.photos + ' photos' : '', st.crates ? ' · ' + st.crates + ' crates' : '', st.fish ? ' · ' + st.fish + ' fish' : '', st.helped ? ' · ' + st.helped + ' helped' : ''].join(''); b.append(l, t); b.addEventListener('click', () => { closeMenu(); selectPerson(p); camFlyTo(p.x, p.z, 40); }); return b; });
   openMenu([menuHead('People: ' + people.length + '. Photos taken ' + agentStat.photos + ', crates hauled ' + agentStat.crates + ', fish caught ' + agentStat.fish + ', people helped ' + agentStat.helped + ', trees planted ' + agentStat.planted + ', things built ' + agentStat.built), ...(rows.length ? rows : [menuHead('Nobody here yet. Place some people.')])]);
 }
 /* ---- plants grow back where it is wet and warm enough, starting as saplings */
@@ -6441,7 +6549,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

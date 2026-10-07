@@ -17,7 +17,7 @@ def save(name, x, **kw):
     if sr == 32000:
         x = C.r32_circ(x) if kw.get('loop') else C.r32(x)
     if kw.get('loop'):
-        x = C.seal(x)
+        x = C.seal(x, 32000 if sr == 32000 else SR)
     return S.save(name, x, bus, sr=sr, **kw)
 
 
@@ -217,7 +217,7 @@ def murmur(L, rate, seed, speakers):
     base = r.uniform(95, 230, speakers)
     vows = list(C.VOW.keys())
     t = 0.0
-    sp_env = [S.smooth_random(n, 0.35, r, 1.0) for _ in range(speakers)]
+    sp_env = [np.interp(np.arange(n), np.linspace(0, n, int(L * 0.35) + 3), r.random(int(L * 0.35) + 3)) for _ in range(speakers)]
     while t < L + xf - 0.3:
         t += r.exponential(1.0 / rate)
         sp = int(r.integers(speakers))
@@ -365,7 +365,8 @@ def radio_squelch(i):
 
 def binoc():
     r = rng(2300); n = S.n_of(0.14); y = np.zeros(n)
-    C.place(y, C.tick(0.005, 1200, 4000, r) + 0.5 * S.modal(1500, 'plastic', 0.04, 0.8, r=r), 0.0)
+    C.place(y, C.tick(0.005, 1200, 4000, r), 0.0)
+    C.place(y, S.modal(1500, 'plastic', 0.04, 0.8, r=r), 0.0, 0.5)
     C.place(y, C.tick(0.004, 1500, 5000, r) * 0.7, 0.045)
     return y
 
@@ -476,7 +477,7 @@ def render_npc():
 
     save('npc_rescue_success', seq([(0, 62, 0.4, 'marimba', 0.7), (0.12, 67, 0.4, 'marimba', 0.7), (0.24, 69, 0.4, 'marimba', 0.75),
                                     (0.36, 74, 0.4, 'marimba', 0.8), (0.48, 77, 0.5, 'marimba', 0.8), (0.62, 81, 1.8, 'bell', 0.75),
-                                    (0.62, 74, 1.8, 'bell', 0.55), (0.62, 50, 1.8, 'tri', 0.3)], 2.8, r_wet=0.25, seed=29), **N(sr=32000))
+                                    (0.62, 74, 1.8, 'bell', 0.55), (0.62, 50, 1.8, 'tri', 0.3)], 2.5, r_wet=0.25, seed=29), **N(sr=32000))
     save('npc_rescue_start_alert', seq([(0, 69, 0.3, 'tri', 0.8), (0.2, 74, 0.3, 'tri', 0.8), (0.4, 69, 0.3, 'tri', 0.8), (0.6, 74, 0.5, 'tri', 0.85)], 1.4,
                                        r_wet=0.15, seed=30), **N(sr=32000))
     save('npc_threat_alert', seq([(0, 62, 0.3, 'tri', 0.9), (0.28, 62, 0.3, 'tri', 0.9), (0.56, 57, 0.6, 'tri', 1.0), (0.56, 50, 0.6, 'tri', 0.5)], 1.4,
