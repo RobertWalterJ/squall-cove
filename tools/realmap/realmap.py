@@ -100,8 +100,8 @@ def overpass_queries(S, W, Nn, E, big=None):
         [f'way["building"]{b};'],
         [f'way["landuse"]{b};', f'way["natural"]["natural"!="coastline"]{b};', f'way["leisure"~"park|pitch|stadium|garden|marina|golf_course|sports_centre|playground"]{b};'],
         [f'relation["natural"~"water|bay|wood|scrub|beach"]{b};', f'relation["landuse"]{b};', f'relation["building"]{b};'],
-        [f'way["waterway"]{b};', f'way["man_made"]{b};', f'way["aeroway"]{b};', f'way["harbour"]{b};', f'way["military"]{b};',
-         f'way["power"~"line|minor_line"]{b};', f'way["barrier"~"wall|fence"]{b};', f'way["amenity"~"parking|fuel|place_of_worship|school|hospital|townhall|marketplace"]{b};'],
+        [f'way["waterway"]{b};'], [f'way["man_made"]{b};'], [f'way["aeroway"]{b};'], [f'way["harbour"]{b};'], [f'way["military"]{b};'],
+        [f'way["power"~"line|minor_line"]{b};'], [f'way["barrier"~"wall|fence"]{b};'], [f'way["amenity"~"parking|fuel|place_of_worship|school|hospital|townhall|marketplace"]{b};'],
         [f'node["man_made"~"water_tower|tower|lighthouse|mast|chimney|storage_tank|crane|windmill|silo|pier"]{b};', f'node["power"~"tower|generator"]{b};',
          f'node["place"]{b};', f'node["natural"~"peak|cape|bay|beach"]{b};', f'node["aeroway"]{b};', f'node["amenity"~"fuel|place_of_worship|ferry_terminal"]{b};',
          f'node["historic"]{b};', f'node["military"]{b};'],
@@ -124,7 +124,9 @@ def fetch_osm_raw(lat0, lon0, size_m, margin=60):
                 try: return http(ep, data=urllib.parse.urlencode({'data': q}).encode(), wait=3.0, tries=2)
                 except Exception as e: last = e
             raise last
-        for e in json.loads(cached(f'osm_{key}.json', go))['elements']: els[(e['type'], e['id'])] = e
+        try: txt = cached(f'osm_{key}.json', go)
+        except Exception as ex: print('   !! group failed, skipped:', q[:90].replace(chr(10), ' '), ex); continue
+        for e in json.loads(txt)['elements']: els[(e['type'], e['id'])] = e
         print('   osm group', key, len(els), flush=True)
     return {'elements': list(els.values())}
 
