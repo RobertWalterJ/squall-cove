@@ -2165,12 +2165,6 @@ const BUILD = [
   { cat: 'Scenery', grp: 'Farm and shore', id: 'x-camo_net', name: 'Camouflage net', note: '', glb: 'props2', node: 'camo_net', land: true, fixed: true, sw: '#9aa3a8' },
   { cat: 'Scenery', grp: 'Farm and shore', id: 'x-sand_dune_grass', name: 'Dune grass', note: '', glb: 'props2', node: 'sand_dune_grass', land: true, fixed: true, sw: '#9aa3a8' },
   { cat: 'Scenery', grp: 'Farm and shore', id: 'x-flagpole', name: 'Flagpole', note: '8 m', glb: 'props2', node: 'flagpole', land: true, fixed: true, sw: '#9aa3a8' },
-  { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
-  { cat: 'Vehicles', id: 'v-firetruck', name: 'Fire truck', note: 'puts out fires', veh: 'firetruck', sw: '#c83228' },
-  { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
-  { cat: 'Vehicles', id: 'v-cargotruck', name: 'Cargo truck', note: 'hauls loose cargo to the yard', veh: 'cargotruck', sw: '#2f4a7a' },
-  { cat: 'Vehicles', id: 'v-crane', name: 'Crane truck', note: 'sets stone blocks into sites', veh: 'cranetruck', sw: '#e5841c' },
-  { cat: 'Vehicles', id: 'v-patrol', name: 'Port patrol', note: 'catches couriers', veh: 'patrolcar', sw: '#e8ecef' },
   { cat: 'Sites', id: 'site-plant', name: 'Plant site', note: 'foresters plant here', site: 'plant', sw: '#5fbf4a' },
   { cat: 'Sites', id: 'site-build', name: 'Build site', note: 'builders raise a stone circle', site: 'build', sw: '#e0883a' },
   { cat: 'Sites', id: 'site-yard', name: 'Cargo yard', note: 'dock workers stack cargo here', site: 'yard', sw: '#a8794a' },
@@ -4441,7 +4435,6 @@ const PLACE_CATS = [
   { id: 'boats', name: 'Boats', test: it => (it.cat === 'Boats' || it.cat === 'Coast Guard') && !BIGSHIPS.includes(it.id) },
   { id: 'big', name: 'Big ships', test: it => BIGSHIPS.includes(it.id) },
   { id: 'people', name: 'People', test: it => it.cat === 'People' },
-  { id: 'vehicles', name: 'Vehicles', test: it => it.cat === 'Vehicles' },
   { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
   { id: 'cargo', name: 'Cargo', test: it => it.cat === 'Cargo' },
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
@@ -6751,8 +6744,9 @@ function findFootPath(x0, z0, x1, z1) {
   const out = [path[0]]; for (let i = 1; i < path.length - 1; i++) if (lineBlocked(out[out.length - 1].x, out[out.length - 1].z, path[i + 1].x, path[i + 1].z)) out.push(path[i]); return out.slice(1);       // keep only the corners that matter
 }
 const MAXVEH = matchMedia('(pointer: coarse)').matches ? 2 : 4;
+const VEHICLES_ON = false;                                          // switched off until they can drive properly: they clipped through buildings and floated
 function makeVehicle(key, x, z, yaw, opt) {
-  const sp = VSPEC[key]; if (!sp || VEHS.length >= MAXVEH + 2) return null; const g = new THREE.Group(); scene.add(g); let node = D.glb.vehicles ? nodeByName(D.glb.vehicles, key) : null; const wheels = [];
+  if (!VEHICLES_ON) return null; const sp = VSPEC[key]; if (!sp || VEHS.length >= MAXVEH + 2) return null; const g = new THREE.Group(); scene.add(g); let node = D.glb.vehicles ? nodeByName(D.glb.vehicles, key) : null; const wheels = [];
   if (node) { const m = node.clone(); g.add(shadowAll(m)); { g.updateMatrixWorld(true); const bb0 = new THREE.Box3().setFromObject(m); if (isFinite(bb0.min.y)) m.position.y -= bb0.min.y - 0.02; } m.traverse(o => { if (/_wheel_/.test(o.name)) wheels.push({ n: o, q0: o.quaternion.clone(), spin: 0, front: /_wheel_F/.test(o.name) }); }); g.userData.model = m; }
   else { const b = new THREE.Mesh(new THREE.BoxGeometry(sp.L, 1.6, sp.L * 0.4), new THREE.MeshStandardMaterial({ color: { ambulance: 0xf1f1ec, firetruck: 0xc83228, forklift: 0xe8b824, cargotruck: 0x2f4a7a, patrolcar: 0xe8ecef, tractor: 0x3f8f3a, quadbike: 0xc83228, cranetruck: 0xe5841c }[key] || 0x888888 })); b.position.y = 1; b.castShadow = true; g.add(b); }
   const bd = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC, collisionFilterGroup: 1, collisionFilterMask: 1 }); bd.addShape(new CANNON.Box(new CANNON.Vec3(sp.L * 0.5, 0.9, Math.max(0.8, sp.L * 0.17))), new CANNON.Vec3(0, 1.0, 0)); bd.vmass = sp.L * 420; world.addBody(bd);
@@ -6824,7 +6818,7 @@ function vehWork(v, dt) {
   }
 }
 function updateVehicles(dt) {
-  if (!LM.ready) return; for (const v of VEHS.slice()) {
+  if (!VEHICLES_ON || !LM.ready) return; for (const v of VEHS.slice()) {
     v.t += dt; v.think = (v.think || 0) - dt; if (v.think <= 0 && !v.path && !v.hold) { v.think = rnd(0.8, 1.6); vehThink(v); }
     vehMove(v, dt); vehWork(v, dt);
     if (v.blocked > 3) { v.blocked = 0; v.path = null; v.think = 0.1; if (v.target && v.target.vclaim === v) v.target.vclaim = null; }
@@ -6838,6 +6832,7 @@ function placeVehicle(item, p) {
 }
 let vehDT = 0;
 function vehDispatch(dt) {                                                           // work turns up and the right vehicle comes
+  if (!VEHICLES_ON) return;
   vehDT -= dt; if (vehDT > 0) return; vehDT = 8; const Lf = prefs.life || 'lively'; if (Lf === 'quiet' || !LM.ready || VEHS.length >= MAXVEH - (Lf === 'busy' ? 0 : 1) || simT - (VEH_LAST || -99) < (Lf === 'busy' ? 40 : 75)) return; const have = (k) => VEHS.some(v => v.key === k), y = yardPt(null);
   const spawn_ = (k) => { if (have(k)) return; ensureVehicles().then(() => { if (have(k) || VEHS.length >= MAXVEH) return; const a = Math.random() * 6.283, x = y.x + Math.cos(a) * 6, z = y.z + Math.sin(a) * 6; if (!safeSpot(x, z)) return; const v = makeVehicle(k, x, z, a, {}); if (v) { VEH_LAST = simT; npcEv('vehDispatched'); noteOnce('vd' + k, VSPEC[k].name + ' arrives: ' + VSPEC[k].desc + '.'); } }); };
   if (burning.length >= 3) spawn_('firetruck');
