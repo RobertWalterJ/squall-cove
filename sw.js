@@ -1,5 +1,5 @@
 /* Squall Cove service worker. Touches ONLY its own caches (squall-cove-vN). Bump VERSION on each release. */
-const VERSION = 'v9.1.0';      // v9.1.0: static start menu in index.html (nothing heavy loads until Start), Lemnos real maps (assets/map_lemnos_*.json fetched on demand, runtime-cached cache-first), cheats panel. Earlier: battle command; helis.glb, air.glb, weapons.glb runtime-cached.
+const VERSION = 'v9.2.0';      // v9.1.0: static start menu in index.html (nothing heavy loads until Start), Lemnos real maps (assets/map_lemnos_*.json fetched on demand, runtime-cached cache-first), cheats panel. Earlier: battle command; helis.glb, air.glb, weapons.glb runtime-cached.
 const CACHE = 'squall-cove-' + VERSION;
 const MINE = /^squall-cove-v[\d.]+$/;
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png', 'assets/map_lemnos_myrina_thumb.jpg', 'assets/map_lemnos_mudros_thumb.jpg', 'assets/map_lemnos_airport_thumb.jpg']).catch(() => {}))); });

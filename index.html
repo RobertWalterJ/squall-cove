@@ -119,7 +119,7 @@ html.nb #boot{display:none}
   function lsg(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   var touch = matchMedia('(pointer: coarse)').matches;
-  var MB = { base: 11.1, town: 2.7, build: 5.5, men: 7.4, skins: 12.7, sound: 6.6 };
+  var MB = { base: 11.1, town: 2.7, build: 7.6, men: 7.4, skins: 12.7, sound: 6.6 };
   var KEYF = { base: 'assets/people.glb.b64.txt', town: 'assets/port.glb.b64.txt', build: 'assets/battle.glb.b64.txt', men: 'assets/bveh.glb.b64.txt', skins: 'assets/troops2.glb.b64.txt', sound: 'audio/amb_sea_calm.ogg' };
   var MAPS = {
     cove: { n: 'The Cove', t: 'cove', size: 'standard' }, cove_large: { n: 'The large cove', t: 'cove', size: 'large' },
@@ -4253,7 +4253,7 @@ function fpScan() {
 }
 function nearEmp(p) { let b = null, bd = 4.5; for (const e of AAS) { const d = Math.hypot(e.x - p.x, e.z - p.z); if (d < bd) { bd = d; b = e; } } return b; }
 function fpManFire() {
-  const e = fp.man, p = fp.p; if (!e || fp.cool > 0) return; if (e.kind === 'mortar') { fpMortarFire(e); return; } const aa = e.kind === 'aa';
+  const e = fp.man, p = fp.p; if (!e || fp.cool > 0) return; if (e.kind === 'mortar' || e.kind === 'howitzer') { fpMortarFire(e); return; } const aa = e.kind === 'aa';
   { const gap = simT - (e.lastShot || -9); if (e.lockUntil > simT) { fp.cool = 0.25; noteOnce('heat' + Math.floor(simT / 2), 'The barrels are too hot. Wait a moment.'); return; } if (gap > 1) e.burstT = 0; else e.burstT = (e.burstT || 0) + gap; e.lastShot = simT; if (e.burstT > 4) { e.burstT = 0; e.lockUntil = simT + 2; noteOnce('heat' + Math.floor(simT / 2), 'The gun is overheating. It needs a short rest.'); } }          // four seconds of fire, then two to cool
   fp.cool = aa ? 0.13 : 0.1; fp.kick = 0.6; camera.getWorldDirection(_d); const o = new THREE.Vector3(e.x, e.y + 1.5, e.z), range = aa ? 700 : 260;
   let hitAir = null, bt = 1e9; for (const u of AIR.list) { if (u.down || u.team === BATTLE.team) continue; const v = new THREE.Vector3(u.x - o.x, u.y - o.y, u.z - o.z), t = v.dot(_d); if (t < 5 || t > range * 1.4) continue; const miss = v.addScaledVector(_d, -t).length(); if (miss < u.rad * (aa ? 1.1 : 0.8) && t < bt) { bt = t; hitAir = u; } }
@@ -4265,7 +4265,7 @@ function fpUse() {
   const p = fp.p; if (!p || p.hop || p.state === 'rag') return;
   if (fp.veh) { if (isTouch || !fp.veh.heli) bvLeaveKey(); return; }
   if (fp.man) { fp.man.manned = false; fp.man = null; fpSetTool(fp.tool); toast('You leave the gun.'); return; }
-  if (ladUse(p)) return; if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; if (bvTryEnter()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
+  if (ladUse(p)) return; if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; if (bvTryEnter()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : e.kind === 'howitzer' ? 'howitzer' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
   if (!a) return;
   if (a.act === 'pickup') { if (liftNeed(a.obj) > 1) { toast('Too heavy for one'); return; } p.job = { type: 'pickup', obj: a.obj, team: [p], phase: 'lift', t: 0, age: 0 }; }
   else if (a.act === 'board') { p.job = { type: 'board', boat: a.boat }; boardHop(p, a.boat); }
@@ -4296,7 +4296,7 @@ function updateFP(dt, t) {
   if (p.state === 'rag') { fp.air = false; $('fpPrompt').textContent = (isTouch ? 'Tap Jump' : 'Space') + ': get up'; return; }
   if (p.hop) { p.fpMoving = true; return; }
   if (fp.veh) { bvFpUpdate(dt, t); return; }
-  if (fp.man) { p.x = fp.man.x; p.z = fp.man.z; p.y = fp.man.y; p.fpMoving = false; fp.vx = fp.vz = 0; fpToolsUpdate(dt, t); return; }
+  if (fp.man) { const mn = fp.man; if (mn.rig && mn.rig.seat && mn.kind !== 'howitzer') { rigNodePos(mn.rig.seat, _sv); p.x = _sv.x; p.z = _sv.z; p.y = Math.max(mn.y, _sv.y); } else { p.x = mn.x; p.z = mn.z; p.y = mn.y; } p.fpMoving = false; fp.vx = fp.vz = 0; fpToolsUpdate(dt, t); return; }
   if (p.climb) { try { fpClimbFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); p.climb = null; } return; }
   // move: quick to respond, brisk to walk, with a little inertia so it feels like a body and not a cursor
   let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy;
@@ -5100,7 +5100,7 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
+function battleStop(quiet) { try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
@@ -5198,6 +5198,7 @@ function findCover(q, e) {                                           // a spot b
   return best;
 }
 function senseEnemy(q, b) {
+  if (b.fmT) { const ft = fmBotTarget(q, b); if (ft) return ft; }
   const w = WPN[b.w], sight = (b.cls === 'sniper' ? 200 : 85) * BKIT.sightK * (q.plat ? 1.3 : 1), fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
   for (const e of people) { if (e === q || (CHEAT.loved && fp.on && e === fp.p) || e.state === 'rag' || e.ride || e.vin || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
@@ -5350,7 +5351,7 @@ function callAir(team, kind) {
 }
 const gunshipUp = (team) => AIR.list.some(u => u.kind === 'gunship' && u.team === team && !u.down);        // one gunship per side at a time
 function airFire(u, dt) {
-  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; u.fireT -= dt; const e = enemyOf(u.team, u.x, u.z, R); if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
+  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; u.fireT -= dt; if (u.fmP) fmAirExtra(u, dt); const e = (u.fmP && fmAirPerson(u, R)) || enemyOf(u.team, u.x, u.z, R); if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
   if (u.fireT <= 0) { u.fireT = gun ? 0.07 : cob ? 0.09 : 0.11; const hit = Math.random() < (gun ? 0.5 : 0.38) * (e.order || e.fpMoving ? 0.7 : 1) * BKIT.airK, ex = e.x + (hit ? 0 : rnd(-3, 3)), ez = e.z + (hit ? 0 : rnd(-3, 3)), sx = u.x + Math.cos(u.hd) * 2.2, sz = u.z - Math.sin(u.hd) * 2.2;
     { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
     if (hit) { hurt(e, gun ? 6 : cob ? 7 : 8, null, false, gun ? 'Gunship' : cob ? 'Chin gun' : 'Door gun'); impactFx('person', e, { x: ex, y: e.y + 1, z: ez }, 60); } else impactFx('land', null, { x: ex, y: heightAt(ex, ez), z: ez }, 60); }
@@ -5371,28 +5372,31 @@ function layAA() {                                                  // an anti-a
   for (const p of BATTLE.points) for (const kind of ['aa', 'mg']) { let a = (kind === 'aa' ? 0.9 : 3.5) + p.x * 0.013, x, z; const d = 15 + (kind === 'mg' ? 3 : 0); x = p.x + Math.cos(a) * d; z = p.z + Math.sin(a) * d;
     for (let k = 1; k < 9 && footBlocked(x, z, 2.6); k++) { a += 0.8; x = p.x + Math.cos(a) * d; z = p.z + Math.sin(a) * d; }        // turn the nest round the point until it is clear of the buildings
     const y = standY(x, z); if (y < 0.4 || footBlocked(x, z, 2.6)) continue;
-    const mesh = airNode('emplacement_' + kind, () => box3(2.4, 1.2, 2.4, 0x59624d, 0, 0.6, 0)); mesh.position.set(x, y, z); mesh.rotation.y = Math.atan2(p.x - x, p.z - z) + Math.PI; scene.add(mesh);
-    AAS.push({ kind, p, x, z, y, mesh, gun: nodeByName({ scene: mesh }, 'emplacement_' + kind + (kind === 'aa' ? '_barrels' : '_gun')), cd: Math.random() * 0.5 }); }
+    const rig = EMP2.ok ? emp2Make(kind === 'mg' ? 'mg' : (BATTLE.points.indexOf(p) % 2 ? 'flak' : 'aa')) : null;     // the new chain models when they have loaded, the old nests otherwise
+    let mesh; if (rig) { mesh = new THREE.Group(); mesh.add(rig.g); } else mesh = airNode('emplacement_' + kind, () => box3(2.4, 1.2, 2.4, 0x59624d, 0, 0.6, 0)); mesh.position.set(x, y, z); mesh.rotation.y = Math.atan2(p.x - x, p.z - z) + Math.PI; scene.add(mesh);
+    AAS.push({ kind, p, x, z, y, mesh, rig, gun: rig ? null : nodeByName({ scene: mesh }, 'emplacement_' + kind + (kind === 'aa' ? '_barrels' : '_gun')), cd: Math.random() * 0.5 }); }
 }
 function empStem(kind, near) { return kind === 'aa' ? (near ? 'wpn_aa_fire' : 'wpn_aa_far') : (near ? 'wpn_hmg_fire' : 'wpn_hmg_far'); }
 function empShot(e, gy) {                                              // one shot from a gun nest: the barrels kick back, flash, smoke, brass and a heavy report
-  const aa = e.kind === 'aa'; e.rec = aa ? 0.22 : 0.14; if (e.gun) { e.gun.updateWorldMatrix(true, false); const m = e.gun.matrixWorld, dir = new THREE.Vector3(0, 0, 1).transformDirection(m), pos = new THREE.Vector3().setFromMatrixPosition(m).addScaledVector(dir, aa ? 2.2 : 1.2); fxG.emit(pos.x, pos.y, pos.z, dir.x * 3, dir.y * 3, dir.z * 3, 0.07, aa ? 2.2 : 1.4, 0.8, [1, 0.85, 0.5, 1]); if (Math.random() < 0.5) puffSmoke(pos.x, pos.y, pos.z, 1, false, aa ? 0.9 : 0.5); }
+  const aa = e.kind === 'aa'; e.rec = aa ? 0.22 : 0.14; if (e.rig) { rigShotFx(e, gy, aa); return; } if (e.gun) { e.gun.updateWorldMatrix(true, false); const m = e.gun.matrixWorld, dir = new THREE.Vector3(0, 0, 1).transformDirection(m), pos = new THREE.Vector3().setFromMatrixPosition(m).addScaledVector(dir, aa ? 2.2 : 1.2); fxG.emit(pos.x, pos.y, pos.z, dir.x * 3, dir.y * 3, dir.z * 3, 0.07, aa ? 2.2 : 1.4, 0.8, [1, 0.85, 0.5, 1]); if (Math.random() < 0.5) puffSmoke(pos.x, pos.y, pos.z, 1, false, aa ? 0.9 : 0.5); }
   if (simT - (e.casT || 0) > 0.08) { e.casT = simT; ejectCasing(e.x, gy, e.z, e.gun ? e.gun.rotation.y + (e.mesh ? e.mesh.rotation.y : 0) : 0); }
   const near = Math.hypot(e.x - (fp.on ? fp.p.x : god.tgt.x), e.z - (fp.on ? fp.p.z : god.tgt.z)) < 110; if (simT - (e.sndT || 0) > (aa ? 0.16 : 0.12)) { e.sndT = simT; Snd.fx(empStem(e.kind, near), e.x, e.z, { gain: near ? 0.85 : 0.7, y: gy, far: 3, gap: 0.0 }); }
 }
 function empTrack(e, dt) {                                             // the gun follows the player's look while manned, and the barrels settle back after each shot
+  if (e.rig) { rigStep(e.rig, dt); if (fp.man === e && fp.on) rigAim(e.rig, fp.yaw, clamp(fp.pitch, -0.15, 1.45), dt, 9, 9); else if (!e.aimT || simT - e.aimT > 3) rigAim(e.rig, e.mesh.rotation.y, e.rig.d.rest * Math.PI / 180, dt, 0.8, 0.6); return; }
   if (!e.gun) return; if (e.restZ === undefined) e.restZ = e.gun.position.z;
   if (fp.man === e && fp.on) { e.gun.rotation.y = fp.yaw - (e.mesh ? e.mesh.rotation.y : 0); e.gun.rotation.x = -clamp(fp.pitch, -0.15, 1.45); }
   e.rec = Math.max(0, (e.rec || 0) - dt * 1.6); e.gun.position.z = e.restZ - e.rec;
 }
 function updateAAS(dt) {
-  for (const e of AAS) if (e.kind !== 'mortar') empTrack(e, dt);
-  for (const e of AAS) { if (e.kind === 'mortar') { updateMortar(e, dt); continue; } const team = e.p.owner; if (!team || e.manned) continue; if (fp.on && !fp.man && fp.p && Math.hypot(e.x - fp.p.x, e.z - fp.p.z) < 4.5) noteOnce('emp' + e.x, 'E: man this gun'); if (e.needCrew && !crewOK(e)) continue; e.cd -= dt; const gy = e.y + 1.5, aa = e.kind === 'aa'; let tgt = null, tp = null, bd = aa ? 340 : 160;
-    for (const u of AIR.list) { if (u.down || u.team === team) continue; const d = Math.hypot(u.x - e.x, u.z - e.z, u.y - gy); if (d < bd) { bd = d; tgt = u; } }
-    if (!tgt && !aa) { bd = 55; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.vin) continue; const d = Math.hypot(q.x - e.x, q.z - e.z); if (d < bd && losFull(e.x, gy, e.z, q.x, q.y + 1.2, q.z)) { bd = d; tp = q; } } }
+  for (const e of AAS) if (e.kind !== 'mortar' && e.kind !== 'howitzer') empTrack(e, dt);
+  for (const e of AAS) { if (e.kind === 'mortar' || e.kind === 'howitzer') { updateMortar(e, dt); continue; } const team = e.p.owner; if (!team || e.manned) continue; if (fp.on && !fp.man && fp.p && Math.hypot(e.x - fp.p.x, e.z - fp.p.z) < 4.5) noteOnce('emp' + e.x, 'E: man this gun'); if (e.needCrew && !crewOK(e)) continue; e.cd -= dt; const gy = e.y + 1.5, aa = e.kind === 'aa'; let tgt = null, tp = null, bd = aa ? 340 : 160;
+    if (e.fmTgt) { const r = fmNestPick(e, aa, gy); if (r) { tgt = r.air || null; tp = r.person || null; } }
+    if (!tgt && !tp) for (const u of AIR.list) { if (u.down || u.team === team) continue; const d = Math.hypot(u.x - e.x, u.z - e.z, u.y - gy); if (d < bd) { bd = d; tgt = u; } }
+    if (!tgt && !tp && !aa) { bd = 55; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.vin) continue; const d = Math.hypot(q.x - e.x, q.z - e.z); if (d < bd && losFull(e.x, gy, e.z, q.x, q.y + 1.2, q.z)) { bd = d; tp = q; } } }
     if (!tgt && !tp) continue; const tx = tgt ? tgt.x : tp.x, ty = tgt ? tgt.y : tp.y + 1.2, tz = tgt ? tgt.z : tp.z; e.aimAt = { x: tx, z: tz }; e.aimT = simT;
-    if (e.gun) { e.gun.rotation.y = Math.atan2(tx - e.x, tz - e.z) - e.mesh.rotation.y; e.gun.rotation.x = -Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)); }
-    if (e.cd <= 0) { e.cd = aa ? 0.16 : 0.12; const hit = Math.random() < (tgt ? (aa ? 0.3 : 0.1) : 0.1), j = hit ? 0 : 3; addTracer(e.x, gy + 0.4, e.z, tx + rnd(-j, j), ty + rnd(-j, j), tz + rnd(-j, j)); empShot(e, gy);
+    let rerr = 0; if (e.rig) rerr = rigAim(e.rig, Math.atan2(tx - e.x, tz - e.z), Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)), dt, e.rig.d.ys * 1.4, e.rig.d.ps * 1.4); else if (e.gun) { e.gun.rotation.y = Math.atan2(tx - e.x, tz - e.z) - e.mesh.rotation.y; e.gun.rotation.x = -Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)); }
+    if (e.cd <= 0 && rerr < 0.12) { e.cd = aa ? 0.16 : 0.12; const hit = Math.random() < (tgt ? (aa ? 0.3 : 0.1) : 0.1), j = hit ? 0 : 3; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, tx + rnd(-j, j), ty + rnd(-j, j), tz + rnd(-j, j)); empShot(e, gy);
       if (hit) { if (tgt) damageAir(tgt, aa ? 15 : 5, team); else { hurt(tp, 5, null, false, 'MG nest'); impactFx('person', tp, { x: tx, y: ty, z: tz }, 40); } } }
   }
 }
@@ -5583,7 +5587,8 @@ function callArty(team, pt, free, spec) {
   if (!(spec && spec.quiet)) toast(spec && spec.name || 'Artillery barrage inbound.'); return true;
 }
 const TAB = { size: 1, pattern: 'single', spread: 0, aim: 'tap' }; let markerMesh = null;
-function setMarker(pt) {                                           // a pole and ring that stay where you marked a target, until you mark another
+function setMarker(pt) { fmMark(pt); }                              // marking a target now opens a fire mission (see fmMark); the pole and ring are drawn by setMarkerRaw
+function setMarkerRaw(pt) {                                        // a pole and ring that stay where you marked a target, until you mark another
   if (markerMesh) { scene.remove(markerMesh); markerMesh = null; } if (!pt) { FIRE.marker = null; return; }
   const g = new THREE.Group(), m = new THREE.MeshBasicMaterial({ color: 0xff5a2a }); const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 36, 6), m); pole.position.y = 18; const ring = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.14, 6, 28), m); ring.rotation.x = Math.PI / 2; ring.position.y = 0.4; g.add(pole, ring); g.position.set(pt.x, Math.max(heightAt(pt.x, pt.z), 0), pt.z); scene.add(g); markerMesh = g; FIRE.marker = { x: pt.x, z: pt.z }; toast('Target marked.');
 }
@@ -5691,7 +5696,7 @@ const FIRE_GROUPS = [
   ['Air', 'jet', [['strike', 'jet', 'Air strike run', 'a jet drops a line of bombs'], ['griffon', 'heli', 'Griffon cover', 'circles the spot, door gunner'], ['gunship', 'heli', 'Gunship cover', 'circles the spot, minigun and howitzer']]],
 ];
 const FIRE_NAMES = { lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', cluster: 'cluster bomb', incendiary: 'incendiary bomb', flechette: 'flechette strike', mortar: 'mortar rounds', arty: 'artillery', shock: 'shockwave', smoke: 'smoke screen', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' };
-function tbTabList() { const t = [['fire', 'Fire'], ['support', 'Support']]; if (fp.on && BATTLE.on) t.push(['squad', 'Squad']); if (BATTLE.on) t.push(['points', 'Points']); return t; }
+function tbTabList() { const t = [['fire', 'Fire'], ['map', 'Map'], ['support', 'Support']]; if (fp.on && BATTLE.on) t.push(['squad', 'Squad']); if (BATTLE.on) t.push(['points', 'Points']); return t; }
 function renderTablet() {
   const body = $('tbBody'), keepY = body.scrollTop; body.textContent = ''; const team = tabletSide(), c = AIR.cd[team], off = AIR.off[team];
   const tl = tbTabList(); if (!tl.some(q => q[0] === tbTab)) tbTab = 'fire';
@@ -5713,9 +5718,14 @@ function renderTablet() {
     opt('Target', 'aim', [['tap', fp.on ? 'Crosshair' : 'Tap the map'], ['marker', 'Marker'], ['hot', 'Hot spot']], mkw);
     opt('Size', 'size', [[0, 'Small'], [1, 'Medium'], [2, 'Large']]); opt('Pattern', 'pattern', [['single', 'Single'], ['line', 'Line'], ['ring', 'Ring'], ['scatter', 'Scatter']]); opt('Aim', 'spread', [[0, 'Exact'], [1, 'Loose'], [2, 'Wild']]);
     body.append(opts);
+    fmRenderPanel(body, head, note);
     const fc = (k, icn, label, nt) => wrow(icn, label, nt, '@cmd', () => { if (!cmdReady()) return; const p = targetPoint(); if (p) { fireAt(k, p); toggleTablet(false); return; } if (fp.on) { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'Aim at the ground first.'); return; } if (TAB.aim !== 'tap') { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'No hot spot yet.'); return; } setFire(k); toggleTablet(false); toast(label + ' armed. Tap the map to fire. Esc stands down.'); }, FIRE.armed === k);
     if (BATTLE.on && !BATTLE.cmdFree) note('Each call costs tickets: small 1, medium 2, large 3.');
     for (const [g, gi, items] of FIRE_GROUPS) { head(g, gi); for (const [k, icn, label, nt] of items) fc(k, icn, label, nt); }
+  } else if (tbTab === 'map') {
+    head('Tactical map', 'map'); note('A full-screen map of the whole battlefield with grid references, your guns, their range rings and fire data. Mark a target, pick the guns, choose a shell and fire for effect.'); note('Key: L. On a phone use the Map button.');
+    const mb = mkB('Open the tactical map', 'btn-p', () => { toggleTablet(false); tmOpen(); }); mb.insertAdjacentHTML('afterbegin', ic('map', 'sm')); mb.style.cssText = 'display:block;width:100%;min-height:52px;margin:6px 0'; body.append(mb);
+    fmRenderPanel(body, head, note);
   } else if (tbTab === 'support') {
     if (BATTLE.on) {
       head('Call support for your side', 'heli');
@@ -5752,7 +5762,7 @@ function renderTablet() {
   }
   body.scrollTop = keepY; tbSig = tbSigNow();
 }
-function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0) + '|' + BV.bays.map(b => b.state[0]).join(''); }
+function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return fmSig() + '#' + tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0) + '|' + BV.bays.map(b => b.state[0]).join(''); }
 setInterval(() => { if ($('tablet').hidden) return; const s = tbSigNow(); if (s !== tbSig) renderTablet(); }, 700);
 $('tbClose').addEventListener('click', () => toggleTablet(false));
 onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
@@ -5778,7 +5788,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } updateTracers(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateManQ(dt); updateAir(dt); try { fmFrame(dt); } catch (er) { window.__fmerr = String(er && er.stack || er); if (guardN++ < 6) console.error('fire mission error', er); } updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } updateTracers(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   try { sqdFrame(dt); voiceTick(); voiceWatch(); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); }
@@ -5903,15 +5913,15 @@ function typeSprite(ch) {                                              // the sm
 
 /* ---- structures: the battle.glb models, placed with the same checks as the scenery (water, slope, roads, other footprints) */
 const BB = {}, SOLID = new Set(['bunker_large', 'command_post', 'supply_depot', 'ammo_dump', 'field_hospital', 'fuel_depot', 'radio_mast', 'radar_station', 'watch_tower_wood', 'artillery_battery', 'mortar_pit', 'searchlight_tower', 'oil_pumpjack', 'ruined_house', 'ruined_wall', 'dune_rock_cluster']);
-const BFIX = { radio_mast: [3.2, 3.2], radar_station: [3.2, 3.2], watch_tower_wood: [2.6, 2.6], artillery_battery: [4.2, 4.2], mortar_pit: [2.4, 2.4], bunker_large: [5.8, 4.5], searchlight_tower: [1.4, 1.4], palm_tree: [1.2, 1.2] };
-function bbOf(name) {                                                  // half sizes of a model, measured from the model itself (a few are fixed by hand: guy wires and the like would make them huge)
-  if (BB[name]) return BB[name]; const n = D.glb.battle && nodeByName(D.glb.battle, name); if (!n) return null;
+const BFIX = { radio_mast: [3.2, 3.2], radar_station: [3.2, 3.2], watch_tower_wood: [2.6, 2.6], artillery_battery: [4.2, 4.2], mortar_pit: [2.4, 2.4], bunker_large: [5.8, 4.5], searchlight_tower: [1.4, 1.4], palm_tree: [1.2, 1.2], tower_guard_wood: [1.5, 1.5], tower_guard_concrete: [2.1, 2.1], tower_guard_steel: [2.6, 2.6] };
+function bbOf(name, key) {                                             // half sizes of a model, measured from the model itself (a few are fixed by hand: guy wires and the like would make them huge). key: which loaded file (default the battle kit)
+  key = key || 'battle'; const ck = key === 'battle' ? name : key + ':' + name; if (BB[ck]) return BB[ck]; const n = D.glb[key] && nodeByName(D.glb[key], name); if (!n) return null;
   n.updateWorldMatrix(true, true); const b = new THREE.Box3().setFromObject(n), fx = BFIX[name], ok = isFinite(b.min.x) && isFinite(b.max.x);
   const hx = fx ? fx[0] : ok ? Math.max(Math.abs(b.min.x), Math.abs(b.max.x)) : 2, hz = fx ? fx[1] : ok ? Math.max(Math.abs(b.min.z), Math.abs(b.max.z)) : 2;
-  return (BB[name] = { hx: clamp(hx, 0.4, 12), hz: clamp(hz, 0.4, 12), h: ok ? Math.max(0.5, b.max.y) : 2, lx: ok ? b.max.x - b.min.x : 4, lz: ok ? b.max.z - b.min.z : 4 });
+  return (BB[ck] = { hx: clamp(hx, 0.4, 12), hz: clamp(hz, 0.4, 12), h: ok ? Math.max(0.5, b.max.y) : 2, lx: ok ? b.max.x - b.min.x : 4, lz: ok ? b.max.z - b.min.z : 4 });
 }
 function bTry(name, x, z, yaw, o) {                                    // build one structure here if it fits; returns its record or null
-  o = o || {}; const bb = bbOf(name), node = D.glb.battle && nodeByName(D.glb.battle, name); if (!bb || !node) return null;
+  o = o || {}; const gk = o.glb || 'battle', bb = bbOf(name, gk), node = D.glb[gk] && nodeByName(D.glb[gk], name); if (!bb || !node) return null;
   const hx = bb.hx, hz = bb.hz, ground = standY(x, z); if (ground < 0.9) return null;
   if (mapFits({}, x, z, yaw * 180 / Math.PI, { box: [hx, hz], free: true, slope: o.slope === undefined ? 0.9 : o.slope, pad: 0.4 })) return null;
   for (const e of AAS) if (Math.hypot(e.x - x, e.z - z) < Math.max(hx, hz) + 3.2) return null;
@@ -5923,17 +5933,19 @@ function bTry(name, x, z, yaw, o) {                                    // build 
   g.position.set(x, gy - 0.03, z); scene.add(g);
   if (!o.small) { const r = Math.hypot(hx, hz) + 1.2; clearTreesRect(x - r, x + r, z - r, z + r); }
   let pr = null, body = null; const hy = Math.min(bb.h, 6) / 2;
-  if (SOLID.has(name) && !o.soft) {
-    const item = { id: 'bk-' + name, name, box: [hx, Math.max(0.6, hy), hz], land: true, fixed: true }; pr = { mesh: g, x, z, dy: -0.03, item, body: null, by: 0 };
-    body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(hx, Math.max(0.6, hy), hz)) }); body.position.set(x, g.position.y + Math.max(0.6, hy), z); body.quaternion.setFromEuler(0, yaw, 0); world.addBody(body); pr.body = body; pr.by = Math.max(0.6, hy);
-    if (Math.min(hx, hz) > 1.2) { try { maskGrass(x, z, hx * 2, hz * 2, -yaw); } catch (e) { } }
+  if ((SOLID.has(name) || o.solid) && !o.soft) {                      // o.solid: [hx, hy, hz] of the part that really blocks (a tower's shaft, not the ladder foot)
+    const sb = o.solid, bx = sb ? sb[0] : hx, bz = sb ? sb[2] : hz, by = sb ? sb[1] : Math.max(0.6, hy);
+    const item = { id: 'bk-' + name, name, box: [bx, by, bz], land: true, fixed: true }; pr = { mesh: g, x, z, dy: -0.03, item, body: null, by: 0 };
+    body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(bx, by, bz)) }); body.position.set(x, g.position.y + by, z); body.quaternion.setFromEuler(0, yaw, 0); world.addBody(body); pr.body = body; pr.by = by;
+    if (Math.min(bx, bz) > 1.2) { try { maskGrass(x, z, bx * 2, bz * 2, -yaw); } catch (e) { } }
     props.push(pr);
   }
   const fi = { x, z, hx, hz, t: yaw, bk: true, nm: name, top: bb.h }; FOOT.push(fi);
   const part = (n) => nodeByName({ scene: g }, n), s = { name, p: o.p || null, x, z, y: g.position.y, yaw, g, hx, hz, h: bb.h, pr, body, fi, cover: !!o.cover, mine: !!o.mine, aimYaw: yaw, elev: 0.15, kick: 0, spin: 0 };
   if (name === 'radar_station') s.dish = part('radar_dish'); else if (name === 'artillery_battery') s.barrel = part('howitzer_barrel'); else if (name === 'mortar_pit') s.tube = part('mortar_tube'); else if (name === 'helipad') s.sock = part('windsock'); else if (name === 'oil_pumpjack') s.head = part('pump_head');
+  else if (name === 'tower_guard_wood' || name === 'tower_guard_steel') s.lamp = part(name + '_lamp');         // the lamp on a guard tower sweeps (updateStructs turns it about Y)
   else if (name === 'searchlight_tower') { s.lamp = part('searchlight_lamp'); if (s.lamp) { const geo = new THREE.ConeGeometry(4.5, 40, 14, 1, true).translate(0, -20, 0).rotateX(-Math.PI / 2), mat2 = new THREE.MeshBasicMaterial({ color: 0xfff2c8, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }); s.cone = new THREE.Mesh(geo, mat2); s.cone.visible = false; s.cone.frustumCulled = false; s.lamp.add(s.cone); } }
-  STRUCT.push(s); ladAddModel('battle', name, g, pr); return s;
+  s.glb = gk; STRUCT.push(s); ladAddModel(gk, name, g, pr); if (name === 'artillery_battery' && s.p) addHowitzer(s); return s;
 }
 function removeStruct(s) {
   const i = STRUCT.indexOf(s); if (i >= 0) STRUCT.splice(i, 1); scene.remove(s.g); if (s.pr) { const k = props.indexOf(s.pr); if (k >= 0) props.splice(k, 1); } if (s.body) world.removeBody(s.body);
@@ -5962,18 +5974,19 @@ function layPoint(p) {
   const put = (n, da, d, f, cnt, step, o) => { for (let k = 0; k < R(cnt || 1); k++) bSet(p, n, a0 + da + k * (step || 0) * st, d, f === undefined ? 'out' : f, o); };
   const cvr = { cover: true, small: true, soft: true };
   const mortar = (da, d) => { const s = bSet(p, 'mortar_pit', a0 + da, d, 'out'); if (s) addMortar(s); };
-  if (T === 'hq') { put('bunker_large', 0, 22, 'out'); put('sandbag_corner', 0.785, 10.5, 'in', 4, 1.571, cvr); put('barbed_wire', 0.55, 30, 'tanx', 6, 1.0, { small: true }); put('searchlight_tower', 1.6, 17, 'out'); put('command_post', 3.14, 22, 'in'); mortar(4.2, 13); }
+  const tower = (n, da, d) => { if (!EMP2.ok) return null; return bSet(p, n, a0 + da, d, 'in', { glb: 'emplace2', soft: n !== 'tower_guard_concrete', solid: n === 'tower_guard_concrete' ? [1.1, 2.9, 1.1] : null }); };     // a guard tower with its ladder facing the point; the model's ladder, deck and seat markers make it climbable
+  if (T === 'hq') { put('bunker_large', 0, 22, 'out'); put('sandbag_corner', 0.785, 10.5, 'in', 4, 1.571, cvr); put('barbed_wire', 0.55, 30, 'tanx', 6, 1.0, { small: true }); put('searchlight_tower', 1.6, 17, 'out'); put('command_post', 3.14, 22, 'in'); mortar(4.2, 13); tower('tower_guard_concrete', 5.3, 20); }
   else if (T === 'strongpoint') {
-    put('bunker_large', 0, 19, 'out'); put('sandbag_corner', 0.4, 9, 'in', 2, 1.4, cvr); mortar(2.6, 14);
+    put('bunker_large', 0, 19, 'out'); put('sandbag_corner', 0.4, 9, 'in', 2, 1.4, cvr); mortar(2.6, 14); tower('tower_guard_wood', 4.4, 17);
     const bt = bbOf('trench_straight'), be = bbOf('trench_end');                // a short trench line along the front: closed ends, two straight lengths between
     if (bt && be) { const a = a0 + 1.2, cx = p.x + Math.cos(a) * 25, cz = p.z + Math.sin(a) * 25, tx = -Math.sin(a), tz = Math.cos(a), L = bt.lz, Le = be.lz, yawZ = Math.atan2(tx, tz);
       const at = (n, off, yaw) => bTry(n, cx + tx * off, cz + tz * off, yaw, { p, cover: true, small: true, soft: true, slope: 1.1 });
       at('trench_straight', -L / 2, yawZ); at('trench_straight', L / 2, yawZ); at('trench_end', -L - Le / 2, yawZ + Math.PI); at('trench_end', L + Le / 2, yawZ); }
   }
-  else if (T === 'radio') { put(MAP.t === 'urban' ? 'radar_station' : 'radio_mast', 0, 15, 'out'); put('watch_tower_wood', 2.1, 13, 'out'); put('sandbag_corner', 3.9, 10, 'in', 2, 1.3, cvr); }
+  else if (T === 'radio') { put(MAP.t === 'urban' ? 'radar_station' : 'radio_mast', 0, 15, 'out'); if (!tower('tower_guard_steel', 2.1, 14)) put('watch_tower_wood', 2.1, 13, 'out'); put('sandbag_corner', 3.9, 10, 'in', 2, 1.3, cvr); }
   else if (T === 'depot') { put('supply_depot', 0, 14, 'out'); put('ammo_dump', 1.9, 15, 'out'); put('field_hospital', 3.8, 15, 'out'); }
   else if (T === 'battery') { put('artillery_battery', 0, 15, 'out'); put('artillery_battery', 2.3, 16, 'out'); put('sandbag_corner', 4.6, 10, 'in', 2, 1.4, cvr); }
-  else if (T === 'airfield') { put('helipad', 0, 15, 0, 1, 0, { slope: 1.2, soft: true, small: true }); put('sandbag_corner', 2.6, 10, 'in', 2, 1.6, cvr); }
+  else if (T === 'airfield') { put('helipad', 0, 15, 0, 1, 0, { slope: 1.2, soft: true, small: true }); put('sandbag_corner', 2.6, 10, 'in', 2, 1.6, cvr); tower('tower_guard_wood', 4.0, 19); }
   else if (T === 'harbour') { put('sandbag_corner', 0.3, 9, 'in', 4, 1.4, cvr); put('ammo_dump', 2.2, 14, 'out'); }
   else if (T === 'choke') { put('sandbag_corner', 0.3, 9, 'in', 3, 2.0, cvr); put('barbed_wire', 1.0, 18, 'tanx', 3, 0.5, { small: true }); }
   else put('sandbag_corner', 0.8, 10, 'in', 1, 0, cvr);
@@ -5987,8 +6000,9 @@ function layBattleKit() {
 /* ---- emplacements: crews, mortar pits, artillery batteries */
 const crewOK = (e) => !!e.crewQ && people.includes(e.crewQ) && e.crewQ.state !== 'rag' && e.crewQ.hp > 0 && !!e.p.owner && teamOf(e.crewQ) === e.p.owner;
 const empCrewN = () => AAS.filter(a => a.needCrew && a.p.owner).length;
-function postOf(e) { const r = e.mesh.rotation.y, x = e.x - Math.sin(r) * 1.6, z = e.z - Math.cos(r) * 1.6; return standY(x, z) > 0.5 ? { x, z } : { x: e.x, z: e.z }; }     // where the crew stands: just behind the gun
-function addMortar(s) { if (!s.p) return; AAS.push({ kind: 'mortar', p: s.p, x: s.x, z: s.z, y: s.y, mesh: s.g, s, tube: s.tube, cd: rnd(5, 10), elev: 1.0, kick: 0, aimYaw: s.yaw, think: rnd(1, 3), aimAt: null, aimT: -9 }); }
+function postOf(e) { if (e.rig && (e.rig.seat || e.rig.crew[0])) { const nd = e.kind === 'howitzer' ? e.rig.crew[0] : e.rig.seat; if (nd) { rigNodePos(nd, _sv); if (standY(_sv.x, _sv.z) > 0.5) return { x: _sv.x, z: _sv.z }; } } const r = e.mesh.rotation.y, x = e.x - Math.sin(r) * 1.6, z = e.z - Math.cos(r) * 1.6; return standY(x, z) > 0.5 ? { x, z } : { x: e.x, z: e.z }; }     // where the crew stands: just behind the gun
+function addMortar(s) { if (!s.p) return; const e = { kind: 'mortar', p: s.p, x: s.x, z: s.z, y: s.y, mesh: s.g, s, tube: s.tube, cd: rnd(5, 10), elev: 1.0, kick: 0, aimYaw: s.yaw, think: rnd(1, 3), aimAt: null, aimT: -9, job: null }; empDress(e, 'mortar'); AAS.push(e); s.pe = e; }
+function addHowitzer(s) { const e = { kind: 'howitzer', p: s.p, x: s.x, z: s.z, y: s.y, mesh: s.g, s, cd: rnd(3, 8), elev: 0.15, kick: 0, aimYaw: s.yaw, think: 99, aimAt: null, aimT: -9, job: null }; empDress(e, 'howitzer'); AAS.push(e); s.pe = e; }
 function crewBind(q, e) {
   const b = q.bot; q.x = e.post.x; q.z = e.post.z; q.y = standY(q.x, q.z); q.heading = Math.atan2(e.x - q.x, e.z - q.z); b.crew = e; b.follow = false; b.post = null; b.obj = null; q.order = null; q.route = null; e.crewQ = q; if (!BKIT.crew.includes(q)) BKIT.crew.push(q);
 }
@@ -6002,7 +6016,7 @@ function crewThink(q, dt) {                                            // the cr
   const d = Math.hypot(e.post.x - q.x, e.post.z - q.z);
   if (d > 1.4) { q.run = d > 9; if (!q.order) { setFootOrder(q, e.post.x, e.post.z); b.myOrder = q.order; } } else { if (q.order) { q.order = null; q.route = null; } q.run = false; }
   b.crouch = false; q.aim = (q.aim || 0) + (1 - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4);
-  if (d <= 1.4) q.heading = e.aimAt && simT - e.aimT < 1.5 ? Math.atan2(e.aimAt.x - q.x, e.aimAt.z - q.z) : e.kind === 'mortar' ? e.s.aimYaw : e.mesh.rotation.y;
+  if (d <= 1.4) { q.heading = e.aimAt && simT - e.aimT < 1.5 ? Math.atan2(e.aimAt.x - q.x, e.aimAt.z - q.z) : empBearing(e); if (e.rig) crewRig(q, e, dt); }
   return true;
 }
 function crewTick() {                                                  // a post whose crew is down stays quiet until a friend walks up and takes it
@@ -6021,7 +6035,7 @@ function botPost(q, b) {                                               // walk t
   if (Math.hypot(e.post.x - q.x, e.post.z - q.z) < 2.2) { b.post = null; crewBind(q, e); if (b.team === BATTLE.team) noteOnce('manned' + e.x + e.z, 'A friend has taken the ' + (e.kind === 'mortar' ? 'mortar pit' : e.kind === 'aa' ? 'anti-air gun' : 'machine gun nest') + '.'); return true; }
   if (!q.order) { setFootOrder(q, e.post.x, e.post.z); b.myOrder = q.order; } q.run = true; return true;
 }
-const MORT = { min: 35, max: 330 };
+const MORT = { min: 90, max: 330 };                                      // what the crews pick on their own; the player can call the pits out to PSPEC.mortar.max
 function mortarTarget(e, team, lo, hi) {                                       // a cluster of enemy contacts the squads have reported lately, with no friend near it
   const hs = []; for (const q of people) { const b = q.bot; if (b && b.team === team && b.hint && simT - b.hint.t < 7 && q.state !== 'rag') hs.push(b.hint); }
   let best = null, bs = 0;
@@ -6029,29 +6043,19 @@ function mortarTarget(e, team, lo, hi) {                                       /
   if (!best) return null; for (const q of people) if (teamOf(q) === team && q.state !== 'rag' && Math.hypot(q.x - best.x, q.z - best.z) < 14) return null;
   return best;
 }
-function mortarShoot(e, pt, byPlayer) {
-  const team = e.p.owner || BATTLE.team, d = Math.hypot(pt.x - e.x, pt.z - e.z);
-  if (d < MORT.min) { if (byPlayer) toast('Too close for the mortar.'); return false; } if (d > MORT.max) { if (byPlayer) toast('Out of range for the mortar.'); return false; }
-  e.cd = byPlayer ? 10 : 15; e.kick = 1; e.aimYaw = Math.atan2(pt.x - e.x, pt.z - e.z); e.s.aimYaw = e.aimYaw; e.elev = clamp(1.32 - d / 330 * 0.7, 0.62, 1.32);
-  const n0 = AIR.shells.length; callArty(team, pt, true, { n: byPlayer ? 2 : 3, t: 1.4 + d / 170, gap: 0.8, y0: e.y + 28, R: 6.5, dmg: 100, crater: 2.5, depth: 0.8, quiet: true, off: 0 });
-  for (let i = n0; i < AIR.shells.length; i++) { AIR.shells[i].ox = e.x; AIR.shells[i].oz = e.z; }
-  Snd.fx('wpn_mortar_launch', e.x, e.z, { gain: 0.95, y: e.y + 1.5, far: 3 }); fxG.emit(e.x, e.y + 2.2, e.z, 0, 4, 0, 0.3, 1.8, 1, [1, 0.8, 0.4, 1]); puffSmoke(e.x, e.y + 2, e.z, 4, false, 0.8); if (!byPlayer || true) dis.quake = Math.max(dis.quake, Math.hypot(e.x - camera.position.x, e.z - camera.position.z) < 25 ? 0.7 : 0);
-  return true;
+function mortarShoot(e, pt, byPlayer) {                                // a pit or a battery is given a point: it swings to the bearing, elevates, loads and fires (see updatePiece)
+  return pieceFromCall(e, pt, byPlayer);
 }
-function updateMortar(e, dt) {
-  const s = e.s; e.cd = Math.max(0, e.cd - dt); e.kick = Math.max(0, e.kick - dt * 2.5); s.g.rotation.y += wrap(e.aimYaw - s.g.rotation.y) * Math.min(1, 3 * dt); if (e.tube) e.tube.rotation.x = 1.2566 - e.elev + e.kick * 0.05;
-  if (fp.on && fp.man === e) { const pt = aimPoint(); if (pt) { e.aimYaw = Math.atan2(pt.x - e.x, pt.z - e.z); e.elev = clamp(1.32 - Math.hypot(pt.x - e.x, pt.z - e.z) / 330 * 0.7, 0.62, 1.32); } $('fpPrompt').textContent = 'Mortar: ' + (e.cd > 0 ? 'Recharging' : 'Ready') + '. Aim at the ground and click to fire. E to leave.'; return; }
-  const team = e.p.owner; if (!team || e.manned) return; if (e.needCrew && !crewOK(e)) return;
-  if (fp.on && !fp.man && fp.p && team === BATTLE.team && Math.hypot(e.x - fp.p.x, e.z - fp.p.z) < 4.5) noteOnce('emp' + e.x, 'E: man this mortar');
-  e.think -= dt; if (e.think > 0 || e.cd > 0) return; e.think = 2.5; const t = mortarTarget(e, team); if (t) mortarShoot(e, t, false);
-}
+function updateMortar(e, dt) { updatePiece(e, dt); }
 function fpMortarFire(e) {
-  fp.cool = 0.5; if (e.cd > 0) { noteOnce('mrt' + Math.floor(simT / 3), 'The mortar is recharging.'); return; } const pt = aimPoint(); if (!pt) { toast('Aim at the ground first.'); return; } mortarShoot(e, pt, true);
+  fp.cool = 0.5; if (e.cd > 0 || e.job) { noteOnce('mrt' + Math.floor(simT / 3), (e.kind === 'howitzer' ? 'The howitzer' : 'The mortar') + (e.job ? ' is working.' : ' is recharging.')); return; } const pt = aimPoint(); if (!pt) { toast('Aim at the ground first.'); return; } mortarShoot(e, pt, true);
 }
-function batteryFire(team, pt, auto) {                                 // the howitzers at the batteries this side holds fire a barrage, free of the normal artillery recharge
+function batteryFire(team, pt, auto) {                                 // the howitzers at the batteries this side holds fire a barrage, free of the normal artillery recharge: each gun swings round, elevates and fires (see updatePiece)
   if (!BATTLE.on) return false; const c = AIR.cd[team], held = BATTLE.points.filter(p => p.owner === team && p.type === 'battery'), bs = STRUCT.filter(s => s.name === 'artillery_battery' && s.p && s.p.owner === team);
   if (!held.length) { if (!auto && team === BATTLE.team) toast('Your side holds no artillery battery.'); return false; }
   if (c.by > 0) { if (!auto && team === BATTLE.team) toast('The battery is recharging.'); return false; }
+  let n = 0; for (const h of AAS) if (h.kind === 'howitzer' && h.p.owner === team && !h.job && h.cd <= 0 && (!h.needCrew || crewOK(h)) && pieceFromCall(h, pt, false, { rounds: 2 })) n++;
+  if (n) { c.by = 80; noteOnce('bat' + team + Math.floor(simT / 30), team === BATTLE.team ? 'Our battery is firing.' : 'Enemy artillery is firing from a battery.'); return true; }
   c.by = 80; const org = bs.length ? bs : held, n0 = AIR.shells.length;
   callArty(team, pt, true, { n: 5, t: 3.0, gap: 0.9, y0: 260, R: 11, dmg: 160, crater: 5, depth: 1.4, quiet: true, off: 0 });
   for (let i = n0; i < AIR.shells.length; i++) { const o = org[i % org.length]; AIR.shells[i].ox = o.x; AIR.shells[i].oz = o.z; }
@@ -6064,7 +6068,7 @@ function updateStructs(dt) {
   for (const s of STRUCT) {
     if (s.dish) s.dish.rotation.y += dt * 0.9; if (s.sock && wl !== null) s.sock.rotation.y = wrap(wl - s.g.rotation.y); if (s.head) s.head.rotation.x = Math.sin(simT * 1.6 + s.x) * 0.3;
     if (s.lamp) { s.lamp.rotation.y = Math.sin(simT * 0.35 + s.x) * 1.3; s.lamp.rotation.x = -0.35; if (s.cone) s.cone.visible = wx.sky === 'night' || wx.sky === 'dusk'; }
-    if (s.barrel) { s.kick = Math.max(0, s.kick - dt * 1.5); s.elev += (0.15 - s.elev) * Math.min(1, 0.4 * dt); s.barrel.rotation.x = -s.elev; s.barrel.position.z = -s.kick * 0.35; s.g.rotation.y += wrap(s.aimYaw - s.g.rotation.y) * Math.min(1, 2 * dt); }
+    if (s.barrel && !s.pe) { s.kick = Math.max(0, s.kick - dt * 1.5); s.elev += (0.15 - s.elev) * Math.min(1, 0.4 * dt); s.barrel.rotation.x = -s.elev; s.barrel.position.z = -s.kick * 0.35; s.g.rotation.y += wrap(s.aimYaw - s.g.rotation.y) * Math.min(1, 2 * dt); }
   }
 }
 
@@ -6158,7 +6162,7 @@ function updateKit(dt) {
 function kitStart(gen) {
   evInit(); const live = () => BATTLE.on && BATTLE.gen === gen;
   if (!D.glb.troops2 && !(BOOT && BOOT.skins === false)) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
-  Promise.all([ensureAir(), ensureBattleKit().catch(() => null)]).then(() => { if (!live()) return; layAA(); layBattleKit(); return ensureBVeh(); }).then(() => { if (live()) bvLayAll(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
+  Promise.all([ensureAir(), ensureBattleKit().catch(() => null), ensureEmplace2()]).then(() => { if (!live()) return; layAA(); layBattleKit(); return ensureBVeh(); }).then(() => { if (live()) bvLayAll(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
 }
 function reskinBots() {                                                // the troops file arrives a little after the battle starts: swap the first bots over to the new skins
   if (BATTLE.t > 150 || !D.glb.troops2) return; let n = 0;
@@ -6812,7 +6816,8 @@ function bvPickObjective(v) {
 }
 function bvAIThink(v) {                                                // the mission state machine, a couple of times a second per vehicle
   const A = v.ai, now = simT, dt = Math.min(2, now - A.last); A.last = now; if (!A || v.dead) return; const ds = v.seats[0], drv = ds && ds.kind === 'driver' ? ds.q : null;
-  if (fp.on && fp.veh === v && fp.vseat === ds) { A.st = 'park'; A.t = 1e9; return; }
+  if (fp.on && fp.veh === v && fp.vseat === ds) { A.st = 'park'; A.t = 1e9; v.fm = null; return; }
+  if (v.fm && fmVehThink(v, A, drv, now)) return;
   if (A.st === 'park') { if (BATTLE.t < A.t || (A.reserve && BATTLE.team === v.team && BATTLE.t < 240)) return; A.st = 'idle'; A.t = 0; }
   if (A.st !== 'idle' && A.st !== 'park' && !drv) { bvAIRelease(v); return; }
   if (A.abort) { A.abort = false; A.fails = 0; bvAIRelease(v); A.t = 8; return; }
@@ -6872,6 +6877,7 @@ function bvAIGun(v, dt, q) {                                           // the cr
     for (const w of BVL) { if (w.dead || w.team === v.team) continue; const d = Math.hypot(w.x - ox, w.z - oz) * (v.key === 'light_tank' ? 0.6 : 1); if (d >= bd) continue; if (!losFull(ox, oy, oz, w.x, w.y + w.sp.cy, w.z)) continue; bd = d; best = w; bx = w.x; by = w.y + w.sp.cy; bz = w.z; }
     if (best) { A.has = true; A.los = true; A.x = bx; A.y = by; A.z = bz; A.jx = rnd(-1.4, 1.4); A.jz = rnd(-1.4, 1.4); }
   }
+  if (v.fm) fmVehAim(v, A);
   if (A.has) bvGun(v, dt, q, A.x + A.jx, A.y, A.z + A.jz, A.los); else bvGun(v, dt, q, v.x + Math.sin(v.yaw) * 60, v.y + 1.5, v.z + Math.cos(v.yaw) * 60, false);
 }
 
@@ -7884,7 +7890,7 @@ setTool('select'); refreshPanel(); refreshHelm();
 function runBootPlan() {                                              // what the start menu asked for, fetched while the loading screen is up. Each part reports when it is in
   const jobs = [], add = (id, fn) => { if (LP.parts[id]) jobs.push(Promise.resolve().then(fn).then(() => lpSet(id, 1), () => lpSet(id, 1))); };
   add('town', () => Promise.all([ensurePort(), ensureProps2()]));
-  add('kit', () => Promise.all([ensureBattleKit(), ensureAir()]));
+  add('kit', () => Promise.all([ensureBattleKit(), ensureAir(), ensureEmplace2()]));
   add('men', () => Promise.all([ensureWeapons(), ensureBVeh()]));
   add('skins', () => ensureTroops2());
   add('sound', () => Snd.initP ? Snd.initP : null);
@@ -7927,6 +7933,7 @@ const KEYMAP = [
   ['over', '1 to 4', 'Tools: Select, Place, Land, Sky'],
   ['over', 'Esc', 'Stand down fire control, leave the helm, deselect, or open this menu'],
   ['over', 'T', 'Command: fire, support, squad and points', 'h'],
+  ['over', 'L', 'Tactical map: the whole battlefield with a grid, range rings, fire data and adjust fire. Drag to pan, wheel or pinch to zoom, tap to mark a target', 'h'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
   ['over', '` (backtick)', 'Cheats: for fun and testing. Switches, spawns, weather and typed codes. Also in Menu, Settings'],
@@ -7967,6 +7974,7 @@ const KEYMAP = [
   ['fp', 'K', 'Squad hold fire, or free fire'],
   ['fp', 'E at a ladder', 'Climb a ladder (stand at its foot and face it, or stand at the top to go down). W and S climb, Space jumps off, E lets go. You can look 50 degrees either way and your weapon is put away', 'h'],
   ['fp', 'T', 'Command'],
+  ['fp', 'L', 'Tactical map (the same map as in the overview). Esc or L closes it'],
   ['fp', 'B', 'Detonate placed charges'],
   ['fp', 'Y', 'Swap to the nearest friendly soldier'],
   ['fp', 'V', 'Drop back out to the overview', 'hp'],
@@ -7988,6 +7996,8 @@ const KEYMAP = [
   ['veh', 'Helicopter: W S, A D, Q E', 'Fly forward and back, bank and turn, and turn on the spot. E turns right in the air and gets you out on the ground'],
   ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
+  ['tab', 'Fire mission', 'Marking a target opens a fire mission. The Fire tab lists what could fire on it (mortar pits, howitzers, vehicles, aircraft, your squad, snipers, anti-armour teams, gun nests). Tick any number and press Execute. Cease fire stops them. A destroyed person or vehicle clears the marker by itself. Ground cover fire carries on until you cease it'],
+  ['tab', 'Map', 'Opens the tactical map (also the L key). Range rings, fire data (bearing, elevation, flight time, spread), danger close warning, shell types and adjust fire'],
   ['tab', 'Support', 'Calls for your side, with Ready, Recharging or Offline shown: Griffon, gunship, attack helicopter, medevac, air strike, artillery, battery barrage, troop transport, boat landing. Shot-down aircraft stay offline for a while'],
   ['tab', 'Squad', 'Follow me, hold here, move to your crosshair, attack that, defend this point, take cover, fall back, suppress, heal me, mount up or dismount, plus formation (wedge, line, column), hold fire and ping. The same orders as the ring (hold N)'],
 ];
@@ -11136,6 +11146,7 @@ function voiceWatch() {                                             // once a se
    Models without markers use the hand table below (metres in the model's own frame, +Z forward, +X to the model's left, y up from the base). Tuning: climb speed 1.5 m/s, a rung sound every 0.3 m,
    grab range 1.5 m from the foot of the rungs, 2 climbers per ladder, at most 2 assigned soldiers per tower and 3 people on a deck, look limit +-50 degrees on the ladder. */
 const LADDERS = [], PLATFORMS = [];
+const EMP_DECK = { tower_guard_concrete: { c: [0, 0], hx: 1.85, hz: 1.8 } };       // the concrete tower's deck is the cabin and the balcony together (the model's own marker is the cabin only)
 const LAD_SPEED = 1.5, LAD_RUNG = 0.3, LAD_OFF = 0.42;
 const LAD_HAND = {
   'port:watchtower': { bot: [1.5, 0], top: [1.3, 8.0, 0], deck: { c: [0, 0], hx: 1.5, hz: 1.5, y: 8.2, rail: true }, spots: [[-0.9, 0.6], [-0.9, -0.6], [0, -1.0]], lTop: 8.0, mat: 'metal' },
@@ -11159,14 +11170,19 @@ function ladMarkers(glbKey, node, g) {                              // marker no
   const take = (o, local) => {
     const m = /^(.+)_(ladder_bottom|ladder_top|deck|seat)\.?\d*$/.exec(o.name || ''); if (!m) return; const pre = m[1], kind = m[2]; if (!local && !(pre === node || pre.startsWith(node + '_'))) return;
     if (local) o.getWorldPosition(v), g.worldToLocal(v); else { o.updateWorldMatrix(true, false); o.getWorldPosition(v); }
-    let r = by.get(pre); if (!r) by.set(pre, r = { seats: [] }); const p = [v.x, v.y, v.z]; if (kind === 'seat') r.seats.push(p); else if (!r[kind]) { r[kind] = p; if (kind === 'deck') r.dx = o.userData || {}; }
+    let r = by.get(pre); if (!r) by.set(pre, r = { seats: [] }); const p = [v.x, v.y, v.z]; if (kind === 'seat') r.seats.push(p); else if (!r[kind]) { r[kind] = p; if (kind === 'deck') { r.dx = Object.assign({}, o.userData || {}); if (glbKey === 'emplace2' && o.scale && (o.scale.x !== 1 || o.scale.z !== 1)) { r.dx.hx = o.scale.x; r.dx.hz = o.scale.z; } } }
     if (local) inClone = true;
   };
   g.traverse(o => take(o, true)); if (!inClone) { const glb = D.glb[glbKey]; if (glb && glb.scene) glb.scene.traverse(o => take(o, false)); }
   const out = []; for (const [pre, r] of by) { if (!r.ladder_bottom || !r.ladder_top) continue; const t = r.ladder_top, b = r.ladder_bottom, d = r.deck, u = r.dx || {};
     let cx, cz, dy; if (d) { cx = d[0]; cz = d[2]; dy = d[1]; } else { const hz = Math.hypot(t[0], t[2]) || 1; cx = t[0] - t[0] / hz * 1.4; cz = t[2] - t[2] / hz * 1.4; dy = t[1] + 0.05; }
     const deck = { c: [cx, cz], y: dy, hx: +u.hx || 1.4, hz: +u.hz || 1.4, r: +u.r || 0, rail: u.rail === undefined ? true : !!+u.rail, roof: !!+u.roof };
-    out.push({ bot: [b[0], b[2]], top: [t[0], t[1], t[2]], deck, spots: r.seats.map(s => [s[0], s[2], s[1]]), mat: u.mat || (/wood/.test(pre) ? 'wood' : 'metal'), tag: pre }); }
+    let bot = [b[0], b[2]], top = [t[0], t[1], t[2]], exit = null;
+    if (glbKey === 'emplace2') {                                         // this file's contract: _ladder_bottom is where the climber stands (0.40 m in front of the rungs), _ladder_top is the spot on the deck where they step off
+      const E = EMP_DECK[pre], rz = b[2] - 0.4; bot = [b[0], rz]; top = [b[0], t[1], rz]; exit = [t[0], t[2]];
+      if (E) { deck.c = E.c; deck.hx = E.hx; deck.hz = E.hz; } else if (!d) { deck.c = [t[0], t[2] - 0.9]; deck.hx = deck.hz = 0.9; deck.y = t[1]; }
+    }
+    out.push({ bot, top, exit, deck, spots: r.seats.map(s => [s[0], s[2], s[1]]), mat: u.mat || (/wood/.test(pre) ? 'wood' : 'metal'), tag: pre }); }
   return out;
 }
 function ladBuild(spec, g, node, pr) {
@@ -11176,7 +11192,7 @@ function ladBuild(spec, g, node, pr) {
   const sp = spec.spots && spec.spots.length ? spec.spots : [[d.c[0] - 0.5, d.c[1] - 0.5], [d.c[0] + 0.5, d.c[1] + 0.5]];
   for (const s of sp) { const [x, z] = W(s[0], s[1]); P.spots.push({ x, z, y: s[2] !== undefined ? g.position.y + s[2] * sc : P.y, q: null }); }
   const y0 = standY(bx, bz), y1 = g.position.y + spec.top[1] * sc; let fx = cx - bx, fz = cz - bz; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
-  const len = Math.max(1, Math.hypot(tx - bx, tz - bz, y1 - y0)); let ex = tx + fx * 0.8, ez = tz + fz * 0.8; if (!platHas(P, ex, ez, -0.15)) { ex = cx; ez = cz; }
+  const len = Math.max(1, Math.hypot(tx - bx, tz - bz, y1 - y0)); let ex = tx + fx * 0.8, ez = tz + fz * 0.8; if (spec.exit) { const w = W(spec.exit[0], spec.exit[1]); ex = w[0]; ez = w[1]; } if (!platHas(P, ex, ez, -0.15)) { ex = cx; ez = cz; }
   const L = { name: P.name, bx, bz, tx, tz, y0, y1, fx, fz, yaw: Math.atan2(fx, fz), len, plat: P, ex, ez, own: g, users: [], mat: spec.mat || 'metal' }; P.lads.push(L);
   if (pr) pr.lTop = Math.min(pr.lTop === undefined ? 1e9 : pr.lTop, spec.lTop !== undefined ? g.position.y + spec.lTop * sc : P.y - 0.15);
   PLATFORMS.push(P); LADDERS.push(L); return L;
@@ -11383,6 +11399,692 @@ function cheatTick(dt) {                                             // once a f
 }
 chChip();
 Object.assign(window.__sc, { CHEAT, chCode, chOpen, chSet });
+/* ================================================================ EMPLACEMENTS, FIRE MISSIONS AND THE TACTICAL MAP (written without a browser: none of this has been seen running)
+   1. assets/emplace2.glb (blender/NOTES-emplace2.md): gun chains (yaw > pitch > recoil node), guard towers with ladder, deck and seat markers.
+   2. Guns that fire real arcs: PSPEC (mortar, howitzer), solveBall, pieceFromCall/pieceOrder/updatePiece (swing, elevate, load, fire, recoil), SHELLS, the illumination flare.
+   3. Fire missions (FMS): a marked target, a list of what can fire on it, Execute, Cease fire. 4. The tactical map (TMAP): grid, range rings, fire data, adjust fire. Key L. */
+const EMP2 = { p: null, ok: false };
+const ensureEmplace2 = () => EMP2.p || (EMP2.p = loadGLB('emplace2').then(g => { D.glb.emplace2 = g; EMP2.ok = true; g.scene.traverse(o => { if (o.isMesh && o.material && o.material.name === 'emp_glass') o.material.depthWrite = false; }); return g; }).catch(e => { EMP2.p = null; window.__emperr = String(e && e.stack || e); return null; }));
+const fmSafe = (fn, fb) => function () { try { return fn.apply(this, arguments); } catch (er) { window.__fmerr = String(er && er.stack || er); if (guardN++ < 6) console.error('emplacement or fire mission error', er); return fb; } };       // the hooks below are called from the middle of the game's own loops, so none of them may throw
+const D2R = Math.PI / 180, _mp = new THREE.Vector3(), _md = new THREE.Vector3(), _mq = new THREE.Quaternion(), _sv = new THREE.Vector3();
+/* node names, travel and limits come from blender/NOTES-emplace2.md. ys and ps are the slew speeds (rad/s) for yaw and pitch; rest is the elevation (degrees) a gun settles to when it has no target. */
+const RIGDEF = {
+  aa: { root: 'emp_aa', yaw: 'emp_aa_yaw', pitch: 'emp_aa_pitch', rec: 'emp_aa_barrels', travel: 0.12, mz: ['emp_aa_muzzle_L', 'emp_aa_muzzle_R'], cas: 'emp_aa_casing', seat: 'emp_aa_seat', lo: -10, hi: 85, lim: 0, ys: 2.4, ps: 1.6, rest: 25 },
+  mg: { root: 'emp_mg', yaw: 'emp_mg_yaw', pitch: 'emp_mg_pitch', rec: 'emp_mg_barrel', travel: 0.04, mz: ['emp_mg_muzzle'], cas: 'emp_mg_casing', seat: 'emp_mg_seat', lo: -15, hi: 45, lim: 70, ys: 3, ps: 2, rest: 5 },
+  flak: { root: 'emp_flak', yaw: 'emp_flak_yaw', pitch: 'emp_flak_pitch', rec: 'emp_flak_barrel', travel: 0.10, mz: ['emp_flak_muzzle'], cas: 'emp_flak_casing', seat: 'emp_flak_seat', lo: -10, hi: 85, lim: 0, ys: 2.4, ps: 1.6, rest: 25 },
+  mortar: { root: 'emp_mortar', yaw: 'emp_mortar_yaw', pitch: 'emp_mortar_pitch', rec: null, travel: 0, mz: ['emp_mortar_muzzle'], cas: null, seat: null, lo: 45, hi: 85, lim: 0, ys: 1.3, ps: 0.28, rest: 65, start: 65 },
+  howitzer: { root: 'emp_howitzer', yaw: 'emp_howitzer_yaw', pitch: 'emp_howitzer_pitch', rec: 'emp_howitzer_barrel', travel: 0.45, mz: ['emp_howitzer_muzzle'], cas: null, seat: 'emp_howitzer_crew_gunner', crew: ['emp_howitzer_crew_loader', 'emp_howitzer_crew_ammo', 'emp_howitzer_crew_commander'], lo: -10, hi: 85, lim: 30, ys: 0.6, ps: 0.22, rest: 6, start: 6 },
+};
+function emp2Make0(kind) {                                            // one gun chain cloned from the loaded file: { g (add it to a group), yaw, pitch, rec, mz[], cas, seat, crew[] }
+  const d = RIGDEF[kind]; if (!d || !EMP2.ok || !D.glb.emplace2) return null; const src = nodeByName(D.glb.emplace2, d.root); if (!src) return null;
+  const g = shadowAll(src.clone(), true, true), f = (n) => n ? nodeByName({ scene: g }, n) : null;
+  const R = { kind, d, g, yaw: f(d.yaw), pitch: f(d.pitch), rec: f(d.rec), mz: d.mz.map(f).filter(Boolean), cas: f(d.cas), seat: f(d.seat), crew: (d.crew || []).map(f).filter(Boolean), kick: 0, mi: 0, yawA: 0, elA: (d.start !== undefined ? d.start : d.rest) * D2R, z0: 0 };
+  if (!R.yaw || !R.pitch) return null; R.z0 = R.rec ? R.rec.position.z : 0; R.pitch.rotation.x = -R.elA; return R;       // the mortar's folded bipod points underground at rotation 0, so it starts at 65 degrees
+}
+function rigNodePos(nd, out) { nd.updateWorldMatrix(true, false); return nd.getWorldPosition(out); }
+function rigAim(R, bearing, elev, dt, ys, ps) {                    // turn the yaw node toward a world bearing and the pitch node to an elevation (radians); returns the error left (radians), so 0 means on target
+  const d = R.d, par = R.g.parent, base = par ? par.rotation.y : 0, rel0 = wrap(bearing - base), lim = d.lim * D2R; let rel = rel0; if (lim) rel = clamp(rel, -lim, lim);
+  const el = clamp(elev, d.lo * D2R, d.hi * D2R), ky = ys || d.ys, kp = ps || d.ps;
+  R.yawA = wrap(R.yawA + clamp(wrap(rel - R.yawA), -ky * dt, ky * dt)); R.elA += clamp(el - R.elA, -kp * dt, kp * dt);
+  R.yaw.rotation.y = R.yawA; R.pitch.rotation.x = -R.elA;            // rotation about +X lowers the barrel, so the pitch node takes minus the elevation
+  return Math.max(Math.abs(wrap(rel0 - R.yawA)), Math.abs(elev - R.elA));
+}
+function rigStep(R, dt) {                                            // the recoil node kicks back along its own -Z and springs forward again
+  if (R.kick > 0) R.kick = Math.max(0, R.kick - dt * (R.d.travel > 0.3 ? 0.9 : R.d.travel > 0.08 ? 3 : 6));
+  if (R.rec) R.rec.position.z = R.z0 - R.d.travel * Math.pow(R.kick, 0.7);
+}
+function rigMuzzle(R, i, pos, dir) {                                 // world position (and the bore direction) of a muzzle marker
+  const m = R.mz.length ? R.mz[i % R.mz.length] : R.pitch; rigNodePos(m, pos); if (dir) { R.pitch.getWorldQuaternion(_mq); dir.set(0, 0, 1).applyQuaternion(_mq); }
+}
+function rigShotFx0(e, gy, aa) {                                      // one shot from a chain model: flash at the muzzle, brass from the casing marker, the barrels kick, a heavy report
+  const R = e.rig; R.kick = 1; const mi = R.mi++; rigMuzzle(R, mi, _mp, _md);
+  fxG.emit(_mp.x, _mp.y, _mp.z, _md.x * 3, _md.y * 3, _md.z * 3, 0.07, aa ? 2.2 : 1.4, 0.8, [1, 0.85, 0.5, 1]); if (Math.random() < 0.5) puffSmoke(_mp.x, _mp.y, _mp.z, 1, false, aa ? 0.9 : 0.5);
+  if (simT - (e.casT || 0) > 0.08) { e.casT = simT; const hd = e.mesh.rotation.y + R.yawA; if (R.cas) { rigNodePos(R.cas, _sv); ejectCasing(_sv.x, _sv.y, _sv.z, hd); } else ejectCasing(e.x, gy, e.z, hd); }
+  const near = Math.hypot(e.x - (fp.on ? fp.p.x : god.tgt.x), e.z - (fp.on ? fp.p.z : god.tgt.z)) < 110; if (simT - (e.sndT || 0) > (aa ? 0.16 : 0.12)) { e.sndT = simT; Snd.fx(empStem(e.kind, near), e.x, e.z, { gain: near ? 0.85 : 0.7, y: gy, far: 3, gap: 0.0 }); }
+}
+function empDress(e, kind) {                                         // swap the old mortar pit or battery model for the chain model, inside the same group (so the footprint and the collision stay)
+  if (!EMP2.ok || !e.s) return; const R = emp2Make(kind); if (!R) return; const old = e.s.g.children[0]; if (old) old.visible = false; e.s.g.add(R.g); e.rig = R; e.tube = null;
+}
+function empBearing(e) { return e.rig ? (e.mesh.rotation.y + e.rig.yawA) : (e.kind === 'mortar' || e.kind === 'howitzer') ? e.s.aimYaw : e.mesh.rotation.y; }
+function crewRig0(q, e, dt) {                                         // crews stand with the gun: on the turntable of an anti-air gun, and a loader who steps between the ammunition and the breech at a howitzer
+  const R = e.rig; if (!R) return;
+  if (e.kind === 'aa' && R.seat) { rigNodePos(R.seat, _sv); q.x = _sv.x; q.z = _sv.z; if (e.post) { e.post.x = _sv.x; e.post.z = _sv.z; } }
+  else if (e.kind === 'howitzer' && R.crew.length > 1) {
+    rigNodePos(R.crew[0], _sv); const ax = _sv.x, az = _sv.z; rigNodePos(R.crew[1], _sv); const bx = _sv.x, bz = _sv.z, J = e.job, want = J && (J.st === 'slew' || J.st === 'gap') ? 1 : 0;
+    e.ldK = (e.ldK || 0) + (want - (e.ldK || 0)) * Math.min(1, dt * 1.6); q.x = ax + (bx - ax) * e.ldK; q.z = az + (bz - az) * e.ldK; q.run = false; if (e.ldK > 0.1 && e.ldK < 0.9) q.heading = Math.atan2(bx - ax, bz - az) * (want ? 1 : -1) + (want ? 0 : Math.PI);
+  }
+}
+
+/* ---- ballistics: a real shot from the muzzle, with gravity and a little wind */
+const G0 = 9.8;
+function solveBall(mx, my, mz, tx, ty, tz, v) {                      // both arcs that reach the point at muzzle speed v: { d, h, v, brg, lo: {el, tof}, hi: {el, tof} } (a missing arc means out of reach). brg is the game bearing atan2(dx, dz)
+  const dx = tx - mx, dz = tz - mz, d = Math.hypot(dx, dz), h = ty - my, v2 = v * v, A = v2 * v2 - G0 * (G0 * d * d + 2 * h * v2), out = { d, h, v, brg: Math.atan2(dx, dz), lo: null, hi: null };
+  if (A < 0 || d < 0.5) return out; const r = Math.sqrt(A), mk = (a) => ({ el: a, tof: d / (v * Math.cos(a)) }); out.lo = mk(Math.atan2(v2 - r, G0 * d)); out.hi = mk(Math.atan2(v2 + r, G0 * d)); return out;
+}
+/* what each kind of piece can do. v: the charges (muzzle speeds, m/s) tried from the smallest; el: elevation limits in degrees; arc: which arc is chosen; min and max: range in metres; disp: the radius (m) rounds land in around the aim point */
+const PSPEC = {
+  mortar: { name: 'Mortar pit', short: 'Mortar', v: [70, 90, 110, 130, 150, 170], el: [45, 85], arc: 'hi', min: 90, max: 600, cool: 8, gap: 1.2, load: 0.6, ys: 1.3, ps: 0.28, col: '#e3a948', snd: 'wpn_mortar_launch', disp: (d) => clamp(6 + (d - 200) * 0.0545, 3, 40), R: 6.5, dmg: 100, crater: 2.5, depth: 0.8, mh: 0.9 },
+  howitzer: { name: 'Howitzer', short: 'Howitzer', v: [250], el: [-10, 85], arc: 'lo', min: 60, max: 760, cool: 14, gap: 2.4, load: 1.1, ys: 0.6, ps: 0.22, col: '#ff6b4a', snd: 'wpn_howitzer_fire', disp: (d) => clamp(10 + (d - 200) * 0.05, 8, 45), R: 11, dmg: 160, crater: 5, depth: 1.4, mh: 1.5 },
+  tank: { name: 'Tank cannon', short: 'Tank', v: [200], el: [-8, 20], arc: 'lo', min: 25, max: 420, col: '#7ad07a', disp: (d) => 2 + d * 0.012, mh: 1.9 },
+  naval: { name: 'Naval gun', short: 'Naval gun', v: [175], el: [-5, 25], arc: 'lo', min: 30, max: 560, col: '#5aa0ff', disp: (d) => 3 + d * 0.01, mh: 3 },
+};
+function pieceSolve(st, mx, my, mz, tx, tz) {                        // the first charge that reaches the point with an elevation the piece can take, on the arc it prefers (mortars high, guns low)
+  const ty = Math.max(heightAt(tx, tz), 0), lo = st.el[0] * D2R - 1e-6, hi = st.el[1] * D2R + 1e-6;
+  for (const v of st.v) { const sb = solveBall(mx, my, mz, tx, ty, tz, v), c = st.arc === 'hi' ? [['hi', sb.hi], ['lo', sb.lo]] : [['lo', sb.lo], ['hi', sb.hi]];
+    for (const [nm, a] of c) if (a && a.el >= lo && a.el <= hi) return { v, brg: sb.brg, d: sb.d, el: a.el, tof: a.tof, arc: nm, lo: sb.lo, hi: sb.hi, h: sb.h }; }
+  return null;
+}
+const SHELLS = [];
+const SHELLT = { he: 'High explosive', smoke: 'Smoke', illum: 'Illumination', inc: 'Incendiary', flech: 'Flechette', cluster: 'Cluster' };
+function shellLaunch(o) {
+  if (SHELLS.length >= 48) SHELLS.shift(); const st = o.st;
+  SHELLS.push({ x: o.x, y: o.y, z: o.z, px: o.x, py: o.y, pz: o.z, vx: o.vx, vy: o.vy, vz: o.vz, type: o.type, team: o.team, R: st.R || 4.5, dmg: st.dmg || 120, crater: st.crater === undefined ? 1.5 : st.crater, depth: st.depth || 0.5, mortar: o.kind === 'mortar', age: 0, wh: false, trT: 0, fm: o.fm, tx: o.tx, tz: o.tz });
+}
+function smokeBloom(x, z, m) { for (let i = 0; i < 16; i++) setTimeout(() => { for (let k = 0; k < 3; k++) { const px = x + rnd(-14, 14) * m, pz = z + rnd(-14, 14) * m; puffSmoke(px, Math.max(heightAt(px, pz), 0) + 1, pz, 5, false, 4 * m); } }, i * 1400); }
+const FLARE = { light: null, spr: null, on: false, t: 0, x: 0, y: 0, z: 0, gy: 0 };
+function flareInit() {                                               // one point light, made at load so the shaders are built once; it only ever has intensity
+  if (FLARE.light) return; FLARE.light = new THREE.PointLight(0xfff0c8, 0, 240, 2); scene.add(FLARE.light);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const c = cv.getContext('2d'), g = c.createRadialGradient(32, 32, 1, 32, 32, 30); g.addColorStop(0, 'rgba(255,250,225,1)'); g.addColorStop(0.3, 'rgba(255,230,160,0.55)'); g.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = g; c.fillRect(0, 0, 64, 64);
+  const tx = new THREE.CanvasTexture(cv); FLARE.spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); FLARE.spr.scale.set(9, 9, 1); FLARE.spr.visible = false; FLARE.spr.renderOrder = 9; scene.add(FLARE.spr);
+}
+function flareStart(x, y, z) { flareInit(); FLARE.on = true; FLARE.t = 0; FLARE.x = x; FLARE.y = y; FLARE.z = z; FLARE.spr.visible = true; Snd.fx('imp_blast_small', x, z, { gain: 0.5, far: 3, y }); }
+function flareStep(dt) {                                             // a flare that burns for about 40 s, drifting down on its parachute; the light fades in and out, no countdown anywhere
+  if (!FLARE.on) return; FLARE.t += dt; const t = FLARE.t, gy = Math.max(heightAt(FLARE.x, FLARE.z), 0);
+  FLARE.x += wind.v.x * 0.8 * dt; FLARE.z += wind.v.z * 0.8 * dt; FLARE.y = Math.max(gy + 38, FLARE.y - 3.2 * dt);
+  const k = clamp(t / 1.2, 0, 1) * (t > 33 ? clamp((40 - t) / 7, 0, 1) : 1), fl = 0.9 + 0.1 * Math.sin(simT * 21 + t * 3);
+  FLARE.light.position.set(FLARE.x, FLARE.y, FLARE.z); FLARE.light.intensity = 7000 * k * fl; FLARE.spr.position.set(FLARE.x, FLARE.y, FLARE.z); FLARE.spr.material.opacity = k * fl;
+  if (t >= 40) { FLARE.on = false; FLARE.light.intensity = 0; FLARE.spr.visible = false; }
+}
+function shellBurst(s, gs) {                                         // a shell reaches the ground
+  const t = s.type;
+  if (t === 'smoke') { smokeBloom(s.x, s.z, 0.6); Snd.fx('imp_blast_small', s.x, s.z, { gain: 0.7, far: 3, y: gs }); puffSmoke(s.x, gs + 1, s.z, 10, false, 2.2); }
+  else if (t === 'inc') { blast(s.x, gs, s.z, { R: 5, dmg: 45, crater: 1.4, depth: 0.5, owner: null }); burnArea(s.x, s.z, 11); }
+  else blast(s.x, gs, s.z, { R: s.R, dmg: s.dmg, crater: s.crater, depth: s.depth, owner: null });
+}
+function updateShells(dt) {
+  for (let i = SHELLS.length - 1; i >= 0; i--) {
+    const s = SHELLS[i]; s.age += dt; s.px = s.x; s.py = s.y; s.pz = s.z; const n = Math.max(1, Math.ceil(Math.hypot(s.vx, s.vy, s.vz) * dt / 8)), h = dt / n; let gone = false;
+    for (let k = 0; k < n && !gone; k++) {
+      s.vx += wind.v.x * 0.004 * h; s.vz += wind.v.z * 0.004 * h; s.vy -= G0 * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
+      const gh = heightAt(s.x, s.z), sea = gh < 0.3, gs = sea ? waveH(s.x, s.z, simT) : gh;
+      if ((s.type === 'illum' || s.type === 'flech' || s.type === 'cluster') && s.vy < 0 && s.tx !== undefined && Math.hypot(s.x - s.tx, s.z - s.tz) < 22) {      // air bursts: over the aim point on the way down, whatever the arc
+        if (s.type === 'illum') flareStart(s.x, gs + 90, s.z);
+        else if (s.type === 'flech') BOMBS.push({ x: s.x, y: gs + 25, z: s.z, vx: 0, vy: 0, vz: 0, g: 0, R: 0, dmg: 0, crater: 0, depth: 0, flech: 7 });
+        else BOMBS.push({ x: s.x, y: gs + 44, z: s.z, vx: 0, vy: -4, vz: 0, g: 9.8, R: s.R * 1.1, dmg: s.dmg * 1.2, crater: 0, depth: 0, cluster: true });
+        gone = true; break; }
+      if (s.y <= gs) { s.y = gs; shellBurst(s, gs); gone = true; break; }
+    }
+    if (gone) { SHELLS.splice(i, 1); continue; }
+    if (s.age > 70 || Math.abs(s.x) > EXT * 1.6 || Math.abs(s.z) > EXT * 1.6) { SHELLS.splice(i, 1); continue; }
+    addTracer(s.px, s.py, s.pz, s.x, s.y, s.z); s.trT -= dt; if (s.trT <= 0) { s.trT = 0.1; puffSmoke(s.x, s.y, s.z, 1, false, 0.35); }
+    if (!s.wh && s.vy < 0) { const gs = Math.max(heightAt(s.x, s.z), 0); if ((s.y - gs) / -s.vy < 1.7) { s.wh = true; Snd.fx(s.mortar ? 'wpn_mortar_whistle' : 'imp_shell_whistle', s.x, s.z, { gain: 0.8, far: 3, y: gs + 8 }); if (s.fm && s.team === BATTLE.team) fmSay('fm_splash', 3); } }
+  }
+}
+
+/* ---- a mortar pit or howitzer given a point: it swings to the bearing, elevates (visible for a second or two), loads, fires with recoil, flash and a heavy report, and the shell flies */
+function aimOffsets(n, spec) {
+  const pat = spec.pattern || 'single', sp = [0, 12, 30][spec.spread || 0] || 0, out = [];
+  for (let i = 0; i < n; i++) { let ox = 0, oz = 0;
+    if (pat === 'line' && n > 1) ox = (i - (n - 1) / 2) * 14; else if (pat === 'ring' && n > 1) { const a = i / n * 6.283; ox = Math.cos(a) * 22; oz = Math.sin(a) * 22; } else if (pat === 'scatter') { const a = Math.random() * 6.283, d = Math.random() * 30; ox = Math.cos(a) * d; oz = Math.sin(a) * d; }
+    if (sp) { const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * sp; ox += Math.cos(a) * d; oz += Math.sin(a) * d; }
+    out.push({ x: ox, z: oz }); }
+  return out;
+}
+const pieceAimPt = (J) => { const o = J.off[Math.min(J.i, J.off.length - 1)] || { x: 0, z: 0 }; return { x: J.base.x + o.x, z: J.base.z + o.z }; };
+function pieceFromCall(e, pt, byPlayer, opts) {                      // the old entry point (mortarShoot, batteryFire, the manned gun): checks range and crew, then gives the piece an order
+  const st = PSPEC[e.kind]; if (!st || !e.p) return false; const d = Math.hypot(pt.x - e.x, pt.z - e.z), o = opts || {};
+  if (d < st.min) { if (byPlayer) toast('Too close for the ' + st.short.toLowerCase() + '.'); return false; } if (d > st.max) { if (byPlayer) toast('Out of range for the ' + st.short.toLowerCase() + '.'); return false; }
+  if (e.job || e.cd > 0) { if (byPlayer) toast('The ' + st.short.toLowerCase() + (e.job ? ' is working.' : ' is recharging.')); return false; }
+  if (e.needCrew && !crewOK(e) && !e.manned) { if (byPlayer) toast('That gun needs a crew.'); return false; }
+  const rounds = o.rounds || (byPlayer ? ([1, 3, 6][TAB.size] || 3) : 3);
+  return pieceOrder(e, { x: pt.x, z: pt.z, follow: o.follow || null }, { type: o.type || (byPlayer ? (TAB.shell || 'he') : 'he'), rounds, spread: o.spread !== undefined ? o.spread : (byPlayer ? TAB.spread : 1), pattern: o.pattern || (byPlayer ? TAB.pattern : 'single'), fm: !!o.fm });
+}
+function pieceOrder(e, base, spec) {
+  const st = PSPEC[e.kind]; if (!st || e.job) return false; const sol = pieceSolve(st, e.x, e.y + st.mh, e.z, base.x, base.z); if (!sol) return false;
+  e.job = { base, off: aimOffsets(spec.rounds, spec), n: spec.rounds, i: 0, st: 'slew', t: 0, spec, team: e.p.owner || BATTLE.team || 'blue', sol, shots: 0 }; return true;
+}
+function pieceAimStep(e, brg, el, dt) {                              // swing and elevate: the chain model turns its own yaw and pitch nodes; the old models turn the whole group and tip the tube or barrel. Returns the error left (radians)
+  const st = PSPEC[e.kind], R = e.rig, how = e.kind === 'howitzer', gg = e.s.g; el = clamp(el, st.el[0] * D2R, st.el[1] * D2R);
+  if (R) {
+    if (how && brg !== null) { const lim = R.d.lim * D2R * 0.8, rel = wrap(brg - gg.rotation.y); if (Math.abs(rel) > lim) gg.rotation.y = wrap(gg.rotation.y + clamp(rel - Math.sign(rel) * lim * 0.6, -0.55 * dt, 0.55 * dt)); }     // the trails limit the traverse, so the whole piece walks round when the bearing is far off
+    return rigAim(R, brg === null ? gg.rotation.y + R.yawA : brg, el, dt, st.ys, st.ps);
+  }
+  const de = brg === null ? 0 : wrap(brg - gg.rotation.y); if (brg !== null) gg.rotation.y = wrap(gg.rotation.y + clamp(de, -1.2 * dt, 1.2 * dt)); e.s.aimYaw = gg.rotation.y;
+  e.elev += clamp(el - e.elev, -0.5 * dt, 0.5 * dt); if (e.tube) e.tube.rotation.x = 1.2566 - e.elev + e.kick * 0.05; if (e.s.barrel) { e.s.barrel.rotation.x = -e.elev; e.s.barrel.position.z = -e.kick * 0.35; }
+  return Math.max(Math.abs(de), Math.abs(el - e.elev));
+}
+function pieceShoot(e, J) {
+  const st = PSPEC[e.kind], R = e.rig, how = e.kind === 'howitzer', aim = pieceAimPt(J), s0 = J.sol;
+  if (R) rigMuzzle(R, 0, _mp, _md); else { _mp.set(e.x, e.y + st.mh + 0.8, e.z); _md.set(Math.sin(s0.brg) * Math.cos(s0.el), Math.sin(s0.el), Math.cos(s0.brg) * Math.cos(s0.el)); }
+  const r = Math.sqrt(Math.random()) * st.disp(s0.d), a = Math.random() * 6.283, tx = aim.x + Math.cos(a) * r, tz = aim.z + Math.sin(a) * r, ty = Math.max(heightAt(tx, tz), 0) + 0.2;
+  const sb = solveBall(_mp.x, _mp.y, _mp.z, tx, ty, tz, s0.v), arc = st.arc === 'hi' ? (sb.hi || sb.lo) : (sb.lo || sb.hi); if (!arc) return false; const cs = Math.cos(arc.el);
+  shellLaunch({ x: _mp.x, y: _mp.y, z: _mp.z, vx: Math.sin(sb.brg) * cs * s0.v, vy: Math.sin(arc.el) * s0.v, vz: Math.cos(sb.brg) * cs * s0.v, type: J.spec.type || 'he', team: J.team, st, kind: e.kind, fm: J.spec.fm, tx, tz });
+  fxG.emit(_mp.x + _md.x * 0.4, _mp.y + _md.y * 0.4, _mp.z + _md.z * 0.4, _md.x * 3, _md.y * 3, _md.z * 3, 0.3, how ? 3.2 : 1.8, 1.1, [1, 0.8, 0.4, 1]); puffSmoke(_mp.x + _md.x, _mp.y + _md.y, _mp.z + _md.z, how ? 6 : 4, false, how ? 1.1 : 0.8);
+  Snd.fx(st.snd, e.x, e.z, { gain: how ? 1.0 : 0.95, y: e.y + 2, far: how ? 4 : 3 }); dis.quake = Math.max(dis.quake, Math.hypot(e.x - camera.position.x, e.z - camera.position.z) < (how ? 60 : 25) ? (how ? 1.2 : 0.7) : 0);
+  if (R) R.kick = 1; else e.kick = 1; if (e.crewQ) e.crewQ.recoil = 1; if (J.shots === 0 && J.team === BATTLE.team && J.spec.fm) fmSay('fm_shot', 3);
+  return true;
+}
+function updatePiece0(e, dt) {
+  const st = PSPEC[e.kind], R = e.rig, how = e.kind === 'howitzer', J = e.job, manned = fp.on && fp.man === e; e.cd = Math.max(0, e.cd - dt); e.kick = Math.max(0, e.kick - dt * 2.5); if (R) rigStep(R, dt);
+  if (J) {
+    if (e.needCrew && !crewOK(e) && !manned) { pieceAimStep(e, null, R ? R.elA : e.elev, dt); return; }            // no crew, no progress
+    if (J.base.follow) { const p = J.base.follow(); if (p) { J.base.x = p.x; J.base.z = p.z; } }
+    const aim = pieceAimPt(J), sol = pieceSolve(st, e.x, e.y + st.mh, e.z, aim.x, aim.z); if (!sol) { e.job = null; e.cd = 2; return; } J.sol = sol;
+    const err = pieceAimStep(e, sol.brg, sol.el, dt); e.aimAt = aim; e.aimT = simT;
+    if (J.st === 'slew') { J.t += dt; if (err < 0.02 && J.t > (J.i === 0 ? 1.4 : 0.5)) { J.st = 'load'; J.t = 0; } }
+    else if (J.st === 'load') { J.t += dt; if (J.t >= st.load && err < 0.04) { if (pieceShoot(e, J)) { J.shots++; J.i++; } else J.i = J.n; if (J.i >= J.n) { e.job = null; e.cd = st.cool; } else { J.st = 'gap'; J.t = 0; } } }
+    else if (J.st === 'gap') { J.t += dt; if (J.t >= st.gap) { J.st = 'slew'; J.t = 0.45; } }
+    return;
+  }
+  if (manned) { const pt = aimPoint(); if (pt) { const sol = pieceSolve(st, e.x, e.y + st.mh, e.z, pt.x, pt.z); if (sol) pieceAimStep(e, sol.brg, sol.el, dt); } $('fpPrompt').textContent = st.short + ': ' + (e.cd > 0 ? 'Recharging' : 'Ready') + '. Aim at the ground and click to fire. E to leave.'; return; }
+  pieceAimStep(e, null, (RIGDEF[e.kind].rest) * D2R, dt);
+  const team = e.p.owner; if (!team || e.manned) return;
+  if (fp.on && !fp.man && fp.p && team === BATTLE.team && Math.hypot(e.x - fp.p.x, e.z - fp.p.z) < 4.5) noteOnce('emp' + e.x, how ? 'E: man this howitzer' : 'E: man this mortar');
+  if (how || (e.needCrew && !crewOK(e))) return;
+  e.think -= dt; if (e.think > 0 || e.cd > 0) return; e.think = 2.5; const t = mortarTarget(e, team); if (t) pieceFromCall(e, t, false);
+}
+
+/* ---- fire missions. FMS.m = { id, team, target { type 'person'|'vehicle'|'aircraft'|'ground', ref, x, y, z, alive }, executors [{ key, kind, ref, name, state, col }], mode 'destroy'|'suppress', state 'planning'|'active'|'done', sel (Set of option keys) }
+   Marking a target (crosshair, map tap, the tactical map, binoculars) opens the mission in planning. The Fire tab lists what could fire on it; Execute starts every ticked one; the mission ends by itself when a person or vehicle target is destroyed. */
+Object.assign(VLINES, { fm_start: ['Fire mission, on your mark'], fm_shot: ['Shot, over'], fm_splash: ['Splash'], fm_destroyed: ['Target destroyed'], fm_cease: ['Cease fire'] });
+const FMS = { m: null, id: 0, dt: 0.016, gid: 0 };
+const gid = (r) => r.__gid || (r.__gid = ++FMS.gid);
+function fmSay(key, pri) {                                           // a squad voice line when a mission starts, fires, lands or ends
+  try {
+    if (!BATTLE.on || !BATTLE.team) return; let q = null; for (const m of SQD.mates) if (m.state !== 'rag' && m.bot) { q = m; break; }
+    if (!q) { let bd = 1e9; const px = fp.on && fp.p ? fp.p.x : god.tgt.x, pz = fp.on && fp.p ? fp.p.z : god.tgt.z; for (const m of people) { const b = m.bot; if (!b || b.team !== BATTLE.team || m.state === 'rag' || b.dead) continue; const d = Math.hypot(m.x - px, m.z - pz); if (d < bd) { bd = d; q = m; } } }
+    if (q) vsay(q, key, pri || 3);
+  } catch (e) { }
+}
+function fmDetect(pt, team, o) {                                     // what is within about 6 m of the point: the nearest living enemy person, vehicle or aircraft, else ground
+  let best = null, bd = 6; const en = otherTeam(team);
+  for (const q of people) { if (teamOf(q) !== en || q.state === 'rag' || q.hp <= 0 || q.hoist || q.vin || (o && o.vis && !o.vis(q))) continue; const d = Math.hypot(q.x - pt.x, q.z - pt.z); if (d < bd) { bd = d; best = { type: 'person', ref: q }; } }
+  for (const v of BVL) { if (v.dead || v.team === team || (o && o.vis && !o.vis(v))) continue; const d = Math.max(0, Math.hypot(v.x - pt.x, v.z - pt.z) - v.rad * 0.7); if (d < bd) { bd = d; best = { type: 'vehicle', ref: v }; } }
+  for (const u of AIR.list) { if (u.down || u.team === team || u.kind === 'strike') continue; let d = 1e9; if (o && o.ray) { const v3 = new THREE.Vector3(u.x - o.ray.o.x, u.y - o.ray.o.y, u.z - o.ray.o.z), t = v3.dot(o.ray.d); if (t > 5 && t < 800) d = v3.addScaledVector(o.ray.d, -t).length() - u.rad; } else if (o && o.air) d = Math.hypot(u.x - pt.x, u.z - pt.z) - u.rad;
+    if (d < 4 && d < bd + 4) { bd = Math.max(0, d); best = { type: 'aircraft', ref: u }; } }
+  return best;
+}
+function fmTargetName(t) {
+  if (t.type === 'person') return 'enemy ' + ((t.ref && t.ref.role && t.ref.role !== 'You') ? t.ref.role.toLowerCase() : 'soldier'); if (t.type === 'vehicle') return 'enemy ' + (t.ref && t.ref.sp ? t.ref.sp.name.toLowerCase() : 'vehicle');
+  if (t.type === 'aircraft') return 'enemy ' + (AIRNAME[t.ref.kind] || 'aircraft'); return 'open ground';
+}
+function fmTargetNow(m) {                                            // the target's position this moment; alive turns false when a person is down, a vehicle is wrecked or an aircraft has fallen
+  const t = m.target, r = t.ref; if (!r) { t.alive = true; t.y = Math.max(heightAt(t.x, t.z), 0); return t; }
+  if (t.type === 'person') { t.alive = people.includes(r) && r.state !== 'rag' && r.hp > 0; if (t.alive) { t.x = r.x; t.z = r.z; t.y = r.y; } }
+  else if (t.type === 'vehicle') { t.alive = !r.dead && BVL.includes(r); if (t.alive) { t.x = r.x; t.z = r.z; t.y = r.y + 1; } }
+  else { t.alive = !r.down && AIR.list.includes(r); if (t.alive) { t.x = r.x; t.z = r.z; t.y = r.y; } }
+  return t;
+}
+function fmHealth(t) { const r = t.ref; if (!r) return null; if (t.type === 'person') return clamp(Math.round(r.hp), 0, 100); if (t.type === 'vehicle') return clamp(Math.round(r.hp / (r.hpMax || r.hp || 1) * 100), 0, 100); return clamp(Math.round(r.hp / (r.hpMax || r.hp || 1) * 100), 0, 100); }
+function fmMark(pt, o) {                                             // mark a target: opens a fire mission in planning (null clears the marker and the mission)
+  if (!pt) { if (FMS.m) fmStandDown(FMS.m, true); FMS.m = null; setMarkerRaw(null); fmvHide(); return; }
+  const team = tabletSide(); if (FMS.m) fmStandDown(FMS.m, true); setMarkerRaw(pt);
+  let tg = null; if (o && o.ref) tg = { type: o.type, ref: o.ref }; else { let ray = null; if (fp.on && !(o && o.noray)) { camera.getWorldPosition(_o); camera.getWorldDirection(_d); ray = { o: _o.clone(), d: _d.clone() }; } tg = BATTLE.on || BVL.length || AIR.list.length ? fmDetect(pt, team, { ray, air: !!(o && o.air), vis: o && o.vis }) : null; }
+  const m = FMS.m = { id: ++FMS.id, team, target: { type: tg ? tg.type : 'ground', ref: tg ? tg.ref : null, x: pt.x, y: 0, z: pt.z, alive: true }, executors: [], sel: new Set(), mode: tg ? 'destroy' : 'suppress', state: 'planning', t0: simT, tickT: 0, vel: { x: 0, z: 0 }, lx: pt.x, lz: pt.z, tp: { x: pt.x, z: pt.z } };
+  fmTargetNow(m); if (tg) toast('Target marked: ' + fmTargetName(m.target) + '. Open the Fire tab to choose what fires on it.'); fmSay('fm_start'); if (typeof TMAP !== 'undefined') { TMAP.aim = null; TMAP.dirty = true; }
+  if (!$('tablet').hidden) renderTablet();
+}
+function fmClearMarker() { if (TAB.aim === 'marker') TAB.aim = 'tap'; fmMark(null); toast('Marker cleared.'); }
+/* what could fire on this target, with its state: Ready, Recharging, Active, Out of range, Needs crew (and a few more plain words) */
+function fmEnumerate(m) {
+  const t = fmTargetNow(m), team = m.team, out = [], air = t.type === 'aircraft', dist = (x, z) => Math.hypot(x - t.x, z - t.z); const add = (o) => out.push(o);
+  if (!air) {
+    for (const e of AAS) { if ((e.kind !== 'mortar' && e.kind !== 'howitzer') || e.p.owner !== team) continue; const st = PSPEC[e.kind], d = dist(e.x, e.z);
+      const s = e.manned ? 'Manned' : (e.needCrew && !crewOK(e)) ? 'Needs crew' : (d < st.min || d > st.max) ? 'Out of range' : e.job ? 'Active' : e.cd > 0 ? 'Recharging' : 'Ready';
+      add({ key: 'g' + gid(e), kind: 'gun', ref: e, name: st.name + ' at ' + e.p.name, icn: e.kind === 'mortar' ? 'mortar' : 'arty', band: st.min + ' to ' + st.max + ' m', dist: d, state: s, col: st.col }); }
+    for (const bt of boats) { if (bt.sunk || !bt.mounts || !bt.mounts.length) continue; const heavy = bt.mounts.filter(mt => mt.k !== 'mg'); if (!heavy.length) continue; const mine = team === 'blue' ? !(bt.raider || bt.side === 'hostile') : !!(bt.raider || bt.side === 'hostile'); if (!mine) continue;
+      const rng = Math.max(...heavy.map(mt => mt.w.range)), bp = bt.body.position, d = dist(bp.x, bp.z), s = !boatCrew(bt).length ? 'Needs crew' : d > rng ? 'Out of range' : heavy.some(mt => mt.cd <= 0) ? 'Ready' : 'Recharging';
+      add({ key: 'n' + gid(bt), kind: 'naval', ref: bt, name: bt.sp.name + ' guns', icn: 'boat', band: '30 to ' + rng + ' m', dist: d, state: s, col: PSPEC.naval.col }); }
+    for (const v of BVL) { if (v.dead || v.team !== team || !v.sp.gun || v === fp.veh || !v.ai) continue; const G = v.sp.gun, d = dist(v.x, v.z);
+      const s = (v.fm && v.fm.m === m) ? 'Active' : (v.ai.sq || v.ai.st === 'load' || v.ai.st === 'drop') ? 'Busy' : d > 650 ? 'Out of range' : 'Ready';
+      add({ key: 'v' + gid(v), kind: 'veh', ref: v, name: v.sp.name, icn: 'chevrons', band: 'gun reaches ' + G.range + ' m', dist: d, state: s, col: '#7ad07a' }); }
+    for (const u of AIR.list) { if (u.down || u.team !== team || u.bv || !(u.kind === 'griffon' || u.kind === 'cobra' || u.kind === 'gunship')) continue;
+      add({ key: 'a' + gid(u), kind: 'air', ref: u, name: AIRNAME[u.kind].charAt(0).toUpperCase() + AIRNAME[u.kind].slice(1) + ' overhead', icn: 'heli', band: 'orbits the target', dist: dist(u.x, u.z), state: (u.fmP && u.fmP.m === m) ? 'Active' : 'Ready', col: '#6ab0ff' }); }
+    for (const [ck, nm, icn, k] of [['strike', 'Air strike run', 'jet', 'st'], ['arty', 'Artillery barrage', 'arty', 'ar'], ['griffon', 'Griffon cover', 'heli', 'gr'], ['cobra', 'Attack helicopter', 'heli', 'co'], ['gunship', 'Gunship cover', 'heli', 'gs']]) {
+      if (!BATTLE.on && ck !== 'strike' && ck !== 'arty') continue; const wait = AIR.cd[team][k] > 0 && !CHEAT.free, up = ck === 'gunship' && gunshipUp(team);
+      add({ key: 'c' + ck, kind: 'call', ref: ck, name: nm, icn, band: 'called in', dist: 0, state: up ? 'Busy' : wait ? 'Recharging' : 'Ready', col: '#6ab0ff' }); }
+    if (fp.on && SQD.on && SQD.mates.some(q => q.state !== 'rag')) add({ key: 'squad', kind: 'squad', ref: null, name: 'Your squad', icn: 'person', band: t.type === 'ground' ? 'suppress the spot' : 'assault', dist: 0, state: 'Ready', col: '#f1ece2' });
+    else if (BATTLE.on) { const sq = nearestSquad(team, t); add({ key: 'squad', kind: 'squad', ref: null, name: 'Nearest squad', icn: 'person', band: 'moves to the spot', dist: 0, state: sq ? 'Ready' : 'Needs crew', col: '#f1ece2' }); }
+    if (t.type === 'person' && BATTLE.on) { const snp = []; for (const q of people) { const b = q.bot; if (!b || b.team !== team || q.state === 'rag' || b.dead || q.vin || b.crew || !(b.cls === 'sniper' || b.cls === 'marksman')) continue; const w = WPN[b.w], d = dist(q.x, q.z); if (!w) continue; snp.push({ q, b, w, d }); }
+      snp.sort((a, b) => a.d - b.d); for (const { q, b, w, d } of snp.slice(0, 4)) { const los = d < w.range && losFull(q.x, q.y + 1.5, q.z, t.x, t.y + 1.2, t.z); add({ key: 's' + gid(q), kind: 'sniper', ref: q, name: callsignOf(q) + ' (' + (b.cls === 'sniper' ? 'sniper' : 'marksman') + ')', icn: 'scope', band: 'rifle reaches ' + w.range + ' m', dist: d, state: b.fmT === m ? 'Active' : los ? 'Ready' : d > w.range * 1.3 ? 'Out of range' : 'No line of sight', col: '#5ee0e0' }); } }
+    if (t.type === 'vehicle' && BATTLE.on) { const at = []; for (const q of people) { const b = q.bot; if (!b || b.team !== team || q.state === 'rag' || b.dead || q.vin || b.crew || !(b.cls === 'engineer' || b.w === 'rpg' || b.cls === 'rpg')) continue; at.push({ q, b, d: dist(q.x, q.z) }); }
+      at.sort((a, b) => a.d - b.d); for (const { q, b, d } of at.slice(0, 3)) add({ key: 'r' + gid(q), kind: 'rpg', ref: q, name: callsignOf(q) + ' (anti-armour)', icn: 'missile', band: 'rocket reaches 75 m', dist: d, state: b.fmT === m ? 'Active' : d > 130 ? 'Out of range' : 'Ready', col: '#ff9a3a' }); }
+  }
+  for (const e of AAS) { if ((e.kind !== 'mg' && e.kind !== 'aa') || e.p.owner !== team) continue; const aa = e.kind === 'aa'; if (aa !== air || (!aa && t.type === 'ground')) continue;
+    const gy = e.y + 1.5, d = air ? Math.hypot(e.x - t.x, e.z - t.z, gy - t.y) : dist(e.x, e.z), rng = aa ? 340 : 160;
+    const s = e.manned ? 'Manned' : (e.needCrew && !crewOK(e)) ? 'Needs crew' : d > rng ? 'Out of range' : (!aa && !losFull(e.x, gy, e.z, t.x, t.y + 1, t.z)) ? 'No line of sight' : (e.fmTgt === m ? 'Active' : 'Ready');
+    add({ key: 'e' + gid(e), kind: 'nest', ref: e, name: (aa ? (e.rig && e.rig.kind === 'flak' ? 'Flak gun' : 'Anti-air gun') : 'Machine gun nest') + ' at ' + e.p.name, icn: aa ? 'aa' : 'belt', band: 'reaches ' + rng + ' m', dist: d, state: s, col: '#ffe45c' }); }
+  const rank = { Active: 0, Ready: 1, Recharging: 2, Busy: 3, 'No line of sight': 4, 'Out of range': 5, 'Needs crew': 6, Manned: 7 }; out.sort((a, b) => (rank[a.state] - rank[b.state]) || (a.dist - b.dist)); return out;
+}
+const fmCan = (s) => s === 'Ready' || s === 'Recharging' || s === 'Active';
+function fmStart(m, o) {                                             // give one chosen executor its orders
+  const t = m.target, ex = { key: o.key, kind: o.kind, ref: o.ref, name: o.name, state: 'Active', col: o.col, t: 0 }, team = m.team;
+  if (o.kind === 'veh') { const v = o.ref; v.fm = { m, ex }; if (v.ai && (v.ai.sq || v.ai.st === 'load' || v.ai.st === 'drop')) bvAIRelease(v); if (v.ai) { v.ai.kind = 'fm'; v.ai.t = 0; } }
+  else if (o.kind === 'air') { const u = o.ref; u.wasManual = u.manual; u.manual = true; u.tgt = m.tp; u.fmP = { m, ex }; u.life = Math.max(u.life, 35); u.leaving = false; }
+  else if (o.kind === 'sniper' || o.kind === 'rpg') { if (o.ref.bot) o.ref.bot.fmT = m; }
+  else if (o.kind === 'nest') o.ref.fmTgt = m;
+  else if (o.kind === 'call' && o.ref !== 'strike' && o.ref !== 'arty') { const u = fmCallAir(m, o.ref); if (!u) return null; u.fmP = { m, ex }; ex.ref = u; ex.kind = 'air'; ex.name = o.name; }
+  return ex;
+}
+function fmCallAir(m, kind) {                                        // a Griffon, an attack helicopter or the gunship called in on the target: it orbits the target, which it follows
+  const team = m.team, k = AIRKEY[kind], c = AIR.cd[team]; if (!BATTLE.on) return null; if (c[k] > 0 && !CHEAT.free) return null; if (kind === 'gunship' && gunshipUp(team)) return null;
+  ensureAir(); const u = airSpawn(team, kind, m.tp); if (!u) return null; if (!CHEAT.free) c[k] = { griffon: 70, gunship: 180, cobra: 110 }[kind] || 90; u.life += kind === 'gunship' ? 10 : 25; u.wasManual = true; return u;
+}
+function fmExecute() {
+  const m = FMS.m; if (!m || m.state === 'active') return; if (!m.sel.size) { toast('Tick at least one to fire.'); return; }
+  const opts = fmEnumerate(m).filter(o => m.sel.has(o.key) && fmCan(o.state)); if (!opts.length) { toast('None of those can fire on it right now.'); return; }
+  if (!cmdReady()) return; cmdCharge('arty');
+  m.executors = opts.map(o => fmStart(m, o)).filter(Boolean); if (!m.executors.length) { toast('Nothing could take the order.'); return; }
+  m.state = 'active'; m.t0 = simT; m.tickT = 0; toast('Fire mission started. ' + m.executors.length + (m.executors.length === 1 ? ' unit' : ' units') + ' on the way.'); fmSay('fm_start'); if (!$('tablet').hidden) renderTablet();
+}
+function fmStandDown(m, quiet) {                                     // every executor is released; the mission goes back to planning
+  for (const ex of m.executors) {
+    const r = ex.ref;
+    if (ex.kind === 'veh') { if (r.fm && r.fm.m === m) r.fm = null; if (r.ai) { r.ai.fm = false; r.ai.st = 'idle'; r.ai.t = 0; r.ai.kind = ''; r.ai.path = null; } }
+    else if (ex.kind === 'air') { if (r.fmP && r.fmP.m === m) { r.fmP = null; r.manual = !!r.wasManual; } }
+    else if (ex.kind === 'sniper' || ex.kind === 'rpg') { if (r.bot && r.bot.fmT === m) r.bot.fmT = null; if (r.order) { r.order = null; r.route = null; } }
+    else if (ex.kind === 'nest') { if (r.fmTgt === m) r.fmTgt = null; }
+    else if (ex.kind === 'gun') { if (r.job && r.job.spec.fm) { r.job = null; r.cd = Math.max(r.cd, 3); } }
+    else if (ex.kind === 'squad' && fp.on && SQD.on && fp.p) sqdApply({ k: 'follow', n: ++SQD.ordN, t: simT, x: fp.p.x, z: fp.p.z, y: fp.p.y, e: null, until: 0 });
+  }
+  m.executors = []; if (m.state === 'active') m.state = 'planning'; if (!quiet) { toast('Cease fire.'); fmSay('fm_cease'); }
+}
+function fmCease() { const m = FMS.m; if (m) { fmStandDown(m); fmvHide(); } const side = tabletSide(); for (const e of AAS) if (e.job && (e.kind === 'mortar' || e.kind === 'howitzer') && e.p.owner === side) { e.job = null; e.cd = Math.max(e.cd, 3); } if (!$('tablet').hidden) renderTablet(); if (typeof TMAP !== 'undefined') TMAP.dirty = true; }
+function fmFinish(m) {                                               // a person or vehicle target is down: the marker goes, everyone stands down
+  fmStandDown(m, true); m.state = 'done'; toast('Target destroyed'); fmSay('fm_destroyed', 4); setMarkerRaw(null); FMS.m = null; fmvHide(); if (TAB.aim === 'marker') TAB.aim = 'tap'; if (!$('tablet').hidden) renderTablet(); if (typeof TMAP !== 'undefined') TMAP.dirty = true;
+}
+function fmReset() {                                                // a battle stops: no mission, no shells in the air, no flare, nothing picked on the map
+  if (FMS.m) fmStandDown(FMS.m, true); FMS.m = null; fmvHide(); SHELLS.length = 0; if (FLARE.on) { FLARE.on = false; if (FLARE.light) FLARE.light.intensity = 0; if (FLARE.spr) FLARE.spr.visible = false; } if (typeof TMAP !== 'undefined') { TMAP.sel.clear(); TMAP.aim = null; GUNS.length = 0; TMAP.psig = ''; if (TMAP.open) tmClose(); }
+}
+const fmDeselect = () => { const m = FMS.m; if (!m) return; m.sel.clear(); if (m.state === 'active') fmStandDown(m); fmvHide(); if (!$('tablet').hidden) renderTablet(); };
+const fmDist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+function fmLead(m, tof) { const t = m.target; return { x: t.x + m.vel.x * tof, z: t.z + m.vel.z * tof }; }
+function fmRocket(q, t) {                                            // an anti-armour soldier fires a rocket at a vehicle (the same rocket the engineers use)
+  const v = t.ref, l = Math.max(1, Math.hypot(v.x - q.x, v.z - q.z)), ex = v.x + rnd(-1.6, 1.6) - q.x, ez = v.z + rnd(-1.6, 1.6) - q.z, ey = v.y + 1.2 - (q.y + 1.3), el = Math.hypot(ex, ey, ez);
+  MIS.push({ x: q.x, y: q.y + 1.3, z: q.z, vx: ex / el * 40, vy: ey / el * 40, vz: ez / el * 40, tgt: null, age: 0, sp: 40, rpg: true, R: 9, dmg: 150, crater: 3, owner: q }); Snd.fx('veh_gun_fire', q.x, q.z, { gain: 0.7, y: q.y + 1.5 }); q.heading = Math.atan2(v.x - q.x, v.z - q.z);
+}
+function fmTick(m) {                                                 // twice a second or so: every executor does its part. Guns fire when they are ready, vehicles drive into range, bots move to engage.
+  const t = m.target, team = m.team, ground = t.type === 'ground' || m.mode === 'suppress', rounds = [1, 3, 6][TAB.size] || 3;
+  for (const ex of m.executors) {
+    const r = ex.ref;
+    if (ex.kind === 'gun') {
+      const st = PSPEC[r.kind];
+      if (r.job) ex.state = 'Active'; else if (r.cd > 0) ex.state = 'Recharging'; else if (r.needCrew && !crewOK(r)) ex.state = 'Needs crew'; else { const d = fmDist(r, t);
+        if (d < st.min || d > st.max) ex.state = 'Out of range'; else if (pieceFromCall(r, { x: t.x, z: t.z }, false, { rounds, type: TAB.shell || 'he', spread: ground ? Math.max(1, TAB.spread) : TAB.spread, pattern: TAB.pattern, fm: true, follow: ground ? null : () => fmLead(m, r.job && r.job.sol ? r.job.sol.tof : 5) })) ex.state = 'Active'; }
+    } else if (ex.kind === 'naval') {
+      const bt = r, bp = bt.body.position; if (bt.sunk) { ex.state = 'Out of range'; continue; } if (!boatCrew(bt).length) { ex.state = 'Needs crew'; continue; }
+      const tgt = { body: { position: { x: t.x, y: (t.y || 0) - 1.6, z: t.z }, velocity: { x: m.vel.x, y: 0, z: m.vel.z } } }; let fired = false;
+      for (const mt of bt.mounts) { if (mt.k === 'mg') continue; if (Math.hypot(t.x - bp.x, t.z - bp.z) > mt.w.range) continue; if (mt.mesh) mt.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(t.z - bp.z), t.x - bp.x) - boatYaw(bt)); if (mt.cd <= 0) { fireShot(bt, mt, tgt); mt.cd = mt.w.reload; fired = true; } }
+      ex.state = fired ? 'Active' : 'Recharging';
+    } else if (ex.kind === 'veh') { ex.state = r.dead ? 'Out of range' : 'Active'; }
+    else if (ex.kind === 'air') { ex.state = r.down ? 'Out of range' : 'Active'; if (r.down) r.fmP = null; }
+    else if (ex.kind === 'call') {
+      const k = r === 'strike' ? 'st' : 'ar', c = AIR.cd[team], free = !BATTLE.on, pt = fmLead(m, 6);
+      if (c[k] > 0 && !free && !CHEAT.free) { ex.state = 'Recharging'; continue; } if (!t.alive && m.mode === 'destroy') continue;
+      if (r === 'strike') ex.state = callStrike(team, pt, free || CHEAT.free) ? 'Active' : 'Recharging'; else ex.state = callArty(team, pt, free || CHEAT.free) ? 'Active' : 'Recharging';
+    } else if (ex.kind === 'squad') {
+      ex.t -= 0.4; if (ex.t > 0) continue; ex.t = 6;
+      if (fp.on && SQD.on && fp.p && SQD.mates.length) { const k = ground ? 'suppress' : 'attack'; sqdApply({ k, n: ++SQD.ordN, t: simT, x: t.x, z: t.z, y: t.y, e: t.type === 'person' ? t.ref : null, until: k === 'suppress' ? simT + 8 : 0 }); ex.state = 'Active'; }
+      else { ex.state = sendSquad(team, t, 60) ? 'Active' : 'Needs crew'; }
+    } else if (ex.kind === 'sniper') {
+      const b = r.bot; if (!b || r.state === 'rag' || b.dead) { ex.state = 'Out of range'; continue; } const w = WPN[b.w], d = fmDist(r, t), los = d < w.range && losFull(r.x, r.y + 1.5, r.z, t.x, t.y + 1.2, t.z); b.fmT = m;
+      if (los) { if (r.order && r.order === b.myOrder) { r.order = null; r.route = null; b.myOrder = null; } ex.state = 'Active'; }
+      else if (!r.climb && !r.plat && !r.order) { const k = Math.min(30, Math.max(8, d - w.range * 0.7)) / Math.max(d, 1); const nx = r.x + (t.x - r.x) * k, nz = r.z + (t.z - r.z) * k; if (standY(nx, nz) > 0.5) { setFootOrder(r, nx, nz); b.myOrder = r.order; r.run = true; b.cmdUntil = simT + 6; } ex.state = 'Active'; }
+    } else if (ex.kind === 'rpg') {
+      const b = r.bot; if (!b || r.state === 'rag' || b.dead || t.type !== 'vehicle') { ex.state = 'Out of range'; continue; } const d = fmDist(r, t), los = d < 75 && losFull(r.x, r.y + 1.3, r.z, t.x, t.y + 0.2, t.z); b.fmT = m;
+      if (los) { if (r.order) { r.order = null; r.route = null; b.myOrder = null; } if ((b.rpgT || 0) < simT) { b.rpgT = simT + 7 + Math.random() * 3; fmRocket(r, t); } ex.state = 'Active'; }
+      else if (!r.climb && !r.plat && (!r.order || simT - (ex.mvT || 0) > 3)) { ex.mvT = simT; const k = Math.min(24, Math.max(6, d - 50)) / Math.max(d, 1); const nx = r.x + (t.x - r.x) * k, nz = r.z + (t.z - r.z) * k; if (standY(nx, nz) > 0.5) { setFootOrder(r, nx, nz); b.myOrder = r.order; r.run = true; b.cmdUntil = simT + 6; } ex.state = 'Active'; }
+    } else if (ex.kind === 'nest') { ex.state = r.fmTgt === m ? 'Active' : 'Out of range'; }
+  }
+}
+/* hooks used by the rest of the game */
+function fmNestPick0(e, aa, gy) {                                     // a gun nest told to engage the mission target: returns { air } or { person }; a vehicle is shot at here
+  const m = e.fmTgt; if (FMS.m !== m || !m || m.state !== 'active') { e.fmTgt = null; return null; } const t = m.target; if (!t.alive) return null;
+  if (aa) return t.type === 'aircraft' && Math.hypot(e.x - t.x, e.z - t.z, gy - t.y) < 340 ? { air: t.ref } : null;
+  const d = Math.hypot(e.x - t.x, e.z - t.z); if (d >= 160 || !losFull(e.x, gy, e.z, t.x, t.y + 1, t.z)) return null;
+  if (t.type === 'person') return { person: t.ref };
+  if (t.type === 'vehicle') { let err = 0; if (e.rig) err = rigAim(e.rig, Math.atan2(t.x - e.x, t.z - e.z), Math.atan2(t.y - gy, d), FMS.dt, e.rig.d.ys * 1.4, e.rig.d.ps * 1.4); e.aimAt = { x: t.x, z: t.z }; e.aimT = simT;
+    if (e.cd <= 0 && err < 0.12) { e.cd = 0.12; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, t.x + rnd(-1.5, 1.5), t.y + rnd(-0.5, 0.5), t.z + rnd(-1.5, 1.5)); empShot(e, gy); if (Math.random() < 0.3) damageVehicle(t.ref, 4 * (t.ref.sp.arm || 1), e.p.owner, 'Machine gun nest'); } }
+  return null;
+}
+function fmBotTarget0(q, b) {                                         // a sniper or marksman told to shoot the mission target: it, while it is a person in range and in view
+  const m = b.fmT; if (!m || FMS.m !== m || m.state !== 'active') { b.fmT = null; return null; } const t = m.target; if (t.type !== 'person' || !t.alive) return null; const w = WPN[b.w]; if (!w || fmDist(q, t) > w.range) return null;
+  return losFull(q.x, q.y + 1.5, q.z, t.x, eyeOf(t.ref), t.z) ? t.ref : null;
+}
+function fmAirPerson0(u, R) { const f = u.fmP; if (!f || FMS.m !== f.m || f.m.state !== 'active') { u.fmP = null; u.manual = !!u.wasManual; return null; } const t = f.m.target; return t.type === 'person' && t.alive && Math.hypot(t.x - u.x, t.z - u.z) < R ? t.ref : null; }
+function fmAirExtra0(u, dt) {                                         // an aircraft told to cover a target keeps orbiting it, and shoots at a vehicle or at open ground
+  const f = u.fmP, m = f && f.m; if (!m || FMS.m !== m || m.state !== 'active') { u.fmP = null; u.manual = !!u.wasManual; return; } const t = m.target; if (t.type === 'person' || !t.alive) return; u.tgt = m.tp; u.life = Math.max(u.life, 12);
+  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; if (Math.hypot(t.x - u.x, t.z - u.z) > R) return; aimGuns(u, t.x, t.y, t.z, dt);
+  u.fmT = (u.fmT || 0) - dt; if (u.fmT <= 0) { u.fmT = gun ? 0.12 : cob ? 0.14 : 0.16; const j = t.type === 'ground' ? 7 : 2.2, ex = t.x + rnd(-j, j), ez = t.z + rnd(-j, j), ey = t.type === 'ground' ? Math.max(heightAt(ex, ez), 0) : t.y;
+    addTracer(u.x + Math.cos(u.hd) * 2.2, u.y - 1, u.z - Math.sin(u.hd) * 2.2, ex, ey, ez); if (Math.random() < 0.2) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
+    if (t.type === 'vehicle' && Math.random() < 0.45) damageVehicle(t.ref, gun ? 7 : 5, u.team, 'Air support'); else if (t.type === 'ground') impactFx('land', null, { x: ex, y: ey, z: ez }, 60); }
+  u.fmS = (u.fmS || 0) - dt; if ((gun || cob) && u.fmS <= 0) { u.fmS = gun ? 7 : 8; AIR.shells.push({ x: t.x + rnd(-4, 4), z: t.z + rnd(-4, 4), t: gun ? 1.6 : 0.9, T: gun ? 1.6 : 0.9, team: u.team, y0: u.y, ox: u.x, oz: u.z, R: gun ? 11 : 6, dmg: gun ? 150 : 95, crater: gun ? 4 : 1.5, depth: 0.6 }); Snd.fx(gun ? 'veh_gunship_cannon' : 'veh_gun_fire', u.x, u.z, { gain: 1.0, far: 3, y: u.y }); }
+}
+function fmVehThink0(v, A, drv, now) {                                // an AI vehicle with a mission target drives to a firing spot and holds there; true means the usual mission logic is skipped
+  const f = v.fm, m = f.m; if (FMS.m !== m || !m || m.state !== 'active') { v.fm = null; A.fm = false; A.st = 'idle'; A.t = 0; A.kind = ''; return false; }
+  if (!drv) { if (!bvCrew(v)) return true; return true; } const t = m.target, G = v.sp.gun; if (!G) { v.fm = null; return false; }
+  if (A.sq || A.st === 'load' || A.st === 'drop') { bvAIRelease(v); } A.kind = 'fm';
+  const d = fmDist(v, t), want = Math.min(G.range * 0.7, v.sp.tracked ? 170 : 110), los = t.type === 'ground' ? d < G.range * 0.9 : losFull(v.x, v.y + v.sp.cy, v.z, t.x, t.y + 1, t.z);
+  if (d <= want * 1.15 && los) { A.st = 'hold'; A.hold = 30; A.path = null; return true; }
+  const g = bvStand(v, t, Math.max(18, Math.min(want * 0.9, d - 8)));
+  if (A.st === 'hold' || !A.goal || Math.hypot(A.goal.x - g.x, A.goal.z - g.z) > 30) { A.goal = g; A.arrived = false; if (bvAIPlan(v, g.x, g.z)) A.st = 'go'; }
+  else if (A.st === 'go' && !A.path && !A.req && simT - (A.lastPlan || -9) > 3 && !A.arrived) bvAIPlan(v, A.goal.x, A.goal.z);
+  if (A.arrived) { A.arrived = false; A.st = 'hold'; A.hold = 20; }
+  return true;
+}
+function fmVehAim0(v, A) { const f = v.fm, m = f && f.m; if (!m || FMS.m !== m || m.state !== 'active') return; const t = m.target; if (!t.alive) return; const G = v.sp.gun, d = fmDist(v, t); if (d > G.range) { return; } A.has = true; A.x = t.x; A.y = t.y + 1; A.z = t.z; A.jx = t.type === 'ground' ? rnd(-4, 4) : A.jx; A.jz = t.type === 'ground' ? rnd(-4, 4) : A.jz; A.los = t.type === 'ground' || losFull(v.x, v.y + v.sp.cy, v.z, t.x, t.y + 1, t.z); }
+
+/* ---- the rings, the lines to the target and the pulsing ring on it: a fixed pool, nothing is made per frame */
+const FMV = { g: null, rings: [], lpos: null, lcol: null, lines: null, tg: null, n: 0, init: false };
+function fmvInit() {
+  if (FMV.init) return; FMV.init = true; const g = new THREE.Group(), rg = new THREE.RingGeometry(1.5, 1.95, 28).rotateX(-Math.PI / 2);
+  for (let i = 0; i < 18; i++) { const r = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); r.visible = false; r.renderOrder = 9; g.add(r); FMV.rings.push(r); }
+  FMV.lpos = new Float32Array(18 * 6); FMV.lcol = new Float32Array(18 * 6); const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(FMV.lpos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(FMV.lcol, 3)); geo.setDrawRange(0, 0);
+  FMV.lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8, depthTest: false })); FMV.lines.frustumCulled = false; FMV.lines.renderOrder = 9; g.add(FMV.lines);
+  FMV.tg = new THREE.Mesh(new THREE.RingGeometry(3.0, 3.7, 36).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff4a2a, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide })); FMV.tg.visible = false; FMV.tg.renderOrder = 9; g.add(FMV.tg);
+  FMV.g = g; scene.add(g);
+}
+function fmvHide() { if (!FMV.init) return; for (const r of FMV.rings) r.visible = false; FMV.lines.geometry.setDrawRange(0, 0); FMV.tg.visible = false; FMV.n = 0; }
+const _fc = new THREE.Color();
+function fmvUpdate(m) {                                              // a coloured ring on the ground at each executor, a thin line to the target, and a ring pulsing on the target
+  fmvInit(); const t = m.target; let n = 0;
+  if (m.state === 'active') {
+    const ty = (t.type === 'ground' ? Math.max(heightAt(t.x, t.z), 0) : t.y) + 1;
+    for (const ex of m.executors) { if (n >= 18) break; const r = ex.ref; let x, y, z; if (ex.kind === 'naval') { x = r.body.position.x; z = r.body.position.z; y = Math.max(waveH(x, z, simT), 0) + 0.4; } else if (ex.kind === 'call') continue; else if (ex.kind === 'squad') { const mm = fp.on && SQD.on ? SQD.mates.find(q => q.state !== 'rag') : null; if (!mm) continue; x = mm.x; z = mm.z; y = mm.y + 0.3; } else if (ex.kind === 'air') { x = r.x; z = r.z; y = r.y; } else { x = r.x; z = r.z; y = (r.y || standY(x, z)) + 0.3; }
+      const ring = FMV.rings[n]; const gy = ex.kind === 'air' ? Math.max(heightAt(x, z), 0) + 0.3 : y; ring.visible = true; ring.position.set(x, gy, z); const sc = ex.kind === 'veh' || ex.kind === 'air' ? 2.2 : ex.kind === 'gun' ? 2.4 : 1.0; ring.scale.set(sc, 1, sc); if (ring.userData.col !== ex.col) { ring.userData.col = ex.col; ring.material.color.set(ex.col || '#ffffff'); }
+      if (!ex.rgb) { _fc.set(ex.col || '#ffffff'); ex.rgb = [_fc.r, _fc.g, _fc.b]; } const i6 = n * 6; FMV.lpos[i6] = x; FMV.lpos[i6 + 1] = ex.kind === 'air' ? y : y + 1.2; FMV.lpos[i6 + 2] = z; FMV.lpos[i6 + 3] = t.x; FMV.lpos[i6 + 4] = ty; FMV.lpos[i6 + 5] = t.z; FMV.lcol[i6] = FMV.lcol[i6 + 3] = ex.rgb[0]; FMV.lcol[i6 + 1] = FMV.lcol[i6 + 4] = ex.rgb[1]; FMV.lcol[i6 + 2] = FMV.lcol[i6 + 5] = ex.rgb[2]; n++; }
+  }
+  for (let i = n; i < FMV.rings.length; i++) FMV.rings[i].visible = false; FMV.n = n; const geo = FMV.lines.geometry; geo.setDrawRange(0, n * 2); geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
+  FMV.tg.visible = true; const gy = Math.max(heightAt(t.x, t.z), 0) + 0.35, pu = 1 + 0.22 * Math.sin(simT * 5); FMV.tg.position.set(t.x, t.type === 'aircraft' ? gy : Math.max(gy, t.y - 0.8), t.z); FMV.tg.scale.set(pu, 1, pu); FMV.tg.material.opacity = m.state === 'active' ? 0.95 : 0.6;
+}
+function fmFrame(dt) {                                               // every frame: shells in flight, the flare, then the mission (follow the target, tick the executors, end it when the target is down)
+  FMS.dt = dt; updateShells(dt); flareStep(dt);
+  const m = FMS.m; if (!m) return; const t = fmTargetNow(m);
+  if (t.alive && t.ref) { const k = Math.min(1, dt * 1.5); m.vel.x += ((t.x - m.lx) / Math.max(dt, 1e-3) - m.vel.x) * k * 0.3; m.vel.z += ((t.z - m.lz) / Math.max(dt, 1e-3) - m.vel.z) * k * 0.3; m.vel.x = clamp(m.vel.x, -14, 14); m.vel.z = clamp(m.vel.z, -14, 14); } else { m.vel.x = m.vel.z = 0; }
+  m.lx = t.x; m.lz = t.z; m.tp.x = t.x; m.tp.z = t.z;
+  if (t.ref && t.alive && markerMesh) { markerMesh.position.set(t.x, t.type === 'aircraft' ? Math.max(heightAt(t.x, t.z), 0) : Math.max(heightAt(t.x, t.z), 0), t.z); FIRE.marker = { x: t.x, z: t.z }; }
+  if (!t.alive && t.ref) { if (m.mode === 'destroy') { fmFinish(m); return; } t.type = 'ground'; t.ref = null; t.alive = true; }
+  if (m.state === 'active') { m.tickT -= dt; if (m.tickT <= 0) { m.tickT = 0.4; fmTick(m); } }
+  fmvUpdate(m);
+}
+function fmSig0() { const m = FMS.m; if (!m) return ''; return m.id + m.state + m.mode + [...m.sel].join(',') + fmEnumerate(m).map(o => o.key + o.state[0]).join(''); }
+const fmRel = (x, z) => { const px = fp.on && fp.p ? fp.p.x : god.tgt.x, pz = fp.on && fp.p ? fp.p.z : god.tgt.z, dx = x - px, dz = z - pz, dg = cmpDeg(dx, dz); return Math.round(Math.hypot(dx, dz)) + ' m, bearing ' + pad3(dg) + ' degrees ' + cmpName(dg); };
+function fmRenderPanel0(body, head, note) {                           // the Mission section of the Fire tab: the target card, what can fire on it, Execute or Cease fire
+  const m = FMS.m; if (!m) return; const t = fmTargetNow(m); head('Fire mission', 'marker');
+  const card = document.createElement('p'); card.className = 'tbNote'; const hp = fmHealth(t);
+  card.textContent = 'Target: ' + fmTargetName(t) + '. ' + fmRel(t.x, t.z) + ' from ' + (fp.on ? 'you' : 'the view') + '. Grid ' + gridRef(t.x, t.z) + '.' + (hp !== null ? ' Health ' + hp + '.' : '') + (m.state === 'active' ? ' Mission active.' : ''); body.append(card);
+  const mo = document.createElement('div'); mo.className = 'tbOpt'; const ml = document.createElement('span'); ml.className = 'tbLab'; ml.textContent = 'Mission'; mo.append(ml);
+  for (const [v, n] of [['destroy', 'Destroy'], ['suppress', 'Suppress']]) mo.append(mkB(n, '', () => { m.mode = v; renderTablet(); }, { 'aria-pressed': String(m.mode === v) })); body.append(mo);
+  const opts = fmEnumerate(m); if (!opts.length) note('Nothing of yours can fire on that. Try another target, or hold a gun point.');
+  for (const o of opts) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; const on = m.sel.has(o.key), wait = o.state !== 'Ready' && o.state !== 'Active';
+    b.innerHTML = ic(o.icn) + '<span><b></b><small></small></span><span class="wst' + (wait ? ' wait' : '') + '"><i></i>' + o.state + '</span>'; b.querySelector('b').textContent = o.name; b.querySelector('small').textContent = o.band + (o.dist ? ' · ' + Math.round(o.dist) + ' m away' : '');
+    b.setAttribute('aria-pressed', String(on || o.state === 'Active')); if (!fmCan(o.state)) b.style.opacity = '0.55';
+    b.addEventListener('click', () => { if (m.state === 'active') { toast('Cease fire first to change the list.'); return; } if (!fmCan(o.state)) { toast(o.state === 'Needs crew' ? 'It needs a crew first.' : o.state === 'Manned' ? 'Someone is working that gun.' : o.state === 'Busy' ? 'It is busy with another task.' : 'It cannot reach the target.'); return; } if (on) m.sel.delete(o.key); else m.sel.add(o.key); renderTablet(); }); body.append(b);
+  }
+  const bar = document.createElement('div'); bar.className = 'tbOpt'; bar.style.cssText = 'flex-wrap:wrap;gap:8px;padding:8px 0';
+  if (m.state === 'planning') { bar.append(mkB('Select all ready', '', () => { for (const o of opts) if (o.state === 'Ready') m.sel.add(o.key); renderTablet(); }), mkB('Execute (' + m.sel.size + ')', 'btn-p', () => fmExecute())); }
+  else bar.append(mkB('Cease fire', 'btn-d', () => fmCease()));
+  bar.append(mkB('Deselect', '', () => fmDeselect()), mkB('Map', '', () => { toggleTablet(false); tmOpen(); })); if (FIRE.marker) bar.append(mkB('Clear marker', '', () => { fmClearMarker(); renderTablet(); })); body.append(bar);
+}
+
+/* ================================================================ the tactical map
+   A full-screen sheet (L, the Command panel's Map tab, or the Map button): the whole world drawn once from the height field, with a live overlay at 5 Hz. North is up (z grows downward, so north is -z).
+   Grid: 100 m squares, columns A, B, C ... from the west and rows 1, 2, 3 ... from the north (C4 is the third column, fourth row).
+   TMAP.sel is the set of selected gun ids, TMAP.aim the aim point (the marker until adjust fire moves it). GUNS lists the pieces of the side you command. */
+const COMPASS8 = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const cmpDeg = (dx, dz) => (Math.round(Math.atan2(dx, -dz) / D2R) + 360) % 360, cmpName = (deg) => COMPASS8[Math.round(deg / 45) % 8], pad3 = (n) => String(n).padStart(3, '0');
+const gridRef = (x, z) => String.fromCharCode(65 + clamp(Math.floor((x + EXT) / 100), 0, 25)) + (clamp(Math.floor((z + EXT) / 100), 0, 98) + 1);
+const TMAP = { el: null, cv: null, cx: null, side: null, read: null, dpr: 1, W: 0, H: 0, view: { x: 0, z: 0, s: 1 }, fit: 1, base: null, building: false, key: '', open: false, sel: new Set(), aim: null, rings: 'all', dirty: true, spot: new Set(), spotT: -9, psig: '', timer: 0, hover: null, shell: 'he', mark: null };
+TAB.shell = 'he';
+const GUNS = [];
+function gunScan(team) {                                             // every piece the side can use: mortar pits and howitzers, the heavy guns on its boats, the cannons of its tanks
+  GUNS.length = 0;
+  for (const e of AAS) { if ((e.kind !== 'mortar' && e.kind !== 'howitzer') || e.p.owner !== team) continue; const st = PSPEC[e.kind]; GUNS.push({ id: 'g' + gid(e), kind: e.kind, ref: e, st, name: st.name + ' at ' + e.p.name, short: st.short, x: e.x, z: e.z, y: e.y, min: st.min, max: st.max, col: st.col }); }
+  for (const bt of boats) { if (bt.sunk || !bt.mounts || !bt.mounts.length) continue; const heavy = bt.mounts.filter(mt => mt.k !== 'mg'); if (!heavy.length) continue; const mine = team === 'blue' ? !(bt.raider || bt.side === 'hostile') : !!(bt.raider || bt.side === 'hostile'); if (!mine) continue;
+    const w = heavy[0].w, rng = Math.max(...heavy.map(mt => mt.w.range)), bp = bt.body.position; GUNS.push({ id: 'n' + gid(bt), kind: 'naval', ref: bt, st: { ...PSPEC.naval, v: [w.v], max: rng }, name: bt.sp.name + ' guns', short: 'Naval gun', x: bp.x, z: bp.z, y: 0, min: 30, max: rng, col: PSPEC.naval.col }); }
+  for (const v of BVL) { if (v.dead || v.team !== team || !v.sp.gun || v.sp.gun.kind !== 'cannon') continue; GUNS.push({ id: 'v' + gid(v), kind: 'tank', ref: v, st: { ...PSPEC.tank, max: v.sp.gun.range }, name: v.sp.name + ' cannon', short: 'Tank', x: v.x, z: v.z, y: v.y, min: 25, max: v.sp.gun.range, col: PSPEC.tank.col }); }
+  return GUNS;
+}
+function gunState(g, pt) {                                           // Ready, Recharging, Active, Out of range, Needs crew (or Manned) for one gun against a point
+  const d = Math.hypot(pt.x - g.x, pt.z - g.z), r = g.ref;
+  if (g.kind === 'mortar' || g.kind === 'howitzer') return r.manned ? 'Manned' : (r.needCrew && !crewOK(r)) ? 'Needs crew' : (d < g.min || d > g.max) ? 'Out of range' : r.job ? 'Active' : r.cd > 0 ? 'Recharging' : 'Ready';
+  if (g.kind === 'naval') return !boatCrew(r).length ? 'Needs crew' : d > g.max ? 'Out of range' : r.mounts.some(mt => mt.k !== 'mg' && mt.cd <= 0) ? 'Ready' : 'Recharging';
+  return r.fm ? 'Active' : d > 650 ? 'Out of range' : 'Ready';
+}
+function fireData(g, tx, tz) {                                       // the numbers for one gun against one point: range, bearing, elevation on both arcs, flight time, spread
+  const st = g.st, my = g.y + (st.mh || 1.5), d = Math.hypot(tx - g.x, tz - g.z), dg = cmpDeg(tx - g.x, tz - g.z), sol = pieceSolve(st, g.x, my, g.z, tx, tz);
+  return { range: Math.round(d), bearing: dg, compass: cmpName(dg), reach: d >= g.min && d <= g.max && !!sol, min: g.min, max: g.max, disp: Math.round(st.disp(d)), arc: sol ? sol.arc : null, el: sol ? sol.el / D2R : null, tof: sol ? sol.tof : null, v: sol ? sol.v : null, lo: sol && sol.lo ? { el: sol.lo.el / D2R, tof: sol.lo.tof } : null, hi: sol && sol.hi ? { el: sol.hi.el / D2R, tof: sol.hi.tof } : null, state: gunState(g, { x: tx, z: tz }) };
+}
+function dangerClose(team, x, z, R) {                                // our own people or vehicles within R metres (60 by default) of the aim point
+  R = R || 60; const out = []; for (const q of people) { if (teamOf(q) !== team || q.state === 'rag' || q.hp <= 0) continue; if (Math.hypot(q.x - x, q.z - z) < R) out.push(q); } for (const v of BVL) if (!v.dead && v.team === team && Math.hypot(v.x - x, v.z - z) < R) out.push(v); return out;
+}
+const tmAim = () => TMAP.aim || FIRE.marker || null;
+function gunFire(g, aim, spec) {                                     // fire one gun at the aim point with the chosen shell, rounds and spread
+  if (g.kind === 'mortar' || g.kind === 'howitzer') return pieceFromCall(g.ref, aim, true, { rounds: spec.rounds, type: spec.type, spread: spec.spread, pattern: spec.pattern });
+  if (g.kind === 'naval') { const bt = g.ref, bp = bt.body.position; if (!boatCrew(bt).length) { toast('The ship needs crew aboard.'); return false; } const tgt = { body: { position: { x: aim.x, y: -1.6 + Math.max(heightAt(aim.x, aim.z), 0), z: aim.z }, velocity: { x: 0, y: 0, z: 0 } } }; let n = 0;
+    for (const mt of bt.mounts) { if (mt.k === 'mg' || mt.cd > 0) continue; if (Math.hypot(aim.x - bp.x, aim.z - bp.z) > mt.w.range) continue; if (mt.mesh) mt.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(aim.z - bp.z), aim.x - bp.x) - boatYaw(bt)); fireShot(bt, mt, tgt); mt.cd = mt.w.reload; n++; } return n > 0; }
+  let m = FMS.m; if (!m || Math.hypot(m.target.x - aim.x, m.target.z - aim.z) > 25) { fmMark({ x: aim.x, z: aim.z }, { noray: true }); m = FMS.m; } if (!m) return false;
+  const o = fmEnumerate(m).find(q => q.key === 'v' + gid(g.ref)); if (!o || !fmCan(o.state)) { toast('That tank cannot take the order.'); return false; } if (m.executors.some(q => q.key === o.key)) return true;
+  const ex = fmStart(m, o); if (!ex) return false; m.executors.push(ex); m.state = 'active'; m.tickT = 0; toast(g.name + ' is moving to fire.'); return true;
+}
+function tmFire() {                                                  // Fire for effect: every ready selected gun takes the whole salvo
+  const aim = tmAim(); if (!aim) { toast('Mark a target first. Tap the map.'); return; } const sel = GUNS.filter(g => TMAP.sel.has(g.id)); if (!sel.length) { toast('Pick at least one gun in the list, or tap it on the map.'); return; }
+  const spec = { type: TAB.shell || 'he', rounds: [1, 3, 6][TAB.size] || 3, spread: TAB.spread, pattern: TAB.pattern }; let n = 0, why = '';
+  for (const g of sel) { const s = gunState(g, aim); if (s !== 'Ready') { why = s; continue; } if (gunFire(g, aim, spec)) n++; }
+  if (n) { toast(n + (n === 1 ? ' gun is' : ' guns are') + ' laying on the target.'); fmSay('fm_start'); } else toast(why === 'Recharging' ? 'The guns are recharging.' : why === 'Needs crew' ? 'The gun needs a crew.' : 'None of the selected guns can fire there now.');
+  TMAP.dirty = true;
+}
+function tmShift(dx, dz, rel) {                                      // adjust fire: move the aim point 10 m. rel: 'left', 'right', 'add', 'drop' are along and across the line from the gun to the target; the rest are north, south, east and west
+  const a = tmAim(); if (!a) { toast('Mark a target first.'); return; } let sx = dx, sz = dz;
+  if (rel) { const g = GUNS.find(q => TMAP.sel.has(q.id)) || GUNS.filter(q => gunState(q, a) !== 'Out of range')[0]; if (!g) { toast('Pick a gun first.'); return; } const L = Math.hypot(a.x - g.x, a.z - g.z) || 1, ux = (a.x - g.x) / L, uz = (a.z - g.z) / L;
+    if (rel === 'add') { sx = ux * 10; sz = uz * 10; } else if (rel === 'drop') { sx = -ux * 10; sz = -uz * 10; } else if (rel === 'left') { sx = uz * 10; sz = -ux * 10; } else { sx = -uz * 10; sz = ux * 10; } }
+  TMAP.aim = { x: clamp(a.x + sx, -EXT, EXT), z: clamp(a.z + sz, -EXT, EXT) }; TMAP.dirty = true; TMAP.psig = '';
+}
+
+/* ---- the map picture, drawn once from the height field (in slices, so the game does not stall), then roads, paving and buildings on top */
+const tmKey = () => (typeof MAP !== 'undefined' && MAP.t || '') + '|' + EXT + '|' + FOOT.length + '|' + PAVED.length + '|' + ROADS.length + '|' + (isTouch ? 1 : 0);
+function tmBuildBase() {
+  if (TMAP.building) return; const key = tmKey(), N = isTouch ? 512 : 768, cv = document.createElement('canvas'); cv.width = cv.height = N; const c = cv.getContext('2d'), img = c.createImageData(N, N), data = img.data, H = new Float32Array(N * N), step = 2 * EXT / N; let row = 0, phase = 0;
+  TMAP.building = true; TMAP.key = key;
+  const ramp = (h) => { if (h < 1.0) return [214, 196, 150]; if (h < 4) return [150, 162, 104]; if (h < 14) return [118, 146, 86]; if (h < 32) return [140, 146, 96]; if (h < 60) return [150, 134, 108]; return [196, 190, 178]; };
+  const work = () => { const t0 = performance.now();
+    while (row < N && performance.now() - t0 < 9) {
+      if (phase === 0) { const z = -EXT + (row + 0.5) * step; for (let i = 0; i < N; i++) H[row * N + i] = heightAt(-EXT + (i + 0.5) * step, z); }
+      else { const j = row; for (let i = 0; i < N; i++) { const h = H[j * N + i], k = (j * N + i) * 4; let r, g, b;
+          if (h < 0.3) { const dp = clamp(-h / 14, 0, 1); r = 52 - 30 * dp; g = 112 - 58 * dp; b = 142 - 50 * dp; const nl = i > 0 && j > 0 ? H[(j - 1) * N + i - 1] : h; if (nl >= 0.3) { r += 40; g += 40; b += 30; } }
+          else { const c0 = ramp(h), hn = H[Math.max(0, j - 1) * N + Math.max(0, i - 1)], hs = H[Math.min(N - 1, j + 1) * N + Math.min(N - 1, i + 1)], sh = clamp(1 + (hn - hs) / (2 * step) * 1.1, 0.55, 1.35); r = c0[0] * sh; g = c0[1] * sh; b = c0[2] * sh; }
+          data[k] = r; data[k + 1] = g; data[k + 2] = b; data[k + 3] = 255; } }
+      row++; }
+    if (row < N) { setTimeout(work, 0); return; }
+    if (phase === 0) { phase = 1; row = 0; setTimeout(work, 0); return; }
+    c.putImageData(img, 0, 0); const px = (v) => (v + EXT) / step;
+    for (const r of PAVED) { c.fillStyle = 'rgba(128,132,136,0.92)'; c.fillRect(px(r[0]), px(r[2]), (r[1] - r[0]) / step, (r[3] - r[2]) / step); }
+    try { c.lineCap = 'round'; c.lineJoin = 'round'; const dn = roadDense(); for (const [wf, col] of [[1.0, '#3b3f42'], [0.72, '#9a9ea2']]) for (const e of dn) { if (!e.pts.length) continue; c.strokeStyle = col; c.lineWidth = Math.max(wf === 1 ? 2.4 : 1.4, e.r.w / step * wf); c.beginPath(); c.moveTo(px(e.pts[0].x), px(e.pts[0].z)); for (let i = 1; i < e.pts.length; i++) c.lineTo(px(e.pts[i].x), px(e.pts[i].z)); c.stroke(); } } catch (er) { }
+    const box = (x, z, hx, hz, t) => { c.save(); c.translate(px(x), px(z)); c.rotate(-t); c.fillStyle = '#7a6a58'; c.strokeStyle = '#2b241d'; c.lineWidth = 0.8; c.fillRect(-hx / step, -hz / step, 2 * hx / step, 2 * hz / step); c.strokeRect(-hx / step, -hz / step, 2 * hx / step, 2 * hz / step); c.restore(); };
+    for (const f of FOOT) if (Math.max(f.hx, f.hz) > 0.9) box(f.x, f.z, f.hx, f.hz, f.t || 0);
+    for (const pr of props) { const b = pr.item && pr.item.box; if (b && Math.max(b[0], b[2]) > 1.5 && pr.mesh) box(pr.x, pr.z, b[0], b[2], pr.mesh.rotation.y); }
+    TMAP.base = cv; TMAP.building = false; TMAP.dirty = true;
+  };
+  setTimeout(work, 0);
+}
+/* ---- the sheet itself */
+function tmInit() {
+  if (TMAP.el) return; const st = document.createElement('style');
+  st.textContent = '#tmap{position:fixed;inset:0;z-index:36;background:#081014;display:flex;flex-direction:column;color:var(--paper)}#tmap .tmHead{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel)}#tmap .tmHead b{font:700 22px var(--f-display);flex:1;min-width:120px}#tmap .tmHead button{min-height:44px;padding:0 14px}#tmap .tmHead .tmRd{font:600 14px var(--f-mono);color:var(--muted)}'
+    + '#tmap .tmBody{flex:1;min-height:0;display:flex}#tmap .tmCv{position:relative;flex:1;min-width:0;touch-action:none;background:#0a1a22}#tmap canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}#tmap .tmNote{position:absolute;left:10px;bottom:10px;max-width:70%;padding:6px 10px;border-radius:8px;background:rgba(8,16,20,.78);font:500 13.5px/1.4 var(--f-body);color:var(--muted);pointer-events:none}'
+    + '#tmap .tmSide{width:min(380px,44vw);overflow:auto;border-left:1px solid var(--line);padding:6px 12px 16px;background:var(--panel)}#tmap .tmSide .tbOpt button{min-height:40px}#tmap .tmDanger{margin:8px 0;padding:10px 12px;border-radius:8px;background:#5a1a12;border:1px solid #c0452c;font:600 15px/1.35 var(--f-body)}#tmap .tmCard{margin:6px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.05);font:500 14px/1.45 var(--f-body)}#tmap .tmCard b{font-weight:700}'
+    + '#tmap .tmSw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}#tmap .tmGo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}#tmap .tmGo button{min-height:52px;font-size:17px}@media (max-width:760px),(max-aspect-ratio:1/1){#tmap .tmBody{flex-direction:column}#tmap .tmSide{width:auto;height:48%;border-left:0;border-top:1px solid var(--line)}}';
+  document.head.appendChild(st);
+  const el = document.createElement('div'); el.id = 'tmap'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Tactical map');
+  el.innerHTML = '<div class="tmHead"><b>Tactical map</b><span class="tmRd" id="tmRd" aria-live="off"></span><button type="button" class="rd" id="tmSay"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="tmRings">Rings: all</button><button type="button" id="tmFit">Fit</button><button type="button" id="tmCmd">Fire mission</button><button type="button" id="tmX"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div class="tmBody"><div class="tmCv" id="tmCvW"><canvas id="tmCv"></canvas><div class="tmNote" id="tmNote">Drag to move. Wheel or pinch to zoom. Tap to mark a target, or tap a gun to pick it. North is up.</div></div><div class="tmSide" id="tmSide"></div></div>';
+  document.body.appendChild(el); TMAP.el = el; TMAP.cv = $('tmCv'); TMAP.cx = TMAP.cv.getContext('2d'); TMAP.side = $('tmSide'); TMAP.read = $('tmRd');
+  $('tmSay').addEventListener('click', () => say(TMAP.side.innerText)); $('tmX').addEventListener('click', tmClose); $('tmFit').addEventListener('click', () => { tmFit(); tmDraw(); });
+  $('tmRings').addEventListener('click', () => { TMAP.rings = TMAP.rings === 'all' ? 'sel' : TMAP.rings === 'sel' ? 'off' : 'all'; $('tmRings').textContent = 'Rings: ' + ({ all: 'all', sel: 'picked', off: 'off' })[TMAP.rings]; tmDraw(); });
+  $('tmCmd').addEventListener('click', () => { tmClose(); openCommand('fire'); });
+  const cv = TMAP.cv, ptrs = new Map(); let drag = null, pinch = null;
+  const w2s = (x, z) => [(x - TMAP.view.x) * TMAP.view.s + TMAP.W / 2, (z - TMAP.view.z) * TMAP.view.s + TMAP.H / 2], s2w = (sx, sy) => [(sx - TMAP.W / 2) / TMAP.view.s + TMAP.view.x, (sy - TMAP.H / 2) / TMAP.view.s + TMAP.view.z];
+  TMAP.w2s = w2s; TMAP.s2w = s2w;
+  const rect = () => cv.getBoundingClientRect();
+  const zoomAt = (sx, sy, f) => { const v = TMAP.view, [wx, wz] = s2w(sx, sy), ns = clamp(v.s * f, TMAP.fit * 0.8, 7); v.s = ns; v.x = wx - (sx - TMAP.W / 2) / ns; v.z = wz - (sy - TMAP.H / 2) / ns; tmClampView(); tmDraw(); };
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); const r = rect(); zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+  cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); const r = rect(); ptrs.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top }); if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: TMAP.view.s }; drag = null; } else if (ptrs.size === 1) drag = { x: e.clientX - r.left, y: e.clientY - r.top, vx: TMAP.view.x, vz: TMAP.view.z, moved: 0, t: performance.now() }; });
+  cv.addEventListener('pointermove', (e) => { const r = rect(), px = e.clientX - r.left, py = e.clientY - r.top; if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: px, y: py });
+    if (pinch && ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch.d > 8) { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; zoomAt(mx, my, clamp(pinch.s * d / pinch.d, TMAP.fit * 0.8, 7) / TMAP.view.s); } return; }
+    if (drag && ptrs.size === 1) { const dx = px - drag.x, dy = py - drag.y; drag.moved = Math.max(drag.moved, Math.hypot(dx, dy)); if (drag.moved > 6) { TMAP.view.x = drag.vx - dx / TMAP.view.s; TMAP.view.z = drag.vz - dy / TMAP.view.s; tmClampView(); tmDraw(); } }
+    else { const [wx, wz] = s2w(px, py); TMAP.hover = { x: wx, z: wz }; tmReadout(wx, wz); } });
+  const up = (e) => { const r = rect(), px = e.clientX - r.left, py = e.clientY - r.top, was = ptrs.size; ptrs.delete(e.pointerId); if (was === 2) { pinch = null; drag = null; return; }
+    if (drag && drag.moved <= 6 && performance.now() - drag.t < 700 && e.type === 'pointerup') tmTap(px, py); drag = null; pinch = null; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { ptrs.delete(e.pointerId); drag = null; pinch = null; });
+  addEventListener('resize', () => { if (TMAP.open) { tmResize(); tmDraw(); } });
+  $('tmCv').addEventListener('dblclick', (e) => { const r = rect(); zoomAt(e.clientX - r.left, e.clientY - r.top, 1.8); });
+  const btn = document.createElement('button'); btn.type = 'button'; btn.id = 'tmBtn'; btn.title = 'Tactical map (L)'; btn.innerHTML = ic('map') + 'Map'; btn.addEventListener('click', () => tmOpen()); const bb = $('bBtns'); if (bb) bb.insertBefore(btn, $('bJump') || null);
+}
+const TM_HINT = 'Drag to move. Wheel or pinch to zoom. Tap to mark a target, or tap a gun to pick it. North is up.';
+function tmNote(m) { const n = $('tmNote'); if (!n) return; n.textContent = m; clearTimeout(TMAP.noteT); TMAP.noteT = setTimeout(() => { n.textContent = TM_HINT; }, 6000); }
+{ const toast0 = toast; toast = function (m) { toast0(m); if (TMAP.open) tmNote(String(m)); }; }           // the map covers the toasts, so what the game says is also shown on the map
+function tmClampView() { const v = TMAP.view; v.x = clamp(v.x, -EXT, EXT); v.z = clamp(v.z, -EXT, EXT); }
+function tmResize() { const cv = TMAP.cv, r = cv.getBoundingClientRect(); TMAP.dpr = Math.min(2, window.devicePixelRatio || 1); TMAP.W = Math.max(1, Math.round(r.width)); TMAP.H = Math.max(1, Math.round(r.height)); cv.width = Math.round(TMAP.W * TMAP.dpr); cv.height = Math.round(TMAP.H * TMAP.dpr); const nf = Math.min(TMAP.W, TMAP.H) / (2 * EXT) * 0.97; if (!TMAP.view.s || Math.abs(TMAP.fit - nf) > 1e-6) { const was = TMAP.view.s === TMAP.fit; TMAP.fit = nf; if (was || !TMAP.view.s) TMAP.view.s = nf; } }
+function tmFit() { TMAP.fit = Math.min(TMAP.W, TMAP.H) / (2 * EXT) * 0.97; TMAP.view.s = TMAP.fit; TMAP.view.x = 0; TMAP.view.z = 0; }
+function tmReadout(x, z) { const a = tmAim(); let t = 'Grid ' + gridRef(x, z); if (a) { const dg = cmpDeg(x - a.x, z - a.z); t += ' · ' + Math.round(Math.hypot(x - a.x, z - a.z)) + ' m ' + pad3(dg) + ' ' + cmpName(dg) + ' of the marker'; } TMAP.read.textContent = t; }
+function tmTap(px, py) {                                             // tap a gun to pick it, tap an aircraft to mark it, otherwise mark the ground there
+  const [wx, wz] = TMAP.s2w(px, py), team = tabletSide(); let best = null, bd = 20 / TMAP.view.s;
+  for (const g of GUNS) { const d = Math.hypot(g.x - wx, g.z - wz); if (d < bd) { bd = d; best = g; } }
+  if (best) { if (TMAP.sel.has(best.id)) TMAP.sel.delete(best.id); else TMAP.sel.add(best.id); TMAP.psig = ''; tmDraw(); return; }
+  const vis = tmVis(team); let air = null, ad = 18 / TMAP.view.s; for (const u of AIR.list) { if (u.down || u.team === team || u.kind === 'strike' || !vis(u)) continue; const d = Math.hypot(u.x - wx, u.z - wz); if (d < ad) { ad = d; air = u; } }
+  if (air) fmMark({ x: air.x, z: air.z }, { ref: air, type: 'aircraft' }); else fmMark({ x: wx, z: wz }, { noray: true, vis });
+  TMAP.aim = null; TMAP.psig = ''; tmReadout(wx, wz); tmDraw();
+}
+function tmOpen() {
+  tmInit(); if (TMAP.open) return; if (!$('bSetup').hidden) return; if (!$('tablet').hidden) toggleTablet(false); if (document.pointerLockElement) document.exitPointerLock();
+  TMAP.open = true; TMAP.el.hidden = false; tmResize(); const k = tmKey(); if (!TMAP.base || TMAP.key !== k) { TMAP.base = null; tmBuildBase(); }
+  TMAP.view.x = 0; TMAP.view.z = 0; TMAP.view.s = TMAP.fit;
+  TMAP.psig = ''; TMAP.dirty = true; clearInterval(TMAP.timer); TMAP.timer = setInterval(tmTick, 200); tmTick(); const f = $('tmX'); if (f) f.focus({ preventScroll: true });
+}
+function tmClose() { if (!TMAP.open) return; TMAP.open = false; TMAP.el.hidden = true; clearInterval(TMAP.timer); if (fp.on && !isTouch && mode === 'fp') lockPointer(); }
+function tmVis(team) {                                               // which enemies the map shows: all (radio point held, the reveal cheat, or no battle), otherwise those friendly eyes have on
+  if (!BATTLE.on || CHEAT.reveal || holdN(team, 'radio') > 0) return () => true; const set = TMAP.spot; return (r) => set.has(r);
+}
+function tmSpotScan(team) {                                          // friendly soldiers' own sightings: what they are fighting, what they remember, and what stands in plain view within 70 m; vehicles and aircraft close to friends
+  const set = TMAP.spot; set.clear(); const mates = [], ot = otherTeam(team); for (const q of people) { if (teamOf(q) !== team || q.state === 'rag' || q.hp <= 0) continue; mates.push(q); const b = q.bot; if (b) { if (b.tgt) set.add(b.tgt); if (b.memE && simT - (b.memT || 0) < 3.5) set.add(b.memE); } }
+  let los = 0; for (const e of people) { if (teamOf(e) !== ot || e.state === 'rag' || e.hp <= 0 || set.has(e)) continue; for (const q of mates) { if (Math.abs(q.x - e.x) > 70 || Math.abs(q.z - e.z) > 70) continue; if (Math.hypot(q.x - e.x, q.z - e.z) < 70 && los++ < 90 && losFull(q.x, q.y + 1.5, q.z, e.x, eyeOf(e), e.z)) { set.add(e); break; } } }
+  for (const v of BVL) { if (v.dead || v.team === team) continue; for (const q of mates) if (Math.abs(q.x - v.x) < 110 && Math.abs(q.z - v.z) < 110) { set.add(v); break; } }
+  for (const u of AIR.list) { if (u.down || u.team === team) continue; for (const q of mates) if (Math.abs(q.x - u.x) < 180 && Math.abs(q.z - u.z) < 180) { set.add(u); break; } }
+}
+function tmTick() {
+  if (!TMAP.open) return; const team = tabletSide(); gunScan(team); if (simT - TMAP.spotT > 0.7) { TMAP.spotT = simT; tmSpotScan(team); }
+  const a = tmAim(), sg = [...TMAP.sel].filter(id => GUNS.some(g => g.id === id)).join(','), st = a ? GUNS.map(g => gunState(g, a)[0]).join('') : '', dc = a ? dangerClose(team, a.x, a.z).length > 0 : false;
+  for (const id of [...TMAP.sel]) if (!GUNS.some(g => g.id === id)) TMAP.sel.delete(id);
+  const sig = [a ? Math.round(a.x) + ',' + Math.round(a.z) : '-', sg, st, GUNS.length, TAB.shell, TAB.size, TAB.spread, TAB.pattern, dc, FMS.m ? FMS.m.id + FMS.m.state : '', team].join('|');
+  if (sig !== TMAP.psig) { TMAP.psig = sig; tmPanel(); } tmDraw();
+}
+/* ---- drawing */
+function tmDraw() {
+  if (!TMAP.open) return; const cv = TMAP.cv, c = TMAP.cx; if (!TMAP.W) tmResize(); const W = TMAP.W, H = TMAP.H, dpr = TMAP.dpr, v = TMAP.view, s = v.s, team = tabletSide(), vis = tmVis(team), ot = otherTeam(team), a = tmAim();
+  c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = '#0a1a22'; c.fillRect(0, 0, W, H);
+  const X = (x) => (x - v.x) * s + W / 2, Z = (z) => (z - v.z) * s + H / 2;
+  if (TMAP.base) { c.imageSmoothingEnabled = true; c.drawImage(TMAP.base, X(-EXT), Z(-EXT), 2 * EXT * s, 2 * EXT * s); } else { c.fillStyle = '#9fb3b0'; c.font = '600 18px sans-serif'; c.fillText('Drawing the map', 24, 40); }
+  c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,0.22)'; c.beginPath(); for (let g = -EXT; g <= EXT + 0.1; g += 100) { const x = X(g), z = Z(g); c.moveTo(x, Z(-EXT)); c.lineTo(x, Z(EXT)); c.moveTo(X(-EXT), z); c.lineTo(X(EXT), z); } c.stroke();
+  c.font = '700 13px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(255,255,255,0.8)'; const cols = Math.ceil(2 * EXT / 100);
+  for (let i = 0; i < cols; i++) { const cx = X(-EXT + i * 100 + 50), cz = Z(-EXT + i * 100 + 50); const lx = clamp(cx, 12, W - 12), lz = clamp(cz, 24, H - 12); if (cx > 0 && cx < W) c.fillText(String.fromCharCode(65 + i), cx, 12); if (cz > 20 && cz < H) c.fillText(String(i + 1), 11, cz); void lx; void lz; }
+  c.textAlign = 'left';
+  const tcol = team === 'blue' ? '#6aa8ff' : '#ff7a66', ecol = team === 'blue' ? '#ff7a66' : '#6aa8ff';
+  if (BATTLE.on) for (const p of BATTLE.points) { const x = X(p.x), z = Z(p.z), r = Math.max(6, p.r * s), oc = p.owner === 'blue' ? '#6aa8ff' : p.owner === 'red' ? '#ff7a66' : '#bfc4c4'; c.fillStyle = oc + '26'; c.strokeStyle = oc; c.lineWidth = 2; c.beginPath(); c.arc(x, z, r, 0, 6.283); c.fill(); c.stroke();
+    c.fillStyle = 'rgba(12,20,24,0.85)'; c.beginPath(); c.arc(x, z, 11, 0, 6.283); c.fill(); c.strokeStyle = oc; c.lineWidth = 2; c.stroke(); c.fillStyle = '#f1ece2'; c.font = '700 13px sans-serif'; c.textAlign = 'center'; c.fillText(POINT_TYPES[p.type].ch || '·', x, z + 1); c.textAlign = 'left'; c.font = '600 12px sans-serif'; c.fillStyle = '#f1ece2'; c.fillText(p.name, x + 14, z - 12); }
+  // range rings for every gun you can use: dashed, in the gun's colour, labelled
+  if (TMAP.rings !== 'off') { let li = 0; for (const g of GUNS) { const sel = TMAP.sel.has(g.id); if (TMAP.rings === 'sel' && !sel) continue; const x = X(g.x), z = Z(g.z); c.setLineDash([7, 6]); c.strokeStyle = g.col; c.globalAlpha = sel ? 1 : 0.45; c.lineWidth = sel ? 2.4 : 1.4;
+      c.beginPath(); c.arc(x, z, g.max * s, 0, 6.283); c.stroke(); if (g.min > 5) { c.beginPath(); c.arc(x, z, g.min * s, 0, 6.283); c.stroke(); } c.setLineDash([]);
+      const an = -1.2 + li * 0.62; li++; c.font = '600 11.5px sans-serif'; c.fillStyle = g.col; c.textAlign = 'center'; c.fillText(g.short + ' max ' + g.max + ' m', x + Math.cos(an) * g.max * s, z + Math.sin(an) * g.max * s - 3); if (g.min > 5) c.fillText('min ' + g.min + ' m', x + Math.cos(an + 0.3) * g.min * s, z + Math.sin(an + 0.3) * g.min * s - 3); c.textAlign = 'left'; c.globalAlpha = 1; } }
+  // people
+  const dot = (x, z, r, f, st) => { c.fillStyle = f; c.beginPath(); c.arc(x, z, r, 0, 6.283); c.fill(); if (st) { c.strokeStyle = st; c.lineWidth = 1.5; c.stroke(); } };
+  const mates = new Set(fp.on && SQD.on ? SQD.mates : []);
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.vin || q.hoist) continue; const t = teamOf(q), x = X(q.x), z = Z(q.z); if (x < -8 || z < -8 || x > W + 8 || z > H + 8) continue;
+    if (!BATTLE.on) { dot(x, z, 2.4, '#d9e2df'); continue; } if (t === team) { if (fp.on && fp.p === q) continue; dot(x, z, mates.has(q) ? 3.6 : 2.6, tcol, mates.has(q) ? '#ffffff' : null); } else if (t === ot && vis(q)) dot(x, z, 3, ecol, '#1a0f0d'); }
+  // emplacements and batteries
+  for (const e of AAS) { const own = e.p.owner === team; if (!own && !(vis(e) || !BATTLE.on)) continue; if (!own && BATTLE.on && !CHEAT.reveal && !holdN(team, 'radio')) continue; const x = X(e.x), z = Z(e.z), ch = e.kind === 'mortar' ? 'M' : e.kind === 'howitzer' ? 'H' : e.kind === 'aa' ? 'A' : 'G';
+    c.fillStyle = own ? 'rgba(12,20,24,0.9)' : 'rgba(40,12,10,0.9)'; c.strokeStyle = own ? tcol : ecol; c.lineWidth = 1.6; c.beginPath(); c.rect(x - 6, z - 6, 12, 12); c.fill(); c.stroke(); c.fillStyle = '#f1ece2'; c.font = '700 10px sans-serif'; c.textAlign = 'center'; c.fillText(ch, x, z + 0.5); c.textAlign = 'left'; }
+  // vehicles
+  for (const w of BVL) { if (w.dead) continue; const own = w.team === team; if (!own && !vis(w)) continue; const x = X(w.x), z = Z(w.z); c.save(); c.translate(x, z); c.rotate(Math.atan2(Math.sin(w.yaw), -Math.cos(w.yaw))); c.fillStyle = own ? tcol : ecol; c.strokeStyle = '#10181b'; c.lineWidth = 1; const L = clamp((w.sp.box ? w.sp.box[3] : 2) * s, 5, 14); c.beginPath(); c.rect(-3, -L, 6, 2 * L); c.fill(); c.stroke(); c.restore(); }
+  // aircraft
+  for (const u of AIR.list) { if (u.down) continue; const own = u.team === team; if (!own && !vis(u)) continue; const x = X(u.x), z = Z(u.z); c.save(); c.translate(x, z); c.rotate(Math.atan2(Math.sin(u.hd), -Math.cos(u.hd))); c.fillStyle = own ? tcol : ecol; c.strokeStyle = '#10181b'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, -8); c.lineTo(6, 6); c.lineTo(0, 3); c.lineTo(-6, 6); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+  // boats you command
+  for (const bt of boats) { if (bt.sunk || !bt.mounts || !bt.mounts.length) continue; const bp = bt.body.position; const x = X(bp.x), z = Z(bp.z); dot(x, z, 4, '#9ec3ff', '#10181b'); }
+  // the mission: executors and their lines to the target
+  const m = FMS.m;
+  if (m && m.state === 'active') for (const ex of m.executors) { const r = ex.ref; let px, pz; if (ex.kind === 'naval') { px = r.body.position.x; pz = r.body.position.z; } else if (ex.kind === 'call' || ex.kind === 'squad') continue; else { px = r.x; pz = r.z; } c.strokeStyle = ex.col || '#fff'; c.globalAlpha = 0.85; c.setLineDash([5, 4]); c.lineWidth = 1.6; c.beginPath(); c.moveTo(X(px), Z(pz)); c.lineTo(X(m.target.x), Z(m.target.z)); c.stroke(); c.setLineDash([]); c.globalAlpha = 1; }
+  // the marker, the aim point, who can reach it, the danger zone
+  if (FIRE.marker) { const mx = X(FIRE.marker.x), mz = Z(FIRE.marker.z); c.strokeStyle = '#ff5a2a'; c.fillStyle = '#ff5a2a'; c.lineWidth = 2; c.beginPath(); c.arc(mx, mz, 9, 0, 6.283); c.stroke(); c.beginPath(); c.moveTo(mx - 14, mz); c.lineTo(mx + 14, mz); c.moveTo(mx, mz - 14); c.lineTo(mx, mz + 14); c.stroke(); }
+  if (a) { const ax = X(a.x), az = Z(a.z);
+    for (const g of GUNS) { const st = gunState(g, a); if (st === 'Out of range' || st === 'Needs crew' || st === 'Manned') continue; c.strokeStyle = g.col; c.globalAlpha = TMAP.sel.has(g.id) ? 0.9 : 0.35; c.lineWidth = TMAP.sel.has(g.id) ? 2 : 1; c.beginPath(); c.moveTo(X(g.x), Z(g.z)); c.lineTo(ax, az); c.stroke(); c.globalAlpha = 1; }
+    const dcl = dangerClose(team, a.x, a.z); c.strokeStyle = dcl.length ? '#ff3b2f' : 'rgba(255,255,255,0.45)'; c.lineWidth = dcl.length ? 2.2 : 1; c.setLineDash([6, 5]); c.beginPath(); c.arc(ax, az, 60 * s, 0, 6.283); c.stroke(); c.setLineDash([]);
+    if (TMAP.aim) { c.strokeStyle = '#ffe45c'; c.lineWidth = 2; c.beginPath(); c.arc(ax, az, 6, 0, 6.283); c.moveTo(ax - 12, az); c.lineTo(ax + 12, az); c.moveTo(ax, az - 12); c.lineTo(ax, az + 12); c.stroke(); } }
+  for (const g of GUNS) { const x = X(g.x), z = Z(g.z), sel = TMAP.sel.has(g.id); if (sel) { c.strokeStyle = '#ffffff'; c.lineWidth = 2.5; c.beginPath(); c.arc(x, z, 11, 0, 6.283); c.stroke(); } }
+  if (fp.on && fp.p) { const x = X(fp.p.x), z = Z(fp.p.z); c.save(); c.translate(x, z); c.rotate(Math.atan2(Math.sin(fp.yaw), -Math.cos(fp.yaw))); c.fillStyle = '#ffffff'; c.strokeStyle = '#10181b'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(0, -9); c.lineTo(6.5, 7); c.lineTo(0, 3.5); c.lineTo(-6.5, 7); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+  // scale bar and north
+  let L = 500; for (const cand of [10, 20, 50, 100, 200, 500]) if (cand * s >= 70) { L = cand; break; } c.fillStyle = 'rgba(8,16,20,0.75)'; c.fillRect(10, H - 38, L * s + 20, 24); c.fillStyle = '#f1ece2'; c.fillRect(20, H - 22, L * s, 3); c.font = '600 12px sans-serif'; c.fillText(L + ' m', 22, H - 28);
+  c.fillStyle = 'rgba(8,16,20,0.75)'; c.beginPath(); c.arc(W - 28, 34, 18, 0, 6.283); c.fill(); c.fillStyle = '#f1ece2'; c.textAlign = 'center'; c.font = '700 13px sans-serif'; c.fillText('N', W - 28, 24); c.beginPath(); c.moveTo(W - 28, 29); c.lineTo(W - 23, 44); c.lineTo(W - 33, 44); c.closePath(); c.fill(); c.textAlign = 'left';
+  void cv;
+}
+/* ---- the side panel */
+function tmPanel() {
+  const el = TMAP.side, keep = el.scrollTop, team = tabletSide(), a = tmAim(); el.textContent = '';
+  const head = (t, icn) => { const h = document.createElement('div'); h.className = 'tbRowH'; h.innerHTML = ic(icn || 'command') + '<span></span>'; h.lastChild.textContent = t; el.append(h); };
+  const note = (t, cls) => { const n = document.createElement('p'); n.className = cls || 'tbNote'; n.textContent = t; el.append(n); return n; };
+  const opt = (label, items, get, set) => { const d = document.createElement('div'); d.className = 'tbOpt'; const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = label; l.style.width = '64px'; d.append(l); for (const [v, n] of items) d.append(mkB(n, '', () => { set(v); TMAP.psig = ''; tmTick(); }, { 'aria-pressed': String(get() === v) })); el.append(d); };
+  head('Marker', 'marker');
+  if (!a) note('No marker yet. Tap the map to mark a target. Tap a gun to pick it.');
+  else { const t = FMS.m ? FMS.m.target : null, sh = TMAP.aim && FIRE.marker ? Math.round(Math.hypot(TMAP.aim.x - FIRE.marker.x, TMAP.aim.z - FIRE.marker.z)) : 0;
+    note('Grid ' + gridRef(a.x, a.z) + '. ' + (t ? 'Target: ' + fmTargetName(t) + '.' : 'Open ground.') + (sh ? ' The aim point has been moved ' + sh + ' m from the marker.' : ''), 'tmCard'); }
+  head('Guns', 'arty');
+  if (!GUNS.length) note('No guns are available to your side. Hold a battery or a strongpoint, or bring boats and tanks.');
+  else { const sa = document.createElement('div'); sa.className = 'tbOpt'; sa.style.cssText = 'padding:4px 0'; sa.append(mkB('Pick all that can fire', '', () => { for (const g of GUNS) { if (a && gunState(g, a) === 'Out of range') continue; TMAP.sel.add(g.id); } TMAP.psig = ''; tmTick(); }), mkB('Pick none', '', () => { TMAP.sel.clear(); TMAP.psig = ''; tmTick(); })); el.append(sa); }
+  for (const g of GUNS) {
+    const stt = a ? gunState(g, a) : 'Ready', on = TMAP.sel.has(g.id), b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; b.style.gridTemplateColumns = '14px 1fr auto'; const wait = stt !== 'Ready' && stt !== 'Active';
+    b.innerHTML = '<span class="tmSw" style="background:' + g.col + ';margin:0"></span><span><b></b><small></small></span><span class="wst' + (wait ? ' wait' : '') + '"><i></i>' + stt + '</span>'; b.querySelector('b').textContent = g.name;
+    b.querySelector('small').textContent = g.min + ' to ' + g.max + ' m' + (a ? ' · ' + Math.round(Math.hypot(a.x - g.x, a.z - g.z)) + ' m ' + pad3(cmpDeg(a.x - g.x, a.z - g.z)) + ' ' + cmpName(cmpDeg(a.x - g.x, a.z - g.z)) : ''); b.setAttribute('aria-pressed', String(on));
+    b.addEventListener('click', () => { if (on) TMAP.sel.delete(g.id); else TMAP.sel.add(g.id); TMAP.psig = ''; tmTick(); }); el.append(b);
+  }
+  if (a) {
+    head('Fire data', 'scope'); const list = GUNS.filter(g => TMAP.sel.has(g.id)); const use = list.length ? list : GUNS.filter(g => gunState(g, a) !== 'Out of range').slice(0, 3);
+    if (!use.length) note('Nothing of yours reaches that point.'); else if (!list.length) note('Nothing is picked yet. Showing the guns that reach the marker.');
+    for (const g of use) { const fd = fireData(g, a.x, a.z), card = document.createElement('div'); card.className = 'tmCard';
+      card.innerHTML = '<b></b><br><span></span>'; card.querySelector('b').textContent = g.name; const f1 = (n) => (Math.round(n * 10) / 10).toFixed(1);
+      let tx = 'Range ' + fd.range + ' m. Bearing ' + pad3(fd.bearing) + ' degrees ' + fd.compass + '.'; if (!fd.reach) tx += ' It cannot reach this point (' + g.min + ' to ' + g.max + ' m).'; else {
+        tx += ' Elevation ' + f1(fd.el) + ' degrees on the ' + (fd.arc === 'hi' ? 'high' : 'low') + ' arc.'; if (fd.lo && fd.hi && g.kind !== 'tank' && g.kind !== 'naval') tx += ' Low arc ' + f1(fd.lo.el) + ', high arc ' + f1(fd.hi.el) + '.'; tx += ' Flight time ' + Math.round(fd.tof) + ' s. Muzzle speed ' + fd.v + ' m/s. Rounds land within about ' + fd.disp + ' m.'; }
+      card.querySelector('span').textContent = tx; el.append(card); }
+    const dcl = dangerClose(team, a.x, a.z); if (dcl.length) note('Danger close: your own people are near. ' + dcl.length + (dcl.length === 1 ? ' friend is' : ' friends are') + ' within 60 m of the aim point.', 'tmDanger');
+  }
+  head('Shell', 'bomb'); const sh = document.createElement('div'); sh.className = 'tbOpt'; for (const [k, n] of Object.entries(SHELLT)) sh.append(mkB(n, '', () => { TAB.shell = k; TMAP.psig = ''; tmTick(); }, { 'aria-pressed': String(TAB.shell === k) })); el.append(sh);
+  note(({ he: 'Blast and a crater. Hurts anyone near.', smoke: 'A screen that hides movement.', illum: 'A flare that lights the area for a while at night.', inc: 'Starts fires that spread through trees and cover.', flech: 'An air burst of darts over open ground. People only.', cluster: 'Bomblets scatter wide from the air.' })[TAB.shell]);
+  opt('Rounds', [[0, 'One'], [1, 'Three'], [2, 'Six']], () => TAB.size, (v) => { TAB.size = v; }); opt('Spread', [[0, 'Exact'], [1, 'Loose'], [2, 'Wild']], () => TAB.spread, (v) => { TAB.spread = v; });
+  opt('Pattern', [['single', 'Single'], ['line', 'Line'], ['ring', 'Ring'], ['scatter', 'Scatter']], () => TAB.pattern, (v) => { TAB.pattern = v; });
+  head('Adjust fire', 'chevrons'); const ad = (label, fn) => mkB(label, '', fn); const r1 = document.createElement('div'); r1.className = 'tbOpt'; r1.append(ad('North 10 m', () => tmShift(0, -10)), ad('South 10 m', () => tmShift(0, 10)), ad('East 10 m', () => tmShift(10, 0)), ad('West 10 m', () => tmShift(-10, 0))); el.append(r1);
+  const r2 = document.createElement('div'); r2.className = 'tbOpt'; r2.append(ad('Left 10 m', () => tmShift(0, 0, 'left')), ad('Right 10 m', () => tmShift(0, 0, 'right')), ad('Add 10 m', () => tmShift(0, 0, 'add')), ad('Drop 10 m', () => tmShift(0, 0, 'drop')), ad('Back to marker', () => { TMAP.aim = null; TMAP.psig = ''; tmTick(); })); el.append(r2);
+  const go = document.createElement('div'); go.className = 'tmGo'; const dcl2 = a ? dangerClose(team, a.x, a.z) : [];
+  const fb = mkB(dcl2.length ? 'Fire anyway' : 'Fire for effect', dcl2.length ? 'btn-d' : 'btn-p', () => tmFire()); const cb = mkB('Cease fire', 'btn-d', () => { const had = !!FMS.m && FMS.m.state === 'active'; fmCease(); if (!had) { toast('Cease fire.'); fmSay('fm_cease'); } TMAP.psig = ''; tmTick(); }); go.append(fb, cb); el.append(go);
+  const gm = document.createElement('div'); gm.className = 'tbOpt'; gm.append(mkB('Fire mission list', '', () => { tmClose(); openCommand('fire'); }), mkB('Clear marker', '', () => { fmClearMarker(); TMAP.aim = null; TMAP.psig = ''; tmTick(); })); el.append(gm);
+  note('Pieces fire only when crewed and in range. A mortar pit or a howitzer swings to the bearing, raises its barrel, loads and fires. Shells fly real arcs: watch the flight time before you adjust.');
+  el.scrollTop = keep;
+}
+KEY_ROUTE.unshift((e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase();
+  if (TMAP.open) { if (k === 'l' || k === 'escape') { tmClose(); e.preventDefault(); keyStop = true; } else if (k === '=' || k === '+') { TMAP.view.s = Math.min(7, TMAP.view.s * 1.25); tmDraw(); keyStop = true; } else if (k === '-') { TMAP.view.s = Math.max(TMAP.fit * 0.8, TMAP.view.s / 1.25); tmDraw(); keyStop = true; } keyStop = true; return; }
+  if (k === 'l' && (mode === 'fp' || mode === 'god') && $('help').hidden && $('bSetup').hidden && $('cheatSheet').hidden && $('menuSheet').hidden) { tmOpen(); e.preventDefault(); keyStop = true; }
+});
+const rigShotFx = fmSafe(rigShotFx0, undefined);
+const crewRig = fmSafe(crewRig0, undefined);
+const emp2Make = fmSafe(emp2Make0, null);
+const updatePiece = function (e, dt) { try { updatePiece0(e, dt); } catch (er) { window.__fmerr = String(er && er.stack || er); if (guardN++ < 6) console.error('gun error', er); e.job = null; e.cd = Math.max(e.cd || 0, 4); } };
+const fmNestPick = fmSafe(fmNestPick0, null);
+const fmBotTarget = fmSafe(fmBotTarget0, null);
+const fmAirPerson = fmSafe(fmAirPerson0, null);
+const fmAirExtra = fmSafe(fmAirExtra0, undefined);
+const fmVehThink = fmSafe(fmVehThink0, false);
+const fmVehAim = fmSafe(fmVehAim0, undefined);
+const fmSig = fmSafe(fmSig0, '');
+const fmRenderPanel = fmSafe(fmRenderPanel0, undefined);
+if (!isTouch) flareInit(); tmInit();
+Object.assign(window.__sc, { EMP2, RIGDEF, emp2Make, ensureEmplace2, rigAim, rigMuzzle, PSPEC, solveBall, pieceSolve, pieceOrder, pieceFromCall, updatePiece, SHELLS, SHELLT, shellLaunch, FLARE, flareStart, FMS, FMIS: FMS, MISSION: () => FMS.m, fmMark, fmEnumerate, fmExecute, fmCease, fmFinish, fmStart, fmDetect, fmClearMarker, FMV, TMAP, tmOpen, tmClose, tmBuildBase, GUNS, gunScan, gunState, gunFire, fireData, dangerClose, tmFire, tmShift, gridRef, cmpDeg, addHowitzer, addMortar, empDress, EMP_DECK });
 Object.assign(window.__sc, { BOOT, LP, loadRealMap, REALMAPS, realPlanBuildings, realRoads, goMap, toStartMenu, bootBattle, runBootPlan, layRealMap, get REAL() { return REAL; }, get REAL_B() { return REAL_B; }, get REALC() { return REALC; } });
 </script>
 
