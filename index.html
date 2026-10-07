@@ -189,6 +189,16 @@ button:disabled{opacity:.45;cursor:default}
 }
 #dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
 @media (pointer:coarse){button,.chip,.tabs button{min-height:44px}.chip .dn,.mrow span,.mgrid small{font-size:13px}}
+/* the side pane takes its own strip of the window: everything else lays out in what is left, so nothing runs underneath it */
+@media (min-width:700px){
+  body.sideopen{--sideW:min(332px,90vw)}
+  body.sideopen .bottom{left:var(--sideW)}
+  body.sideopen .inst{left:calc(var(--sideW) + 12px)}
+  body.sideopen #camPad{left:calc(var(--sideW) + 8px)}
+  body.sideopen #objective{left:calc(var(--sideW) + 12px)}
+  body.sideopen #legend,body.sideopen #notes,body.sideopen .toast,body.sideopen #inspector{left:calc(50% + var(--sideW) / 2)}
+  body.sideopen #menuSheet,body.sideopen .help
+}
 #burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
 body.sideopen #burger{display:none}
 #side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -774,6 +784,31 @@ try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); i
 { const qp = new URLSearchParams(location.search), qm = qp.get('map'); if (qm && MAPS.some(q => q[0] === qm)) MAP = { t: qm, seed: qm === 'cove' ? 'cove' : (qp.get('seed') || qm) }; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
+const ROADS = [                                                          // control points in map units (u east, v south) with the road height in metres; the ground is graded to these
+  { name: 'Harbour spine', w: 8, marks: true, pts: [[0.0, 0.15, 1.6], [0.0, 0.03, 2.4], [0.0, -0.1, 3.1], [0.15, -0.16, 3.1]] },
+  { name: 'East road', w: 7, marks: true, pts: [[0.15, -0.16, 3.1], [0.45, -0.11, 3.1], [0.65, -0.03, 3.1]] },
+  { name: 'West road', w: 7, marks: true, pts: [[0.0, -0.06, 3.1], [-0.25, -0.06, 3.1], [-0.5, -0.06, 3.1]] },
+  { name: 'Quay lane', w: 6, marks: true, pts: [[-0.55, 0.17, 1.6], [0.0, 0.17, 1.6], [0.43, 0.17, 1.6]] },
+];
+const ROAD_JUNCTIONS = [[0.0, -0.06], [0.0, 0.17], [0.15, -0.16]];
+let ROAD_DENSE = null;                                                       // each road resampled as a smooth curve, every 2 m: [{x, z, h}] in metres
+function roadDense(E) {
+  if (ROAD_DENSE && ROAD_DENSE.E === E) return ROAD_DENSE; const out = []; ROAD_DENSE = out; out.E = E;
+  for (const r of ROADS) {
+    const P = r.pts.map(q => ({ x: q[0] * E, z: q[1] * E, h: q[2] })), pts = [], n = P.length;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(n - 1, i + 2)], len = Math.hypot(p2.x - p1.x, p2.z - p1.z), steps = Math.max(2, Math.ceil(len / 2));
+      for (let k = 0; k < steps; k++) { const t = k / steps, t2 = t * t, t3 = t2 * t, f = (a, b, c, d) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3); pts.push({ x: f(p0.x, p1.x, p2.x, p3.x), z: f(p0.z, p1.z, p2.z, p3.z), h: p1.h + (p2.h - p1.h) * (t * t * (3 - 2 * t)) }); }
+    }
+    pts.push({ ...P[n - 1] }); out.push({ r, pts });
+  }
+  return out;
+}
+function roadGrade(u, v, h, E) {                                             // lay the ground to the road: level across, smooth along, a short shoulder either side
+  const x = u * E, z = v * E; let best = null, bd = 1e9, bh = 0, bw = 0;
+  for (const { r, pts } of roadDense(E)) for (let i = 0; i < pts.length; i++) { const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; bh = p.h; bw = r.w / 2; } }
+  const dist = Math.sqrt(bd); if (dist > bw + 5) return h; const k = dist <= bw + 0.6 ? 1 : 1 - (dist - bw - 0.6) / (4.4); const w = k * k * (3 - 2 * k); return h * (1 - w) + bh * w;
+}
 const PORT_BOX = (u, v, u0, u1, v0, v1, m) => { const du = Math.max(u0 - u, 0, u - u1), dv = Math.max(v0 - v, 0, v - v1), d = Math.hypot(du, dv); return d <= 0 ? 1 : Math.max(0, 1 - d / m); };
 function portStamp(u, v, h) {                               // the quay, its slips, the building pads and the breakwater: flat, level and exactly where the scenario expects them
   let w = PORT_BOX(u, v, -0.58, 0.46, 0.12, 0.33, 0.035); h = h * (1 - w) + 1.6 * w;                                  // the quay apron
@@ -812,7 +847,7 @@ function genTerrain(H, tpl, seedStr) {
     else if (tpl === 'port') {
       const nw = 1 - ss(-0.78, -0.22, v), plain = 3.0 + 1.5 * fbm(u * 2.5 + 4, v * 2.5), mt = 25 * nw * (0.45 + fbm(U * 3.2 + 2, V * 3.2)), lmk = 1 - ss(0.28, 0.44, v + 0.05 * Math.sin(u * 7 + ph));
       let m = plain + mt; const dr = Math.abs(u - (-0.4 + 0.07 * Math.sin(v * 5 + ph))); m -= 2.6 * (1 - ss(0.0, 0.05, dr)) * ss(-0.55, -0.15, v) * (1 - ss(0.2, 0.3, v));
-      h = m * lmk + Math.max(-9.2, -3 - (v - 0.4) * 16) * (1 - lmk); h = portStamp(u, v, h);
+      h = m * lmk + Math.max(-9.2, -3 - (v - 0.4) * 16) * (1 - lmk); h = roadGrade(u, v, portStamp(u, v, h), 128 * CELL);
     }
     else h = Math.max(-9.2, 14 * (1 - r / 0.7) - 1);
     if (tpl !== 'port' && h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
@@ -822,7 +857,7 @@ function genTerrain(H, tpl, seedStr) {
   for (let pass = 0; pass < 36; pass++) for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) {
     const k = i * N + j; if (H[k] <= 0) continue; for (const q of [1, N]) for (const sg of [1, -1]) { const n = k + sg * q, dh = H[k] - H[n]; if (dh > 1.55 && H[n] > -8) { const m = (dh - 1.55) * 0.2; H[k] -= m; H[n] += m; } }
   }
-  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) H[i * N + j] = portStamp((j - C) / C, (i - C) / C, H[i * N + j]);
+  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const uu = (j - C) / C, vv = (i - C) / C; H[i * N + j] = roadGrade(uu, vv, portStamp(uu, vv, H[i * N + j]), 128 * CELL); }
   for (let pass = 0; pass < 2; pass++) { const c = H.slice(); for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) { const k = i * N + j; if (c[k] > 0.1) H[k] = (c[k] * 4 + c[k - 1] + c[k + 1] + c[k - N] + c[k + N]) / 8; } }
 }
 const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
@@ -2058,9 +2093,7 @@ const BUILD = [
   { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
   { cat: 'Vehicles', id: 'v-cargotruck', name: 'Cargo truck', note: 'hauls loose cargo to the yard', veh: 'cargotruck', sw: '#2f4a7a' },
   { cat: 'Vehicles', id: 'v-crane', name: 'Crane truck', note: 'sets stone blocks into sites', veh: 'cranetruck', sw: '#e5841c' },
-  { cat: 'Vehicles', id: 'v-tractor', name: 'Tractor', note: 'plants trees', veh: 'tractor', sw: '#3f8f3a' },
   { cat: 'Vehicles', id: 'v-patrol', name: 'Port patrol', note: 'catches couriers', veh: 'patrolcar', sw: '#e8ecef' },
-  { cat: 'Vehicles', id: 'v-quad', name: 'Quad bike', note: 'patrols and reports', veh: 'quadbike', sw: '#c83228' },
   { cat: 'Sites', id: 'site-plant', name: 'Plant site', note: 'foresters plant here', site: 'plant', sw: '#5fbf4a' },
   { cat: 'Sites', id: 'site-build', name: 'Build site', note: 'builders raise a stone circle', site: 'build', sw: '#e0883a' },
   { cat: 'Sites', id: 'site-yard', name: 'Cargo yard', note: 'dock workers stack cargo here', site: 'yard', sw: '#a8794a' },
@@ -2341,7 +2374,7 @@ function giveBody(p) {
   b.addEventListener('collide', (e) => {                              // a heavy, fast thing knocks them down
     const o = e.body; if (!o || o.mass < 6 || p.state === 'rag') return;
     const imp = Math.abs(e.contact.getImpactVelocityAlongNormal());
-    if (imp * o.mass > 28) topple(p, new CANNON.Vec3(o.velocity.x * 0.6, 1.5 + imp * 0.3, o.velocity.z * 0.6));
+    { const E = imp * o.mass; if (E > 160) topple(p, new CANNON.Vec3(o.velocity.x * 0.6, 1.5 + imp * 0.3, o.velocity.z * 0.6)); else if (E > 28) stagger(p, new CANNON.Vec3(o.velocity.x * 0.6, 0, o.velocity.z * 0.6)); }
   });
   world.addBody(b); p.body = b;
 }
@@ -2446,6 +2479,14 @@ function freeRag(p) {
   for (const k in r.bodies) world.removeBody(r.bodies[k]);
   for (const f of r.fl) floaters.splice(floaters.indexOf(f), 1);
   p.rag = null;
+}
+function stagger(p, vel) {                                         // a shove, a hull or a crate: people lurch and recover instead of falling over
+  if (!p || p.state === 'rag' || p.fp || p.ride || p.hop || (p.stag || 0) > 0.25) return; p.stag = 0.8; p.stagV = { x: clamp(vel.x, -4, 4) * 0.5, z: clamp(vel.z, -4, 4) * 0.5 };
+}
+function pushOutOfProps(p, rad) {                                  // buildings, containers and fences are solid to people on foot
+  for (const pr of props) { const b = pr.item && pr.item.box; if (!b) continue; const dx = p.x - pr.x, dz = p.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 4) ** 2) continue;
+    const yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), lx = dx * c - dz * sn, lz = dx * sn + dz * c, hx = b[0] + rad, hz = b[2] + rad;
+    if (Math.abs(lx) < hx && Math.abs(lz) < hz) { const px = hx - Math.abs(lx), pz = hz - Math.abs(lz); let nx = lx, nz = lz; if (px < pz) nx = Math.sign(lx || 1) * hx; else nz = Math.sign(lz || 1) * hz; p.x = pr.x + nx * c + nz * sn; p.z = pr.z - nx * sn + nz * c; } }
 }
 function topple(p, vel) {
   if (p.state === 'rag') return;
@@ -2901,6 +2942,8 @@ function stepFoot(p, dt, t) {
       }
     }
   }
+  if (p.stag > 0) { p.stag -= dt; const k = Math.min(1, p.stag / 0.8), nx = p.x + p.stagV.x * k * dt, nz = p.z + p.stagV.z * k * dt; if (standY(nx, nz) > WADE) { p.x = nx; p.z = nz; } }
+  if (!p.fp && !p.swim) pushOutOfProps(p, 0.45);
   p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
   if (moving || p.fpMoving) p.ph += dt * (p.carry ? 5.2 : 6.4);
   if (!p.swim) {
@@ -2917,7 +2960,7 @@ function stepFoot(p, dt, t) {
   // a moving hull runs people down
   for (const bt of boats) {
     const v = bt.body.velocity; if (v.x * v.x + v.z * v.z < 1.4 || bt.sunk) continue;
-    if (insideHull(bt, p.x, p.z, 0.35) && p.y < bt.group.position.y + 3) { topple(p, new CANNON.Vec3(v.x * 0.7, 2.2, v.z * 0.7)); return; }
+    if (insideHull(bt, p.x, p.z, 0.35) && p.y < bt.group.position.y + 3) { if (v.x * v.x + v.z * v.z > 12) { topple(p, new CANNON.Vec3(v.x * 0.7, 2.2, v.z * 0.7)); return; } stagger(p, new CANNON.Vec3(v.x * 0.9, 0, v.z * 0.9)); }
   }
   p.nearT -= dt;
   if (p.nearT <= 0) { p.nearT = 0.5; p.near = !p.order && !p.job && !p.carry && boats.some(bt => Math.hypot(bt.body.position.x - p.x, bt.body.position.z - p.z) < 30 && (bt.body.velocity.x ** 2 + bt.body.velocity.z ** 2) > 0.5); }
@@ -2929,6 +2972,7 @@ function stepFoot(p, dt, t) {
   else if (p.walkK > 0.02) poseGait(p, p.walkK);
   if (p.wk > 0.02 && !p.carry && p.fightK < 0.2) poseWave(p, p.wk, t);
   if (p.fightK > 0.02) poseFight(p, p.fightK, t);
+  if (p.stag > 0) poseBend(p, 0.55 * Math.min(1, p.stag * 2) * Math.sin(Math.min(1, p.stag / 0.8) * Math.PI));
   poseCrewExtras(p, t);
   const swk = p.fp ? 0 : p.swimK; p.obj.position.set(p.x, p.y - p.footOff + 0.6 * swk, p.z); p.obj.rotation.order = 'YXZ'; p.obj.rotation.set(1.22 * swk, p.heading - p.yawOff, 0);
   if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
@@ -3317,7 +3361,7 @@ function updateFP(dt, t) {
     const gy = standY(nx, nz);
     if (!p.swim && gy < WADE && !fp.air) { p.swim = true; }
     else if (p.swim && gy > WADE + 0.25) { p.swim = false; }
-    p.x = nx; p.z = nz; p.heading = fp.yaw;
+    p.x = nx; p.z = nz; pushOutOfProps(p, 0.4); p.heading = fp.yaw;
     if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
       const g2 = standY(p.x, p.z);
@@ -3523,16 +3567,15 @@ setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-c
 addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
 /* ================================================================ the Port and mountains scenario: every yard, site and objective laid out and labelled so the mechanics can be watched */
-const LABELS = []; let labelsOn = true, portLaid = false;
+const LABELS = []; let labelsOn = false, portLaid = false;
 function addLabel(x, y, z, title, sub, col) {
   const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const c = cv.getContext('2d');
-  c.fillStyle = 'rgba(10,22,28,0.86)'; c.fillRect(0, 0, 512, 128); c.strokeStyle = col || '#e3a948'; c.lineWidth = 6; c.strokeRect(3, 3, 506, 122);
-  c.fillStyle = col || '#e3a948'; c.font = 'bold 44px sans-serif'; c.fillText(title, 18, 52); c.fillStyle = '#f1ece2'; c.font = '28px sans-serif';
-  const words = sub.split(' '); let line = '', yy = 90; for (const w of words) { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > 480 && line) { c.fillText(line, 18, yy); yy += 30; line = w; } else line = t; } c.fillText(line, 18, yy);
+  c.fillStyle = 'rgba(10,22,28,0.7)'; c.fillRect(0, 0, 512, 128); c.strokeStyle = col || '#e3a948'; c.lineWidth = 6; c.strokeRect(3, 3, 506, 122);
+  c.fillStyle = col || '#e3a948'; c.font = 'bold 56px sans-serif'; c.fillText(title, 18, 78);
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false }));
   sp.position.set(x, y, z); sp.renderOrder = 7; sp.visible = labelsOn; scene.add(sp); LABELS.push(sp); return sp;
 }
-setInterval(() => { const k = clamp(god.dist * 0.045, 2.2, 12); for (const l of LABELS) { l.visible = labelsOn && mode === 'god'; l.scale.set(k * 4, k, 1); } }, 120);
+setInterval(() => { const k = clamp(god.dist * 0.02, 1.4, 5); for (const l of LABELS) { l.visible = labelsOn && mode === 'god'; l.scale.set(k * 4, k, 1); } }, 120);
 function setLabels(o) { labelsOn = o; for (const l of LABELS) l.visible = o && mode === 'god'; }
 function layPortScenario() {
   if (portLaid) return; portLaid = true; const X = (u) => u * EXT, Z = (v) => v * EXT, Y = (x, z) => Math.max(heightAt(x, z), 0);
@@ -3565,11 +3608,11 @@ function layPortBuildings() {
   const clearRect = (u0, u1, v0, v1) => { for (const t of trees) if (!t.dead && t.x > X(u0) && t.x < X(u1) && t.z > Z(v0) && t.z < Z(v1)) hideTree(t, false); };
   const clearLine = (pts, w) => { for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 3); for (let k = 0; k <= n; k++) { const x = a.x + (b.x - a.x) * k / n, z = a.z + (b.z - a.z) * k / n; for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < w) hideTree(t, false); } } };
   clearRect(-0.6, 0.48, 0.1, 0.36); for (const [a, b, c, d] of [[-0.68, -0.32, -0.18, 0.06], [-0.02, 0.32, -0.22, 0.02], [0.48, 0.82, -0.14, 0.1], [-0.22, 0.12, -0.44, -0.28]]) clearRect(a, b, c, d);
-  clearLine([{ x: X(0.0), z: Z(0.12) }, { x: X(0.0), z: Z(-0.1) }, { x: X(0.15), z: Z(-0.15) }, { x: X(0.52), z: Z(-0.06) }, { x: X(0.65), z: Z(-0.02) }], 6); clearLine([{ x: X(0.0), z: Z(-0.06) }, { x: X(-0.5), z: Z(-0.06) }], 6);
+  for (const { r, pts } of roadDense(128 * CELL)) clearLine(pts, r.w / 2 + 3);
   const put = (id, u, v, rotDeg) => { const itm = BUILD.find(b => b.id === id); if (!itm) return; const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x: X(u), z: Z(v) }); buildRot = sv; };
   for (const [a, b] of [[-0.575, -0.315], [-0.215, 0.045], [0.145, 0.455]]) pavedGrid('concrete', X((a + b) / 2), Z(0.225), (b - a) * EXT, 0.21 * EXT, 0, 0.06, 8);          // the apron, in three pieces between the slips
   for (const st of sites) if (st.kind === 'build') pavedGrid('gravel', st.x, st.z, 20, 20, 0, 0.06, 8);
-  paveRoad([{ x: X(0.0), z: Z(0.12) }, { x: X(0.0), z: Z(-0.1) }, { x: X(0.15), z: Z(-0.15) }], 7, true); paveRoad([{ x: X(0.15), z: Z(-0.15) }, { x: X(0.52), z: Z(-0.06) }, { x: X(0.65), z: Z(-0.02) }], 7, true); paveRoad([{ x: X(0.0), z: Z(-0.06) }, { x: X(-0.5), z: Z(-0.06) }], 7, true);
+  buildRoadMesh(EXT);
   put('b-warehouse', -0.445, 0.2, 0); put('b-office', 0.42, 0.25, 0); put('b-tank', 0.3, 0.27, 0); put('b-silo', 0.225, 0.28, 0); put('b-crane', 0.0, 0.235, -90); put('b-guard', -0.12, 0.145, 0);
   for (const [c, u] of [['red', 0.2], ['blue', 0.26], ['green', 0.32], ['orange', 0.38]]) put('p-cont-' + c, u, 0.165, 0);
   for (const u of [-0.5, -0.4, -0.2, -0.1, 0.0, 0.2, 0.3, 0.4]) put('p-lamp', u, 0.315, 0);
@@ -3601,6 +3644,23 @@ function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat) {                  
 function paveRectRot(kind, cx, cz, w, d, rot, marks) {
   pavedGrid(kind, cx, cz, w, d, rot, 0.06, 8); if (marks) pavedGrid('marks', cx, cz, w, d, rot, 0.085, 0, PAVE.marks);
 }
+function buildRoadMesh(E) {
+  for (const { r, pts } of roadDense(E)) {
+    const n = pts.length, pos = [], uvA = [], uvM = [], idx = []; let acc = 0;
+    for (let i = 0; i < n; i++) {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; let tx = b.x - a.x, tz = b.z - a.z; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl; const nx = -tz, nz = tx, hw = r.w / 2;
+      if (i) acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+      for (const sgn of [-1, 1]) { const x = pts[i].x + nx * hw * sgn, z = pts[i].z + nz * hw * sgn; pos.push(x, Math.max(heightAt(x, z), 0) + 0.05, z); }
+      uvA.push(0, acc / 8, 1, acc / 8); uvM.push(0, acc / 12, 1, acc / 12);
+    }
+    for (let i = 0; i < n - 1; i++) { const a = i * 2, b = a + 1, c = a + 2, d = a + 3; idx.push(a, b, c, b, d, c); }
+    const mk = (uv, mat, ro, lift) => { const p2 = pos.slice(); if (lift) for (let q = 1; q < p2.length; q += 3) p2[q] += lift; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p2, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); const m = new THREE.Mesh(g, mat); m.receiveShadow = true; m.renderOrder = ro; scene.add(m); pavedMeshes.push(m); };
+    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03);
+    for (const p of pts) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i2 = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i2 >= 0 && j >= 0 && i2 < 64 && j < 64) ROADCELL[i2 * 64 + j] = 1; }
+  }
+  for (const [u, v] of ROAD_JUNCTIONS) { const x = u * E, z = v * E; pavedGrid('asphalt', x, z, 9, 9, Math.PI / 4, 0.055, 8); }
+}
+const ROADCELL = new Uint8Array(64 * 64);
 function paveRoad(pts, w, marks) {                                                      // an asphalt strip along a polyline, with a centre line
   const segs = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], len = Math.hypot(b.x - a.x, b.z - a.z), ang = Math.atan2(b.z - a.z, b.x - a.x); segs.push({ cx: (a.x + b.x) / 2, cz: (a.z + b.z) / 2, len, ang }); }
   for (const sg of segs) { pavedGrid('asphalt', sg.cx, sg.cz, sg.len + 1.5, w, sg.ang, 0.06, 8); if (marks) pavedGrid('marks', sg.cx, sg.cz, w, sg.len, sg.ang - Math.PI / 2, 0.085, 0, PAVE.marks); }
@@ -4776,7 +4836,7 @@ function updateDisasters(dt, t) {
   if (dis.quake > 0) {
     dis.quake -= dt; const k = Math.min(1, dis.quake / 2);
     for (const o of objects) if (Math.random() < dt * 4) kick(o.body, rnd(-1, 1) * 140, rnd(0.5, 1) * 160, rnd(-1, 1) * 140, 0.1, o.body.mass);
-    for (const q of people) if (!q.fp && q.state !== 'rag' && Math.random() < dt * 0.35) topple(q, new CANNON.Vec3(rnd(-2, 2), 2, rnd(-2, 2)));
+    for (const q of people) if (!q.fp && q.state !== 'rag' && Math.random() < dt * 0.12 * k) topple(q, new CANNON.Vec3(rnd(-2, 2), 2, rnd(-2, 2))); else if (!q.fp && q.state !== 'rag' && Math.random() < dt * 0.5 * k) stagger(q, new CANNON.Vec3(rnd(-3, 3), 0, rnd(-3, 3)));
     for (const bt of boats) if (Math.random() < dt * 2) bt.body.applyImpulse(new CANNON.Vec3(rnd(-1, 1) * bt.body.mass * 0.3, 0, rnd(-1, 1) * bt.body.mass * 0.3), bt.body.position);
     dis.shake = 0.5 * k;
   } else dis.shake = 0;
@@ -6249,12 +6309,13 @@ const VSPEC = {
   quadbike: { name: 'Quad bike', v: 5, turn: 1.6, L: 2.0, eng: 'outboard', desc: 'patrols the coast and reports what it sees' },
   cranetruck: { name: 'Crane truck', v: 2.2, turn: 0.7, L: 9.0, eng: 'icebreaker', desc: 'sets stone blocks into build sites' },
 };
-let VEH_LAST = -99; const VEHS = [], vehTree = new Float32Array(64 * 64); let vehP = null, vehTreeT = -99, vehN = 0;
+let vehPropN = -1; let VEH_LAST = -99; const VEHS = [], vehTree = new Float32Array(64 * 64); let vehP = null, vehTreeT = -99, vehN = 0;
 const ensureVehicles = () => vehP || (vehP = Promise.race([loadGLB('vehicles').then(g => (D.glb.vehicles = g)), new Promise(r => setTimeout(() => r(null), 8000))]).catch(e => null));      // no model file (or a slow one): plain boxes stand in
 function vehGrid() {                                                 // trees per land-map cell, for steering around forest
-  if (simT - vehTreeT < 30) return; vehTreeT = simT; vehTree.fill(0);
+  if (simT - vehTreeT < 30 && vehPropN === props.length) return; vehTreeT = simT; vehPropN = props.length; vehTree.fill(0);
   for (const t of trees) { if (t.dead) continue; const j = Math.floor((W2G(t.x) - 2) / 4 + 0.5), i = Math.floor((W2G(t.z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64) vehTree[i * 64 + j]++; }
-  for (const p of props) if (p.item && p.item.land) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64) vehTree[i * 64 + j] += 2; }
+  for (const p of props) if (p.item && p.item.box) { const [hx, , hz] = p.item.box, yaw = p.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), rr = Math.hypot(hx, hz) + 4; for (let i = Math.floor((W2G(p.z - rr) - 2) / 4); i <= Math.ceil((W2G(p.z + rr) - 2) / 4); i++) for (let j = Math.floor((W2G(p.x - rr) - 2) / 4); j <= Math.ceil((W2G(p.x + rr) - 2) / 4); j++) { if (i < 0 || j < 0 || i > 63 || j > 63) continue; const wx = G2W(j * 4 + 2) - p.x, wz = G2W(i * 4 + 2) - p.z, lx = wx * c - wz * sn, lz = wx * sn + wz * c; if (Math.abs(lx) < hx + 3.2 && Math.abs(lz) < hz + 3.2) vehTree[i * 64 + j] += 5; } }
+  for (const p of props) if (p.item && p.item.land && !p.item.box) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64) vehTree[i * 64 + j] += 2; }
 }
 const vcell = (x, z) => [Math.max(0, Math.min(63, Math.round((W2G(x) - 2) / 4))), Math.max(0, Math.min(63, Math.round((W2G(z) - 2) / 4)))];
 const cellOK = (i, j) => { const c = i * 64 + j; if (LM.h[c] < 0.55 || LM.slope[c] > 0.26 || vehTree[c] >= 3) return false; const gk = (i * 4 + 2) * TN + j * 4 + 2; return !(GT[gk] > 70 || LV[gk] > 0.01 || WD[gk] > 0.25); };
@@ -6265,7 +6326,7 @@ function findPath(x0, z0, x1, z1) {
   const hh = (c) => Math.hypot((c % N) - G[1], ((c / N) | 0) - G[0]); let guard = 0;
   while (open.length && guard++ < 4000) {
     let bi = 0; for (let q = 1; q < open.length; q++) if (open[q][1] < open[bi][1]) bi = q; const [cur] = open.splice(bi, 1)[0]; if (cur === goal) break; const ci = (cur / N) | 0, cj = cur % N;
-    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N || !cellOK(ni, nj)) continue; const nc = ni * N + nj, cost = g.get(cur) + Math.hypot(di, dj) * (1 + LM.slope[nc] * 16 + vehTree[nc] * 1.2); if (!g.has(nc) || cost < g.get(nc)) { g.set(nc, cost); from.set(nc, cur); open.push([nc, cost + hh(nc) * 1.05]); } }
+    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N || !cellOK(ni, nj)) continue; const nc = ni * N + nj, cost = g.get(cur) + Math.hypot(di, dj) * (1 + LM.slope[nc] * 16 + vehTree[nc] * 1.2) * (ROADCELL[nc] ? 0.35 : 1.6); if (!g.has(nc) || cost < g.get(nc)) { g.set(nc, cost); from.set(nc, cur); open.push([nc, cost + hh(nc) * 1.05]); } }
   }
   if (!from.has(goal) && S[0] * N + S[1] !== goal) return null; const path = []; let c = goal; while (c !== undefined && path.length < 400) { path.push({ x: G2W((c % N) * 4 + 2), z: G2W(((c / N) | 0) * 4 + 2) }); c = from.get(c); } path.reverse(); path.push({ x: x1, z: z1 }); return path;
 }
@@ -6302,7 +6363,7 @@ function vehMove(v, dt) {
   if (v.body) { v.body.position.set(v.x, v.y, v.z); v.body.quaternion.setFromEuler(0, -v.yaw, 0); v.body.velocity.set(Math.cos(v.yaw) * v.speed, 0, Math.sin(v.yaw) * v.speed); v.body.interpolatedPosition && v.body.interpolatedPosition.copy(v.body.position); }
   for (const w of v.wheels) { w.spin -= v.speed * dt / 0.45; w.n.quaternion.copy(w.q0).multiply(vq.setFromAxisAngle(vAxY, w.front ? v.steer * 0.7 : 0)).multiply(vq2.setFromAxisAngle(vAxZ, w.spin)); }
   // people in the way get knocked over (cartoon): the medics collect them
-  if (v.speed > 2.4) for (const q of people) { if (q.ride || q.state === 'rag' || q.fp) continue; if (Math.hypot(q.x - v.x, q.z - v.z) < 1.5 && !q._vhit) { q._vhit = simT; topple(q, new CANNON.Vec3(Math.cos(v.yaw) * 2, 2.2, Math.sin(v.yaw) * 2)); noteOnce('vhit', 'A vehicle knocked someone over. Medics will help them up.'); } }
+  if (v.speed > 2.4) for (const q of people) { if (q.ride || q.state === 'rag' || q.fp) continue; if (Math.hypot(q.x - v.x, q.z - v.z) < 1.8 && (!q._vhit || simT - q._vhit > 3)) { q._vhit = simT; if (v.speed > 4.5) { topple(q, new CANNON.Vec3(Math.cos(v.yaw) * 2, 2.2, Math.sin(v.yaw) * 2)); noteOnce('vhit', 'A vehicle knocked someone over. Medics will help them up.'); } else stagger(q, new CANNON.Vec3(-Math.sin(v.yaw) * 3, 0, Math.cos(v.yaw) * 3)); } }
 }
 const cl2 = (v, a, b) => Math.max(a, Math.min(b, v)), vq = new THREE.Quaternion(), vq2 = new THREE.Quaternion(), vAxY = new THREE.Vector3(0, 1, 0), vAxZ = new THREE.Vector3(0, 0, 1);
 const injured = (q) => !q.ride && !q.swim && !q.fp && (q.state === 'rag' || q.frozen || (q.cold || 0) > 0.6 || (q.heat || 0) > 0.8);
