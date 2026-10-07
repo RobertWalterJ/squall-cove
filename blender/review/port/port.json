@@ -1,0 +1,552 @@
+{
+ "warehouse": {
+  "length_x": 30.0,
+  "width_y": 14.083,
+  "height": 8.96,
+  "tris": 1380,
+  "min": [
+   -15.0,
+   -7.023,
+   0.0
+  ],
+  "max": [
+   15.0,
+   7.06,
+   8.96
+  ],
+  "doors": [
+   {
+    "side": "+y",
+    "offset": -9.0,
+    "width": 4.8,
+    "height": 4.5
+   },
+   {
+    "side": "+y",
+    "offset": 0.0,
+    "width": 4.8,
+    "height": 4.5
+   },
+   {
+    "side": "+y",
+    "offset": 9.0,
+    "width": 4.8,
+    "height": 4.5
+   },
+   {
+    "side": "-y",
+    "offset": -11.0,
+    "width": 1.1,
+    "height": 2.2
+   },
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 3.6,
+    "height": 4.0
+   }
+  ]
+ },
+ "office": {
+  "length_x": 14.0,
+  "width_y": 11.25,
+  "height": 11.0,
+  "tris": 972,
+  "min": [
+   -7.0,
+   -4.95,
+   0.0
+  ],
+  "max": [
+   7.0,
+   6.3,
+   11.0
+  ],
+  "doors": [
+   {
+    "side": "+y",
+    "offset": 0.0,
+    "width": 2.4,
+    "height": 2.3
+   }
+  ]
+ },
+ "hangar": {
+  "length_x": 24.0,
+  "width_y": 19.992,
+  "height": 9.922,
+  "tris": 764,
+  "min": [
+   -11.85,
+   -9.996,
+   0.0
+  ],
+  "max": [
+   12.15,
+   9.996,
+   9.922
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 14.0,
+    "height": 7.2
+   },
+   {
+    "side": "-y",
+    "offset": 6.0,
+    "width": 1.1,
+    "height": 2.2
+   }
+  ]
+ },
+ "workshop": {
+  "length_x": 12.3,
+  "width_y": 7.912,
+  "height": 5.1,
+  "tris": 304,
+  "min": [
+   -6.3,
+   -3.956,
+   0.0
+  ],
+  "max": [
+   6.0,
+   3.956,
+   5.1
+  ],
+  "doors": [
+   {
+    "side": "+y",
+    "offset": -2.5,
+    "width": 3.0,
+    "height": 2.7
+   },
+   {
+    "side": "+y",
+    "offset": 2.5,
+    "width": 1.0,
+    "height": 2.1
+   }
+  ]
+ },
+ "house_a": {
+  "length_x": 8.1,
+  "width_y": 7.194,
+  "height": 6.0,
+  "tris": 268,
+  "min": [
+   -4.05,
+   -3.494,
+   0.0
+  ],
+  "max": [
+   4.05,
+   3.7,
+   6.0
+  ],
+  "doors": [
+   {
+    "side": "+y",
+    "offset": -1.5,
+    "width": 1.0,
+    "height": 2.1
+   }
+  ]
+ },
+ "house_b": {
+  "length_x": 8.35,
+  "width_y": 7.3,
+  "height": 5.9,
+  "tris": 320,
+  "min": [
+   -3.85,
+   -3.65,
+   0.0
+  ],
+  "max": [
+   4.5,
+   3.65,
+   5.9
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 1.0,
+    "height": 2.1
+   }
+  ]
+ },
+ "house_c": {
+  "length_x": 8.083,
+  "width_y": 7.3,
+  "height": 6.36,
+  "tris": 376,
+  "min": [
+   -3.883,
+   -3.65,
+   0.0
+  ],
+  "max": [
+   4.2,
+   3.65,
+   6.36
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": -1.5,
+    "width": 1.0,
+    "height": 2.1
+   }
+  ]
+ },
+ "guardhouse": {
+  "length_x": 4.0,
+  "width_y": 4.0,
+  "height": 3.0,
+  "tris": 144,
+  "min": [
+   -2.0,
+   -2.0,
+   0.0
+  ],
+  "max": [
+   2.0,
+   2.0,
+   3.0
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 1.0,
+    "height": 2.1
+   }
+  ]
+ },
+ "watchtower": {
+  "length_x": 3.0,
+  "width_y": 3.0,
+  "height": 10.0,
+  "tris": 788,
+  "min": [
+   -1.5,
+   -1.5,
+   0.0
+  ],
+  "max": [
+   1.5,
+   1.5,
+   10.0
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 0.7,
+    "height": 1.4
+   }
+  ]
+ },
+ "fuel_tank": {
+  "length_x": 11.5,
+  "width_y": 10.2,
+  "height": 8.935,
+  "tris": 1476,
+  "min": [
+   -6.35,
+   -5.1,
+   0.0
+  ],
+  "max": [
+   5.15,
+   5.1,
+   8.935
+  ],
+  "doors": []
+ },
+ "silo": {
+  "length_x": 6.25,
+  "width_y": 5.5,
+  "height": 16.0,
+  "tris": 1120,
+  "min": [
+   -3.5,
+   -2.75,
+   0.0
+  ],
+  "max": [
+   2.75,
+   2.75,
+   16.0
+  ],
+  "doors": []
+ },
+ "quay_crane": {
+  "length_x": 42.5,
+  "width_y": 14.8,
+  "height": 30.129,
+  "tris": 852,
+  "min": [
+   -12.5,
+   -7.4,
+   0.0
+  ],
+  "max": [
+   30.0,
+   7.4,
+   30.129
+  ],
+  "doors": []
+ },
+ "bunker": {
+  "length_x": 8.02,
+  "width_y": 6.0,
+  "height": 3.35,
+  "tris": 696,
+  "min": [
+   -4.0,
+   -3.0,
+   0.0
+  ],
+  "max": [
+   4.02,
+   3.0,
+   3.35
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 2.4,
+    "height": 2.1
+   }
+  ]
+ },
+ "tent": {
+  "length_x": 6.2,
+  "width_y": 4.12,
+  "height": 2.95,
+  "tris": 184,
+  "min": [
+   -3.1,
+   -2.06,
+   0.0
+  ],
+  "max": [
+   3.1,
+   2.06,
+   2.95
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 1.4,
+    "height": 1.9
+   }
+  ]
+ },
+ "container_red": {
+  "length_x": 6.05,
+  "width_y": 2.43,
+  "height": 2.59,
+  "tris": 748,
+  "min": [
+   -2.985,
+   -1.215,
+   0.0
+  ],
+  "max": [
+   3.065,
+   1.215,
+   2.59
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 2.34,
+    "height": 2.3
+   }
+  ]
+ },
+ "container_blue": {
+  "length_x": 6.05,
+  "width_y": 2.43,
+  "height": 2.59,
+  "tris": 748,
+  "min": [
+   -2.985,
+   -1.215,
+   0.0
+  ],
+  "max": [
+   3.065,
+   1.215,
+   2.59
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 2.34,
+    "height": 2.3
+   }
+  ]
+ },
+ "container_green": {
+  "length_x": 6.05,
+  "width_y": 2.43,
+  "height": 2.59,
+  "tris": 748,
+  "min": [
+   -2.985,
+   -1.215,
+   0.0
+  ],
+  "max": [
+   3.065,
+   1.215,
+   2.59
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 2.34,
+    "height": 2.3
+   }
+  ]
+ },
+ "container_orange": {
+  "length_x": 6.05,
+  "width_y": 2.43,
+  "height": 2.59,
+  "tris": 748,
+  "min": [
+   -2.985,
+   -1.215,
+   0.0
+  ],
+  "max": [
+   3.065,
+   1.215,
+   2.59
+  ],
+  "doors": [
+   {
+    "side": "+x",
+    "offset": 0.0,
+    "width": 2.34,
+    "height": 2.3
+   }
+  ]
+ },
+ "lamp_post": {
+  "length_x": 2.32,
+  "width_y": 0.44,
+  "height": 7.045,
+  "tris": 132,
+  "min": [
+   -0.22,
+   -0.22,
+   0.0
+  ],
+  "max": [
+   2.1,
+   0.22,
+   7.045
+  ],
+  "doors": []
+ },
+ "quay_bollard": {
+  "length_x": 0.68,
+  "width_y": 0.68,
+  "height": 0.9,
+  "tris": 258,
+  "min": [
+   -0.34,
+   -0.34,
+   0.0
+  ],
+  "max": [
+   0.34,
+   0.34,
+   0.9
+  ],
+  "doors": []
+ },
+ "fence_section": {
+  "length_x": 4.004,
+  "width_y": 0.12,
+  "height": 2.04,
+  "tris": 384,
+  "min": [
+   -2.002,
+   -0.06,
+   0.0
+  ],
+  "max": [
+   2.002,
+   0.06,
+   2.04
+  ],
+  "doors": []
+ },
+ "road_barrier": {
+  "length_x": 3.0,
+  "width_y": 1.0,
+  "height": 1.013,
+  "tris": 244,
+  "min": [
+   -1.5,
+   -0.5,
+   0.0
+  ],
+  "max": [
+   1.5,
+   0.5,
+   1.013
+  ],
+  "doors": []
+ },
+ "pallets": {
+  "length_x": 1.22,
+  "width_y": 1.0,
+  "height": 1.485,
+  "tris": 512,
+  "min": [
+   -0.61,
+   -0.5,
+   0.0
+  ],
+  "max": [
+   0.61,
+   0.5,
+   1.485
+  ],
+  "doors": []
+ },
+ "road_sign": {
+  "length_x": 0.24,
+  "width_y": 0.62,
+  "height": 3.0,
+  "tris": 296,
+  "min": [
+   -0.12,
+   -0.31,
+   0.0
+  ],
+  "max": [
+   0.12,
+   0.31,
+   3.0
+  ],
+  "doors": []
+ },
+ "_total_tris": 14462
+}
