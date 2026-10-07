@@ -1,0 +1,184 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-07T18:05:53Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 267618134,
+  "lat": 39.8754188,
+  "lon": 25.0634491,
+  "tags": {
+    "capital": "6",
+    "name": "Μύρινα",
+    "name:ca": "Mirina",
+    "name:de": "Mirina",
+    "name:el": "Μύρινα",
+    "name:en": "Myrina",
+    "name:fr": "Myrina",
+    "name:ml": "മിറീന",
+    "name:ru": "Мирина",
+    "place": "town",
+    "population": "5711",
+    "wikidata": "Q2310605",
+    "wikipedia": "en:Myrina, Greece"
+  }
+},
+{
+  "type": "node",
+  "id": 1863289796,
+  "lat": 39.8730055,
+  "lon": 25.0608902,
+  "tags": {
+    "natural": "beach",
+    "sport": "swimming"
+  }
+},
+{
+  "type": "node",
+  "id": 1863295850,
+  "lat": 39.8775168,
+  "lon": 25.0552474,
+  "tags": {
+    "archaeological_site": "city",
+    "historic": "archaeological_site",
+    "historic:civilization": "ancient_greek",
+    "name": "Αρχαία Μύρινα",
+    "name:el": "Αρχαία Μύρινα",
+    "name:en": "Ancient Myrina",
+    "wikidata": "Q110687030"
+  }
+},
+{
+  "type": "node",
+  "id": 2334766325,
+  "lat": 39.8732411,
+  "lon": 25.0573675,
+  "tags": {
+    "man_made": "lighthouse"
+  }
+},
+{
+  "type": "node",
+  "id": 2334766558,
+  "lat": 39.8713222,
+  "lon": 25.0514995,
+  "tags": {
+    "man_made": "lighthouse"
+  }
+},
+{
+  "type": "node",
+  "id": 2691593094,
+  "lat": 39.8751173,
+  "lon": 25.0617090,
+  "tags": {
+    "amenity": "place_of_worship",
+    "denomination": "greek_orthodox",
+    "name": "Άγιος Νικόλαος",
+    "religion": "christian"
+  }
+},
+{
+  "type": "node",
+  "id": 5051196807,
+  "lat": 39.8735026,
+  "lon": 25.0495837,
+  "tags": {
+    "man_made": "lighthouse"
+  }
+},
+{
+  "type": "node",
+  "id": 7843662884,
+  "lat": 39.8710597,
+  "lon": 25.0548551,
+  "tags": {
+    "amenity": "ferry_terminal",
+    "cargo": "passengers;vehicle",
+    "ferry": "yes",
+    "name": "Λιμάνι Λήμνου",
+    "name:el": "Λιμάνι Λήμνου",
+    "name:en": "Lemnos Port",
+    "public_transport": "station",
+    "short_name": "Λήμνος",
+    "short_name:el": "Λήμνος",
+    "short_name:en": "Lemnos"
+  }
+},
+{
+  "type": "node",
+  "id": 9010332565,
+  "lat": 39.8803770,
+  "lon": 25.0655547,
+  "tags": {
+    "amenity": "fuel",
+    "brand": "BP",
+    "brand:wikidata": "Q152057",
+    "brand:wikipedia": "en:Royal Dutch Shell",
+    "name": "BP",
+    "operator": "ΜΗΤΙΟΥΔΗΣ ΧΡΗΣΤΟΣ"
+  }
+},
+{
+  "type": "node",
+  "id": 9010622709,
+  "lat": 39.8859111,
+  "lon": 25.0638935,
+  "tags": {
+    "access": "yes",
+    "historic": "monument",
+    "name": "Μνημείο Κύπριων Αγωνιστών",
+    "name:el": "Μνημείο Κύπριων Αγωνιστών",
+    "name:en": "Memorial of the Cypriot Fighters"
+  }
+},
+{
+  "type": "node",
+  "id": 9765110582,
+  "lat": 39.8836622,
+  "lon": 25.0697439,
+  "tags": {
+    "amenity": "fuel",
+    "brand": "ΕΛΙΝΟΙΛ",
+    "brand:wikidata": "Q12876543",
+    "name": "ΕΛΙΝΟΙΛ",
+    "operator": "Χ. & Γ. ΠΑΛΑΤΙΑΝΟΣ Ο.Ε."
+  }
+},
+{
+  "type": "node",
+  "id": 11293579674,
+  "lat": 39.8786666,
+  "lon": 25.0619089,
+  "tags": {
+    "historic": "memorial"
+  }
+},
+{
+  "type": "node",
+  "id": 11294048228,
+  "lat": 39.8814424,
+  "lon": 25.0626566,
+  "tags": {
+    "historic": "monument",
+    "name": "Μνημείο Πεσόντων Ιερολοχιτών"
+  }
+},
+{
+  "type": "node",
+  "id": 11294189359,
+  "lat": 39.8807770,
+  "lon": 25.0625318,
+  "tags": {
+    "historic": "monument",
+    "name": "ΠΡΟΜΑΧΩΝ ΜΕΜΝΗΣΟ"
+  }
+}
+
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-07T17:49:41Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 267618134,
+  "lat": 39.8754188,
+  "lon": 25.0634491,
+  "tags": {
+    "capital": "6",
+    "name": "Μύρινα",
+    "name:ca": "Mirina",
+    "name:de": "Mirina",
+    "name:el": "Μύρινα",
+    "name:en": "Myrina",
+    "name:fr": "Myrina",
+    "name:ml": "മിറീന",
+    "name:ru": "Мирина",
+    "place": "town",
+    "population": "5711",
+    "wikidata": "Q2310605",
+    "wikipedia": "en:Myrina, Greece"
+  }
+},
+{
+  "type": "node",
+  "id": 1863289796,
+  "lat": 39.8730055,
+  "lon": 25.0608902,
+  "tags": {
+    "natural": "beach",
+    "sport": "swimming"
+  }
+},
+{
+  "type": "node",
+  "id": 2691593094,
+  "lat": 39.8751173,
+  "lon": 25.0617090,
+  "tags": {
+    "amenity": "place_of_worship",
+    "denomination": "greek_orthodox",
+    "name": "Άγιος Νικόλαος",
+    "religion": "christian"
+  }
+}
+
+  ]
+}

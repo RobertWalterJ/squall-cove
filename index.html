@@ -21,7 +21,7 @@
 /* Layout: full-bleed 3D sea; instruments pinned top-left, actions top-right, cargo tray and helm along the bottom edge. Single dusk look, deliberately one theme. */
 :root{
   --ink:#0c1a20;
-  --panel:rgba(12,26,32,.76);
+  --panel:rgba(12,26,32,.95);
   --line:rgba(241,236,226,.16);
   --paper:#f1ece2;
   --muted:#a7b5b2;
@@ -40,20 +40,20 @@ body{background:var(--ink);color:var(--paper);font-family:var(--f-body);overflow
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
 .hud{position:fixed;inset:0;pointer-events:none}
 .hud > *{pointer-events:auto}
-button{font:600 15px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);touch-action:manipulation}
+button{font:600 16px/1.15 var(--f-display);letter-spacing:.01em;color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;touch-action:manipulation}
 button:hover{border-color:rgba(227,169,72,.6)}
 button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 button[aria-pressed="true"]{border-color:var(--brass);color:var(--brass)}
 
-.inst{position:absolute;top:calc(12px + var(--safe-t));left:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:grid;gap:6px;max-width:calc(100vw - 24px)}
-.brand{font:700 13px/1 var(--f-display);letter-spacing:.22em;text-transform:uppercase;color:var(--brass)}
+.inst{position:absolute;top:calc(12px + var(--safe-t));left:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:6px;max-width:calc(100vw - 24px)}
+.brand{font:700 13px/1 var(--f-display);letter-spacing:.22em;color:var(--brass)}
 .boatname{font:600 20px/1.1 var(--f-display);letter-spacing:.02em}
 .boatname small{font:500 13px var(--f-body);color:var(--muted);letter-spacing:0;margin-left:6px}
 .readouts{display:flex;gap:12px;align-items:center}
 #rose{width:76px;height:76px;flex:none}
 dl{margin:0;display:grid;grid-template-columns:auto auto;column-gap:10px;row-gap:3px;align-items:baseline}
 dl div{display:contents}
-dt{font:600 11px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+dt{font:600 11px/1 var(--f-display);letter-spacing:.14em;color:var(--muted)}
 dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 .actions .grp{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
@@ -61,30 +61,23 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
- #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(var(--bh,140px) + 22px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
-#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(var(--bh,140px) + 30px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);text-transform:uppercase;z-index:5}
-#landUndo[hidden],#turnBtn[hidden],#placeBtn[hidden]{display:none}
-#objective{position:fixed;left:12px;bottom:calc(172px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
+ #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(var(--bh,140px) + 22px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
+#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(var(--bh,140px) + 30px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);z-index:5}
+#objective{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 84px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
 #objective button{min-height:36px;padding:6px 12px}
-#objective[hidden]{display:none}
-#calmBtn{position:fixed;left:12px;bottom:calc(228px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;text-transform:uppercase;z-index:5;box-shadow:0 4px 18px #0008}
-#calmBtn[hidden]{display:none}
-#legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:4;pointer-events:none}
-#legend[hidden]{display:none}
+#calmBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 68px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;z-index:5;box-shadow:0 4px 18px #0008}
+#legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 10px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:4;pointer-events:none}
 /* a calm interface: the picture is the star, controls appear when they are needed */
 body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
 body.ui-min.noinst .inst{display:none}
 body.ui-min .inst dl > div:nth-child(2){display:none}
-body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli):not(#bFP):not(#bFire){display:none}
+body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli):not(#bFP){display:none}
 body.ui-min #bMode:disabled{display:none}
 body.ui-min.tray-idle .tray{display:none}
 #trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
-#trayTog[hidden]{display:none}
 #hudOn{position:fixed;top:12px;right:12px;z-index:6;opacity:.55;min-height:40px}
-#hudOn[hidden]{display:none}
 body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camPad,body.hud-off #calmBtn,body.hud-off #legend,body.hud-off #objective,body.hud-off #sculpt,body.hud-off #landUndo,body.hud-off #placeBtn,body.hud-off #turnBtn{display:none!important}
 #camPad{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,52px);gap:6px;z-index:4;touch-action:none}
-#camPad[hidden]{display:none}
 #camPad button{min-width:52px;min-height:46px;padding:4px 6px;font-size:13px;background:rgba(12,26,32,.82);touch-action:none}
 #menuSheet{position:fixed;inset:0;z-index:30;overflow-y:auto}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -92,12 +85,11 @@ body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camP
 .mgrid button{min-height:52px}
 .mbody{display:grid;gap:8px}
 .mback{justify-self:start;min-height:40px;padding:0 14px}
-.mhead{font:600 13px/1.3 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.mhead{font:600 13px/1.3 var(--f-display);letter-spacing:.1em;color:var(--muted);padding-top:4px}
 .mrow{display:grid;gap:3px;text-align:left;padding:12px 14px;min-height:52px}
-.mrow b{font:600 16px var(--f-display);letter-spacing:.04em;text-transform:uppercase}
+.mrow b{font:600 16px var(--f-display);letter-spacing:.04em;}
 .mrow span{font:500 12px var(--f-mono);color:var(--muted)}
 #sculpt.on{background:#fff2c7;transform:scale(.94)}
-#sculpt[hidden]{display:none}
 .bottom{position:absolute;left:0;right:0;bottom:calc(10px + var(--safe-b));display:grid;gap:8px;padding-inline:12px;pointer-events:none}
 .bottom > *{pointer-events:auto}
 .tray{display:flex;gap:8px;overflow-x:auto;padding-bottom:7px;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.5) transparent;justify-self:center;max-width:100%;overscroll-behavior-x:contain}
@@ -117,23 +109,22 @@ body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camP
 .pad button{min-width:58px;height:58px;font-size:15px;padding-inline:10px}
 .pad .big{font-size:22px}
 @media (pointer:coarse){ body[data-mode="helm"] .helm{display:flex} }
-#selFloat{position:fixed;left:16px;bottom:calc(var(--bh,140px) + 24px + var(--safe-b));min-height:52px;padding:0 20px;border-radius:26px;background:rgba(214,75,44,.92);color:#fff;border:2px solid #fff3;font:700 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;z-index:6;box-shadow:0 4px 16px #0008}#selFloat[hidden]{display:none}
-#cats{padding-bottom:2px}#cats[hidden]{display:none}
+#selFloat{position:fixed;left:16px;bottom:calc(var(--bh,140px) + 24px + var(--safe-b));min-height:52px;padding:0 20px;border-radius:26px;background:rgba(214,75,44,.92);color:#fff;border:2px solid #fff3;font:700 15px var(--f-display);letter-spacing:.06em;z-index:6;box-shadow:0 4px 16px #0008}
+#cats{padding-bottom:2px}
 #cats .chip{padding:7px 12px}#cats .chip .nm{font-size:13px}
-#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 24px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;gap:9px;z-index:12}
-#inspector[hidden]{display:none}
-#inspector .ihead{display:flex;align-items:center;gap:10px}#inspector .ihead b{font:600 17px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 24px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:9px;z-index:12}
+#inspector .ihead{display:flex;align-items:center;gap:10px}#inspector .ihead b{font:600 17px/1 var(--f-display);letter-spacing:.06em;}
 #inspector #iNote{flex:1;font:500 11.5px/1.35 var(--f-mono);color:var(--brass)}
 #inspector .irow{display:grid;grid-template-columns:92px 1fr 66px;gap:8px;align-items:center;font:500 13px var(--f-body)}
 #inspector .irow output{font:600 12.5px var(--f-mono);text-align:right}
 #inspector input[type=range]{width:100%;height:30px;accent-color:#e3a948}
 #inspector .ifoot{display:flex;justify-content:space-between;align-items:center;gap:8px}#inspector #iPresets{display:flex;gap:6px;flex-wrap:wrap}
 #inspector .ifoot button,#inspector .ihead button{min-height:36px;padding:0 12px}
-.tabs{display:flex;gap:6px;justify-self:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tabs{display:flex;gap:6px;justify-self:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px}
 .tabs button{background:transparent;border-color:transparent;padding:9px 14px;font-size:15px}
 .tabs button[aria-pressed="true"]{background:rgba(227,169,72,.16);border-color:rgba(227,169,72,.55)}
 body[data-mode="helm"] .tabs{display:none}
-.sep{flex:none;align-self:center;font:600 11px/1.1 var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:0 2px 0 6px;max-width:150px;white-space:normal}
+.sep{flex:none;align-self:center;font:600 11px/1.1 var(--f-display);letter-spacing:.16em;color:var(--muted);padding:0 2px 0 6px;max-width:150px;white-space:normal}
 .chip.mini{grid-template-columns:auto;padding:8px 10px;min-width:44px;justify-items:center}
 .chip.mini .dn:empty{display:none}
 .tool .nm{font:600 14px/1 var(--f-display)}
@@ -144,8 +135,8 @@ button:disabled{opacity:.45;cursor:default}
 
 .help{position:absolute;inset:0;display:flex;padding:16px;background:rgba(6,14,18,.45);overflow-y:auto;overscroll-behavior:contain}
 .help .card{margin:auto}
-.card{box-sizing:border-box;min-width:0;background:rgba(12,26,32,.92);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;max-width:430px;width:100%;display:grid;gap:14px}
-.card h1{margin:0;font:700 34px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+.card{box-sizing:border-box;min-width:0;background:rgba(12,26,32,.97);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;max-width:430px;width:100%;display:grid;gap:14px}
+.card h1{margin:0;font:700 34px/1 var(--f-display);letter-spacing:.04em;text-wrap:balance}
 .card h1 span{color:var(--brass)}
 .card p{margin:0;color:var(--muted);line-height:1.45;font-size:14.5px}
 .keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;line-height:1.3}
@@ -153,13 +144,10 @@ button:disabled{opacity:.45;cursor:default}
 .card .go{background:var(--brass);color:var(--ink);border-color:var(--brass);font-size:17px;padding:13px}
 .keys.touch-only{display:none}
 @media (pointer:coarse){ .keys.touch-only{display:grid} .keys.key-only{display:none} }
-#notes{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + var(--safe-t));width:min(88vw,360px);display:grid;gap:6px;z-index:60;pointer-events:none}
-.note{pointer-events:auto;background:rgba(10,22,28,.94);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:9px;padding:8px 12px;font:500 13.5px/1.35 var(--f-body);color:var(--paper);opacity:0;transform:translateY(-6px);transition:opacity .22s,transform .22s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.note{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:9px;padding:8px 12px;font:500 14px/1.4 var(--f-body);color:var(--paper);opacity:0;transform:translateY(6px);transition:opacity .22s,transform .22s;max-width:100%}
 .note.on{opacity:1;transform:none}
 #logN{display:inline-block;min-width:16px;margin-left:6px;padding:0 5px;border-radius:9px;background:var(--brass);color:#14202a;font:700 11px/16px var(--f-mono)}#logN:empty{display:none}
 .logrow{display:grid;gap:2px;text-align:left;padding:9px 12px;min-height:0!important}.logrow b{font:500 13.5px/1.35 var(--f-body);text-transform:none;letter-spacing:0}.logrow span{font:500 11px var(--f-mono);color:var(--muted)}
-.toast{position:absolute;left:50%;top:calc(14px + var(--safe-t));transform:translateX(-50%);font:600 14px var(--f-display);letter-spacing:.08em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);padding:8px 12px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
-.toast.on{opacity:1}
 #fail{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
 
 @media (max-width:560px){
@@ -172,7 +160,6 @@ button:disabled{opacity:.45;cursor:default}
   dd{font-size:11.5px}
   .actions{gap:6px}
   .actions button{padding:8px 10px;font-size:12.5px}
-  .toast{top:auto;bottom:calc(150px + var(--safe-b))}
   .tabs button{padding:8px 10px;font-size:13.5px}
 }
 @media (max-height:480px){   /* a phone held sideways, or a short browser window: tighter panels, and the button column scrolls */
@@ -185,7 +172,6 @@ button:disabled{opacity:.45;cursor:default}
   dd{font-size:11px}
   .tabs{padding:3px}.tabs button{padding:6px 10px;font-size:13px}
   .chip{padding:5px 9px}
-  .toast{top:calc(8px + var(--safe-t))}
 }
 #dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
 @media (pointer:coarse){button,.chip,.tabs button{min-height:44px}.chip .dn,.mrow span,.mgrid small{font-size:13px}}
@@ -196,63 +182,94 @@ button:disabled{opacity:.45;cursor:default}
   body.sideopen .inst{left:calc(var(--sideW) + 12px)}
   body.sideopen #camPad{left:calc(var(--sideW) + 8px)}
   body.sideopen #objective{left:calc(var(--sideW) + 12px)}
-  body.sideopen #legend,body.sideopen #notes,body.sideopen .toast,body.sideopen #inspector{left:calc(50% + var(--sideW) / 2)}
-  body.sideopen #menuSheet,body.sideopen .help
+  body.sideopen #legend,body.sideopen #inspector{left:calc(50% + var(--sideW) / 2)}
+  body.sideopen #feedCol{left:calc(var(--sideW) + 12px)}
 }
-#bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:6;pointer-events:none}
+#bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:center}
 body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
-#bBtns{display:flex;gap:6px;justify-content:center;margin-top:6px;pointer-events:auto}#bBtns button{padding:7px 12px;font-size:13px}
-#tablet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,94vw);max-height:84vh;overflow:auto;z-index:9;background:rgba(10,20,28,.96);border:1px solid #c9a95a;border-radius:14px;padding:12px 14px;color:#f1ece2;box-shadow:0 12px 40px rgba(0,0,0,.6)}
-#tablet .tbHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-family:var(--f-display);letter-spacing:.08em;text-transform:uppercase}
-#tablet .tbSec{margin:10px 0 4px;font:600 12px var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:#c9a95a}
-#tablet .tbRow{display:flex;gap:8px;align-items:stretch;margin:4px 0}#tablet .tbRow button{flex:1;text-align:left;padding:8px 10px}#tablet .tbRow small{display:block;opacity:.7;font-size:12px}
-#tablet .tbSt{min-width:92px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#1d4a2c;font-size:12px}#tablet .tbSt.wait{background:#5a3a1a}
-#tablet .tbSide{display:flex;gap:6px;margin:4px 0;align-items:center;flex-wrap:wrap}#tablet .tbSide button{flex:1;padding:7px;min-width:64px}#tablet .tbLab{width:62px;font:600 12px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:#c9a95a}
-#fireArm{position:fixed;left:50%;bottom:calc(200px + var(--safe-b));transform:translateX(-50%);z-index:8;background:rgba(150,30,20,.92);color:#fff;padding:7px 14px;border-radius:999px;font:600 13px var(--f-display);pointer-events:none}
-#intro{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;overflow:auto}#intro[hidden]{display:none}
-#intro .introBg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(10,30,40,.55),rgba(4,10,14,.93));backdrop-filter:blur(4px)}
+#bBtns{display:flex;gap:8px;justify-content:center;margin-top:8px;pointer-events:auto;flex-wrap:wrap}
+#bBtns button{min-height:44px;padding:0 14px;font-size:16px;display:inline-flex;align-items:center;gap:8px}
+#bBtns #bTab{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:700}
+#bHint{margin:8px auto 0;width:max-content;max-width:min(92vw,440px);text-align:center;font:500 15px/1.35 var(--f-body);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;pointer-events:none}
+#bHint:empty{display:none}
+#tablet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(580px,96vw);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden;z-index:9;background:var(--panel);border:1px solid var(--brass);border-radius:14px;color:var(--paper)}
+#tablet .tbHead{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font:700 21px var(--f-display);letter-spacing:.01em}
+#tablet .tbHead b{flex:1}
+#tablet .tbHead button{min-height:44px;padding:0 14px}
+#tbTabs{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}
+#tbTabs button{flex:1;min-height:44px}
+#tbBody{overflow:auto;padding:0 12px 12px;flex:1;min-height:0;overscroll-behavior:contain}
+.tbOpts{padding:8px 0;display:grid;gap:6px;background:var(--panel);z-index:2}
+@media (min-height:660px){.tbOpts{position:sticky;top:0;border-bottom:1px solid var(--line)}}
+.tbOpt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tbOpt .tbLab{width:58px;font:600 14px var(--f-body);color:var(--muted)}
+.tbOpt button{min-height:36px;padding:0 10px;font-size:14px}
+.tbRowH{margin:14px 0 4px;font:700 16px var(--f-body);color:var(--brass);display:flex;align-items:center;gap:8px}
+.tbNote{margin:2px 0 6px;font:500 14px/1.4 var(--f-body);color:var(--muted)}
+.wrow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;min-height:56px;padding:8px 12px;margin:4px 0}
+.wrow .ic{width:24px;height:24px}
+.wrow b{display:block;font:700 16px/1.25 var(--f-body)}
+.wrow small{display:block;font:500 13.5px/1.3 var(--f-body);color:var(--muted)}
+.wst{font:600 13.5px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:var(--paper)}
+.wst i{width:9px;height:9px;border-radius:50%;background:#6fd08c}
+.wst.wait i{background:#e0a040;border-radius:2px}
+.prw{display:grid;grid-template-columns:1fr auto auto;gap:6px;margin:4px 0}
+.prw .wrow{margin:0;grid-template-columns:28px 1fr}
+.prw button.pl{min-width:76px;min-height:56px}
+#fireArm{position:fixed;left:50%;bottom:calc(var(--bh,140px) + 66px + var(--safe-b));transform:translateX(-50%);z-index:8;background:#8e2a1a;color:#fff;padding:8px 16px;border-radius:999px;font:600 15px var(--f-body);pointer-events:none;max-width:94vw;text-align:center}
+#intro{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;overflow:auto}
+#intro .introBg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(10,30,40,.8),rgba(4,10,14,.96))}
 #intro .introCard{position:relative;width:min(760px,100%);text-align:center;color:#f1ece2}
-#intro .introMark{font:700 clamp(40px,9vw,84px)/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+#intro .introMark{font:700 clamp(40px,9vw,84px)/1 var(--f-display);letter-spacing:.06em;text-shadow:0 4px 30px rgba(0,0,0,.6)}
 #intro .introTag{margin:10px 0 22px;font:500 clamp(14px,2.4vw,18px) var(--f-body);color:#d8cfbd}
 #intro .introGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 #intro .introGrid button{display:grid;gap:6px;text-align:left;padding:16px 16px 14px;border-radius:14px;background:rgba(14,32,40,.82);border:1px solid rgba(201,169,90,.45);color:#f1ece2;transition:transform .12s,border-color .12s,background .12s}
 #intro .introGrid button:hover,#intro .introGrid button:focus-visible{transform:translateY(-2px);border-color:#c9a95a;background:rgba(20,46,58,.92)}
-#intro .introGrid b{font:700 19px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#e8cf8a}
+#intro .introGrid b{font:700 19px var(--f-display);letter-spacing:.06em;color:#e8cf8a}
 #intro .introGrid span{font:500 13.5px/1.35 var(--f-body);color:#cfc7b6;text-transform:none;letter-spacing:0}
 #intro .introFoot{margin-top:16px;display:flex;justify-content:center;gap:14px;align-items:center;color:#9a937f;font:500 12px var(--f-mono)}
-#bTick{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:700 15px var(--f-display);letter-spacing:.08em}
-#bTick .bB{color:#7fa8e3}#bTick .bR{color:#e58a7e}#bTick .bPts{display:flex;gap:5px}#bTick .bPts i{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.4)}
+#bTick{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:700 16px var(--f-body);letter-spacing:.01em}
+#bTick .bB{color:#7fb4ff}#bTick .bR{color:#ff9c8a}#bTick .bPts{display:flex;gap:5px}#bTick .bPts i{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.4)}
 body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
 body[data-mode="fp"] #bHud{top:calc(72px + var(--safe-t))}
-body.battle .toast,body.battle #notes{top:calc(104px + var(--safe-t))}
-body.battle[data-mode="god"] .toast,body.battle[data-mode="god"] #notes{top:calc(160px + var(--safe-t))}
-body.battle[data-mode="fp"] .toast,body.battle[data-mode="fp"] #notes{top:calc(126px + var(--safe-t))}
-#bFire{background:rgba(120,40,24,.9)}
-#sideFeed{position:fixed;right:10px;top:calc(240px + var(--safe-t));width:min(250px,42vw);display:grid;gap:5px;z-index:7;pointer-events:none;justify-items:end}
-#sideFeed div{background:rgba(10,22,28,.82);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:500 12.5px/1.3 var(--f-body);color:#f1ece2;opacity:0;transform:translateX(12px);transition:opacity .25s,transform .25s}
+body[data-mode="fp"] #bBtns,body[data-mode="fp"] #bHint{display:none}
+#feedCol{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 140px + var(--safe-b));width:min(320px,calc(100vw - 24px));max-height:calc(100dvh - var(--bh,140px) - 320px);display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:7;pointer-events:none;overflow:hidden}
+body[data-mode="fp"] #feedCol{bottom:calc(118px + var(--safe-b))}
+body[data-mode="fp"].touch #feedCol{bottom:calc(250px + var(--safe-b))}
+#sideFeed,#killFeed,#notes{display:grid;gap:5px;justify-items:start}
+#killFeed{display:none;gap:3px}
+body.battle #killFeed{display:grid}
+#sideFeed div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:500 14px/1.35 var(--f-body);color:var(--paper);opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s}
 #sideFeed div.on{opacity:1;transform:none}
-body[data-mode="fp"] #sideFeed{top:calc(140px + var(--safe-t))}
-body[data-mode="fp"] #bBtns{display:none}
-#bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:6;pointer-events:none;font:700 17px var(--f-display);letter-spacing:.06em;color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:180px}
-#bStat .hp{height:10px;background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;height:100%;background:#d64b2c}
-#bHurt{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;box-shadow:inset 0 0 120px 40px rgba(214,40,20,.75)}
-#killFeed{position:fixed;right:10px;top:calc(440px + var(--safe-t));width:min(250px,42vw);display:none;gap:3px;z-index:7;pointer-events:none;justify-items:end;text-align:right}
-body.battle #killFeed{display:grid}body[data-mode="fp"] #killFeed{top:calc(340px + var(--safe-t))}
-#killFeed div{background:rgba(10,22,28,.7);border-radius:6px;padding:3px 8px;font:500 12px/1.3 var(--f-body);color:#f1ece2}#killFeed i{opacity:.7;font-style:normal}
+#killFeed div{background:var(--panel);border-radius:6px;padding:3px 8px;font:500 13px/1.3 var(--f-body);color:var(--paper)}#killFeed i{opacity:.75;font-style:normal}
+#bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:6;pointer-events:none;font:700 17px var(--f-body);color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:190px}
+body.touch #bStat{bottom:calc(168px + var(--safe-b))}
+#bStat .hp{height:12px;background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;width:100%;height:100%;background:#d64b2c;transform-origin:0 50%}
+#bStat .hpn{font:600 15px var(--f-body)}
+#bHurt{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(214,40,20,.7) 100%);will-change:opacity}
 #hitm{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:9;opacity:0}#hitm.on{opacity:1}
 #hitm i{position:absolute;left:12px;top:-2px;width:2px;height:30px;background:#fff;box-shadow:0 0 3px #000;transform:rotate(45deg)}#hitm i+i{transform:rotate(-45deg)}#hitm.k i{background:#ff2a1d;width:3px}
-#bSpawn button.bigBtn{padding:10px 14px}#bSpawn .endStats{display:grid;grid-template-columns:auto auto;gap:4px 18px;text-align:left;justify-content:center;font:500 14px/1.4 var(--f-body);color:#f1ece2}#bSpawn .endStats span:nth-child(odd){color:var(--muted)}#bSpawn .endRow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-#bSpawn{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:12;background:rgba(10,22,28,.94);border:1px solid var(--brass);border-radius:14px;padding:18px 22px;display:grid;gap:10px;min-width:260px;text-align:center}
-#bSpawn h3{margin:0;font:700 22px var(--f-display);letter-spacing:.06em}#bSpawn p{margin:0;color:var(--muted)}
+#bSpawn{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:12;background:var(--panel);border:1px solid var(--brass);border-radius:14px;padding:16px 16px 14px;display:grid;gap:12px;width:min(580px,94vw);max-height:calc(100dvh - 24px);overflow:auto;text-align:left}
+#bSpawn h3{margin:0;font:700 24px var(--f-display)}#bSpawn p{margin:0;color:var(--muted);font:500 15px/1.4 var(--f-body)}
+#bSpawn .plist{display:grid;gap:6px}
+#bSpawn .sg h3{font:700 18px var(--f-display)}
+#bSpawn .endStats{display:grid;grid-template-columns:1fr auto;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;font:500 15px/1.4 var(--f-body)}
+#bSpawn .endStats span{padding:8px 12px;border-bottom:1px solid var(--line)}
+#bSpawn .endStats span:nth-child(odd){color:var(--muted)}
+#bSpawn .endStats span:nth-child(even){font-weight:700;text-align:right}
+#bSpawn .endStats span:nth-last-child(-n+2){border-bottom:none}
+#bSpawn .endRow{display:flex;gap:8px;flex-wrap:wrap}
+#bSpawn .endRow button,#bSpawn .dpRow button{flex:1 1 140px;min-height:52px}
+#bSpawn .dpRow{display:flex;gap:8px;flex-wrap:wrap}
 #burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
 body.sideopen #burger{display:none}
-#side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.98);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s}
 #side.open{transform:none}
 .sHead{display:flex;gap:6px;align-items:center;padding:calc(8px + var(--safe-t)) 8px 8px;border-bottom:1px solid var(--line)}
 .sHead{align-items:flex-start}.sTabs{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 0;min-width:0}.sTabs button{flex:1 1 auto;min-width:0;padding:9px 8px}#sClose{flex:none}
 #sBody{flex:1;overflow:auto;padding:8px;overscroll-behavior:contain}
 #sBody input[type=search]{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--paper);font:500 15px var(--f-body);margin-bottom:8px;user-select:text;-webkit-user-select:text}
-.sCat{font:700 12px var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:12px 2px 5px}
+.sCat{font:700 12px var(--f-display);letter-spacing:.16em;color:var(--brass);margin:12px 2px 5px}
 .sItem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin:0 0 4px;padding:8px 9px;text-transform:none;letter-spacing:.01em;font:600 15px var(--f-body)}
 .sItem i{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.25)}
 .sItem small{display:block;font:500 12px var(--f-body);color:var(--muted)}
@@ -262,11 +279,9 @@ body.sideopen #burger{display:none}
 .sRow button.sMini{padding:6px 9px;font-size:13px}
 .sChips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.sChips button{padding:6px 9px;font-size:13px}
 .sNote{font:500 13px/1.45 var(--f-body);color:var(--muted);margin:6px 2px}
-.sRange{display:grid;gap:3px;margin:8px 2px}.sRange label{font:600 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sRange{display:grid;gap:3px;margin:8px 2px}.sRange label{font:600 13px var(--f-display);letter-spacing:.08em;color:var(--muted)}
 body.sideopen .inst{left:calc(min(332px,90vw) + 10px)}
 body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
-#fpTools{position:absolute;top:calc(12px + var(--safe-t));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5}
-#fpTools button{min-height:44px;padding:0 14px}
 #fpFire{min-height:64px;background:rgba(214,75,44,.7)}
 #marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:4}
 #bJoin,#bDrop{background:var(--panel)}
@@ -276,7 +291,7 @@ body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
 #fp .xh::before,#fp .xh::after{content:"";position:absolute;background:rgba(241,236,226,.9);box-shadow:0 0 3px rgba(0,0,0,.7)}
 #fp .xh::before{left:6px;top:0;width:2px;height:14px}
 #fp .xh::after{left:0;top:6px;width:14px;height:2px}
-.fpPrompt{position:absolute;left:50%;bottom:calc(128px + var(--safe-b));transform:translateX(-50%);max-width:min(90vw,540px);text-align:center;font:600 17px/1.25 var(--f-display);letter-spacing:.05em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;pointer-events:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.fpPrompt{position:absolute;left:50%;bottom:calc(128px + var(--safe-b));transform:translateX(-50%);max-width:min(90vw,540px);text-align:center;font:600 17px/1.25 var(--f-display);letter-spacing:.05em;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;pointer-events:none}
 .fpPrompt:empty{display:none}
 body.touch .fpPrompt{bottom:calc(172px + var(--safe-b));max-width:84vw;pointer-events:none}
 .fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
@@ -296,24 +311,134 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 .lcard{display:grid;gap:10px;min-width:220px;font:500 14px var(--f-body);color:var(--muted)}
 .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
 .bar span{display:block;height:100%;width:0;background:var(--brass);transition:width .3s}
-@media (prefers-reduced-motion:reduce){ .toast{transition:none} }
+/* ---- v10 UX layer: icons, sheets, the Command button, hints, themes, easy read */
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.btn-p{background:var(--brass)!important;color:var(--ink)!important;border-color:var(--brass)!important;font-weight:700}
+.btn-d{background:#8e2a1a!important;color:#fff!important;border-color:#c0452c!important}
+button{transition:transform .12s}button:active:not(:disabled){transform:scale(.97)}
+button[aria-pressed="true"],button[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--brass)}
+#cmdBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 10px);z-index:6;min-height:48px;padding:0 18px;display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:700;background:var(--brass);color:var(--ink);border-color:var(--brass)}
+body[data-mode="fp"] #cmdBtn{bottom:calc(14px + var(--safe-b));min-height:44px}
+body.battle[data-mode="god"] #cmdBtn,body[data-mode="fp"].touch #cmdBtn,body.hud-off #cmdBtn,body.battle[data-mode="god"] #bFP,body.battle[data-mode="god"] #bJoin,body:has(#help:not([hidden])) #cmdBtn,body:has(.loading:not(.done)) #cmdBtn{display:none}
+body:has(#sculpt:not([hidden])) #cmdBtn,body:has(#placeBtn:not([hidden])) #cmdBtn{bottom:calc(var(--bh,140px) + 124px)}
+body:has(#sculpt:not([hidden])) #calmBtn,body:has(#placeBtn:not([hidden])) #calmBtn{bottom:calc(var(--bh,140px) + 186px + var(--safe-b))}
+.sheet{position:fixed;inset:0;z-index:35;display:flex;padding:12px;background:rgba(4,10,14,.88);overflow-y:auto;overscroll-behavior:contain}
+.sc{margin:auto;width:min(720px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;color:var(--paper)}
+.sc .sh{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sc .sh h2{margin:0;flex:1;font:700 24px var(--f-display);letter-spacing:.01em}
+.sc .sh button{min-height:44px;padding:0 14px}
+.sc .sb{flex:1 1 auto;min-height:0;overflow:auto;padding:12px 14px;display:grid;gap:18px;align-content:start;overscroll-behavior:contain}
+.sc .sf{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.sc .sf button{flex:1 1 150px;min-height:48px;font-size:16px;display:inline-flex;justify-content:center;align-items:center;gap:8px}
+.sc .sf .big{flex:1 1 100%;min-height:58px;font-size:21px}
+.sg h3{margin:0 0 4px;font:700 18px var(--f-display);letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.sg .grp-n{margin:0 0 8px;font:500 14.5px/1.4 var(--f-body);color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.cards.two{grid-template-columns:1fr 1fr}
+.card2{display:grid;grid-template-columns:34px 1fr;gap:1px 10px;align-items:center;text-align:left;padding:10px 12px;min-height:64px}
+.card2 .ic,.card2 .msw{grid-row:1/3;width:30px;height:30px}
+.card2 .msw{border-radius:8px;border:1px solid rgba(255,255,255,.25)}
+.card2 b{font:700 16px/1.25 var(--f-body)}
+.card2 span{font:500 13.5px/1.3 var(--f-body);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-height:44px;padding:0 14px;font-size:15px}
+.sc .sRange{margin:6px 0}.sc .sRange label{font:600 15px var(--f-body);letter-spacing:0;color:var(--paper)}
+.sc input[type=range],#tablet input[type=range]{width:100%;height:32px;accent-color:#e3a948}
+.rd{display:none!important}html[data-text="easy"] .rd{display:inline-flex!important}
+#bTip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 120px + var(--safe-b));z-index:7;display:flex;align-items:center;gap:10px;max-width:min(94vw,580px);background:var(--panel);border:1px solid var(--brass);border-radius:12px;padding:8px 8px 8px 14px;font:500 15px/1.45 var(--f-body)}
+#bTip b{color:var(--brass);font-weight:700}
+#bTip button{min-height:44px;padding:0 14px;flex:none}
+#fpTools{position:absolute;bottom:calc(14px + var(--safe-b));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;max-width:min(96vw,780px);overflow-x:auto;scrollbar-width:none}
+body.touch #fpTools{bottom:auto;top:calc(12px + var(--safe-t));left:12px;transform:none;max-width:calc(100vw - 150px)}
+#fpTools button{min-height:52px;min-width:56px;padding:6px 10px;display:grid;justify-items:center;gap:1px;flex:none}
+#fpTools button .k{font:600 12px var(--f-mono);color:var(--brass);min-height:14px}
+#fpTools button .n{font:600 13px/1.1 var(--f-body)}
+#fpTools .ic{width:22px;height:22px}
+body[data-mode="fp"]:not(.touch) .fpPrompt{bottom:calc(84px + var(--safe-b))}
+body.touch .fpHint{top:calc(70px + var(--safe-t));max-width:min(70vw,360px);font:500 13px/1.4 var(--f-body)}
+body.touch.battle .fpHint{display:none}
+.fpHint{font-family:var(--f-body)}
+.mtabs{display:flex;gap:6px}.mtabs button{flex:1;min-height:44px}
+#tint{display:none;position:fixed;inset:0;pointer-events:none;mix-blend-mode:multiply}
+html[data-theme="red"]{--ink:#0d0303;--panel:rgba(23,6,5,.97);--line:rgba(184,74,60,.75);--paper:#f06a5a;--muted:#cc5f52;--brass:#ff8a70;--signal:#8e1f12}
+html[data-theme="red"] #tint{display:block;background:#e0402e}
+html[data-theme="green"]{--ink:#020a04;--panel:rgba(7,20,10,.97);--line:rgba(52,145,77,.8);--paper:#4fd070;--muted:#3fa85c;--brass:#4fd070;--signal:#a8651a}
+html[data-theme="green"] #tint{display:block;background:#40e060}
+html[data-theme="red"] .btn-p,html[data-theme="red"] #cmdBtn,html[data-theme="red"] #bBtns #bTab,html[data-theme="green"] .btn-p,html[data-theme="green"] #cmdBtn,html[data-theme="green"] #bBtns #bTab{color:#020a04!important}
+html[data-theme="red"] .btn-d{background:#8e1f12!important;color:#ffe0da!important}
+html[data-text="easy"]{--f-display:Verdana,Tahoma,"Trebuchet MS",system-ui,sans-serif;--f-body:Verdana,Tahoma,"Trebuchet MS",system-ui,sans-serif}
+html[data-text="easy"] :is(button,input,p,span,b,small,div,h1,h2,h3,dt,dd,label,i){font-family:Verdana,Tahoma,"Trebuchet MS",system-ui,sans-serif!important;letter-spacing:.02em;word-spacing:.08em;font-style:normal}
+html[data-text="easy"] :is(#tablet,#bSetup .sc,#bSpawn,#side,#menuSheet .card,#bHud,#bTip,#feedCol,#fpTools,#bStat,.actions,.inst){zoom:1.12}
+html[data-text="easy"] :is(.wrow,.card2,.chips button,.sItem,.mrow){padding-top:12px;padding-bottom:12px}
+html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
+@media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important} }
 </style>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-command" viewBox="0 0 24 24"><path d="M5 3l14 7-6 2-2 7z"/></symbol>
+<symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+<symbol id="i-read" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"/></symbol>
+<symbol id="i-marker" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></symbol>
+<symbol id="i-lightning" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+<symbol id="i-storm" viewBox="0 0 24 24"><path d="M7 15a4 4 0 0 1 0-8 5 5 0 0 1 9-1 4 4 0 0 1 1 9M12 13l-3 5h5l-2 4"/></symbol>
+<symbol id="i-missile" viewBox="0 0 24 24"><path d="M14 4l6 6-8 8-3-1-3-3-1-3z"/><path d="M4 20l4-4"/></symbol>
+<symbol id="i-bomb" viewBox="0 0 24 24"><circle cx="11" cy="14" r="6"/><path d="M15 9l3-3M17 4l3 1M19 7l1 3"/></symbol>
+<symbol id="i-cluster" viewBox="0 0 24 24"><circle cx="7" cy="16" r="3"/><circle cx="17" cy="16" r="3"/><circle cx="12" cy="7" r="3"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/></symbol>
+<symbol id="i-darts" viewBox="0 0 24 24"><path d="M4 12h12M13 8l4 4-4 4M4 6h8M4 18h8"/></symbol>
+<symbol id="i-mortar" viewBox="0 0 24 24"><path d="M9 21l2-9 4 1-2 9z"/><path d="M12 4l1 4M17 6l-2 3M7 6l2 3"/></symbol>
+<symbol id="i-arty" viewBox="0 0 24 24"><circle cx="7" cy="17" r="3"/><path d="M9 14l10-8 2 3-9 8"/></symbol>
+<symbol id="i-shock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></symbol>
+<symbol id="i-smoke" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9-1 4 4 0 0 1 1 9z"/></symbol>
+<symbol id="i-jet" viewBox="0 0 24 24"><path d="M12 2l2 7 8 5v2l-8-2-1 5 2 2v1l-3-1-3 1v-1l2-2-1-5-8 2v-2l8-5z"/></symbol>
+<symbol id="i-heli" viewBox="0 0 24 24"><path d="M3 5h18M12 5v3"/><path d="M6 13a5 5 0 0 1 5-5h4a3 3 0 0 1 3 3v3H6z"/><path d="M18 14l4-2M8 19h8"/></symbol>
+<symbol id="i-cross" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></symbol>
+<symbol id="i-para" viewBox="0 0 24 24"><path d="M3 11a9 9 0 0 1 18 0zM6 11l6 9M18 11l-6 9"/></symbol>
+<symbol id="i-boat" viewBox="0 0 24 24"><path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V3M5 4h12l-3 4 3 4H5"/></symbol>
+<symbol id="i-bunker" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/></symbol>
+<symbol id="i-radio" viewBox="0 0 24 24"><path d="M12 12v9M8 21h8M7 8a7 7 0 0 1 10 0M4 5a11 11 0 0 1 16 0"/><circle cx="12" cy="11" r="1"/></symbol>
+<symbol id="i-depot" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v9l-9 5-9-5zM3 8l9 5 9-5M12 13v9"/></symbol>
+<symbol id="i-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M6 12H4a8 8 0 0 0 16 0h-2M8 11h8"/></symbol>
+<symbol id="i-choke" viewBox="0 0 24 24"><path d="M3 5l7 7-7 7M21 5l-7 7 7 7"/></symbol>
+<symbol id="i-plain" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></symbol>
+<symbol id="i-rifle" viewBox="0 0 24 24"><path d="M3 11h14l2-2h3v3h-3l-1 2h-4l-1 4h-3l1-4H3z"/></symbol>
+<symbol id="i-pistol" viewBox="0 0 24 24"><path d="M3 8h13v4h-5l-1 5H6l1-5H3z"/></symbol>
+<symbol id="i-scope" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></symbol>
+<symbol id="i-belt" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M8 8v8M13 8v8M18 8v8"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3l9-9a4 4 0 0 0-2-2z"/></symbol>
+<symbol id="i-binoc" viewBox="0 0 24 24"><circle cx="7" cy="16" r="4"/><circle cx="17" cy="16" r="4"/><path d="M7 12V6h3v6M17 12V6h-3v6M10 15h4"/></symbol>
+<symbol id="i-chevrons" viewBox="0 0 24 24"><path d="M5 8l7-5 7 5M5 14l7-5 7 5M5 20l7-5 7 5"/></symbol>
+<symbol id="i-door" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M15 12h.01M9 8l6 8"/></symbol>
+<symbol id="i-aa" viewBox="0 0 24 24"><path d="M12 2c3 3 3 8 3 12H9c0-4 0-9 3-12zM9 14l-3 4M15 14l3 4M12 17v5"/></symbol>
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 12V5a1.5 1.5 0 0 1 3 0v6M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V6a1.5 1.5 0 0 1 3 0v8c0 4-2 6-5 6s-5-2-6-5l-1-4a1.5 1.5 0 0 1 3-1z"/></symbol>
+<symbol id="i-fish" viewBox="0 0 24 24"><path d="M3 12c4-6 11-6 14 0-3 6-10 6-14 0zM17 12l4-4v8zM8 11h.01"/></symbol>
+</defs></svg>
 <div id="marquee" hidden></div>
 <div id="dropTag" hidden></div>
 <div id="fpScope2" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 36vmin,rgba(0,0,0,.55) 40vmin,rgba(0,0,0,.8) 75vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.5)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.5)"></div></div>
 <div id="fpScope" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 31vmin,#000 32vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.75)"></div></div>
-<div id="tablet" hidden><div class="tbHead"><b>Command tablet</b><button type="button" id="tbClose">Close</button></div><div id="tbBody"></div></div>
+<div id="tablet" hidden role="dialog" aria-label="Command"><div class="tbHead"><b>Command</b><button type="button" class="rd" id="tbRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="tbClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div id="tbTabs" role="tablist" aria-label="Command sections"></div><div id="tbBody"></div></div>
 <div id="fireArm" hidden></div>
-<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bJump">Jump in</button><button type="button" id="bSpec">Watch next</button><button type="button" id="bOver">Overview</button><button type="button" id="bTab">Tablet (T)</button></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="feedCol"><div id="killFeed"></div><div id="sideFeed"></div><div id="notes" role="status" aria-live="polite"></div></div>
+<button id="cmdBtn" type="button" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button>
+<div id="bTip" hidden role="note"><span id="bTipTxt"></span><button type="button" id="bTipX">Got it</button></div>
+<div class="sheet" id="bSetup" hidden role="dialog" aria-modal="true" aria-label="Battle setup"><div class="sc"><div class="sh"><h2>Battle setup</h2><button type="button" class="rd" id="bsRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="bsClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div class="sb" id="bsBody"></div><div class="sf" id="bsFoot"></div></div></div>
 <button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
 <aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
   <h2 style="margin:0;font:700 24px var(--f-display);letter-spacing:.04em;text-transform:uppercase">Menu</h2>
   <div id="menuMain">
-  <div class="mhead">Command</div>
+  <div class="mtabs" role="tablist" aria-label="Menu sections"><button type="button" data-mt="play" aria-pressed="true">Play</button><button type="button" data-mt="settings" aria-pressed="false">Settings</button><button type="button" data-mt="help" aria-pressed="false">Help</button><button type="button" data-mt="app" aria-pressed="false">App</button></div>
+  <div class="mtab" data-mt="play">
+  <div class="mhead">Fight</div>
   <div class="mgrid">
-    <button id="mFire" type="button">Fire control<small>missiles, bombs, air strikes, mortars</small></button><button id="mCtl" type="button">Controls<small>every key and button</small></button>
+    <button id="mFire" type="button">Command<small>fire, support, squad, points</small></button><button id="mBattle" type="button">Battle setup<small>pick a map and fight</small></button>
   </div>
   <div class="mhead">The world</div>
   <div class="mgrid">
@@ -321,16 +446,29 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mScen" type="button">Scenarios<small>goals and challenges</small></button><button id="mTry" type="button">Things to try<small>what reacts with what</small></button>
   </div>
-  <div class="mhead">Help on the way</div>
+  <div class="mhead">Who and what</div>
   <div class="mgrid">
-    <button id="mHeli" type="button">Call rescue helicopter</button><button id="mBomber" type="button">Call water bomber</button>
     <button id="mPeople" type="button">People<small>who is doing what</small></button><button id="mFleet" type="button">Fleets<small>missions at sea</small></button><button id="mReport" type="button">Cove report<small>what is really going on</small></button>
   </div>
-  <div class="mhead">Settings</div>
+  <button id="mHeli" type="button" hidden>Call rescue helicopter</button><button id="mBomber" type="button" hidden>Call water bomber</button>
+  </div>
+  <div class="mtab" data-mt="settings" hidden>
   <div class="mgrid">
     <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats, sound</small></button><button id="bQual" type="button">Quality: High</button>
-    <button id="mHide" type="button">Hide buttons</button><button id="bHelp" type="button">Help</button>
-    <button id="mRead" type="button">Read help aloud</button><button id="bInstall" type="button">Install on phone</button>
+    <button id="mTheme" type="button">Colours: Dusk</button><button id="mEasy" type="button">Easy read: off</button>
+    <button id="mHide" type="button">Hide buttons</button>
+  </div>
+  </div>
+  <div class="mtab" data-mt="help" hidden>
+  <div class="mgrid">
+    <button id="bHelp" type="button">Help</button><button id="mCtl" type="button">Controls<small>every key and button</small></button>
+    <button id="mRead" type="button">Read help aloud</button>
+  </div>
+  </div>
+  <div class="mtab" data-mt="app" hidden>
+  <div class="mgrid">
+    <button id="bInstall" type="button">Install on phone</button>
+  </div>
   </div>
   </div>
   <div id="menuBody" class="mbody"></div>
@@ -343,6 +481,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
+<div id="tint" aria-hidden="true"></div>
 <div class="hud">
   <section class="inst" aria-label="Instruments">
     <div class="brand">Squall Cove</div>
@@ -350,7 +489,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="readouts">
       <canvas id="rose" width="152" height="152" aria-hidden="true"></canvas>
       <dl>
-        <div><dt>SOG</dt><dd id="sog">0.0 kn</dd></div>
+        <div><dt>Speed</dt><dd id="sog">0.0 kn</dd></div>
         <div><dt>Wind</dt><dd id="wind">12 kn F4</dd></div>
         <div><dt id="posLbl">Point</dt><dd id="pos">Beam reach</dd></div>
         <div><dt id="sheetLbl">Sheet</dt><dd id="sheet">Auto</dd></div>
@@ -371,7 +510,6 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <button id="bHeli" type="button" hidden>Rescue helicopter</button>
     <button id="bFP" type="button" aria-label="Drop into first person (V)">First person</button>
     <button id="bMore" type="button">More</button>
-    <button id="bFire" type="button">Fire control</button>
     <button id="bMenu" type="button">Menu</button>
     <button id="bLog" type="button" aria-label="Messages">Log<span id="logN"></span></button>
     <button id="bRight" type="button" hidden>Right the boat</button>
@@ -401,7 +539,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div id="fpTools"></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
-    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Tablet</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Command</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button></div>
   </div>
   <div id="inspector" hidden role="dialog" aria-label="Device settings">
     <div class="ihead"><b id="iTitle">Device</b><span id="iNote"></span><button id="iClose" type="button">Done</button></div>
@@ -409,7 +547,6 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
     <div class="ifoot"><div id="iPresets"></div><button id="iRemove" type="button">Remove</button></div>
   </div>
   <button id="selFloat" type="button" hidden>Deselect</button>
-  <div id="notes" role="status" aria-live="polite"></div>
   <div id="intro" hidden><div class="introBg"></div><div class="introCard"><div class="introMark">Squall Cove</div><p class="introTag">A harbour sandbox of boats, weather, people and the odd war.</p><div class="introGrid">
 <button type="button" data-go="sail"><b>Sail the cove</b><span>The original island. Place boats, change the weather, take the helm.</span></button>
 <button type="button" data-go="port"><b>Port and mountains</b><span>A working harbour, a town, farms and hills. Build, watch, or step in.</span></button>
@@ -427,7 +564,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
       <div class="keys touch-only">
         <b>Drag</b><span>Move the map</span>
         <b>Two fingers</b><span>Pinch to zoom, twist to turn</span>
-        <b>Command</b><span>Tap a boat, then tap open water to send it</span>
+        <b>Select</b><span>Tap a boat, then tap open water to send it</span>
         <b>Place</b><span>Tap to place</span>
         <b>Land</b><span>Tap to dab the island. Switch Drag to Paints land to shape it with a finger</span>
         <b>Take the helm</b><span>Sail the selected boat yourself</span>
@@ -456,6 +593,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
 const $ = (id) => document.getElementById(id);
+const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
+const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot' };
+const CLS_IC = { assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa' };
 const A = 'assets/';
 const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = matchMedia('(pointer: coarse)').matches ? 90 : 220, MAX_BOATS = matchMedia('(pointer: coarse)').matches ? 14 : 26;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -3613,7 +3753,7 @@ function enterFP(p) {
   fp.on = true; fp.p = p; p.fp = true; p.obj.visible = false; fp.yaw = personWorldYaw(p); fp.pitch = 0; fp.vy = 0; fp.air = false; fp.helm = null;
   if (p.ride) fp.betaPrev = boatYaw(p.ride.boat);
   mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
-  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm. Esc (press twice if the mouse is captured) or the button leaves.';
+  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm, T opens Command. Esc (press twice if the mouse is captured) or the button leaves.';
   if (!isTouch) lockPointer();
   ensureWeapons(); fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
@@ -3754,7 +3894,7 @@ function fpCamera(dt, t) {
 }
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
 document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
-$('fpTab').addEventListener('click', () => toggleTablet(true)); $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
+$('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
 addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
 canvas.addEventListener('wheel', (e) => { if (fp.on) { e.preventDefault(); if (!fp.man && Math.abs(e.deltaY) > 4) { const now = performance.now(); if (now - (fp.wheelT || 0) > 160) { fp.wheelT = now; const kt = inKit() ? ['hands', ...kitTools()] : FPT.filter(f => !NEWT.has(f[0])).map(f => f[0]), i = kt.indexOf(fp.tool); fpSetTool(kt[(i + (e.deltaY > 0 ? 1 : kt.length - 1)) % kt.length]); } } } }, { passive: false });
 { // touch: stick and look pad
@@ -3778,9 +3918,12 @@ function fpJumpOrGetUp() {
 }
 $('fpUse').addEventListener('click', fpUse); $('fpJump').addEventListener('click', fpJumpOrGetUp); $('fpExit').addEventListener('click', exitFP);
 $('fpDrop').addEventListener('click', () => { if (fp.p && fp.p.carry) dropCarry(fp.p); }); $('fpHelm').addEventListener('click', fpHelm);
-addEventListener('keydown', (e) => {
+/* one keydown listener for the whole game: each handler below is registered in file order and keeps its own guards (first person, helm, god, tablet, menus) */
+const KEY_ROUTE = []; let keyStop = false; const onKey = (fn) => { KEY_ROUTE.push(fn); };
+addEventListener('keydown', (e) => { keyStop = false; for (let i = 0; i < KEY_ROUTE.length; i++) { KEY_ROUTE[i](e); if (keyStop) break; } });
+onKey((e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
-  if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
+  if (k === 'h') keyStop = true;      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
   else if (/^[1-9]$/.test(k)) { if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer();
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
@@ -3808,7 +3951,7 @@ function fpSetTool(t) {
   if (inKit() && kitGated(t) && !kitHas(t)) { toast('Not in your loadout. Pick a different class when you deploy.'); return; }
   if (fp.on && t !== fp.tool && WPN[t]) Snd.fx('wpn_draw', fp.p.x, fp.p.z, { gain: 0.5 }); fp.tool = t; if (t !== 'rod') fpRodReset(true);
   for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === t;
-  $('fpTools').innerHTML = ''; { const kit = inKit(), list = kit ? ['hands', ...kitTools()].map(id => FPT.find(f => f[0] === id)).filter(Boolean) : FPT.filter(f => !NEWT.has(f[0])); list.forEach(([id, name, key], li) => { const b = document.createElement('button'); b.type = 'button'; const lab = kit ? (id === 'hands' ? '' : String(li)) : key; b.textContent = (isTouch || !lab ? '' : lab + ' ') + name; b.setAttribute('aria-pressed', String(id === t)); b.addEventListener('click', () => fpSetTool(id)); $('fpTools').append(b); }); if (kit && BATTLE.kit === 'engineer') { const b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = (isTouch ? '' : 'F ') + 'Sandbags'; b2.addEventListener('click', fpEngineer); $('fpTools').append(b2); } }
+  $('fpTools').innerHTML = ''; { const kit = inKit(), list = kit ? ['hands', ...kitTools()].map(id => FPT.find(f => f[0] === id)).filter(Boolean) : FPT.filter(f => !NEWT.has(f[0])); const mk = (id, name, lab, fn, on) => { const b = document.createElement('button'); b.type = 'button'; b.title = name + (lab ? ' (key ' + lab + ')' : ''); b.setAttribute('aria-label', name); b.innerHTML = ic(TOOL_IC[id] || 'hand') + '<span class="k">' + (isTouch ? '' : lab) + '</span><span class="n"></span>'; b.lastChild.textContent = name; if (on !== undefined) b.setAttribute('aria-pressed', String(on)); b.addEventListener('click', fn); $('fpTools').append(b); }; list.forEach(([id, name, key], li) => mk(id, name, kit ? (id === 'hands' ? '' : String(li)) : key, () => fpSetTool(id), id === t)); if (kit && BATTLE.kit === 'engineer') mk('sandbag', 'Sandbags', 'F', fpEngineer); }
   $('fpFire').textContent = WPN[t] ? 'Fire' : t === 'rod' ? 'Cast / reel' : NEWT.has(t) ? 'Use' : 'Pick up / throw'; fp.zoom = false;
   if (fp.on) toast(toolHelp(t));
 }
@@ -3876,7 +4019,7 @@ function fpToolsUpdate(dt, t) {
 $('fpFire').addEventListener('pointerdown', () => { fp.fireHeld = true; fpPrimary(); }); $('fpFire').addEventListener('pointerup', () => { fp.fireHeld = false; });
 
 /* ================================================================ the side pane: Place (everything you can put down), Live (everything that is in the world), Play (drop in, tools, catch) */
-const sideEl = $('side'), sBody = $('sBody'); let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
+const sideEl = $('side'), sBody = $('sBody'); let placeEl = null, placeCache = null; let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
 const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; if (cls) b.className = cls; if (fn) b.addEventListener('click', fn); if (attrs) for (const k in attrs) b.setAttribute(k, attrs[k]); return b; };
 function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; if ((BATTLE.on || people.some(q => q.gun)) && !selPerson) { jumpIn(); return; } const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
@@ -3885,7 +4028,7 @@ function renderSide() {
   const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['battle', 'Battle'], ['play', 'Play']].filter(q => q[0] !== 'battle' || isBattleMap())) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
-    const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
+    const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = placeEl || (placeEl = Object.assign(document.createElement('div'), { id: 'sList' })); sBody.append(list);
     q.addEventListener('input', () => { sideQ = q.value.toLowerCase(); fillPlace(list); }); fillPlace(list);
   } else if (sideTab === 'events') {
     const grp = (title, list, gate) => { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = title; sBody.append(h); for (const [n, d, fn] of list) { const b = mkB('', 'sItem', () => { if (gate && !gateDisaster()) return; if (gate) pushWorldUndo(); fn(); if (matchMedia('(max-width: 800px)').matches) setSide(false); }); const t = document.createElement('span'); t.textContent = n; const sm = document.createElement('small'); sm.textContent = d; t.append(sm); b.append(t); sBody.append(b); } };
@@ -3907,22 +4050,9 @@ function renderSide() {
       for (const st of sites) { const owner = st.owner || (st.kind === 'build' || st.kind === 'yard' ? 'Port' : ''); const stock = objects.filter(o => !o.gone && Math.hypot(o.body.position.x - st.x, o.body.position.z - st.z) < 14).length; const b = mkB('', 'sMain sRowBtn', () => camFlyTo(st.x, st.z, 45 * CELL)); b.style.width = '100%'; b.style.marginBottom = '4px'; const t = document.createElement('b'); t.textContent = SITE_INFO[st.kind][0] + (owner ? ' (' + owner + ')' : ''); const sm = document.createElement('small'); sm.textContent = st.kind === 'build' ? (st.done ? 'finished' : 'stage ' + st.stage + ' of 8') : st.kind === 'yard' ? stock + ' items stocked' : st.kind === 'plant' ? st.planted + ' trees planted' : SITE_INFO[st.kind][1]; b.append(t, sm); sBody.append(b); }
     }
   } else if (sideTab === 'battle') {
-    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'A battle for the capture points: knock out the other side, hold more points, and their tickets run down. Nobody is hurt; the fallen are carried off. Choose your loadout, the enemy and how many fight, then begin. Nothing starts until you do. Works on the Port and mountains, Urban port and Desert maps.'; sBody.append(n);
-    const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); return { i, l }; };
-    const szR = rg('Bots per side', 3, isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; if (BATTLE.tixAuto && txR) { txR.i.value = startTickets(); txR.l.textContent = 'Tickets per side: ' + startTickets(); } }, v => v);
-    const txR = rg('Tickets per side', 60, 400, 10, startTickets(), v => { BATTLE.tix = v; BATTLE.tixAuto = false; }, v => v);
-    sBody.append(mkB('Tickets: ' + (BATTLE.tixAuto ? 'scale with the army (tap to set by hand)' : 'set by hand (tap to scale with the army)'), 'sItem', () => { BATTLE.tixAuto = !BATTLE.tixAuto; if (!BATTLE.tixAuto) BATTLE.tix = startTickets(); renderSide(); }));
-    sBody.append(mkB('Command power: ' + (BATTLE.cmdFree ? 'free' : 'costed') + ' (tap to change)', 'sItem', () => { BATTLE.cmdFree = !BATTLE.cmdFree; renderSide(); }));
-    sBody.append(mkB('Enemy: ' + BATTLE.redKind + ' (tap to change)', 'sItem', () => { BATTLE.redKind = BATTLE.redKind === 'Raiders' ? 'Invaders' : 'Raiders'; renderSide(); }));
-    if (!BATTLE.on) { const kh = document.createElement('div'); kh.className = 'sCat'; kh.textContent = 'Your loadout'; sBody.append(kh); kitButtons(sBody, renderSide); }
-    if (!BATTLE.on) { sBody.append(mkB('Begin: watch the battle', 'sItem', () => { battleStart(); renderSide(); })); sBody.append(mkB('Fight for the Port (first person)', 'sItem', () => { playBattle('blue'); setSide(false); })); sBody.append(mkB('Fight for the ' + BATTLE.redKind + ' (first person)', 'sItem', () => { playBattle('red'); setSide(false); })); }
-    else {
-      { const hs = document.createElement('div'); hs.className = 'sCat'; hs.textContent = 'Call support for your side'; sBody.append(hs); const me = BATTLE.team || FIRE.team || 'blue'; sBody.append(mkB('Griffon with a door gunner', 'sItem', () => { callAir(me, 'griffon'); })); sBody.append(mkB('Gunship (minigun and howitzer)', 'sItem', () => { callAir(me, 'gunship'); })); sBody.append(mkB('Attack helicopter (chin gun and rockets)', 'sItem', () => { callAir(me, 'cobra'); })); sBody.append(mkB('Medevac helicopter', 'sItem', () => { callAir(me, 'medevac'); })); sBody.append(mkB('Transport helicopter with reinforcements', 'sItem', () => { paraWave(me, 6); })); sBody.append(mkB('Boat landing party', 'sItem', () => { boatWave(me); })); }
-      sBody.append(mkB('Stop the battle', 'sItem', () => { battleStop(); renderSide(); })); sBody.append(mkB('Drop in as a Port soldier', 'sItem', () => { if (!fp.on) { playBattle('blue'); setSide(false); } }));
-      const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Tickets: Port ' + BATTLE.tickets.blue + ', ' + BATTLE.redKind + ' ' + BATTLE.tickets.red + ' · knock-outs ' + BATTLE.kills.blue + ' to ' + BATTLE.kills.red; sBody.append(h);
-      const hp = document.createElement('div'); hp.className = 'sCat'; hp.textContent = 'Battle plan (Port side)'; sBody.append(hp);
-      for (const p of BATTLE.points) { const row = document.createElement('div'); row.className = 'sRow'; const m = mkB('', 'sMain', () => camFlyTo(p.x, p.z, 55 * CELL)); const b = document.createElement('b'); b.textContent = p.name; const sm = document.createElement('small'); sm.textContent = (p.owner === 'blue' ? 'Port' : p.owner === 'red' ? BATTLE.redKind : 'Neutral') + ' · ' + (BATTLE.plan[p.name] || 'auto') + ' · ' + POINT_TYPES[p.type].name; m.title = POINT_TYPES[p.type].name + ': ' + POINT_TYPES[p.type].note; m.append(b, sm); row.append(m); row.append(mkB('A', 'sMini', () => { BATTLE.plan[p.name] = BATTLE.plan[p.name] === 'attack' ? null : 'attack'; planBattle(); renderSide(); }, { 'aria-label': 'Attack' })); row.append(mkB('D', 'sMini', () => { BATTLE.plan[p.name] = BATTLE.plan[p.name] === 'defend' ? null : 'defend'; planBattle(); renderSide(); }, { 'aria-label': 'Defend' })); sBody.append(row); }
-    }
+    const n = document.createElement('div'); n.className = 'sNote';
+    if (!BATTLE.on) { n.textContent = 'Fight for capture points on the Port and mountains, Urban port or Desert maps. Nothing starts until you press Begin.'; sBody.append(n); const b = mkB('Battle setup', 'sItem btn-p', () => openBattleSetup()); b.insertAdjacentHTML('afterbegin', ic('flag')); sBody.append(b); }
+    else { n.textContent = 'Tickets: Port ' + BATTLE.tickets.blue + ', ' + BATTLE.redKind + ' ' + BATTLE.tickets.red + '. Knock-outs ' + BATTLE.kills.blue + ' to ' + BATTLE.kills.red + '.'; sBody.append(n); const b = mkB('Command', 'sItem btn-p', () => openCommand('fire')); b.insertAdjacentHTML('afterbegin', ic('command')); sBody.append(b); sBody.append(mkB('Capture points and plan', 'sItem', () => openCommand('points'))); sBody.append(mkB('Stop the battle', 'sItem', () => { battleStop(); renderSide(); })); sBody.append(mkB('Battle setup', 'sItem', () => openBattleSetup())); }
   } else if (sideTab === 'live') {
     const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
     const head = document.createElement('div'); head.className = 'sNote'; head.id = 'sCount'; sBody.append(head); const list = document.createElement('div'); list.id = 'sLive'; sBody.append(list); liveSig = ''; fillLive();
@@ -3939,15 +4069,32 @@ function renderSide() {
   }
 }
 function refreshSide() { if (sideOpen && sideTab === 'play') renderSide(); }
-function fillPlace(list) {
-  list.innerHTML = ''; let any = false;
+function buildPlace(list) {
+  list.innerHTML = ''; const cats = [], frag = document.createDocumentFragment();
   for (const c of PLACE_CATS) {
-    const items = []; BUILD.forEach((it, i) => { if (!it.erase && c.test(it) && (!sideQ || (it.name + ' ' + (it.note || '')).toLowerCase().includes(sideQ))) items.push([it, i]); }); if (!items.length) continue; any = true;
-    const h = document.createElement('div'); h.className = 'sCat'; h.textContent = c.name; list.append(h);
-    let lastGrp = null; for (const [it, i] of items) { if (it.grp && it.grp !== lastGrp) { lastGrp = it.grp; const gh = document.createElement('div'); gh.className = 'sNote'; gh.style.fontWeight = '700'; gh.textContent = it.grp; list.append(gh); } const b = mkB('', 'sItem', () => { buildSel = i; placeCat = c.id; setTool('build'); fillPlace(list); if (matchMedia('(max-width: 800px)').matches) setSide(false); }, { 'aria-pressed': String(tool === 'build' && buildSel === i) }); const sw = document.createElement('i'); sw.style.background = it.sw || '#888'; const t = document.createElement('span'); t.textContent = it.name; if (it.note) { const sm = document.createElement('small'); sm.textContent = (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note; t.append(sm); } b.append(sw, t); list.append(b); }
+    const items = []; BUILD.forEach((it, i) => { if (!it.erase && c.test(it)) items.push([it, i]); }); if (!items.length) continue;
+    const h = document.createElement('div'); h.className = 'sCat'; h.textContent = c.name; frag.append(h); const cat = { h, ents: [], grps: [] };
+    let lastGrp = null, grp = null;
+    for (const [it, i] of items) {
+      if (it.grp && it.grp !== lastGrp) { lastGrp = it.grp; const gh = document.createElement('div'); gh.className = 'sNote'; gh.style.fontWeight = '700'; gh.textContent = it.grp; frag.append(gh); grp = { gh, ents: [] }; cat.grps.push(grp); }
+      const b = mkB('', 'sItem', () => { buildSel = i; placeCat = c.id; setTool('build'); fillPlace(list); if (matchMedia('(max-width: 800px)').matches) setSide(false); }, { 'aria-pressed': 'false' });
+      const sw = document.createElement('i'); sw.style.background = it.sw || '#888'; const t = document.createElement('span'); t.textContent = it.name; if (it.note) { const sm = document.createElement('small'); sm.textContent = (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note; t.append(sm); } b.append(sw, t); frag.append(b);
+      const en = { b, it, i, p: 'false', txt: (it.name + ' ' + (it.note || '')).toLowerCase() }; cat.ents.push(en); if (grp) grp.ents.push(en);
+    }
+    cats.push(cat);
   }
-  const ei = BUILD.findIndex(it => it.erase); if (ei >= 0 && !sideQ) { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Other'; list.append(h, mkB('Remove things (tap to erase)', 'sItem', () => { buildSel = ei; setTool('build'); })); }
-  if (!any) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing matches.'; list.append(n); }
+  const ei = BUILD.findIndex(it => it.erase); let oh = null, ob = null; if (ei >= 0) { oh = document.createElement('div'); oh.className = 'sCat'; oh.textContent = 'Other'; ob = mkB('Remove things (tap to erase)', 'sItem', () => { buildSel = ei; setTool('build'); }); frag.append(oh, ob); }
+  const none = document.createElement('div'); none.className = 'sNote'; none.textContent = 'Nothing matches.'; none.hidden = true; frag.append(none);
+  list.append(frag); placeCache = { n: BUILD.length, cats, oh, ob, none, q: null, any: true };
+}
+function fillPlace(list) {
+  if (!placeCache || placeCache.n !== BUILD.length || !list.firstChild) buildPlace(list); const pc = placeCache;
+  if (pc.q !== sideQ) {
+    pc.q = sideQ; let any = false;
+    for (const c of pc.cats) { let n = 0; for (const e of c.ents) { const show = !sideQ || e.txt.includes(sideQ); if (e.b.hidden === show) e.b.hidden = !show; if (show) n++; } c.h.hidden = !n; for (const g of c.grps) g.gh.hidden = !g.ents.some(e => !e.b.hidden); if (n) any = true; }
+    if (pc.oh) pc.oh.hidden = pc.ob.hidden = !!sideQ; pc.none.hidden = any; pc.any = any;
+  }
+  for (const c of pc.cats) for (const e of c.ents) { const p = String(tool === 'build' && buildSel === e.i); if (p !== e.p) { e.p = p; e.b.setAttribute('aria-pressed', p); } }
 }
 function collectLive() {
   const rows = [], want = (k) => liveF === 'all' || liveF === k;
@@ -3958,10 +4105,23 @@ function collectLive() {
   return rows.slice(0, 160);
 }
 function fillLive() {
-  if (!sideOpen || sideTab !== 'live') return; const rows = collectLive(), sig = liveF + '|' + rows.map(r => r.label + r.sub).join('~'); document.getElementById('sCount').textContent = people.length + ' people · ' + boats.length + ' boats · ' + VEHS.length + ' vehicles · ' + objects.length + ' things'; if (sig === liveSig) { liveRows = rows; return; } liveSig = sig; liveRows = rows;
-  const list = document.getElementById('sLive'); list.innerHTML = '';
-  rows.forEach((r, i) => { const d = document.createElement('div'); d.className = 'sRow'; const m = mkB('', 'sMain', () => liveGo(i)); const b = document.createElement('b'); b.textContent = r.label; const sm = document.createElement('small'); sm.textContent = r.sub; m.append(b, sm); d.append(m); if (r.k === 'person') d.append(mkB('Be', 'sMini', () => liveBe(i))); if (r.k === 'boat' && !r.ref.landing && boatCrew(r.ref).length) d.append(mkB('Land', 'sMini', () => { const bt = r.ref, L = landingSpotNear(bt); if (!L) { toast('No shore to land on'); return; } const c0 = boatCrew(bt)[0]; registerLanding(bt, L, c0 && c0.role || 'Crew', c0 && c0.side || null); toast('The ' + bt.sp.name + ' is heading for the beach to land its crew.'); }, { 'aria-label': 'Land the crew on the nearest beach' })); d.append(mkB('X', 'sMini', () => liveDel(i), { 'aria-label': 'Remove' })); list.append(d); });
-  if (!rows.length) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing here yet. Place something from the Place tab.'; list.append(n); }
+  if (!sideOpen || sideTab !== 'live') return; const rows = collectLive(); liveRows = rows;
+  const cnt = document.getElementById('sCount'), ct = people.length + ' people · ' + boats.length + ' boats · ' + VEHS.length + ' vehicles · ' + objects.length + ' things'; if (cnt.textContent !== ct) cnt.textContent = ct;
+  const list = document.getElementById('sLive'); if (!list) return;
+  if (!rows.length) { if (list._e !== 1) { list.innerHTML = ''; const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing here yet. Place something from the Place tab.'; list.append(n); list._e = 1; } return; }
+  if (list._e === 1) { list.innerHTML = ''; list._e = 0; }
+  rows.forEach((r, i) => {
+    const ks = r.k + (r.k === 'boat' && !r.ref.landing && boatCrew(r.ref).length ? 'L' : ''); let d = list.children[i];
+    if (!d || d._ks !== ks) {
+      const nd = document.createElement('div'); nd.className = 'sRow'; nd._ks = ks; const m = mkB('', 'sMain', () => liveGo(i)); const b = document.createElement('b'); const sm = document.createElement('small'); m.append(b, sm); nd.append(m); nd._b = b; nd._s = sm;
+      if (r.k === 'person') nd.append(mkB('Be', 'sMini', () => liveBe(i)));
+      if (ks === 'boatL') nd.append(mkB('Land', 'sMini', () => { const bt = liveRows[i] && liveRows[i].ref; if (!bt) return; const L = landingSpotNear(bt); if (!L) { toast('No shore to land on'); return; } const c0 = boatCrew(bt)[0]; registerLanding(bt, L, c0 && c0.role || 'Crew', c0 && c0.side || null); toast('The ' + bt.sp.name + ' is heading for the beach to land its crew.'); }, { 'aria-label': 'Land the crew on the nearest beach' }));
+      nd.append(mkB('X', 'sMini', () => liveDel(i), { 'aria-label': 'Remove' }));
+      if (d) list.replaceChild(nd, d); else list.append(nd); d = nd;
+    }
+    if (d._b.textContent !== r.label) d._b.textContent = r.label; if (d._s.textContent !== r.sub) d._s.textContent = r.sub;
+  });
+  while (list.children.length > rows.length) list.lastChild.remove();
 }
 function liveGo(i) { const r = liveRows[i]; if (!r) return; if (fp.on) return; let x = r.x, z = r.z; if (r.k === 'things') { const a = r.ref.filter(o => !o.gone); a.sort((p, q) => Math.hypot(p.body.position.x - god.tgt.x, p.body.position.z - god.tgt.z) - Math.hypot(q.body.position.x - god.tgt.x, q.body.position.z - god.tgt.z)); if (a[0]) { x = a[0].body.position.x; z = a[0].body.position.z; } }
   if (r.k === 'person' || r.k === 'boat') setSel([r.ref]); camFlyTo(x, z, 38 * CELL); }
@@ -3971,7 +4131,7 @@ $('bFP').addEventListener('click', dropIn); $('burger').addEventListener('click'
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
 setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'battle') { const sg = BATTLE.on ? BATTLE.tickets.blue + '/' + BATTLE.tickets.red + BATTLE.points.map(p => p.owner || '-').join('') : 'off'; if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
 setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
-addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
 /* ================================================================ the Port and mountains scenario: every yard, site and objective laid out and labelled so the mechanics can be watched */
 const LABELS = []; let labelsOn = false, portLaid = false;
@@ -3982,7 +4142,7 @@ function addLabel(x, y, z, title, sub, col) {
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false }));
   sp.position.set(x, y, z); sp.renderOrder = 7; sp.visible = labelsOn; scene.add(sp); LABELS.push(sp); return sp;
 }
-setInterval(() => { const k = clamp(god.dist * 0.02, 1.4, 5); for (const l of LABELS) { l.visible = labelsOn && mode === 'god'; l.scale.set(k * 4, k, 1); } }, 120);
+let lblK = -1, lblV = null, lblN = 0; setInterval(() => { if (!LABELS.length) return; const k = Math.round(clamp(god.dist * 0.02, 1.4, 5) * 20) / 20, v = labelsOn && mode === 'god'; if (k === lblK && v === lblV && LABELS.length === lblN) return; lblK = k; lblV = v; lblN = LABELS.length; for (const l of LABELS) { l.visible = v; l.scale.set(k * 4, k, 1); } }, 200);
 function setLabels(o) { labelsOn = o; for (const l of LABELS) l.visible = o && mode === 'god'; }
 function layPortScenario() {
   if (portLaid) return; portLaid = true;
@@ -4220,8 +4380,8 @@ function layMapScenario() {
   }).catch((e) => { mapLaid = false; window.__layerr = String(e && e.stack || e); toast('The buildings could not be loaded'); });
 }
 function offerBattleMaps() {                                          // a battle was asked for on a map that cannot hold one: open the Map tab with the three maps that can
-  toast('Battles are played on the Port and mountains, Urban port or Desert maps. Pick one in the Map tab.');
-  try { sideTab = 'map'; setSide(true); renderSide(); } catch (e) { }
+  toast('Battles are played on the Port and mountains, Urban port or Desert maps. Pick one in Battle setup.');
+  try { openBattleSetup(); } catch (e) { }
 }
 
 /* ---- trees: street trees and parks in the city, the oasis palms in the desert */
@@ -4376,7 +4536,11 @@ const WPN = {
 };
 const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] } };
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
-function kitButtons(host, after) { const h = document.createElement('div'); h.className = 'sChips'; for (const k in LOADOUTS) { const b = document.createElement('button'); b.type = 'button'; b.textContent = LOADOUTS[k].name; b.title = LOADOUTS[k].note; b.setAttribute('aria-pressed', String((BATTLE.kit || 'assault') === k)); b.addEventListener('click', () => { BATTLE.kit = k; after(); }); h.append(b); } host.append(h); const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Loadout: ' + LOADOUTS[BATTLE.kit || 'assault'].name + ', ' + LOADOUTS[BATTLE.kit || 'assault'].note + '.'; host.append(n); }
+function kitButtons(host, after, cols) {                              // the loadout cards: an icon, a name and one plain line each
+  const g = document.createElement('div'); g.className = cols === 2 ? 'cards two' : 'cards';
+  for (const k in LOADOUTS) { const L = LOADOUTS[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String((BATTLE.kit || 'assault') === k)); b.innerHTML = ic(CLS_IC[k] || 'rifle') + '<b></b><span></span>'; b.querySelector('b').textContent = L.name; b.querySelector('span').textContent = L.note.charAt(0).toUpperCase() + L.note.slice(1); b.addEventListener('click', () => { BATTLE.kit = k; after(); }); g.append(b); }
+  host.append(g);
+}
 const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, tix0: 80, tix: 100, tixAuto: true, cmdFree: false, kills: { blue: 0, red: 0 }, myKills: 0, myDeaths: 0, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: null, plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow', spawnN: { blue: 0, red: 0 }, sqObj: {}, won: null };       // team is null while nobody is playing: the AI then calls air, paras, boats and batteries for both sides
 const startTickets = () => Math.round(clamp(BATTLE.tixAuto ? 40 + 6 * BATTLE.size : BATTLE.tix, 60, 400)), tixCap = () => Math.max(120, BATTLE.tix0 || 80);
 const CMD = { cd: { blue: 0, red: 0 } };                              // the shared recharge of the command tablet's fire control, one per side
@@ -4412,7 +4576,7 @@ function layCover() {
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
 function battleStop(quiet) { kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
-  for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
+  for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
 const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle', 'shotgun', 'heavy', 'engineer', 'rifle'], CLSW = { medic: 'pistol', heavy: 'lmg', engineer: 'smg' };
 function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === team); const base = own.length ? own[Math.floor(Math.random() * own.length)] : BATTLE.points.find(p => p.base && (p.owner === team || true)) || BATTLE.points[0]; return base; }
@@ -4951,28 +5115,72 @@ function updateBombs(dt) {
 /* ---- the command tablet: T opens it. Calls support for your side, and from the overview arms a fire control that strikes wherever you tap the map */
 function tabletSide() { return fp.on ? (BATTLE.team || 'blue') : (FIRE.team || BATTLE.team || 'blue'); }
 function aimPoint() { if (fp.on) { const h = fpAim(700, 0); return h.pt ? { x: h.pt.x, z: h.pt.z } : null; } return null; }
+let tbTab = 'fire', tbWant = null, tbSig = '', dpSel = null;
 function toggleTablet(force) {
-  const el = $('tablet'); const open = force === undefined ? el.hidden : force; el.hidden = !open; { const td = fpToolMesh.tablet; if (td) td.visible = !!open && fp.on; } if (open) { if (document.pointerLockElement) document.exitPointerLock(); renderTablet(); Snd.fx('ppl_radio_click', fp.on && fp.p ? fp.p.x : god.tgt.x, fp.on && fp.p ? fp.p.z : god.tgt.z, { gain: 0.5 }); } else if (fp.on && !isTouch) lockPointer();
+  const el = $('tablet'); const open = force === undefined ? el.hidden : force; if (open && !$('bSetup').hidden) return; const was = !el.hidden; el.hidden = !open; { const td = fpToolMesh.tablet; if (td) td.visible = !!open && fp.on; }
+  if (open) { if (!was || tbWant) tbTab = tbWant || 'fire'; tbWant = null; if (document.pointerLockElement) document.exitPointerLock(); renderTablet(); if (!was) { Snd.fx('ppl_radio_click', fp.on && fp.p ? fp.p.x : god.tgt.x, fp.on && fp.p ? fp.p.z : god.tgt.z, { gain: 0.5 }); const f = $('tbTabs').querySelector('[aria-selected="true"]'); if (f) f.focus({ preventScroll: true }); } }
+  else if (fp.on && !isTouch) lockPointer();
 }
+function openCommand(tab) { tbWant = tab || 'fire'; toggleTablet(true); }
+const FIRE_GROUPS = [
+  ['Strike', 'lightning', [['lightning', 'lightning', 'Lightning strike', 'a bolt from the sky, hits at once'], ['storm', 'storm', 'Lightning storm', 'seven bolts around the spot'], ['missile', 'missile', 'Missile', 'precise, hits in two seconds'], ['bomb', 'bomb', 'Bomb', 'dropped from height, big crater'], ['cluster', 'cluster', 'Cluster bomb', 'splits into nine bomblets'], ['incendiary', 'flame', 'Incendiary bomb', 'fire spreads through trees and cover'], ['flechette', 'darts', 'Flechette strike', 'precise air-burst of darts, people only']]],
+  ['Barrage', 'arty', [['mortar', 'mortar', 'Mortar rounds', 'seven quick rounds, small blasts'], ['arty', 'arty', 'Artillery barrage', 'six heavy shells'], ['shock', 'shock', 'Shockwave', 'throws people and cargo, little damage'], ['smoke', 'smoke', 'Smoke screen', 'a cloud that hides movement']]],
+  ['Air', 'jet', [['strike', 'jet', 'Air strike run', 'a jet drops a line of bombs'], ['griffon', 'heli', 'Griffon cover', 'circles the spot, door gunner'], ['gunship', 'heli', 'Gunship cover', 'circles the spot, minigun and howitzer']]],
+];
+const FIRE_NAMES = { lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', cluster: 'cluster bomb', incendiary: 'incendiary bomb', flechette: 'flechette strike', mortar: 'mortar rounds', arty: 'artillery', shock: 'shockwave', smoke: 'smoke screen', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' };
+function tbTabList() { const t = [['fire', 'Fire'], ['support', 'Support']]; if (fp.on && BATTLE.on) t.push(['squad', 'Squad']); if (BATTLE.on) t.push(['points', 'Points']); return t; }
 function renderTablet() {
-  const body = $('tbBody'); body.innerHTML = ''; const team = tabletSide(), c = AIR.cd[team], off = AIR.off[team]; const sec = (t) => { const h = document.createElement('div'); h.className = 'tbSec'; h.textContent = t; body.append(h); };
-  const row = (label, note, key, fn) => { const r = document.createElement('div'); r.className = 'tbRow'; const b = document.createElement('button'); b.type = 'button'; b.innerHTML = '<b>' + label + '</b><small>' + note + '</small>'; const st = document.createElement('span'); const cd = key === '@cmd' ? (BATTLE.on && !BATTLE.cmdFree ? CMD.cd[team] : 0) : key && c ? c[key] : 0; st.className = 'tbSt'; st.textContent = !key ? '' : cd > 0 ? (off[key] ? 'Offline' : 'Recharging') : 'Ready'; if (cd > 0) st.classList.add('wait'); b.addEventListener('click', () => { fn(); }); r.append(b, st); body.append(r); };
-  const chips = (label, key, items) => { const d = document.createElement('div'); d.className = 'tbSide'; const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = label; d.append(l); items.forEach(([v, n], idx) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = n; b.setAttribute('aria-pressed', String(TAB[key] === v)); b.addEventListener('click', () => { TAB[key] = v; renderTablet(); }); d.append(b); }); body.append(d); };
-  if (!fp.on) { const sd = document.createElement('div'); sd.className = 'tbSide'; for (const t of ['blue', 'red']) { const b = document.createElement('button'); b.type = 'button'; b.textContent = t === 'blue' ? 'Port' : BATTLE.redKind; b.setAttribute('aria-pressed', String(team === t)); b.addEventListener('click', () => { FIRE.team = t; renderTablet(); }); sd.append(b); } body.append(sd); }
-  sec('Aim and blast');
-  chips('Target', 'aim', [['tap', fp.on ? 'Crosshair' : 'Tap the map'], ['marker', 'Marker'], ['hot', 'Hot spot']]);
-  chips('Size', 'size', [[0, 'Small'], [1, 'Medium'], [2, 'Large']]);
-  chips('Pattern', 'pattern', [['single', 'Single'], ['line', 'Line'], ['ring', 'Ring'], ['scatter', 'Scatter']]);
-  chips('Aim', 'spread', [[0, 'Exact'], [1, 'Loose'], [2, 'Wild']]);
-  row('Mark target', fp.on ? 'drops a marker at your crosshair' : 'tap the map to place a marker', null, () => { if (fp.on) { const p = aimPoint(); if (!p) { toast('Aim at the ground first.'); return; } setMarker(p); } else { setFire('mark'); toggleTablet(false); toast('Tap the map to mark a target.'); } });
-  sec((fp.on ? 'Fire control' : 'Fire control: pick one, then tap the map') + (BATTLE.on && !BATTLE.cmdFree ? ' (costs tickets: small 1, medium 2, large 3)' : ''));
-  const fc = (k, label, note) => row(label, note, '@cmd', () => { if (!cmdReady()) return; const p = targetPoint(); if (p) { fireAt(k, p); toggleTablet(false); return; } if (fp.on) { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'Aim at the ground first.'); return; } if (TAB.aim !== 'tap') { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'No hot spot yet.'); return; } setFire(k); toggleTablet(false); toast(label + ' armed. Tap the map to fire. Esc stands down.'); });
-  fc('lightning', 'Lightning strike', 'a bolt from the sky, hits at once'); fc('storm', 'Lightning storm', 'seven bolts around the spot'); fc('missile', 'Missile', 'precise, hits in two seconds'); fc('bomb', 'Bomb', 'dropped from height, big crater'); fc('flechette', 'Flechette strike', 'precise air-burst of darts, people only'); fc('cluster', 'Cluster bomb', 'splits into nine bomblets'); fc('incendiary', 'Incendiary bomb', 'fire spreads through trees and cover'); fc('mortar', 'Mortar rounds', 'seven quick rounds, small blasts'); fc('arty', 'Artillery barrage', 'six heavy shells'); fc('shock', 'Shockwave', 'throws people and cargo, little damage'); fc('smoke', 'Smoke screen', 'a cloud that hides movement'); fc('strike', 'Air strike run', 'a jet drops a line of bombs'); fc('griffon', 'Griffon cover', 'circles the spot, door gunner'); fc('gunship', 'Gunship cover', 'circles the spot, minigun and howitzer');
-  if (BATTLE.on) { sec('Support for your side'); row('Griffon', 'door gunner on the hot spot', 'gr', () => { callAir(team, 'griffon'); renderTablet(); }); row('Gunship', 'minigun and howitzer', 'gs', () => { callAir(team, 'gunship'); renderTablet(); }); row('Attack helicopter', 'chin gun and rockets', 'co', () => { callAir(team, 'cobra'); renderTablet(); }); row('Medevac', 'patches up people beneath it', 'md', () => { callAir(team, 'medevac'); renderTablet(); }); row('Air strike', 'at the target or the hot spot', 'st', () => { const p = targetPoint() || aimPoint() || hotSpot(team); if (p) callStrike(team, p); renderTablet(); }); row('Artillery', 'at the target or the hot spot', 'ar', () => { const p = targetPoint() || aimPoint() || hotSpot(team); if (p) callArty(team, p); renderTablet(); }); row('Battery barrage', 'free, from the batteries your side holds', 'by', () => { const p = targetPoint() || aimPoint() || hotSpot(team); if (p) batteryFire(team, { x: p.x, z: p.z }); renderTablet(); }); row('Troop transport', 'a Chinook lands a squad', 'pa', () => { paraWave(team, 6); renderTablet(); }); row('Boat landing', 'a landing party from the sea', 'bt', () => { boatWave(team); renderTablet(); }); }
-  if (fp.on && BATTLE.on) { sec('Squad'); row('Follow me', '', null, () => { squadOrder('follow'); toggleTablet(false); }); row('Hold here', '', null, () => { squadOrder('hold'); toggleTablet(false); }); row('Move to my crosshair', '', null, () => { squadGo(); toggleTablet(false); }); }
+  const body = $('tbBody'), keepY = body.scrollTop; body.textContent = ''; const team = tabletSide(), c = AIR.cd[team], off = AIR.off[team];
+  const tl = tbTabList(); if (!tl.some(q => q[0] === tbTab)) tbTab = 'fire';
+  const bar = $('tbTabs'); bar.textContent = ''; for (const [id, n] of tl) bar.append(mkB(n, '', () => { tbTab = id; renderTablet(); $('tbBody').scrollTop = 0; }, { role: 'tab', 'aria-selected': String(tbTab === id), 'aria-pressed': String(tbTab === id) }));
+  const head = (t, icn) => { const h = document.createElement('div'); h.className = 'tbRowH'; h.innerHTML = ic(icn || 'command') + '<span></span>'; h.lastChild.textContent = t; body.append(h); };
+  const note = (t) => { const n = document.createElement('p'); n.className = 'tbNote'; n.textContent = t; body.append(n); };
+  const wrow = (icn, label, nt, key, fn, pressed) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; const cd = key === '@cmd' ? (BATTLE.on && !BATTLE.cmdFree ? CMD.cd[team] : 0) : key && c ? c[key] : 0, wait = cd > 0;
+    b.innerHTML = ic(icn) + '<span><b></b><small></small></span>' + (key ? '<span class="wst' + (wait ? ' wait' : '') + '"><i></i>' + (wait ? (off && off[key] ? 'Offline' : 'Recharging') : 'Ready') + '</span>' : '<span></span>');
+    b.querySelector('b').textContent = label; b.querySelector('small').textContent = nt; if (pressed) b.setAttribute('aria-pressed', 'true'); b.addEventListener('click', fn); body.append(b); return b;
+  };
+  if (tbTab === 'fire') {
+    if (FIRE.armed) { const a = document.createElement('div'); a.className = 'tbOpt'; a.style.padding = '8px 0'; const t = document.createElement('span'); t.className = 'tbNote'; t.style.flex = '1'; t.style.margin = '0'; t.textContent = 'Armed: ' + (FIRE_NAMES[FIRE.armed] || FIRE.armed) + '. Close this and tap the map to fire.'; a.append(t, mkB('Stand down', '', () => { setFire(null); renderTablet(); })); body.append(a); }
+    const opts = document.createElement('div'); opts.className = 'tbOpts';
+    const opt = (label, key, items, extra) => { const d = document.createElement('div'); d.className = 'tbOpt'; const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = label; d.append(l); for (const [v, n] of items) d.append(mkB(n, '', () => { TAB[key] = v; renderTablet(); }, { 'aria-pressed': String(TAB[key] === v) })); if (extra) d.append(extra); opts.append(d); };
+    if (!fp.on) { const d = document.createElement('div'); d.className = 'tbOpt'; const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = 'Side'; d.append(l); for (const t of ['blue', 'red']) d.append(mkB(t === 'blue' ? 'Port' : BATTLE.redKind, '', () => { FIRE.team = t; renderTablet(); }, { 'aria-pressed': String(team === t) })); opts.append(d); }
+    const mk = mkB('Mark target', '', () => { if (fp.on) { const p = aimPoint(); if (!p) { toast('Aim at the ground first.'); return; } setMarker(p); } else { setFire('mark'); toggleTablet(false); toast('Tap the map to mark a target.'); } }); mk.insertAdjacentHTML('afterbegin', ic('marker', 'sm'));
+    opt('Target', 'aim', [['tap', fp.on ? 'Crosshair' : 'Tap the map'], ['marker', 'Marker'], ['hot', 'Hot spot']], mk);
+    opt('Size', 'size', [[0, 'Small'], [1, 'Medium'], [2, 'Large']]); opt('Pattern', 'pattern', [['single', 'Single'], ['line', 'Line'], ['ring', 'Ring'], ['scatter', 'Scatter']]); opt('Aim', 'spread', [[0, 'Exact'], [1, 'Loose'], [2, 'Wild']]);
+    body.append(opts);
+    const fc = (k, icn, label, nt) => wrow(icn, label, nt, '@cmd', () => { if (!cmdReady()) return; const p = targetPoint(); if (p) { fireAt(k, p); toggleTablet(false); return; } if (fp.on) { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'Aim at the ground first.'); return; } if (TAB.aim !== 'tap') { toast(TAB.aim === 'marker' ? 'Mark a target first.' : 'No hot spot yet.'); return; } setFire(k); toggleTablet(false); toast(label + ' armed. Tap the map to fire. Esc stands down.'); }, FIRE.armed === k);
+    if (BATTLE.on && !BATTLE.cmdFree) note('Each call costs tickets: small 1, medium 2, large 3.');
+    for (const [g, gi, items] of FIRE_GROUPS) { head(g, gi); for (const [k, icn, label, nt] of items) fc(k, icn, label, nt); }
+  } else if (tbTab === 'support') {
+    if (BATTLE.on) {
+      head('Call support for your side', 'heli');
+      const tp = () => targetPoint() || aimPoint() || hotSpot(team);
+      wrow('heli', 'Griffon', 'door gunner on the hot spot', 'gr', () => { callAir(team, 'griffon'); renderTablet(); }); wrow('heli', 'Gunship', 'minigun and howitzer', 'gs', () => { callAir(team, 'gunship'); renderTablet(); }); wrow('heli', 'Attack helicopter', 'chin gun and rockets', 'co', () => { callAir(team, 'cobra'); renderTablet(); }); wrow('cross', 'Medevac', 'patches up people beneath it', 'md', () => { callAir(team, 'medevac'); renderTablet(); });
+      wrow('jet', 'Air strike', 'at the target or the hot spot', 'st', () => { const p = tp(); if (p) callStrike(team, p); renderTablet(); }); wrow('arty', 'Artillery', 'at the target or the hot spot', 'ar', () => { const p = tp(); if (p) callArty(team, p); renderTablet(); }); wrow('arty', 'Battery barrage', 'free, from the batteries your side holds', 'by', () => { const p = tp(); if (p) batteryFire(team, { x: p.x, z: p.z }); renderTablet(); });
+      wrow('para', 'Troop transport', 'a Chinook lands a squad', 'pa', () => { paraWave(team, 6); renderTablet(); }); wrow('boat', 'Boat landing', 'a landing party from the sea', 'bt', () => { boatWave(team); renderTablet(); });
+    } else {
+      head('Help on the way', 'heli'); note('Calls for the sandbox. In a battle this tab lists the support for your side.');
+      wrow('heli', heli.on ? 'Recall rescue helicopter' : 'Call rescue helicopter', 'lifts people off roofs and wrecks', null, () => { callHeli(); renderTablet(); }); wrow('para', bomber.on ? 'Recall water bomber' : 'Call water bomber', 'scoops from the sea and drops on fires', null, () => { callBomber(true); renderTablet(); });
+    }
+  } else if (tbTab === 'squad') {
+    head('Squad orders', 'person'); note('Your nearest four soldiers follow these orders.');
+    wrow('person', 'Follow me', 'the squad keeps close', null, () => { squadOrder('follow'); toggleTablet(false); }); wrow('anchor', 'Hold here', 'the squad stays where it is', null, () => { squadOrder('hold'); toggleTablet(false); }); wrow('marker', 'Move to my crosshair', 'the squad goes where you aim', null, () => { squadGo(); toggleTablet(false); });
+  } else if (tbTab === 'points') {
+    head('Capture points', 'flag'); note('Tap a name to fly there. Attack and Defend set your plan once you have joined a side.');
+    for (const p of BATTLE.points) {
+      const pt = POINT_TYPES[p.type], pl = BATTLE.plan[p.name], row = document.createElement('div'); row.className = 'prw';
+      const m = document.createElement('button'); m.type = 'button'; m.className = 'wrow'; m.innerHTML = ic(({ hq: 'flag', strongpoint: 'bunker', radio: 'radio', depot: 'depot', battery: 'arty', airfield: 'jet', harbour: 'anchor', choke: 'choke', plain: 'plain' })[p.type] || 'plain') + '<span><b></b><small></small></span>'; m.querySelector('b').textContent = p.name; m.querySelector('small').textContent = (p.owner === 'blue' ? 'Port' : p.owner === 'red' ? BATTLE.redKind : 'Nobody') + ' · ' + pt.name + (pl ? ' · plan: ' + pl : ''); m.title = pt.name + ': ' + pt.note; m.addEventListener('click', () => { camFlyTo(p.x, p.z, 55 * CELL); toggleTablet(false); });
+      row.append(m, mkB('Attack', 'pl', () => { BATTLE.plan[p.name] = pl === 'attack' ? null : 'attack'; planBattle(); renderTablet(); }, { 'aria-pressed': String(pl === 'attack') }), mkB('Defend', 'pl', () => { BATTLE.plan[p.name] = pl === 'defend' ? null : 'defend'; planBattle(); renderTablet(); }, { 'aria-pressed': String(pl === 'defend') })); body.append(row);
+    }
+    head('The battle', 'close'); const sb = mkB('Stop the battle', 'btn-d', () => { battleStop(); toggleTablet(false); if (sideOpen) renderSide(); }); sb.style.cssText = 'display:block;width:100%;min-height:52px;margin:4px 0'; body.append(sb); const su = mkB('Battle setup', '', () => { toggleTablet(false); openBattleSetup(); }); su.style.cssText = 'display:block;width:100%;min-height:52px;margin:4px 0'; body.append(su);
+  }
+  body.scrollTop = keepY; tbSig = tbSigNow();
 }
+function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0); }
+setInterval(() => { if ($('tablet').hidden) return; const s = tbSigNow(); if (s !== tbSig) renderTablet(); }, 700);
 $('tbClose').addEventListener('click', () => toggleTablet(false));
-addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
 function planBattle() {
   for (const team of ['blue', 'red']) {
     const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag' && !q.bot.dead && !q.bot.crew && q.bot.sq), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.x, 0) / bots.length : 0), cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.z, 0) / bots.length : 0);
@@ -5008,8 +5216,8 @@ function updateBattle(dt) {
   BATTLE.spawnT -= dt; if (BATTLE.spawnT <= 0) { BATTLE.spawnT = 2.5; for (const team of ['blue', 'red']) { const alive = people.filter(q => q.bot && q.bot.team === team && !q.bot.dead && !q.bot.crew).length; if (alive < BATTLE.size && BATTLE.tickets[team] > BATTLE.size - alive) spawnBot(team, false); } }
   if (!BATTLE.over && (BATTLE.tickets.blue <= 0 || BATTLE.tickets.red <= 0)) { BATTLE.over = true; BATTLE.won = BATTLE.tickets.blue > 0 ? 'blue' : 'red'; const win = BATTLE.won === 'blue' ? 'The Port wins' : 'The ' + BATTLE.redKind + ' win'; toast(win + '.'); Snd.ui(BATTLE.team && BATTLE.tickets[BATTLE.team] <= 0 ? 'ui_defeat' : 'ui_victory', 0.9); battleHud(); endScreen(); }
 }
-function endScreen() {                                              // the round is decided: a plain panel with how it went and three ways on. No clocks.
-  const so = $('bSpawn'); if (!so) return; if (document.pointerLockElement) document.exitPointerLock(); fp.fireHeld = false; BATTLE.down = false; so.hidden = false; so.innerHTML = '';
+function endScreen() {                                              // the round is decided: how it went and three ways on. No clocks.
+  const so = $('bSpawn'); if (!so) return; if (document.pointerLockElement) document.exitPointerLock(); fp.fireHeld = false; BATTLE.down = false; so.hidden = false; so.textContent = '';
   const redN = BATTLE.redKind, held = (t) => BATTLE.points.filter(p => p.owner === t).length, mins = Math.max(1, Math.round(BATTLE.t / 60)), won = BATTLE.won;
   const h = document.createElement('h3'); h.textContent = won === 'blue' ? 'The Port wins' : 'The ' + redN + ' win'; so.append(h);
   const sub = document.createElement('p'); sub.textContent = BATTLE.team ? (won === BATTLE.team ? 'Your side held the day.' : 'Your side was overrun.') : 'The battle is decided.'; so.append(sub);
@@ -5017,19 +5225,41 @@ function endScreen() {                                              // the round
   if (BATTLE.team) rows.push(['Your knock-outs', String(BATTLE.myKills || 0)], ['Times you fell', String(BATTLE.myDeaths || 0)]);
   const st = document.createElement('div'); st.className = 'endStats'; for (const [a, b] of rows) { const x = document.createElement('span'); x.textContent = a; const y = document.createElement('span'); y.textContent = b; st.append(x, y); } so.append(st);
   const row = document.createElement('div'); row.className = 'endRow'; so.append(row);
-  const btn = (txt, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.addEventListener('click', fn); row.append(b); };
-  btn('Play again', () => { const t = BATTLE.team; so.hidden = true; if (fp.on) exitFP(); battleStart(); if (t) playBattle(t); });
-  btn('Change map', () => { so.hidden = true; if (fp.on) exitFP(); battleStop(true); sideTab = 'map'; setSide(true); renderSide(); });
-  btn('Overview', () => { so.hidden = true; if (fp.on) exitFP(); BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); });
+  const btn = (txt, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls; b.textContent = txt; b.addEventListener('click', fn); row.append(b); };
+  btn('Play again', () => { const t = BATTLE.team; so.hidden = true; if (fp.on) exitFP(); battleStart(); if (t) playBattle(t); }, 'btn-p');
+  btn('Change map', () => { so.hidden = true; if (fp.on) exitFP(); battleStop(true); openBattleSetup(); });
+  btn('Back to overview', () => { so.hidden = true; if (fp.on) exitFP(); BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); });
+}
+const bHudSig = { t: '', s: '', h: '', o: null, x: '' };
+function objectiveHint() {                                          // one plain line for the battle HUD: what to do next
+  if (!BATTLE.on) return ''; if (BATTLE.over) return 'The battle is decided.';
+  const sp = BATTLE.spec && people.includes(BATTLE.spec) ? BATTLE.spec : null; if (sp) return 'Watching a ' + (sp.role || 'soldier').toLowerCase() + '. Jump in to take over, or go back to the overview.';
+  const team = BATTLE.team || FIRE.team; if (!team) return 'Capture points to run the other side out of tickets.';
+  const pos = fp.on && fp.p ? fp.p : { x: god.tgt.x, z: god.tgt.z }; let best = null, bd = 1e9; for (const p of BATTLE.points) if (p.owner !== team) { const d = Math.hypot(p.x - pos.x, p.z - pos.z); if (d < bd) { bd = d; best = p; } }
+  return best ? (best.owner ? 'Take ' + best.name + ' back' : 'Capture ' + best.name) : 'Your side holds every point. Hold on.';
 }
 function battleHud(force) {
-  const h = $('bHud'); if (!h || h.hidden) return; const nb = BATTLE.points.filter(p => p.owner === 'blue').length, nr = BATTLE.points.filter(p => p.owner === 'red').length;
-  $('bTick').innerHTML = '<span class="bB">PORT ' + BATTLE.tickets.blue + '</span><span class="bPts">' + BATTLE.points.map(p => '<i style="background:' + (p.owner ? (p.owner === 'blue' ? '#2f5d9f' : '#c0392b') : '#999') + (p.nb || p.nr ? ';outline:2px solid #fff' : '') + '" title="' + p.name + ' (' + POINT_TYPES[p.type].name + ')"></i>').join('') + '</span><span class="bR">' + BATTLE.redKind.toUpperCase() + ' ' + BATTLE.tickets.red + '</span>';
-  const st = $('bStat'); const pp = fp.on && fp.p; st.hidden = !pp; if (pp) { const w = WPN[fp.tool]; st.innerHTML = '<div class="hp"><b style="width:' + clamp(pp.hp, 0, 100) + '%"></b></div>' + (w ? '<div>' + w.name + ' ' + ((fp.ammo && fp.ammo[fp.tool] != null) ? fp.ammo[fp.tool] : w.mag) + ' / ' + w.mag + (fp.reload > 0 ? ' reloading' : '') + '</div>' : ''); }
+  const h = $('bHud'); if (!h || h.hidden) return;
+  const tickH = '<span class="bB">Port ' + BATTLE.tickets.blue + '</span><span class="bPts">' + BATTLE.points.map(p => '<i style="background:' + (p.owner ? (p.owner === 'blue' ? '#2f5d9f' : '#c0392b') : '#999') + (p.nb || p.nr ? ';outline:2px solid #fff' : '') + '" title="' + p.name + ' (' + POINT_TYPES[p.type].name + ')"></i>').join('') + '</span><span class="bR">' + BATTLE.redKind + ' ' + BATTLE.tickets.red + '</span>';
+  if (tickH !== bHudSig.t) { bHudSig.t = tickH; $('bTick').innerHTML = tickH; }
+  const st = $('bStat'), pp = fp.on && fp.p; if (st.hidden === !!pp) st.hidden = !pp;
+  if (pp) { const w = WPN[fp.tool], hp = Math.round(clamp(pp.hp === undefined ? 100 : pp.hp, 0, 100)); const stH = '<div class="hp"><b style="transform:scaleX(' + (hp / 100) + ')"></b></div><div class="hpn">Health ' + hp + '</div>' + (w ? '<div>' + w.name + ' ' + ((fp.ammo && fp.ammo[fp.tool] != null) ? fp.ammo[fp.tool] : w.mag) + ' / ' + w.mag + (fp.reload > 0 ? ' reloading' : '') + '</div>' : ''); if (stH !== bHudSig.s) { bHudSig.s = stH; st.innerHTML = stH; } } else bHudSig.s = '';
+  if (!fp.on) { const spec = !!(BATTLE.spec && people.includes(BATTLE.spec)); if (bHudSig.o !== spec) { bHudSig.o = spec; $('bOver').hidden = !spec; } const hint = objectiveHint(); if (hint !== bHudSig.h) { bHudSig.h = hint; $('bHint').textContent = hint; } }
+  const ex = BATTLE.on ? 'Overview' : 'Leave first person'; if (bHudSig.x !== ex) { bHudSig.x = ex; $('fpExit').textContent = ex; }
 }
-function deployMenu() {
-  if (BATTLE.over) return; if (document.pointerLockElement) document.exitPointerLock(); fp.fireHeld = false; const so = $('bSpawn'); so.hidden = false; so.innerHTML = '<h3>You were knocked out</h3><p>Pick a loadout, then choose where to deploy.</p>'; kitButtons(so, deployMenu); const mine = BATTLE.points.filter(p => p.owner === BATTLE.team); const list = mine.length ? mine : [BATTLE.points.find(p => p.base) || BATTLE.points[0]];
-  for (const p of list) { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.addEventListener('click', () => deploy(p)); so.append(b); }
+function deployMenu() {                                             // knocked out: pick a class card, pick a place to start, press Deploy. Nothing is timed.
+  if (BATTLE.over) return; if (document.pointerLockElement) document.exitPointerLock(); fp.fireHeld = false; const so = $('bSpawn'); so.hidden = false; so.textContent = '';
+  const mine = BATTLE.points.filter(p => p.owner === BATTLE.team); const list = mine.length ? mine : [BATTLE.points.find(p => p.base) || BATTLE.points[0]]; if (!dpSel || !list.includes(dpSel)) dpSel = list[0];
+  const h = document.createElement('h3'); h.textContent = 'You were knocked out'; const p = document.createElement('p'); p.textContent = 'Pick a class and a place to start.'; so.append(h, p);
+  const sg = (t) => { const g = document.createElement('section'); g.className = 'sg'; const x = document.createElement('h3'); x.textContent = t; g.append(x); so.append(g); return g; };
+  kitButtons(sg('Class'), deployMenu, 2);
+  const g2 = sg('Where to start'), pl = document.createElement('div'); pl.className = 'plist'; g2.append(pl);
+  for (const pt of list) {
+    const info = POINT_TYPES[pt.type], hot = (BATTLE.team === 'blue' ? pt.nr : pt.nb) > 0, b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; b.setAttribute('aria-pressed', String(pt === dpSel));
+    b.innerHTML = ic(({ hq: 'flag', strongpoint: 'bunker', radio: 'radio', depot: 'depot', battery: 'arty', airfield: 'jet', harbour: 'anchor', choke: 'choke', plain: 'plain' })[pt.type] || 'plain') + '<span><b></b><small></small></span><span class="wst' + (hot ? ' wait' : '') + '"><i></i>' + (hot ? 'Contested' : 'Held') + '</span>'; b.querySelector('b').textContent = pt.name; b.querySelector('small').textContent = info.name;
+    b.addEventListener('click', () => { dpSel = pt; deployMenu(); }); pl.append(b);
+  }
+  const row = document.createElement('div'); row.className = 'dpRow'; const go = mkB('Deploy', 'btn-p', () => deploy(dpSel)); go.insertAdjacentHTML('afterbegin', ic('person')); const back = mkB('Back to overview', '', () => { so.hidden = true; if (fp.on) exitFP(); BATTLE.spec = null; battleHud(); }); back.insertAdjacentHTML('afterbegin', ic('map')); row.append(go, back); so.append(row);
 }
 function deploy(p) {
   const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
@@ -5477,8 +5707,8 @@ function specNext(dir) {
   const i = BATTLE.spec ? c.indexOf(BATTLE.spec) : -1; BATTLE.spec = c[(i + (dir || 1) + c.length) % c.length]; god.dist = Math.min(god.dist, 38 * CELL); god.follow = null; god.fly = null; toast('Watching a ' + (BATTLE.spec.role || 'soldier') + '. Press J to take over, K for the next one, or Overview to let go.');
 }
 function specUpdate(dt) { const q = BATTLE.spec; if (!q) return; if (!people.includes(q) || fp.on) { BATTLE.spec = null; return; } const k = 1 - Math.exp(-dt * 4); god.tgt.x += (q.x - god.tgt.x) * k; god.tgt.z += (q.z - god.tgt.z) * k; god.tgt.y = q.y; god.yaw += (wrap(q.heading + Math.PI - god.yaw)) * k * 0.5; }
-$('bTab').addEventListener('click', () => toggleTablet(true)); $('bJump').addEventListener('click', jumpIn); $('bSpec').addEventListener('click', () => specNext(1)); $('bOver').addEventListener('click', () => { BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); toast('Overview'); });
-addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
+$('bOver').addEventListener('click', () => { BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); toast('Overview'); battleHud(); });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
@@ -5751,7 +5981,7 @@ function tapAt(cx, cy, btn, mods) {
   if (sb.length) { const p = pick(cx, cy); if (p) orderBoats(sb, p); return; }
   if (ob) { const m = ob.body.mass, need = liftNeed(ob); toast(`${ob.c.name}: ${Math.round(m)} kg${need > 4 ? ', too heavy to lift' : need > 1 ? ', ' + need + ' people to lift' : ', one person can lift it'}`); }
 }
-addEventListener('keydown', (e) => {
+onKey((e) => {
   const k0 = e.key.toLowerCase();
   if (mode === 'fp') { keys.add(k0); return; }
   if (e.metaKey || e.ctrlKey) return; const k = k0; keys.add(k);
@@ -5765,7 +5995,7 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 /* selection groups, fire mode, drop: the overview's own shortcuts */
-addEventListener('keydown', (e) => {
+onKey((e) => {
   if (mode !== 'god' || !$('help').hidden) return; const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
   if (mod && /^[5-9]$/.test(k)) { groups[k] = sel.slice(); e.preventDefault(); toast('Group ' + k + ' saved: ' + sel.length); return; }
   if (mod && k === 'z' && tool === 'land') { e.preventDefault(); landUndo(); return; }
@@ -5781,7 +6011,7 @@ addEventListener('keydown', (e) => {
 });
 /* Delete / Backspace: remove everything selected, otherwise whatever is under the mouse pointer */
 const lastMouse = { x: 0, y: 0, on: false };
-addEventListener('keydown', (e) => {
+onKey((e) => {
   if ((e.key !== 'Delete' && e.key !== 'Backspace') || e.metaKey || e.ctrlKey || mode !== 'god' || !$('help').hidden) return;
   e.preventDefault();
   if (sel.length) {
@@ -5881,7 +6111,7 @@ const PLACE_CATS = [
 let placeCat = 'boats';
 function syncCat() { const c = PLACE_CATS.find(q => q.id === placeCat) || PLACE_CATS[0], it = BUILD[buildSel]; if (!it || it.erase || !c.test(it)) { const i = BUILD.findIndex(x => !x.erase && c.test(x)); if (i >= 0) buildSel = i; } }
 ['select', 'build', 'land', 'weather'].forEach((t, i) => {
-  const b = document.createElement('button'); b.type = 'button'; b.dataset.t = t; b.textContent = ['Command', 'Place', 'Land', 'Sky'][i];
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.t = t; b.textContent = ['Select', 'Place', 'Land', 'Sky'][i];
   b.addEventListener('click', () => setTool(t)); tabs.appendChild(b);
 });
 let traySig = ''; let skySub = 'weather';
@@ -6062,8 +6292,10 @@ function openLog() {
   const rows = noteLog.slice().reverse().map(e => { const b = document.createElement('div'); b.className = 'mrow logrow'; const l = document.createElement('b'), t = document.createElement('span'); l.textContent = e.msg + (e.n > 1 ? ' (x' + e.n + ')' : ''); t.textContent = ago(e.t); b.append(l, t); return b; });
   openMenu([menuHead('Messages, newest first'), ...(rows.length ? rows : [menuHead('Nothing yet')]), menuBtn('Clear the list', '', () => { noteLog.length = 0; openLog(); })]);
 }
-const rose = $('rose'), rg = rose.getContext('2d');
+for (const id of ['sog', 'wind', 'pos', 'sheet', 'posLbl', 'sheetLbl']) { const el = $(id); let cur = el.textContent; Object.defineProperty(el, 'textContent', { get() { return cur; }, set(v) { v = String(v); if (v === cur) return; cur = v; if (el.firstChild) el.firstChild.nodeValue = v; else if (v) el.append(v); } }); }   // the readouts only touch the page when the words change
+const rose = $('rose'), rg = rose.getContext('2d'); let roseSig = '';
 function drawRose(camB, windToB, headB) {
+  const sg = Math.round(camB) + '|' + Math.round(windToB) + '|' + (headB === null ? 'n' : Math.round(headB)); if (sg === roseSig) return; roseSig = sg;
   const W = rose.width, c = W / 2, R = W / 2 - 10; rg.clearRect(0, 0, W, W);
   rg.strokeStyle = 'rgba(241,236,226,.28)'; rg.lineWidth = 2; rg.beginPath(); rg.arc(c, c, R, 0, 7); rg.stroke();
   for (let d = 0; d < 360; d += 30) { const a = (d - camB) * Math.PI / 180, r0 = d % 90 ? R - 6 : R - 12; rg.beginPath(); rg.moveTo(c + Math.sin(a) * r0, c - Math.cos(a) * r0); rg.lineTo(c + Math.sin(a) * R, c - Math.cos(a) * R); rg.stroke(); }
@@ -6085,6 +6317,7 @@ const wakePts = []; let wakeT = 0;
 let last = performance.now(), hudT = 0, panelT = 0;
 const tmpV3 = new THREE.Vector3(), fwdV = new CANNON.Vec3(), upV = new CANNON.Vec3();
 function syncMesh(obj, body) { obj.position.copy(body.interpolatedPosition); obj.quaternion.copy(body.interpolatedQuaternion); }
+const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const PF = window.__pf = {}; const PFT = (n, f) => { const a = performance.now(); f(); PF[n] = (PF[n] || 0) + performance.now() - a; };
 let frameErrN = 0;
 function frame(now) { try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
@@ -6197,7 +6430,7 @@ function frameStep(now) {
   hudT -= dt; panelT -= dt;
   if (panelT <= 0 && mode === 'god' && tool === 'select') { panelT = 0.5; renderTray(false); }
   if (hudT <= 0) {
-    hudT = 0.12;
+    hudT = 0.2;
     const fb = mode === 'helm' ? bt : selBoat;
     const wkn = wind.ms * KN, from = (bearing(wind.v.x, wind.v.z) + 180) % 360;
     $('posLbl').textContent = mode === 'god' || !fb ? 'Status' : fb.sp.kind === 'motor' ? 'Drive' : 'Point';   // the overview shows what the boat is doing, so "Point" is left to the helm row
@@ -6214,7 +6447,7 @@ function frameStep(now) {
     else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = ({ dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]) + ' ' + Math.round(clim.mean) + ' C' + (wx.rainAmt > 0.3 ? ' ' + precipName() : ''); $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
-  if (dis.shake > 0) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
+  if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
   renderer.render(scene, camera);
   Snd.frame(dt);
   requestAnimationFrame(frame);
@@ -6222,11 +6455,11 @@ function frameStep(now) {
 setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
-function openBattleSetup() { try { sideTab = 'battle'; setSide(true); renderSide(); toast('Set up the battle: pick a loadout, the enemy and the size, then begin.'); } catch (e) { } }
 { const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') { if (isBattleMap()) startMap('cove', 'cove'); return; } const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
   { const bb = intro.querySelector('[data-go="battle"]'); if (bb && !isBattleMap()) bb.hidden = true; }
   $('introVer').textContent = 'v9.0 battle command'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
   if (qp.get('battle')) setTimeout(openBattleSetup, 1200);
+  try { if (sessionStorage.getItem('sc-setup') === '1') { sessionStorage.removeItem('sc-setup'); setTimeout(openBattleSetup, 1200); } } catch (e) { }
   if (qp.get('intro') || (!seen && !qp.get('battle') && !qp.get('nointro') && !navigator.webdriver)) intro.hidden = false; }
 requestAnimationFrame(frame);
 /* ================================================================ v4.6: menu, saving, build preview, camera helpers, reading aloud */
@@ -6240,8 +6473,6 @@ const openMenu = (html) => {
 };
 const closeMenu = () => { menuSheet.hidden = true; menuBody.replaceChildren(); menuMain.hidden = false; };
 $('bMenu').addEventListener('click', () => openMenu());
-$('bFire').addEventListener('click', () => toggleTablet(true));
-$('mFire').addEventListener('click', () => { closeMenu(); toggleTablet(true); });
 $('mCtl').addEventListener('click', () => openMenu(controlsNodes()));
 /* ---- one table of every binding: the help card, the Menu's Controls list and the Play tab note are all made from it.
    [where, keys, what, flags]  where: over (overview), fp (first person), boat (at the helm), tab (command tablet), help (card only).  flags: h on the help card, p in the Play tab note. */
@@ -6251,9 +6482,10 @@ const KEYMAP = [
   ['over', 'Click', 'Select a boat or person. Empty ground deselects', 'h'],
   ['over', 'Right click', 'Send the selection there: boats sail, people walk, board or carry', 'h'],
   ['over', 'Shift + drag', 'Box-select. Double-click picks every one on screen. Ctrl + A selects all. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it', 'h'],
-  ['over', '1 to 4', 'Tools: Command, Place, Land, Sky'],
+  ['over', '1 to 4', 'Tools: Select, Place, Land, Sky'],
   ['over', 'Esc', 'Stand down fire control, leave the helm, deselect, or open this menu'],
-  ['over', 'T', 'Command tablet and fire control', 'h'],
+  ['over', 'T', 'Command: fire, support, squad and points', 'h'],
+  ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
   ['over', 'V', 'Drop into first person as the selected person (in a battle, the nearest soldier)', 'hp'],
   ['over', 'J, K', 'In a battle: take over the nearest soldier, watch the next one'],
@@ -6264,7 +6496,7 @@ const KEYMAP = [
   ['over', 'G', 'Make the selected people drop what they carry'],
   ['over', 'Delete', 'Remove the selected boat or person, or whatever is under the pointer'],
   ['over', 'Wheel, [ and ]', 'With a cargo item or boulder chosen in Place: drop height, drop size. Shift and wheel zooms'],
-  ['help', 'Place', 'Pick a kind (Boats, Water, Devices ...) then a thing, then tap to place it. Tap a device in Command to change its settings', 'h'],
+  ['help', 'Place', 'Pick a kind (Boats, Water, Devices ...) then a thing, then tap to place it. Tap a device in Select to change its settings', 'h'],
   ['help', 'Land', 'Drag to raise, lower, flatten or smooth the island', 'h'],
   ['help', 'Sky', 'Wind, time of day, rain, fog, air temperature, maps and disasters', 'h'],
   ['help', 'People', 'Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves', 'h'],
@@ -6273,7 +6505,7 @@ const KEYMAP = [
   ['fp', 'Space', 'Jump, or stand up from crouch and prone'],
   ['fp', 'C, P', 'Crouch, lie prone'],
   ['fp', 'Left button', 'Fire or use. Hold for automatic fire'],
-  ['fp', 'Right button', 'Aim and zoom. Scoped weapons (sniper, marksman rifle, carbine) toggle and show a scope view, the rest hold. Binoculars zoom while held, and a click marks the target for the tablet'],
+  ['fp', 'Right button', 'Aim and zoom. Scoped weapons (sniper, marksman rifle, carbine) toggle and show a scope view, the rest hold. Binoculars zoom while held, and a click marks the target for Command'],
   ['fp', '1 to 9, 0, minus', 'Hands, Rod, Pistol, SMG, Rifle, Shotgun, Sniper, Carbine, AA launcher, Grenade, Charge. In a battle the numbers pick the tools of your loadout, in the order shown', 'hp'],
   ['fp', 'Mouse wheel', 'Cycle through your tools', 'hp'],
   ['fp', 'R', 'Reload'],
@@ -6283,7 +6515,7 @@ const KEYMAP = [
   ['fp', 'H', 'Take the helm'],
   ['fp', 'F', 'Engineer: set down a sandbag corner (six at most)'],
   ['fp', 'X, Z', 'In a battle: squad follow or hold, squad move to the crosshair'],
-  ['fp', 'T', 'Command tablet'],
+  ['fp', 'T', 'Command'],
   ['fp', 'B', 'Detonate placed charges'],
   ['fp', 'Y', 'Swap to the nearest friendly soldier'],
   ['fp', 'V', 'Drop back out to the overview', 'hp'],
@@ -6294,7 +6526,7 @@ const KEYMAP = [
   ['boat', 'X', 'Right the boat'],
   ['boat', 'Mouse wheel', 'Camera distance'],
   ['boat', 'H', 'Back to the overview'],
-  ['tab', 'Fire control', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
+  ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Support', 'Calls for your side, with Ready, Recharging or Offline shown: Griffon, gunship, attack helicopter, medevac, air strike, artillery, battery barrage, troop transport, boat landing. Shot-down aircraft stay offline for a while'],
   ['tab', 'Squad', 'Follow, hold, or move to your crosshair'],
 ];
@@ -6307,7 +6539,7 @@ function controlsNodes() {
   head('Controls: the overview'); rows(keyRows(['over']));
   head('Controls: first person'); rows(keyRows(['fp']));
   head('Controls: boats'); rows(keyRows(['boat']));
-  head('Command tablet (T) and fire control'); rows(keyRows(['tab']));
+  head('Command (T)'); rows(keyRows(['tab']));
   return out;
 }
 $('bLog').addEventListener('click', () => openLog());
@@ -6419,7 +6651,7 @@ function updateBuildGhost() {
 }
 placeBtn.addEventListener('click', () => { if (hoverPt && buildOn()) place(BUILD[buildSel], hoverPt); });
 turnBtn.addEventListener('click', () => { buildRot += Math.PI / 4; toast('Turned to ' + rd(((buildRot * 180 / Math.PI) % 360 + 360) % 360) + ' degrees'); });
-addEventListener('keydown', (e) => { if (mode !== 'god' || tool !== 'build' || !$('help').hidden || e.ctrlKey || e.metaKey) return; if (isDropItem(BUILD[buildSel])) { if (e.key === '[') { dropSize = Math.max(0.4, Math.round(dropSize / 1.25 * 100) / 100); return; } if (e.key === ']') { dropSize = Math.min(8, Math.round(dropSize * 1.25 * 100) / 100); return; } if (e.key === 'PageUp') dropH = Math.min(160, dropH + 5); if (e.key === 'PageDown') dropH = Math.max(0.4, dropH - 5); } if (e.key === ',') buildRot -= Math.PI / 8; else if (e.key === '.') buildRot += Math.PI / 8; });
+onKey((e) => { if (mode !== 'god' || tool !== 'build' || !$('help').hidden || e.ctrlKey || e.metaKey) return; if (isDropItem(BUILD[buildSel])) { if (e.key === '[') { dropSize = Math.max(0.4, Math.round(dropSize / 1.25 * 100) / 100); return; } if (e.key === ']') { dropSize = Math.min(8, Math.round(dropSize * 1.25 * 100) / 100); return; } if (e.key === 'PageUp') dropH = Math.min(160, dropH + 5); if (e.key === 'PageDown') dropH = Math.max(0.4, dropH - 5); } if (e.key === ',') buildRot -= Math.PI / 8; else if (e.key === '.') buildRot += Math.PI / 8; });
 
 /* ---- camera helpers and reading aloud */
 $('bCenter').addEventListener('click', () => {
@@ -7092,7 +7324,7 @@ function addDevice(o) {
 function removeDevice(d) { scene.remove(d.mesh); const i = devices.indexOf(d); if (i >= 0) devices.splice(i, 1); if (insp === d) closeInspector(); }
 function clearDevices() { for (const d of devices.slice()) removeDevice(d); }
 const deviceNear = (p, r = 3.5) => { let b = null, bd = r; for (const d of devices) { const k = Math.hypot(d.x - p.x, d.z - p.z); if (k < bd) { b = d; bd = k; } } return b; };
-function placeDevice(item, p) { const d = addDevice({ x: p.x, z: p.z, ...item.device }); if (d) { toast(item.name + ' placed. Tap it in Command to change its settings.'); openInspector(d); } }
+function placeDevice(item, p) { const d = addDevice({ x: p.x, z: p.z, ...item.device }); if (d) { toast(item.name + ' placed. Tap it in Select to change its settings.'); openInspector(d); } }
 function updateDevices(dt) {
   for (const d of devices) {
     const pulse = 1 + 0.12 * Math.sin(simT * 3 + d.x); d.orb.scale.setScalar(pulse * (0.8 + 0.4 * Math.max(Math.abs(d.t), Math.abs(d.p), Math.abs(d.h)) / 100)); d.orb.rotation.y += dt;
@@ -7137,7 +7369,7 @@ const TOYS = [
 function applyToy(name) {
   const toy = TOYS.find(q => q[0] === name); if (!toy) return; clearDevices(); closeInspector();
   for (const o of toy[1][1]) addDevice(o);
-  toast(toy[1][1].length ? name + ': ' + toy[1][1].length + (toy[1][1].length === 1 ? ' device' : ' devices') + ' placed. Tap one in Command to change it.' : 'All devices removed');
+  toast(toy[1][1].length ? name + ': ' + toy[1][1].length + (toy[1][1].length === 1 ? ' device' : ' devices') + ' placed. Tap one in Select to change it.' : 'All devices removed');
 }
 function placeClimate(item, p) {
   if (item.climate === 'dry') {
@@ -7784,11 +8016,13 @@ function updateCamPad() { camPad.hidden = !(mode === 'god' && prefs.camPad && $(
 document.body.classList.add('ui-min');
 let trayOpen = false;
 const trayTog = $('trayTog');
-function updateHud() {
-  const idle = mode === 'god' && tool === 'select' && !sel.length && !boxMode && !fireMode && !routeMode;
+let hudSig = '', hudAt = 0;
+function updateHud() {                                              // 5 times a second at most, and only when something changed
+  const now = performance.now(); if (now - hudAt < 200) return; hudAt = now;
+  const idle = mode === 'god' && tool === 'select' && !sel.length && !boxMode && !fireMode && !routeMode, ni = mode === 'god' && !sel.length, lbl = trayOpen ? 'Hide fleet and select' : 'Fleet and select', sg = (idle ? 1 : 0) + (trayOpen ? 'o' : 'c') + (ni ? 1 : 0); if (sg === hudSig) return; hudSig = sg;
   document.body.classList.toggle('tray-idle', idle && !trayOpen);
-  trayTog.hidden = !idle; trayTog.textContent = trayOpen ? 'Hide fleet and select' : 'Fleet and select';
-  document.body.classList.toggle('noinst', mode === 'god' && !sel.length);
+  trayTog.hidden = !idle; trayTog.textContent = lbl;
+  document.body.classList.toggle('noinst', ni);
 }
 trayTog.addEventListener('click', () => { trayOpen = !trayOpen; });
 $('bMore').addEventListener('click', () => { const a = document.querySelector('.actions'); a.classList.toggle('open'); $('bMore').textContent = a.classList.contains('open') ? 'Less' : 'More'; });
@@ -8963,6 +9197,61 @@ function updateBomber(dt, t) {
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
 window.__sc = { empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
+/* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
+const SETUP = { side: 'blue' };
+const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'] };
+function openBattleSetup() { renderSetup(); const s = $('bSetup'); s.hidden = false; const f = s.querySelector('.sf .big'); if (f && !f.disabled) f.focus({ preventScroll: true }); }
+function closeSetup() { $('bSetup').hidden = true; }
+function setupGo(how) {
+  if (!isBattleMap()) { toast('Pick one of the three battle maps first.'); return; }
+  closeSetup(); $('tablet').hidden = true; if (fp.on) exitFP(); BATTLE.over = false; battleStart(); if (how !== 'watch') FIRE.team = SETUP.side; if (how === 'fight') playBattle(SETUP.side);
+  if (matchMedia('(max-width: 800px)').matches) setSide(false);
+}
+function renderSetup() {
+  const body = $('bsBody'), foot = $('bsFoot'), y = body.scrollTop; body.textContent = ''; foot.textContent = '';
+  const redN = BATTLE.redKind, side = SETUP.side, sideN = side === 'blue' ? 'Port' : redN, onMap = isBattleMap();
+  const grp = (title, nt) => { const g = document.createElement('section'); g.className = 'sg'; const h = document.createElement('h3'); h.textContent = title; g.append(h); if (nt) { const n = document.createElement('p'); n.className = 'grp-n'; n.textContent = nt; g.append(n); } body.append(g); return g; };
+  const chips = (g, items, cur, fn) => { const c = document.createElement('div'); c.className = 'chips'; for (const [v, n] of items) c.append(mkB(n, '', () => { fn(v); renderSetup(); }, { 'aria-pressed': String(cur === v) })); g.append(c); return c; };
+  const say1 = (g, t, top) => { const n = document.createElement('p'); n.className = 'grp-n'; if (top) n.style.marginTop = '12px'; n.textContent = t; g.append(n); };
+  { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick one of these three maps. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
+    for (const k of BATTLE_KEYS) { const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
+  { const g = grp('Sides and enemy'); say1(g, 'You fight for, or command, this side.'); chips(g, [['blue', 'Port'], ['red', redN]], side, v => { SETUP.side = v; }); say1(g, 'Port is always the blue side. The red side is:', true); chips(g, [['Raiders', 'Raiders'], ['Invaders', 'Invaders']], redN, v => { BATTLE.redKind = v; }); }
+  { const g = grp('Army'); const rg = (label, min, max, step, val, fn, dis) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; i.disabled = !!dis; l.textContent = label + ': ' + val; i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + i.value; }); w.append(l, i); g.append(w); return { i, l }; };
+    let tx = null; rg('Soldiers per side', 3, isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; if (BATTLE.tixAuto && tx) { tx.i.value = startTickets(); tx.l.textContent = 'Tickets per side: ' + startTickets(); } });
+    say1(g, 'Tickets run down as soldiers fall. The side that runs out loses.', true); chips(g, [['auto', 'Tickets: auto'], ['hand', 'Tickets: by hand']], BATTLE.tixAuto ? 'auto' : 'hand', v => { BATTLE.tixAuto = v === 'auto'; if (!BATTLE.tixAuto) BATTLE.tix = startTickets(); });
+    tx = rg('Tickets per side', 60, 400, 10, startTickets(), v => { BATTLE.tix = v; BATTLE.tixAuto = false; }, BATTLE.tixAuto);
+    say1(g, 'Command power is fire control and support.', true); chips(g, [['free', 'Free'], ['cost', 'Costs tickets']], BATTLE.cmdFree ? 'free' : 'cost', v => { BATTLE.cmdFree = v === 'free'; }); }
+  { const g = grp('Loadout', 'Your class. Each has its own tools.'); kitButtons(g, renderSetup); }
+  const mk = (txt, icn, cls, fn) => { const b = mkB(txt, cls, fn); b.insertAdjacentHTML('afterbegin', ic(icn)); b.disabled = !onMap; foot.append(b); };
+  mk('Begin battle', 'flag', 'big btn-p', () => setupGo('begin')); mk('Watch only', 'eye', '', () => setupGo('watch')); mk('Fight as ' + sideN, 'person', '', () => setupGo('fight'));
+  body.scrollTop = y;
+}
+$('bsClose').addEventListener('click', closeSetup); $('bsRead').addEventListener('click', () => say($('bsBody').innerText));
+$('tbRead').addEventListener('click', () => say($('tbBody').innerText));
+onKey((e) => { if (e.key === 'Escape' && !$('bSetup').hidden) { closeSetup(); e.preventDefault(); } });
+/* the persistent Command button and the other entrances: one panel, one name */
+$('cmdBtn').addEventListener('click', () => { if ($('tablet').hidden) openCommand('fire'); else toggleTablet(false); });
+$('bTab').addEventListener('click', () => openCommand('fire')); $('fpTab').addEventListener('click', () => openCommand('fire'));
+$('mFire').addEventListener('click', () => { closeMenu(); openCommand('fire'); });
+$('mBattle').addEventListener('click', () => { closeMenu(); openBattleSetup(); });
+$('bJump').addEventListener('click', () => { jumpIn(); battleHud(); }); $('bSpec').addEventListener('click', () => { specNext(1); battleHud(); }); $('bOver').addEventListener('click', () => battleHud());
+/* the one-time hint on the first tap of the overview in a battle: no timer, it stays until dismissed */
+let btipSeen = false; try { btipSeen = localStorage.getItem('squall-cove-btip') === '1'; } catch (e) { }
+$('bTipX').addEventListener('click', () => { btipSeen = true; $('bTip').hidden = true; try { localStorage.setItem('squall-cove-btip', '1'); } catch (e) { } });
+canvas.addEventListener('pointerdown', () => { if (btipSeen || !BATTLE.on || mode !== 'god' || !$('bTip').hidden) return; $('bTipTxt').innerHTML = isTouch ? '<b>Command</b> opens fire and support. <b>Jump in</b> puts you in the fight. <b>Watch next</b> follows a soldier.' : '<b>T</b> Command. <b>V</b> Jump in. <b>K</b> Watch next.'; $('bTip').hidden = false; }, true);
+/* colours and easy read: both are remembered, both are off the shared storage keys of this app only */
+const LOOK_NAMES = { dusk: 'Dusk', red: 'Red night', green: 'Green night' };
+function applyLook() {
+  const h = document.documentElement; let th = 'dusk', ez = false; try { th = localStorage.getItem('squall-cove-theme') || 'dusk'; ez = localStorage.getItem('squall-cove-easy') === '1'; } catch (e) { } if (!LOOK_NAMES[th]) th = 'dusk';
+  if (th === 'dusk') h.removeAttribute('data-theme'); else h.dataset.theme = th; if (ez) h.dataset.text = 'easy'; else h.removeAttribute('data-text');
+  $('mTheme').textContent = 'Colours: ' + LOOK_NAMES[th]; $('mEasy').textContent = 'Easy read: ' + (ez ? 'on' : 'off'); return { th, ez };
+}
+$('mTheme').addEventListener('click', () => { const o = Object.keys(LOOK_NAMES), cur = applyLook().th, nx = o[(o.indexOf(cur) + 1) % o.length]; try { localStorage.setItem('squall-cove-theme', nx); } catch (e) { } applyLook(); });
+$('mEasy').addEventListener('click', () => { const ez = applyLook().ez; try { localStorage.setItem('squall-cove-easy', ez ? '0' : '1'); } catch (e) { } applyLook(); });
+applyLook();
+/* the Menu in four tabs: Play, Settings, Help, App */
+{ const tabs = menuMain.querySelectorAll('.mtabs button'), secs = menuMain.querySelectorAll('.mtab'); const show = (id) => { tabs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mt === id))); secs.forEach(s => { s.hidden = s.dataset.mt !== id; }); }; tabs.forEach(b => b.addEventListener('click', () => show(b.dataset.mt))); show('play'); }
+Object.assign(window.__sc, { openCommand, openBattleSetup, closeSetup, renderSetup, setupGo, SETUP, applyLook, objectiveHint, tbTabList, renderTablet, ic });
 </script>
 
 </body>

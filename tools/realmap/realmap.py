@@ -149,7 +149,7 @@ def join_rings(ways):
         rings.append(cur)
     return [r for r in rings if len(r) >= 4 and key(r[0]) == key(r[-1])]
 
-def geom_ll(g): return [(p['lat'], p['lon']) for p in g]
+def geom_ll(g): return [(p['lat'], p['lon']) for p in g if p]
 
 LAND_CLASS = {
     # landuse
@@ -295,7 +295,9 @@ def process_osm(raw, P, size_m):
     for e in raw['elements']:
         tags = e.get('tags', {}); t = e['type']
         if t == 'way':
+            if 'geometry' not in e: continue
             pts = loc(e['geometry'])
+            if len(pts) < 2: continue
             closed = len(pts) > 3 and pts[0] == pts[-1]
             if 'highway' in tags and tags.get('area') != 'yes' and tags['highway'] not in ('proposed', 'construction', 'corridor', 'platform'):
                 for seg in clip_line(pts, -half, -half, half, half):
@@ -369,6 +371,8 @@ def add_building(out, pts, tags, inwin):
     if not inwin(cx, cz): return
     area = abs(poly_area(pts))
     if area < 6: return
+    if area > 12000:   # castle/site outlines etc. are not single buildings: keep as a landcover site
+        out['landcover'].append(dict(k='site', n=tags.get('name:en') or tags.get('name', ''), a=rd(area, 0), p=flat(simplify(pts + [pts[0]], 1.0)[:-1]))); return
     cat = classify_building(tags)
     lv = tags.get('building:levels'); ht = tags.get('height') or tags.get('building:height')
     try: lv = float(lv) if lv else 0
@@ -458,7 +462,7 @@ def slope_deg(h, cell):
 COL = dict(forest=(70, 110, 60), farmland=(190, 185, 120), grass=(150, 180, 100), scrub=(140, 150, 90), orchard=(150, 175, 90), vineyard=(165, 175, 95),
            urban=(215, 205, 195), industrial=(190, 180, 200), military=(180, 150, 150), harbour=(190, 200, 210), rock=(150, 140, 130), beach=(235, 220, 160),
            water=(90, 140, 200), bay=(90, 140, 200), wetland=(120, 170, 150), bare=(200, 185, 150), cemetery=(170, 190, 150), pitch=(130, 190, 120),
-           parking=(200, 200, 200), airfield=(165, 190, 120), apron=(175, 175, 175), runway_area=(120, 120, 120), taxiway_area=(140, 140, 140))
+           parking=(200, 200, 200), site=(180, 120, 100), airfield=(165, 190, 120), apron=(175, 175, 175), runway_area=(120, 120, 120), taxiway_area=(140, 140, 140))
 
 def hillshade(h, cell, az=315, alt=40):
     gz, gx = np.gradient(h, cell); az = math.radians(az); alt = math.radians(alt)
