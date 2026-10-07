@@ -201,9 +201,11 @@ button:disabled{opacity:.45;cursor:default}
 }
 #bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:6;pointer-events:none}
 body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
+#bBtns{display:flex;gap:6px;justify-content:center;margin-top:6px;pointer-events:auto}#bBtns button{padding:7px 12px;font-size:13px}
 #bTick{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:700 15px var(--f-display);letter-spacing:.08em}
 #bTick .bB{color:#7fa8e3}#bTick .bR{color:#e58a7e}#bTick .bPts{display:flex;gap:5px}#bTick .bPts i{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.4)}
 body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
+body[data-mode="fp"] #bBtns{display:none}
 #bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:6;pointer-events:none;font:700 17px var(--f-display);letter-spacing:.06em;color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:180px}
 #bStat .hp{height:10px;background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;height:100%;background:#d64b2c}
 #bHurt{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;box-shadow:inset 0 0 120px 40px rgba(214,40,20,.75)}
@@ -266,7 +268,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 
 <div id="marquee" hidden></div>
 <div id="dropTag" hidden></div>
-<div id="bHud" hidden><div id="bTick"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bJump">Jump in</button><button type="button" id="bSpec">Watch next</button><button type="button" id="bOver">Overview</button></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
 <aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
@@ -970,6 +972,7 @@ const canopyTex = new THREE.CanvasTexture(canopyCanvas); canopyTex.colorSpace = 
 
 const terrainU = { ...waveU, uCaus: { value: 1 }, uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value: albArr }, tNrm: { value: nrmArr }, tOrh: { value: orhArr },
   tMacro: { value: macroTex }, tCanopy: { value: canopyTex } };
+const noGrassData = new Uint8Array(257 * 257), noGrassTex = new THREE.DataTexture(noGrassData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType); noGrassTex.minFilter = noGrassTex.magFilter = THREE.LinearFilter; noGrassTex.needsUpdate = true;       // where there is road, paving, a building or a field: no grass grows
 const ashData = new Uint8Array(257 * 257), ashTex = new THREE.DataTexture(ashData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType);       // where volcanic ash and rock lie
 ashTex.minFilter = ashTex.magFilter = THREE.LinearFilter; ashTex.needsUpdate = true; terrainU.tAsh = { value: ashTex };
 const hotData = new Uint8Array(257 * 257 * 4), hotTex = new THREE.DataTexture(hotData, 257, 257, THREE.RGBAFormat, THREE.UnsignedByteType);       // R: lava cover, G: lava heat
@@ -1263,7 +1266,7 @@ function buildRocks(glb) {
 }
 
 /* ================================================================ grass: GPU blades around the camera, swaying with the wind */
-const grassU = { uCam: { value: new THREE.Vector2() }, tH: { value: heightTex }, tAsh: { value: ashTex }, tCanopy: { value: canopyTex }, tMacro: { value: macroTex },
+const grassU = { uCam: { value: new THREE.Vector2() }, tH: { value: heightTex }, tAsh: { value: ashTex }, tNoGrass: { value: noGrassTex }, tCanopy: { value: canopyTex }, tMacro: { value: macroTex },
   uSun: { value: sunDir }, uSunCol: { value: new THREE.Color(1.0, 0.86, 0.7) }, uPatch: { value: 60 }, uSkyTint: skyMat.uniforms.uTint,
   ...windU, ...THREE.UniformsLib.fog };
 function buildGrass() {
@@ -1289,7 +1292,7 @@ function buildGrass() {
   const mat = new THREE.ShaderMaterial({
     uniforms: grassU, fog: true, side: THREE.DoubleSide,
     vertexShader: `
-      uniform vec2 uCam; uniform sampler2D tH, tCanopy, tMacro, tAsh; uniform vec2 uWind; uniform float uWindStr, uTime, uPatch;
+      uniform vec2 uCam; uniform sampler2D tH, tCanopy, tMacro, tAsh, tNoGrass; uniform vec2 uWind; uniform float uWindStr, uTime, uPatch;
       attribute float aT; attribute vec2 aOff; attribute vec4 aRnd;
       varying float vT; varying float vShade; varying vec3 vCol; varying vec3 vN; varying vec3 vW;
       #include <fog_pars_vertex>
@@ -1307,7 +1310,8 @@ function buildGrass() {
         float sandLine = 2.4 + mac.r * 1.6;
         float dens = smoothstep(sandLine, sandLine + 0.8, h) * (1.0 - smoothstep(0.25, 0.36, slope)) * (1.0 - smoothstep(0.15, 0.55, canopy));
         dens *= smoothstep(0.25, 0.55, mac.g + 0.3 * mac.b);                // meadow patches, not a carpet
-        dens *= 1.0 - smoothstep(0.04, 0.35, texture2D(tAsh, (w / ${CELL}.0 + 128.5) / 257.0).r);     // fire, ash and lava burn the grass away
+        dens *= 1.0 - smoothstep(0.04, 0.35, texture2D(tAsh, (w / ${CELL}.0 + 128.5) / 257.0).r);
+        dens *= 1.0 - smoothstep(0.1, 0.5, texture2D(tNoGrass, (w / ${CELL}.0 + 128.5) / 257.0).r);     // fire, ash and lava burn the grass away
         float dist = length(w - uCam);
         float fade = 1.0 - smoothstep(uPatch * 0.32, uPatch * 0.48, dist);
         float keep = step(aRnd.z, dens * fade);
@@ -2244,7 +2248,7 @@ function place(item, p) {
   const dy = item.fixed ? -0.02 : item.id === 'light' ? -1.0 : item.id === 'rockb' ? -0.3 * sc : -0.15;
   g.position.set(x, h + dy, z); scene.add(g);
   const pr = { mesh: g, x, z, dy, item, body: null, by: 0 };
-  if (item.box) { const [hx, hy, hz] = item.box; pr.body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(hx, hy, hz)) }); pr.by = hy; pr.body.position.set(x, g.position.y + hy, z); pr.body.quaternion.setFromEuler(0, g.rotation.y, 0); world.addBody(pr.body); }
+  if (item.box) { const [hx, hy, hz] = item.box; if (hx > 1.2 && hz > 1.2) maskGrass(x, z, hx * 2, hz * 2, -g.rotation.y); pr.body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(hx, hy, hz)) }); pr.by = hy; pr.body.position.set(x, g.position.y + hy, z); pr.body.quaternion.setFromEuler(0, g.rotation.y, 0); world.addBody(pr.body); }
   if (item.collide) {
     const r = item.collide * sc;
     pr.body = new CANNON.Body({ mass: 0, material: groundMat, shape: item.id === 'light' ? new CANNON.Cylinder(1.9, 2.3, 16, 12) : new CANNON.Sphere(r) });
@@ -2395,9 +2399,14 @@ function dressPerson(p) {
     const L = p.restW[bone].clone().invert().multiply(g.matrix); g.matrixAutoUpdate = false; g.matrix.copy(L); b.add(g); p.kitMeshes.push(g);
   }
 }
+let trP = null; const ensureTroops = () => trP || (trP = loadGLB('troops').then(g => { D.glb.troops = g; }).catch(e => { trP = null; }));
+function troopSkin(role, battle) {                                   // soldiers, SWAT, raiders and guards look the part once the troop models are in
+  if (!D.glb.troops) return null; const k = role === 'SWAT' ? 'swat' : (role === 'Raider') ? 'raider' : role === 'Invader' ? 'soldier' : role === 'Guard' ? (battle ? 'soldier' : 'guard') : null; if (!k) return null; return 'trooper_' + k + '_' + Math.floor(Math.random() * 3);
+}
 function makePerson(variant, x, z, ride) {
-  const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
-  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, swimK: 0, swimIdle: 0, fightK: 0, fighting: 0, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
+  const trn = typeof variant === 'string' ? variant : null, src = trn ? D.glb.troops : D.glb.people;
+  const obj = cloneSkinned(nodeByName(src, trn || ('facetex_' + variant)));
+  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, swimK: 0, swimIdle: 0, fightK: 0, fighting: 0, fp: false, fpMoving: false, id: ++personSeq, variant, role: trn ? PERSON_ROLES[0] : PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
   obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
   const B = (n) => p.bones[bnName(n)];
   obj.updateMatrixWorld(true); p.restW = {}; { const io = obj.matrixWorld.clone().invert(); for (const n of Object.keys(p.bones)) p.restW[n] = io.clone().multiply(p.bones[n].matrixWorld); }
@@ -2433,7 +2442,7 @@ function makePerson(variant, x, z, ride) {
   obj.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; const ms = Array.isArray(m.material) ? m.material : [m.material]; for (const k of ms) if ('envMapIntensity' in k) k.envMapIntensity = wx.lastEnv ?? 1; } });
   p.snap = {}; for (const n of POSED) p.snap[n] = p.info[n].restQ.clone(); p.snapHip = p.info.hips.restP.clone();
   p.mixer = new THREE.AnimationMixer(obj);
-  const clip = D.glb.people.animations[variant] || D.glb.people.animations[0];   // clip i is bound to person i's own bone names
+  const clip = trn ? (src.animations[src.scene.children.findIndex(c => c.name === trn)] || src.animations[0]) : (src.animations[variant] || src.animations[0]);   // clip i is bound to person i's own bone names
   if (clip) { const a = p.mixer.clipAction(clip); a.play(); a.time = Math.random() * clip.duration; }
   p.kitReady = true; dressPerson(p);
   scene.add(obj); people.push(p);
@@ -2466,7 +2475,7 @@ function placePeople(n, pt, role, side) {
   for (let k = 0; k < n && people.length < MAX_PEOPLE; k++) {
     const a = k * 2.4 + Math.random(), r = n > 1 ? 1.2 + Math.random() * 1.8 : 0, x = pt.x + Math.cos(a) * r, z = pt.z + Math.sin(a) * r, gy = standY(x, z);
     if (gy < 0.15) continue;
-    const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = gy; if (role) q.role = role; if (side) { q.side = side; if (side === 'red') q.fromHostile = true; } placed.push(q);
+    const q = makePerson(troopSkin(role) || Math.floor(Math.random() * 16), x, z); q.y = gy; if (role) q.role = role; if (side) { q.side = side; if (side === 'red') q.fromHostile = true; } placed.push(q);
   }
   if (!placed.length) { toast('People need dry land or a boat deck'); return; }
   toast(placed.length > 1 ? placed.length + ' people' : 'Person arrived'); selectPerson(placed[0]); updateCount();
@@ -2485,13 +2494,24 @@ function swingQ(p, name, axis, theta, out = new THREE.Quaternion()) {
   return out.copy(i.WpInv).multiply(tq).multiply(i.Wp).multiply(i.restQ);
 }
 function blendPose(p, name, axis, theta, k) { const i = p.info[bnName(name)]; i.b.quaternion.slerp(swingQ(p, name, axis, theta, tq2), k); }
-function poseGait(p, k) {
-  const R = p.ax.right, S = Math.sin(p.ph), C = Math.cos(p.ph);
-  blendPose(p, 'thigh.L', R, 0.55 * S, k); blendPose(p, 'thigh.R', R, -0.55 * S, k);
-  blendPose(p, 'shin.L', R, -0.95 * Math.max(0, C), k); blendPose(p, 'shin.R', R, -0.95 * Math.max(0, -C), k);
+function poseGait(p, k, amp) {
+  const R = p.ax.right, S = Math.sin(p.ph), C = Math.cos(p.ph); amp = amp || 1;
+  blendPose(p, 'thigh.L', R, 0.55 * amp * S, k); blendPose(p, 'thigh.R', R, -0.55 * amp * S, k);
+  blendPose(p, 'shin.L', R, -0.95 * amp * Math.max(0, C), k); blendPose(p, 'shin.R', R, -0.95 * amp * Math.max(0, -C), k);
   blendPose(p, 'upper_arm.L', R, -0.5 * S, k); blendPose(p, 'upper_arm.R', R, 0.5 * S, k);
   blendPose(p, 'forearm.L', R, 0.3 + 0.2 * Math.max(0, S), k); blendPose(p, 'forearm.R', R, 0.3 + 0.2 * Math.max(0, -S), k);
   const hi = p.info.hips; tv.copy(p.ax.up).multiplyScalar(0.03 * Math.abs(C) * k).applyQuaternion(hi.WpInv); hi.b.position.add(tv);
+}
+function poseRifle(p, k, aim, run) {                                // two hands on the rifle: low ready when walking, up on the shoulder when aiming, tucked in when running
+  if (k < 0.02) return; const R = p.ax.right, U = p.ax.up, a = clamp(aim, 0, 1), r = run ? 1 : 0;
+  blendPose(p, 'upper_arm.R', R, 0.85 + 0.55 * a - 0.2 * r, k); blendPose(p, 'forearm.R', R, 1.45 - 0.25 * a, k);
+  blendPose(p, 'upper_arm.L', R, 1.15 + 0.35 * a - 0.15 * r, k); blendPose(p, 'upper_arm.L', U, -0.55, k * 0.6); blendPose(p, 'forearm.L', R, 0.55 - 0.1 * a, k); blendPose(p, 'forearm.L', U, -0.55, k * 0.6);
+  blendPose(p, 'spine', R, -0.05 - 0.2 * r - 0.06 * a, k); blendPose(p, 'chest', R, -0.04 - 0.08 * r, k); blendPose(p, 'head', R, 0.1 * a + 0.05 * r, k);
+}
+function poseCrouch(p, k) {                                         // down on the heels behind cover
+  if (k < 0.02) return; const R = p.ax.right;
+  blendPose(p, 'thigh.L', R, 1.15, k); blendPose(p, 'thigh.R', R, 1.0, k); blendPose(p, 'shin.L', R, -2.0, k); blendPose(p, 'shin.R', R, -1.9, k); blendPose(p, 'spine', R, -0.25, k); blendPose(p, 'chest', R, -0.12, k);
+  const hi = p.info.hips; tv.copy(p.ax.up).multiplyScalar(-0.42 * k).applyQuaternion(hi.WpInv); hi.b.position.add(tv);
 }
 function poseWave(p, k, t) {
   blendPose(p, 'upper_arm.R', p.ax.fwd, p.waveSign * 2.5, k);
@@ -2557,10 +2577,17 @@ function freeRag(p) {
 function stagger(p, vel) {                                         // a shove, a hull or a crate: people lurch and recover instead of falling over
   if (!p || p.state === 'rag' || p.fp || p.ride || p.hop || (p.stag || 0) > 0.25) return; p.stag = 0.8; p.stagV = { x: clamp(vel.x, -4, 4) * 0.5, z: clamp(vel.z, -4, 4) * 0.5 };
 }
-function pushOutOfProps(p, rad) {                                  // buildings, containers and fences are solid to people on foot
-  for (const pr of props) { const b = pr.item && pr.item.box; if (!b) continue; const dx = p.x - pr.x, dz = p.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 4) ** 2) continue;
+function pushOutOfProps(p, rad) {                                  // buildings, containers and fences are solid to people on foot. Returns what it pushed against.
+  let hit = null; for (const pr of props) { const b = pr.item && pr.item.box; if (!b) continue; const dx = p.x - pr.x, dz = p.z - pr.z; if (dx * dx + dz * dz > (Math.max(b[0], b[2]) + 4) ** 2) continue;
     const yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), lx = dx * c - dz * sn, lz = dx * sn + dz * c, hx = b[0] + rad, hz = b[2] + rad;
-    if (Math.abs(lx) < hx && Math.abs(lz) < hz) { const px = hx - Math.abs(lx), pz = hz - Math.abs(lz); let nx = lx, nz = lz; if (px < pz) nx = Math.sign(lx || 1) * hx; else nz = Math.sign(lz || 1) * hz; p.x = pr.x + nx * c + nz * sn; p.z = pr.z - nx * sn + nz * c; } }
+    if (Math.abs(lx) < hx && Math.abs(lz) < hz) { const px = hx - Math.abs(lx), pz = hz - Math.abs(lz); let nx = lx, nz = lz; if (px < pz) nx = Math.sign(lx || 1) * hx; else nz = Math.sign(lz || 1) * hz; p.x = pr.x + nx * c + nz * sn; p.z = pr.z - nx * sn + nz * c; hit = { pr, lx, lz, hx: b[0], hz: b[2], c, sn }; } }
+  return hit;
+}
+function detourAround(p, u) {                                       // stuck against a wall that is between us and where we are going: go round the end of it
+  const goal = (p.route && p.route[0]) || p.via || p.order; if (!goal) return; const gdx = goal.x - u.pr.x, gdz = goal.z - u.pr.z, glx = gdx * u.c - gdz * u.sn, glz = gdx * u.sn + gdz * u.c;
+  const endSign = Math.abs(u.lx) > u.hx * 0.45 ? Math.sign(u.lx) : (Math.abs(glx) > 0.5 ? Math.sign(glx) : (Math.random() < 0.5 ? -1 : 1)), side = Math.sign(u.lz || 1), ex = endSign * (u.hx + 2.2), zA = side * (u.hz + 2.0), zB = -side * (u.hz + 2.0);
+  const W = (a, b) => ({ x: u.pr.x + a * u.c + b * u.sn, z: u.pr.z - a * u.sn + b * u.c }); const A = W(ex, zA), B = W(ex, zB), C = W(endSign * (u.hx - 0.5), zB);
+  p.route = [A, B, C].concat(p.route || []); noteOnce('detour', 'Soldiers go round the end of walls they cannot cross.');
 }
 function topple(p, vel) {
   if (p.state === 'rag') return;
@@ -2981,7 +3008,7 @@ function poseCrewExtras(p, t) {
   }
   if (p.carryK > 0.02) poseCarry(p, p.carryK);
   if (p.job && p.job.type === 'pickup' && p.job.phase === 'lift') poseBend(p, Math.sin(clamp(p.job.t / 0.95, 0, 1) * Math.PI));
-  if (p.aim > 0.02) poseAim(p, clamp(p.aim, 0, 1), p.recoil || 0);
+  if (p.aim > 0.02 && !(p.gun || p.bot)) poseAim(p, clamp(p.aim, 0, 1), p.recoil || 0);
 }
 const WADE = -0.9;                                    // water deeper than this is over the waist: people swim; shallower and they wade
 function nearestLand(p) { for (let r = 2; r <= 60; r += 3) for (let k = 0; k < 16; k++) { const a = k / 16 * 6.283 + r, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (standY(x, z) >= 0.15) return { x, z }; } return null; }
@@ -2998,6 +3025,13 @@ function poseSwim(p, k) {
   blendPose(p, 'forearm.L', R, 0.4 + 0.5 * Math.max(0, C), k); blendPose(p, 'forearm.R', R, 0.4 + 0.5 * Math.max(0, -C), k);
   blendPose(p, 'thigh.L', R, 0.35 * Math.sin(p.ph * 3.2), k); blendPose(p, 'thigh.R', R, -0.35 * Math.sin(p.ph * 3.2), k);
   blendPose(p, 'shin.L', R, -0.3 - 0.25 * Math.sin(p.ph * 3.2 + 1), k); blendPose(p, 'shin.R', R, -0.3 + 0.25 * Math.sin(p.ph * 3.2 + 1), k);
+}
+function armedPose(p, dt) {                                         // soldiers hold their rifles, crouch behind cover and lean into a run
+  const armed = !!(p.gun || p.bot) && !p.swim && p.state !== 'rag' && !p.fp, b = p.bot || p.gun;
+  p.armedK = (p.armedK || 0) + ((armed ? 1 : 0) - (p.armedK || 0)) * Math.min(1, 6 * dt); p.crouchK = (p.crouchK || 0) + (((armed && b && b.crouch) ? 1 : 0) - (p.crouchK || 0)) * Math.min(1, 7 * dt);
+  const gm = p.gunMesh || (p.bot && p.bot.wmesh);
+  if (armed || p.armedK > 0.02) { poseRifle(p, p.armedK, p.aim || 0, p.run && p.walkK > 0.3); poseCrouch(p, p.crouchK); }
+  if (gm) { const a = clamp(p.aim || 0, 0, 1); gm.position.set(0.1, 1.3 - 0.45 * p.crouchK - 0.04 * a, 0.36 - (p.recoil || 0) * 0.06); gm.rotation.set(0.5 * (1 - a) * (p.run && p.walkK > 0.3 ? 0.5 : 1) + (p.run && p.walkK > 0.3 ? 0.35 : 0), -0.1, 0); gm.visible = !p.swim; }
 }
 function stepFoot(p, dt, t) {
   let moving = false;
@@ -3018,7 +3052,7 @@ function stepFoot(p, dt, t) {
     }
   }
   if (p.stag > 0) { p.stag -= dt; const k = Math.min(1, p.stag / 0.8), nx = p.x + p.stagV.x * k * dt, nz = p.z + p.stagV.z * k * dt; if (standY(nx, nz) > WADE) { p.x = nx; p.z = nz; } }
-  if (!p.fp && !p.swim) pushOutOfProps(p, 0.45);
+  if (!p.fp && !p.swim) { const pu = pushOutOfProps(p, 0.45); if (pu && p.order) { p.stuckT = (p.stuckT || 0) + dt; if (p.stuckT > 0.45) { p.stuckT = 0; detourAround(p, pu); } } else p.stuckT = Math.max(0, (p.stuckT || 0) - dt * 2); }
   p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
   if (moving || p.fpMoving) p.ph += dt * (p.carry ? 5.2 : 6.4);
   if (!p.swim) {
@@ -3044,7 +3078,8 @@ function stepFoot(p, dt, t) {
   animStep(p, dt);
   p.fighting = Math.max(0, p.fighting - dt); p.fightK += ((p.fighting > 0 && !p.swim ? 1 : 0) - p.fightK) * Math.min(1, 8 * dt);
   if (p.swim) { p.ph += dt * (3 + 4 * p.walkK); poseSwim(p, clamp(p.swimK * 1.2, 0, 1)); }
-  else if (p.walkK > 0.02) poseGait(p, p.walkK);
+  else if (p.walkK > 0.02) poseGait(p, p.walkK, (p.bot || p.gun) && p.run ? 1.45 : 1);
+  armedPose(p, dt);
   if (p.wk > 0.02 && !p.carry && p.fightK < 0.2) poseWave(p, p.wk, t);
   if (p.fightK > 0.02) poseFight(p, p.fightK, t);
   if (p.stag > 0) poseBend(p, 0.55 * Math.min(1, p.stag * 2) * Math.sin(Math.min(1, p.stag / 0.8) * Math.PI));
@@ -3342,7 +3377,7 @@ function enterFP(p) {
 }
 function exitFP() {
   if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
-  fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
+  fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; releasePerson(p); camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   if (p && people.includes(p)) {
     p.fp = false; p.obj.visible = true; p.fpMoving = false; if (p.swim) { p.swim = false; topple(p, null); }
     if (p.carry && p.carry.lead === p && p.carryMesh) attachCarry(p);
@@ -3593,7 +3628,7 @@ $('fpFire').addEventListener('pointerdown', () => { fp.fireHeld = true; fpPrimar
 const sideEl = $('side'), sBody = $('sBody'); let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
 const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; if (cls) b.className = cls; if (fn) b.addEventListener('click', fn); if (attrs) for (const k in attrs) b.setAttribute(k, attrs[k]); return b; };
 function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
-function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
+function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; if ((BATTLE.on || people.some(q => q.gun)) && !selPerson) { jumpIn(); return; } const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
   const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['battle', 'Battle'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
@@ -3668,7 +3703,7 @@ function fillLive() {
 }
 function liveGo(i) { const r = liveRows[i]; if (!r) return; if (fp.on) return; let x = r.x, z = r.z; if (r.k === 'things') { const a = r.ref.filter(o => !o.gone); a.sort((p, q) => Math.hypot(p.body.position.x - god.tgt.x, p.body.position.z - god.tgt.z) - Math.hypot(q.body.position.x - god.tgt.x, q.body.position.z - god.tgt.z)); if (a[0]) { x = a[0].body.position.x; z = a[0].body.position.z; } }
   if (r.k === 'person' || r.k === 'boat') setSel([r.ref]); camFlyTo(x, z, 38 * CELL); }
-function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode === 'god') { enterFP(r.ref); } }
+function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode === 'god') { if (r.ref.bot || r.ref.gun) possess(r.ref); else enterFP(r.ref); } }
 function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person') removePerson(r.ref); else if (r.k === 'boat') removeBoat(r.ref); else if (r.k === 'veh') removeVehicle(r.ref); else if (r.k === 'things') { const o = r.ref.find(q => !q.gone); if (o) { removeObj(o); updateCount(); } } liveSig = ''; fillLive(); }
 $('bFP').addEventListener('click', dropIn); $('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
@@ -3802,11 +3837,17 @@ setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); }, 
 let portP = null; const PAVE = {}, pavedMeshes = [];
 async function loadPaving() {
   for (const k of ['concrete', 'asphalt', 'gravel']) { const [a, n, o] = await Promise.all(['albedo', 'normal', 'orh'].map(m => loadImg('t_' + k + '_' + m + '.jpg'))); PAVE[k] = new THREE.MeshStandardMaterial({ map: imgTex(a, true), normalMap: imgTex(n), roughnessMap: imgTex(o), roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }); }
-  const mk = await loadImg('t_road_markings.png'), cv = document.createElement('canvas'); cv.width = 512; cv.height = 384; cv.getContext('2d').drawImage(mk, 0, 0, 512, 384, 0, 0, 512, 384);
+  const mk = await loadImg('t_road_markings.png'), cv = document.createElement('canvas'); cv.width = 512; cv.height = 360; cv.getContext('2d').drawImage(mk, 0, 0, 512, 360, 0, 0, 512, 360);                                          // the plain line work only: no stop line or zebra rows
   const tx = new THREE.CanvasTexture(cv); tx.wrapT = THREE.RepeatWrapping; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; PAVE.marks = new THREE.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 });
 }
 const ensurePort = () => portP || (portP = Promise.all([loadGLB('port').then(g => (D.glb.port = g)), loadPaving()]).catch(e => { portP = null; throw e; }));
-function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat, landOnly) {                         // a w by d patch of surface that follows the ground, turned by rot
+function maskGrass(cx, cz, w, d, rot) {                             // no grass inside this (rotated) rectangle, with a little margin
+  const c = Math.cos(rot), sn = Math.sin(rot), r = Math.hypot(w, d) / 2 + 2, j0 = Math.floor(W2G(cx - r)), j1 = Math.ceil(W2G(cx + r)), i0 = Math.floor(W2G(cz - r)), i1 = Math.ceil(W2G(cz + r));
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { if (j < 1 || i < 1 || j > 255 || i > 255) continue; const wx = G2W(j) - cx, wz = G2W(i) - cz, lx = wx * c + wz * sn, lz = -wx * sn + wz * c; if (Math.abs(lx) <= w / 2 + 1.2 && Math.abs(lz) <= d / 2 + 1.2) noGrassData[i * 257 + j] = 255; }
+  noGrassTex.needsUpdate = true;
+}
+function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat, landOnly) {
+  if (kind !== 'marks') maskGrass(cx, cz, w, d, rot);                         // a w by d patch of surface that follows the ground, turned by rot
   const nx = Math.max(1, Math.ceil(w / 3)), nz = Math.max(1, Math.ceil(d / 3)), pos = [], uv = [], idx = [], c = Math.cos(rot), sn = Math.sin(rot);
   for (let i = 0; i <= nz; i++) for (let j = 0; j <= nx; j++) { const lx = (j / nx - 0.5) * w, lz = (i / nz - 0.5) * d, x = cx + lx * c - lz * sn, z = cz + lx * sn + lz * c; pos.push(x, Math.max(heightAt(x, z), 0) + lift, z); uv.push(tile ? lx / tile : j / nx, tile ? lz / tile : i * d / nz / 12); }
   for (let i = 0; i < nz; i++) for (let j = 0; j < nx; j++) { const a = i * (nx + 1) + j, b = a + 1, cc = a + nx + 1, dd = cc + 1; if (landOnly && (pos[a * 3 + 1] < 1.2 || pos[b * 3 + 1] < 1.2 || pos[cc * 3 + 1] < 1.2 || pos[dd * 3 + 1] < 1.2)) continue; idx.push(a, cc, b, b, cc, dd); }
@@ -3814,7 +3855,7 @@ function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat, landOnly) {        
   const m = new THREE.Mesh(g, mat || PAVE[kind]); m.receiveShadow = true; m.renderOrder = 1; scene.add(m); pavedMeshes.push(m); return m;
 }
 function layGravel(cx, cz, w, d, rot, depth, seed) {                 // gravel is real loose rock on the ground: it has depth, it slumps at its edges, it can be dug, heaped and washed. The outline is ragged, never a rectangle
-  depth = depth || 0.28; const c = Math.cos(rot), sn = Math.sin(rot), r = Math.hypot(w, d) / 2 + 3, j0 = Math.floor(W2G(cx - r)), j1 = Math.ceil(W2G(cx + r)), i0 = Math.floor(W2G(cz - r)), i1 = Math.ceil(W2G(cz + r)); let n = 0; const ph = (seed || Math.random()) * 6.28, ph2 = ph * 1.7 + 1;
+  maskGrass(cx, cz, w, d, rot); depth = depth || 0.28; const c = Math.cos(rot), sn = Math.sin(rot), r = Math.hypot(w, d) / 2 + 3, j0 = Math.floor(W2G(cx - r)), j1 = Math.ceil(W2G(cx + r)), i0 = Math.floor(W2G(cz - r)), i1 = Math.ceil(W2G(cz + r)); let n = 0; const ph = (seed || Math.random()) * 6.28, ph2 = ph * 1.7 + 1;
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4) continue; const wx = G2W(j) - cx, wz = G2W(i) - cz, lx = wx * c + wz * sn, lz = -wx * sn + wz * c, th = Math.atan2(lz, lx); const e = Math.pow(Math.pow(Math.abs(lx) / (w / 2), 3) + Math.pow(Math.abs(lz) / (d / 2), 3), 1 / 3);   // a rounded squarish shape
     const wob = 1 + 0.16 * Math.sin(3 * th + ph) + 0.09 * Math.sin(7 * th + ph2) + 0.05 * Math.sin(13 * th + ph); if (e > wob) continue; const k = i * TN + j; if (HGT[k] < 0.2) continue; const f = Math.min(1, (wob - e) / 0.25), thin = 0.35 + 0.65 * f * (0.8 + 0.2 * Math.sin(lx * 1.3 + lz * 0.9)); HGT[k] = Math.min(34, HGT[k] + depth * thin); flagMat(k, 120); slumpArm(j, i, 3); n++; }
   matTex.needsUpdate = true; matDirty = true; tried('pile'); return n;
@@ -3841,7 +3882,7 @@ function buildRoadMesh() {
     }
     for (let i = 0; i < n - 1; i++) { const a = i * 2, b = a + 1, c = a + 2, d = a + 3; idx.push(a, b, c, b, d, c); }
     const mk = (uv, mat, ro, lift) => { const p2 = pos.slice(); if (lift) for (let q = 1; q < p2.length; q += 3) p2[q] += lift; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p2, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); const m = new THREE.Mesh(g, mat); m.receiveShadow = true; m.renderOrder = ro; scene.add(m); pavedMeshes.push(m); };
-    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03);
+    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03); for (let q = 0; q < pts.length; q += 2) maskGrass(pts[q].x, pts[q].z, r.w + 1, 4.5, 0);
     for (const p of pts) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i2 = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i2 >= 0 && j >= 0 && i2 < 64 && j < 64) ROADCELL[i2 * 64 + j] = 1; }
   }
   for (const [x, z] of ROAD_JUNCTIONS) pavedGrid('asphalt', x, z, 11, 11, Math.PI / 4, 0.055, 8);
@@ -3899,7 +3940,7 @@ function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === 
 function spawnBot(team, first) {
   if (people.length >= MAX_PEOPLE) return null; const pt = spawnPointOf(team); if (!pt) return null; let x = pt.x, z = pt.z;
   for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 4 + Math.random() * 9, xx = pt.x + Math.cos(a) * d, zz = pt.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
-  const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.side = team; q.role = team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider'; if (team === 'red') q.fromHostile = true;
+  const q = makePerson(troopSkin(team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider', true) || Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.side = team; q.role = team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider'; if (team === 'red') q.fromHostile = true;
   const cls = BCLS[Math.floor(Math.random() * BCLS.length)], w = cls === 'medic' ? 'pistol' : cls; q.hp = 100;
   q.bot = { team, cls, w, ammo: WPN[w].mag, cool: rnd(0.3, 1), scan: rnd(0, 0.3), tgt: null, obj: null, alert: 0, rev: 0, reload: 0, burst: 0, cmdUntil: 0, myOrder: null, follow: false, step: rnd(0, 2), idle: rnd(0, 2) };
   q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'In the battle';
@@ -3916,21 +3957,44 @@ function losFull(x0, y0, z0, x1, y1, z1) {
 }
 function hurt(q, dmg, from, head) {
   if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q;
+  if (q.bot) q.bot.hitT = simT; if (q.gun) q.gun.hitT = simT;
   if (isP) { Snd.fx('foley_breath_hurt', q.x, q.z, { gain: 0.6, gap: 0.5 }); BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
   else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; }
   if (q.hp <= 0) downPerson(q, from);
 }
 function downPerson(q, from) {
   const t = teamOf(q); let dx = 0, dz = 1; if (from) { dx = q.x - from.x; dz = q.z - from.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; }
-  try { topple(q, new CANNON.Vec3(dx * 2.5, 2.4, dz * 2.5)); } catch (e) { } q.koUntil = simT + 99999; if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; }
+  try { topple(q, new CANNON.Vec3(dx * 2.5, 2.4, dz * 2.5)); } catch (e) { } q.koUntil = simT + (BATTLE.on ? 99999 : 22); if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; }
   if (BATTLE.on && t) { BATTLE.tickets[t] = Math.max(0, BATTLE.tickets[t] - 1); BATTLE.kills[otherTeam(t)]++; }
   Snd.fx('imp_ko', q.x, q.z, { gain: 0.7, y: q.y + 1 }); const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) Snd.ui('ui_kill', 0.7); if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
   npcEv('battleKO');
 }
+/* ---- every fighting person is armed: guards, raiders, invaders and the SWAT team carry weapons you can see, and shoot when they see the other side */
+const ARMED = { Guard: 'rifle', Invader: 'rifle', SWAT: 'smg', Raider: 'pistol' }; let armT = 0;
+function armPerson(p) { let w = ARMED[p.role]; if (!w) return; if (p.role === 'Raider' && Math.random() < 0.4) w = 'smg'; if (p.role === 'Guard' && Math.random() < 0.3) w = 'pistol'; p.gun = { team: teamOf(p), cls: w, w, ammo: WPN[w].mag, cool: 0.5 + Math.random(), scan: Math.random() * 0.3, alert: 0, reload: 0, burst: 0, tgt: null }; p.gunMesh = botWeapon(w); p.obj.add(p.gunMesh); }
+function disarmPerson(p) { if (p.gunMesh) { p.obj.remove(p.gunMesh); p.gunMesh = null; } p.gun = null; }
+function armedLayer(dt) {
+  armT -= dt; if (armT <= 0) { armT = 2; for (const p of people) { if (!p.gun && !p.bot && p.side && ARMED[p.role] && !(fp.on && fp.p === p)) armPerson(p); else if (p.gun && !p.bot && !(p.side && ARMED[p.role])) disarmPerson(p); } }
+  for (const q of people) { const b = q.gun; if (!b || q.bot || q.state === 'rag' || q.ride || q.hop || q.fp || q.hp <= 0) continue; b.cool -= dt; b.reload -= dt; b.alert = Math.max(0, b.alert - dt); b.scan -= dt;
+    q.aim = (q.aim || 0) + ((b.tgt ? 1 : 0) - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4);
+    if (b.scan <= 0) { b.scan = 0.3 + Math.random() * 0.2; b.tgt = senseEnemy(q, b); }
+    const e = b.tgt; if (e && e.state !== 'rag' && e.hp > 0 && !e.ride) { const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); q.heading = Math.atan2(dx, dz); if (b.reload <= 0 && b.cool <= 0 && d <= WPN[b.w].range && d > 2.2) botFire(q, b, e, d); } else b.tgt = null; }
+}
 function botWeaponMesh() { const g = new THREE.Group(), dark = new THREE.MeshStandardMaterial({ color: 0x23272a, roughness: 0.5, metalness: 0.5 }); const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.62), dark); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.018, 0.4, 6), dark); br.rotation.x = Math.PI / 2; br.position.set(0, 0.02, 0.5); g.add(b, br); g.position.set(0.14, 1.12, 0.3); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; }
+let coverCache = [], coverN = -1, coverT = 0;
+function coverList() {                                              // everything solid and big enough to stand behind
+  if (coverN === props.length && simT - coverT < 30) return coverCache; coverN = props.length; coverT = simT; coverCache = [];
+  for (const p of props) { const b = p.item && p.item.box; if (!b || b[1] * 2 < 0.8 || Math.max(b[0], b[2]) < 0.55 || /lamp|sign|bollard|pallets/.test(p.item.id)) continue; coverCache.push({ x: p.x, z: p.z, hx: b[0], hz: b[2], hy: b[1], yaw: p.mesh.rotation.y, id: p.item.id }); }
+  return coverCache;
+}
+function findCover(q, e) {                                           // a spot behind something, on the far side from the enemy
+  let best = null, bs = 1e9; for (const c of coverList()) { const dq = Math.hypot(c.x - q.x, c.z - q.z); if (dq > 32) continue; const ex = c.x - e.x, ez = c.z - e.z, el = Math.hypot(ex, ez) || 1, r = Math.max(c.hx, c.hz) + 1.0, px = c.x + ex / el * r, pz = c.z + ez / el * r; if (standY(px, pz) < 0.6) continue;
+    const de = Math.hypot(px - e.x, pz - e.z); if (de < 7) continue; const dd = Math.hypot(px - q.x, pz - q.z); let sc = dd + (c.hy * 2 < 1.0 ? 12 : 0) - (de > 20 ? 4 : 0); if (q.bot && q.bot.lastCover && Math.hypot(q.bot.lastCover.x - px, q.bot.lastCover.z - pz) < 4) sc += 25; if (sc < bs) { bs = sc; best = { x: px, z: pz, c }; } }
+  return best;
+}
 function senseEnemy(q, b) {
   const w = WPN[b.w], sight = b.cls === 'sniper' ? 200 : 85, fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
-  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + 1.4, e.z)) continue; bd = d; best = e; }
+  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + ((e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
 }
 function botFire(q, b, e, d) {
@@ -3953,13 +4017,25 @@ function botThink(q, dt) {
   const e = b.tgt;
   if (e && e.state !== 'rag' && e.hp > 0) {
     const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz);
-    if (d > w.range * 0.75 || (d > 28 && b.cls !== 'sniper' && b.alert <= 0 && !q.order)) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, e.x - dx / d * 12, e.z - dz / d * 12); b.myOrder = q.order; q.run = true; } }
+    b.memE = e; b.memT = simT;
+    if (d <= w.range * 0.8 && d > 6) {                                    // fight from cover: run to it, duck, pop up to shoot, duck again, change cover when hurt
+      if (!b.coverPt || b.coverFor !== e || (b.hitT && simT - b.hitT < 0.6 && Math.random() < 0.02)) { const cv = findCover(q, e); if (cv) { b.coverPt = cv; b.coverFor = e; b.lastCover = cv; b.atCover = false; } }
+      if (b.coverPt) { const dc = Math.hypot(b.coverPt.x - q.x, b.coverPt.z - q.z);
+        if (dc > 1.7 && !b.atCover) { b.crouch = false; q.run = true; if (!q.order || q.order === b.myOrder) { setFootOrder(q, b.coverPt.x, b.coverPt.z); b.myOrder = q.order; } if (b.cool <= 0 && d < 40 && Math.random() < 0.3 && b.reload <= 0) botFire(q, b, e, d); return; }
+        b.atCover = true; q.order = null; q.route = null; b.myOrder = null; q.run = false; b.peekT -= dt; if (b.peekT === undefined || isNaN(b.peekT) || b.peekT <= 0) { b.peek = !b.peek; b.peekT = b.peek ? 0.9 + Math.random() * 1.0 : 1.1 + Math.random() * 1.8; }
+        b.crouch = !b.peek || b.reload > 0 || (b.hitT && simT - b.hitT < 0.5); if (b.crouch) return;
+      }
+    } else { b.crouch = false; b.coverPt = null; b.atCover = false; }
+    if (!b.tac) { const r = Math.random(); b.tac = b.cls === 'sniper' ? 'hold' : r < 0.4 ? 'push' : r < 0.65 ? 'flank' : 'hold'; b.pref = b.cls === 'sniper' ? 0.9 : rnd(0.2, 0.65); b.fside = Math.random() < 0.5 ? 1 : -1; }
+    if (b.tac === 'flank' && !b.coverPt && d > 14 && (!q.order || q.order === b.myOrder)) { b.fl = (b.fl || 0) - dt; if (b.fl <= 0) { b.fl = 2.5; const px = -dz / d * b.fside, pz = dx / d * b.fside, tx = q.x + dx * 0.35 + px * 16, tz = q.z + dz * 0.35 + pz * 16; if (standY(tx, tz) > 0.5) { setFootOrder(q, tx, tz); b.myOrder = q.order; q.run = true; } } if (q.order) { if (b.cool <= 0 && b.reload <= 0 && d <= w.range && Math.random() < 0.15) botFire(q, b, e, d); return; } }
+    if (d > w.range * b.pref || (d > 28 && b.cls !== 'sniper' && b.alert <= 0 && !q.order && !b.coverPt)) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, e.x - dx / d * 12, e.z - dz / d * 12); b.myOrder = q.order; q.run = true; } }
     else { if (q.order && q.order === b.myOrder) { q.order = null; q.route = null; b.myOrder = null; } q.run = false;
-      b.step -= dt; if (b.step <= 0 && b.cls !== 'sniper') { b.step = rnd(1.2, 2.6); const sx = Math.cos(q.heading) * rnd(-3, 3), sz = -Math.sin(q.heading) * rnd(-3, 3); if (standY(q.x + sx, q.z + sz) > 0.5) { setFootOrder(q, q.x + sx, q.z + sz); b.myOrder = q.order; } }   // a little strafe
+      b.step -= dt; if (b.step <= 0 && b.cls !== 'sniper') { b.step = b.tac === 'hold' ? rnd(1.5, 3) : rnd(0.5, 1.2); const sa = b.tac === 'hold' ? 3 : 6, sx = Math.cos(q.heading) * rnd(-sa, sa) + Math.sin(q.heading) * (b.tac === 'push' && d > 12 ? 3 : 0), sz = -Math.sin(q.heading) * rnd(-sa, sa) + Math.cos(q.heading) * (b.tac === 'push' && d > 12 ? 3 : 0); if (standY(q.x + sx, q.z + sz) > 0.5) { setFootOrder(q, q.x + sx, q.z + sz); b.myOrder = q.order; } }   // a little strafe
       if (b.reload <= 0 && b.cool <= 0 && d <= w.range) botFire(q, b, e, d); }
     return;
   }
-  b.tgt = null; q.run = true;
+  if (b.memE && simT - (b.memT || 0) < 3.5 && b.coverPt && b.memE.state !== 'rag' && b.memE.hp > 0) { b.crouch = true; b.peekT -= dt; if (b.peekT <= 0) { b.peekT = 0.8 + Math.random(); b.crouch = false; b.scan = 0; } if (b.crouch) return; }
+  b.tgt = null; q.run = true; b.crouch = false; b.coverPt = null; b.atCover = false;
   // a medic goes for the nearest fallen friend
   if (b.cls === 'medic') { let f = null, fd = 60; for (const a of people) if (a !== q && a.state === 'rag' && teamOf(a) === b.team && a.bot && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 12) { const d = Math.hypot(a.x - q.x, a.z - q.z); if (d < fd) { fd = d; f = a; } }
     if (f) { if (fd > 2.5) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, f.x, f.z); b.myOrder = q.order; } } else { q.order = null; b.rev += dt; if (b.rev > 2.2) { b.rev = 0; f.hp = 45; f.bot.dead = false; f.bot.revived = true; f.koUntil = 0; standUp(f); f.bot.revived = false; BATTLE.tickets[b.team] = Math.min(120, BATTLE.tickets[b.team] + 0); noteOnce('rev' + simT, 'A medic got someone back on their feet.'); } } return; } }
@@ -3983,7 +4059,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  if (!BATTLE.on) return; updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); if (!BATTLE.on) return; updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
@@ -4012,7 +4088,7 @@ function deploy(p) {
   const near = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 4); for (const q of near) q.bot.follow = BATTLE.squadMode === 'follow';
 }
 function playBattle(team) {
-  if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } const bd = q.bot; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
+  if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } q.botSaved = q.bot; q.roleSaved = q.role; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
 }
 function squadOrder(mode) {
   BATTLE.squadMode = mode; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag' && q.bot.follow !== undefined).sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
@@ -4025,7 +4101,7 @@ function squadGo() {
 
 /* ---- weapon models, hit effects, and the sounds that go with them */
 let wpP = null; const MUZ = { pistol: [0, 0.07, -0.178], smg: [0, 0.102, -0.37], rifle: [0, 0.125, -0.78], shotgun: [0, 0.052, -0.89], sniper: [0, 0.112, -0.96] };
-const ensureWeapons = () => wpP || (wpP = loadGLB('weapons').then(g => { D.glb.weapons = g; applyWeaponModels(); }).catch(e => { wpP = null; }));
+const ensureWeapons = () => { ensureTroops(); return wpP || (wpP = loadGLB('weapons').then(g => { D.glb.weapons = g; applyWeaponModels(); }).catch(e => { wpP = null; })); };
 function applyWeaponModels() {
   const g = D.glb.weapons; if (!g) return; const fgeo = new THREE.PlaneGeometry(0.32, 0.32), fmat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide, toneMapped: false });
   for (const k of ['pistol', 'smg', 'rifle', 'shotgun', 'sniper']) { const n = nodeByName(g, k); if (!n) continue; const grp = new THREE.Group(), m = n.clone(); grp.add(m);
@@ -4055,6 +4131,28 @@ function impactFx(kind, ref, pt, d) {
   if (sparks) for (let i = 0; i < 5; i++) fxG.emit(pt.x, pt.y + 0.05, pt.z, rnd(-3, 3), rnd(1, 3.5), rnd(-3, 3), 0.25, 0.07, 0.2, [1, 0.8, 0.4, 1], 9, 0.5);
   Snd.fx(snd + '_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7, y: pt.y }); if (Math.random() < 0.3) Snd.fx('wpn_ricochet_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.4 });
 }
+
+/* ---- getting into the action and back out: take over any soldier, watch the fight from behind one, swap to the next, go back to the overview. When you let go, they carry on by themselves. */
+function possess(q) {
+  if (!q || q.state === 'rag' || fp.on || q.hop || q.ride) return false; if (q.bot) { q.botSaved = q.bot; q.bot = null; q.roleSaved = q.role; } else if (q.gun) { q.gunSaved = q.gun; q.gun = null; }
+  q.hp = Math.max(q.hp || 100, 70); BATTLE.spec = null; if (q.order) { q.order = null; q.route = null; } enterFP(q); if (fp.on) { fpSetTool(BATTLE.on ? (q.botSaved && WPN[q.botSaved.w] ? q.botSaved.w : 'rifle') : 'rifle'); } return fp.on;
+}
+function releasePerson(q) {
+  if (!q) return; if (q.botSaved) { q.bot = q.botSaved; q.botSaved = null; q.bot.tgt = null; q.bot.coverPt = null; q.bot.atCover = false; q.bot.crouch = false; q.bot.myOrder = null; if (q.roleSaved) { q.role = q.roleSaved; q.roleSaved = null; } }
+  if (q.gunSaved) { q.gun = q.gunSaved; q.gunSaved = null; q.gun.tgt = null; }
+}
+function nearestFriend(x, z, notMe) { let best = null, bd = 1e9; for (const q of people) { if (q === notMe || q.state === 'rag' || q.ride || q.hp <= 0 || !(q.bot || q.gun || q.botSaved) || (BATTLE.on && teamOf(q) !== BATTLE.team)) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; }
+function jumpIn() {
+  if (fp.on) return; const sp = BATTLE.spec; const src = sp && people.includes(sp) ? sp : null; const q = nearestFriend(src ? src.x : god.tgt.x, src ? src.z : god.tgt.z); if (!q) { toast('Nobody to take over. Place some soldiers or start a battle.'); return; }
+  if (!possess(q)) toast('Could not take over that soldier.');
+}
+function specNext(dir) {
+  const c = people.filter(q => (q.bot || q.gun) && q.state !== 'rag' && q.hp > 0 && !q.ride && !(fp.on && fp.p === q)).sort((a, b) => (b.bot && b.bot.tgt ? 1 : 0) - (a.bot && a.bot.tgt ? 1 : 0) || a.id - b.id); if (!c.length) { toast('Nobody to watch.'); return; }
+  const i = BATTLE.spec ? c.indexOf(BATTLE.spec) : -1; BATTLE.spec = c[(i + (dir || 1) + c.length) % c.length]; god.dist = Math.min(god.dist, 38 * CELL); god.follow = null; god.fly = null; toast('Watching a ' + (BATTLE.spec.role || 'soldier') + '. Press J to take over, K for the next one, or Overview to let go.');
+}
+function specUpdate(dt) { const q = BATTLE.spec; if (!q) return; if (!people.includes(q) || fp.on) { BATTLE.spec = null; return; } const k = 1 - Math.exp(-dt * 4); god.tgt.x += (q.x - god.tgt.x) * k; god.tgt.z += (q.z - god.tgt.z) * k; god.tgt.y = q.y; god.yaw += (wrap(q.heading + Math.PI - god.yaw)) * k * 0.5; }
+$('bJump').addEventListener('click', jumpIn); $('bSpec').addEventListener('click', () => specNext(1)); $('bOver').addEventListener('click', () => { BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); toast('Overview'); });
+addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
@@ -4678,7 +4776,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); portAmbience(dt); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); armedLayer(dt); updateBattle(dt); portAmbience(dt); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -5932,7 +6030,7 @@ const DISASTERS = [
 /* ---- arrivals (new things come in or are left) and events (somebody turns up and behaves) */
 const LATER = []; const later = (sec, fn) => LATER.push({ at: simT + sec, fn });
 function runLater() { for (let i = LATER.length - 1; i >= 0; i--) if (simT >= LATER[i].at) { const f = LATER[i].fn; LATER.splice(i, 1); try { f(); } catch (e) { } } }
-function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.length < MAX_PEOPLE; i++) { const x = cp.x + (i % 3) * 1.5, z = cp.z + Math.floor(i / 3) * 1.5; const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.role = side === 'red' ? 'Raider' : 'Guard'; q.side = side; if (side === 'red') q.fromHostile = true; out.push(q); } return out; }
+function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.length < MAX_PEOPLE; i++) { const x = cp.x + (i % 3) * 1.5, z = cp.z + Math.floor(i / 3) * 1.5; const q = makePerson(troopSkin(side === 'red' ? 'Raider' : 'Guard') || Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.role = side === 'red' ? 'Raider' : 'Guard'; q.side = side; if (side === 'red') q.fromHostile = true; out.push(q); } return out; }
 function sideBoat(side, key, from, to) { const bt = makeBoat(key, null, null, from.x, from.z, Math.atan2(to.z - from.z, to.x - from.x)); sideCrew(bt, side); bt.anchor = null; orderTo(bt, to.x, to.z); return bt; }
 const LANDINGS = [];
 function landingParty(side, n, nboats, kind) {
@@ -7232,7 +7330,7 @@ function think(p, ag) {
 }
 function updateAgents(dt) {
   for (const p of people) {
-    if (p.state === 'rag' && p.koUntil && simT > p.koUntil && standY(p.x, p.z) > 0.25 && !p.swim) { p.koUntil = 0; standUp(p); }
+    if (p.state === 'rag' && p.koUntil && simT > p.koUntil && standY(p.x, p.z) > 0.25 && !p.swim) { p.koUntil = 0; p.hp = 100; standUp(p); }
     if (p.bot || p.fp || p.hoist || p.state === 'rag' || p.hop || p === selPerson && p.order && !p.ag) continue;
     const ag = p.ag || (p.ag = { goal: null, think: rnd(0.2, 2), intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null });
     if (p.ride) {
@@ -7284,7 +7382,8 @@ function updateAgents(dt) {
     } else if (g.kind === 'fight') {
       const e = g.who; if (!e || !people.includes(e) || e.state === 'rag' || e.ride || e.side === p.side) { ag.goal = null; ag.cool = 0.4; continue; }
       const d = Math.hypot(e.x - p.x, e.z - p.z);
-      if (d > 2.3) { g.re = (g.re || 0) - dt; if (!walking || g.re <= 0) { g.re = 1.2; walkAgent(p, e.x, e.z); } ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Chasing a raider'; if (g.t > 70) ag.goal = null; }
+      if (p.gun && p.gun.tgt === e && d < 38 && d > 2.5) { p.order = null; p.route = null; p.heading = Math.atan2(e.x - p.x, e.z - p.z); ag.intent = 'Firing'; if (g.t > 50) ag.goal = null; }
+      else if (d > 2.3) { g.re = (g.re || 0) - dt; if (!walking || g.re <= 0) { g.re = 1.2; walkAgent(p, e.x, e.z); } ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Chasing a raider'; if (g.t > 70) ag.goal = null; }
       else { p.order = null; p.heading = Math.atan2(e.x - p.x, e.z - p.z); ag.intent = 'Scuffling'; p.fighting = 0.4; e.fighting = 0.4; g.hit -= dt;
         if (g.hit <= 0) { g.hit = rnd(0.9, 1.7); let allies = 0, foes = 0; for (const q of people) { if (q === p || q.ride || q.state === 'rag') continue; if (Math.hypot(q.x - p.x, q.z - p.z) < 9) { if (q.side === p.side) allies++; else if (q.side === e.side) foes++; } } if (Math.random() < cl2(0.2 + 0.1 * allies - 0.06 * foes, 0.08, 0.6)) knockOut(e, p.heading); } }
     } else if (g.kind === 'raid') {
@@ -7448,7 +7547,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
