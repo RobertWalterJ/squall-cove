@@ -142,7 +142,7 @@ def road_wheel(P, c, r, s):
 
 def light_tank():
     M = VM('light_tank'); B = M.body(); n = 'light_tank'
-    TXc = 1.03; TWd = 0.38; CY = 0.36; ZF = 1.85; ZR = -1.85; RO = 0.36; RI = 0.31
+    TXc = 1.03; TWd = 0.38; CY = 0.382; ZF = 1.85; ZR = -1.85; RO = 0.34; RI = 0.31; WY = CY - RI + 0.29
     for sd, s in (('L', 1), ('R', -1)):
         x = s * TXc
         T = M.node('_track_%s' % sd, None, (x, CY, 0))
@@ -164,7 +164,7 @@ def light_tank():
         for z in (-0.9, 0.0, 0.9): B.cyl((x - 0.07, 0.62, z), (x + 0.07, 0.62, z), 0.07, 0.07, 8, 'veh_rubber', False)
         for i in range(5):
             z = -1.2 + 0.6 * i
-            Wd = M.node('_wheel_%s%d' % (sd, i + 1), None, (x, 0.34, z)); road_wheel(Wd, (x, 0.34, z), 0.29, s)
+            Wd = M.node('_wheel_%s%d' % (sd, i + 1), None, (x, WY, z)); road_wheel(Wd, (x, WY, z), 0.29, s)
         Sp = M.node('_sprocket_%s' % sd, None, (x, CY, ZF)); c = Vector((x, CY, ZF))
         Sp.cyl(c + V(-0.08, 0, 0), c + V(0.08, 0, 0), 0.26, 0.26, 12, 'veh_metal', False)
         Sp.cyl(c + V(s * 0.08, 0, 0), c + V(s * 0.12, 0, 0), 0.10, 0.08, 8, 'veh_steel_dark', False)

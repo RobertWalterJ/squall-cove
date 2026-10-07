@@ -114,14 +114,15 @@ def tyre(P, c, r, w, side, lugs=16, lug_h=0.03, seg=20, rim='veh_metal', nuts=5,
     """Wheel with its axis along x, centre c (world game coords), outer hub face on `side` (+1/-1)."""
     c = Vector(c); hw = w / 2
     path = [c + V(x * w, 0, 0) for x in (-0.5, -0.43, -0.3, 0.3, 0.43, 0.5)]
-    P.sweep(path, [r * 0.80, r * 0.95, r, r, r * 0.95, r * 0.80], seg, 'veh_rubber', True, (True, True))
+    rb = r - lug_h * 1.1                                  # tread-body radius; lugs bring the outside to exactly r
+    P.sweep(path, [rb * 0.80, rb * 0.95, rb, rb, rb * 0.95, rb * 0.80], seg, 'veh_rubber', True, (True, True))
     # tread lugs
     nl = lugs
     for i in range(nl):
         a = 2 * PI * i / nl + (PI / nl if i % 2 else 0.0)
         for sgn in ((-1, 1) if mud else (0,)):
             wx = (w * 0.30 if mud else w * 0.62)
-            P.box(c + V(sgn * w * 0.2, (r + lug_h * 0.4) * math.cos(a), (r + lug_h * 0.4) * math.sin(a)), (wx, lug_h * 1.4, r * (0.16 if not mud else 0.11)),
+            P.box(c + V(sgn * w * 0.2, (rb + lug_h * 0.4) * math.cos(a), (rb + lug_h * 0.4) * math.sin(a)), (wx, lug_h * 1.4, r * (0.16 if not mud else 0.11)),
                   'veh_rubber', rot=(math.degrees(a), 0, 0))
     # rim plate (outer face) + hub cap + nuts; thin inner hub
     xo = side * hw

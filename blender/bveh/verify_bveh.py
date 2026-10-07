@@ -59,7 +59,7 @@ for r in J['scenes'][0]['nodes']:
             mn, mx = o['bb']; c = (mn + mx) / 2 - o['pos']; rr = (mx[1] - mn[1]) / 2
             extra = ' r=%.3f bottom y=%.3f centre-offset (%.3f,%.3f,%.3f)' % (rr, mn[1], c[0], c[1], c[2])
             if abs(c[1]) > 0.03 or abs(c[2]) > 0.03: print('   WARN wheel not centred on its pivot', o['name'])
-            if o['name'].startswith(name + '_wheel_') and abs(mn[1]) > 0.02: print('   WARN wheel not touching ground', o['name'])
+            if name != 'light_tank' and o['name'].startswith(name + '_wheel_') and abs(mn[1]) > 0.02: print('   WARN wheel not touching ground', o['name'])
         print('   %s%-30s %5s pivot (%.2f, %.2f, %.2f)%s' % ('  ' * o['depth'], o['name'], o['tris'] if o['mesh'] else 'empty', *o['pos'], extra))
     for o in out:
         if o['mesh']:

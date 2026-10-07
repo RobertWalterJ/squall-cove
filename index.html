@@ -75,7 +75,7 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
 body.ui-min.noinst .inst{display:none}
 body.ui-min .inst dl > div:nth-child(2){display:none}
-body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli){display:none}
+body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli):not(#bFP):not(#bFire){display:none}
 body.ui-min #bMode:disabled{display:none}
 body.ui-min.tray-idle .tray{display:none}
 #trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
@@ -3591,6 +3591,7 @@ function enterFP(p) {
   ensureWeapons(); fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
 function exitFP() {
+  { const so = $('fpScope'); if (so) so.style.display = 'none'; }
   if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
   if (fp.man) { fp.man.manned = false; fp.man = null; } if (BATTLE.down) { BATTLE.down = false; $('bSpawn').hidden = true; } fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; releasePerson(p); camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   if (p && people.includes(p)) {
@@ -3726,7 +3727,7 @@ function fpCamera(dt, t) {
 document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
 $('fpTab').addEventListener('click', () => toggleTablet(true)); $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
 addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
-canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { passive: false });
+canvas.addEventListener('wheel', (e) => { if (fp.on) { e.preventDefault(); if (!fp.man && Math.abs(e.deltaY) > 4) { const now = performance.now(); if (now - (fp.wheelT || 0) > 160) { fp.wheelT = now; const kt = inKit() ? ['hands', ...kitTools()] : FPT.filter(f => !NEWT.has(f[0])).map(f => f[0]), i = kt.indexOf(fp.tool); fpSetTool(kt[(i + (e.deltaY > 0 ? 1 : kt.length - 1)) % kt.length]); } } } }, { passive: false });
 { // touch: stick and look pad
   const st = $('fpStick'), kn = $('fpKnob'), lk = $('fpLook'); let sid = null, lid = null, lx = 0, ly = 0;
   st.addEventListener('pointerdown', (e) => { sid = e.pointerId; st.setPointerCapture(e.pointerId); mv(e); e.preventDefault(); });
@@ -3752,7 +3753,7 @@ addEventListener('keydown', (e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
-  else if (/^[1-9]$/.test(k)) { if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer(); else if (k === 'v') fpCycle();
+  else if (/^[1-9]$/.test(k)) { if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer();
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
 
@@ -5506,7 +5507,7 @@ function tapAt(cx, cy, btn, mods) {
   // desktop: left click only selects (empty ground deselects), right click gives the orders
   if (lastPType === 'mouse' && btn !== 2 && !pe && !bt && (sp.length || sb.length) && !add) { setSel([]); return; }
   // people selected: pick something up, board a boat, or walk
-  if (sp.length && btn !== 2) {
+  if (sp.length && (btn !== 2 || lastPType === 'mouse')) {
     if (ob && (!bt || od <= bd)) { orderPickup(sp, ob); return; }
     if (bt) {
       const riders = sp.filter(p => p.ride && p.ride.boat === bt), land = sp.filter(p => !p.ride && p.state !== 'rag');
@@ -5863,7 +5864,9 @@ const wakePts = []; let wakeT = 0;
 let last = performance.now(), hudT = 0, panelT = 0;
 const tmpV3 = new THREE.Vector3(), fwdV = new CANNON.Vec3(), upV = new CANNON.Vec3();
 function syncMesh(obj, body) { obj.position.copy(body.interpolatedPosition); obj.quaternion.copy(body.interpolatedQuaternion); }
-function frame(now) {
+let frameErrN = 0;
+function frame(now) { try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
+function frameStep(now) {
   const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
   const bt = boats[activeIdx] || boats[0];
   if (mode === 'helm') {
@@ -5998,7 +6001,7 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 function openBattleSetup() { try { sideTab = 'battle'; setSide(true); renderSide(); toast('Set up the battle: pick a loadout, the enemy and the size, then begin.'); } catch (e) { } }
-{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') return; const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
+{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') { if (isBattleMap()) startMap('cove', 'cove'); return; } const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
   { const bb = intro.querySelector('[data-go="battle"]'); if (bb && !isBattleMap()) bb.hidden = true; }
   $('introVer').textContent = 'v8.9 battle depth'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
   if (qp.get('battle')) setTimeout(openBattleSetup, 1200);
