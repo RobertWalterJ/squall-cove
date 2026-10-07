@@ -1,0 +1,591 @@
+{
+ "sandbag_wall": {
+  "size_x": 2.988,
+  "size_y_height": 1.096,
+  "size_z_depth": 0.616,
+  "tris": 624,
+  "min": [
+   -1.494,
+   -0.308,
+   0.0
+  ],
+  "max": [
+   1.494,
+   0.308,
+   1.096
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "jersey_barrier": {
+  "size_x": 3.0,
+  "size_y_height": 0.805,
+  "size_z_depth": 0.6,
+  "tris": 112,
+  "min": [
+   -1.5,
+   -0.3,
+   0.0
+  ],
+  "max": [
+   1.5,
+   0.3,
+   0.805
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "ammo_crate": {
+  "size_x": 0.86,
+  "size_y_height": 0.37,
+  "size_z_depth": 0.45,
+  "tris": 144,
+  "min": [
+   -0.43,
+   -0.225,
+   0.0
+  ],
+  "max": [
+   0.43,
+   0.225,
+   0.37
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "medkit_box": {
+  "size_x": 0.504,
+  "size_y_height": 0.39,
+  "size_z_depth": 0.192,
+  "tris": 156,
+  "min": [
+   -0.252,
+   -0.096,
+   0.0
+  ],
+  "max": [
+   0.252,
+   0.096,
+   0.39
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "flagpole": {
+  "size_x": 2.15,
+  "size_y_height": 8.0,
+  "size_z_depth": 0.6,
+  "tris": 208,
+  "min": [
+   -0.3,
+   -0.3,
+   0.0
+  ],
+  "max": [
+   1.85,
+   0.3,
+   8.0
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "market_stall": {
+  "size_x": 3.0,
+  "size_y_height": 2.7,
+  "size_z_depth": 1.96,
+  "tris": 408,
+  "min": [
+   -1.5,
+   -0.92,
+   0.0
+  ],
+  "max": [
+   1.5,
+   1.04,
+   2.7
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "bench": {
+  "size_x": 1.8,
+  "size_y_height": 0.922,
+  "size_z_depth": 0.569,
+  "tris": 168,
+  "min": [
+   -0.9,
+   -0.364,
+   0.0
+  ],
+  "max": [
+   0.9,
+   0.205,
+   0.922
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "hay_bale": {
+  "size_x": 1.504,
+  "size_y_height": 1.502,
+  "size_z_depth": 1.225,
+  "tris": 380,
+  "min": [
+   -0.752,
+   -0.615,
+   0.0
+  ],
+  "max": [
+   0.752,
+   0.61,
+   1.502
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "picnic_table": {
+  "size_x": 1.8,
+  "size_y_height": 0.76,
+  "size_z_depth": 1.5,
+  "tris": 156,
+  "min": [
+   -0.9,
+   -0.75,
+   0.0
+  ],
+  "max": [
+   0.9,
+   0.75,
+   0.76
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "tyre_stack": {
+  "size_x": 0.728,
+  "size_y_height": 0.66,
+  "size_z_depth": 0.722,
+  "tris": 672,
+  "min": [
+   -0.358,
+   -0.355,
+   0.0
+  ],
+  "max": [
+   0.37,
+   0.367,
+   0.66
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "log_pile": {
+  "size_x": 2.075,
+  "size_y_height": 1.08,
+  "size_z_depth": 1.2,
+  "tris": 840,
+  "min": [
+   -1.055,
+   -0.6,
+   0.0
+  ],
+  "max": [
+   1.02,
+   0.6,
+   1.08
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "rowboat_beached": {
+  "size_x": 3.577,
+  "size_y_height": 0.673,
+  "size_z_depth": 1.44,
+  "tris": 348,
+  "min": [
+   -1.78,
+   -0.72,
+   0.0
+  ],
+  "max": [
+   1.797,
+   0.72,
+   0.673
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "fishing_hut": {
+  "size_x": 4.6,
+  "size_y_height": 4.372,
+  "size_z_depth": 3.964,
+  "tris": 616,
+  "min": [
+   -2.3,
+   -1.836,
+   0.0
+  ],
+  "max": [
+   2.3,
+   2.129,
+   4.372
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "jetty_section": {
+  "size_x": 8.0,
+  "size_y_height": 1.46,
+  "size_z_depth": 3.08,
+  "tris": 1040,
+  "min": [
+   -4.0,
+   -1.54,
+   0.0
+  ],
+  "max": [
+   4.0,
+   1.54,
+   1.46
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "life_ring_post": {
+  "size_x": 0.528,
+  "size_y_height": 1.65,
+  "size_z_depth": 0.312,
+  "tris": 312,
+  "min": [
+   -0.264,
+   -0.065,
+   0.0
+  ],
+  "max": [
+   0.264,
+   0.247,
+   1.65
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "signboard": {
+  "size_x": 1.5,
+  "size_y_height": 2.3,
+  "size_z_depth": 0.142,
+  "tris": 120,
+  "min": [
+   -0.75,
+   -0.1,
+   0.0
+  ],
+  "max": [
+   0.75,
+   0.042,
+   2.3
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "windmill": {
+  "size_x": 6.367,
+  "size_y_height": 12.4,
+  "size_z_depth": 3.335,
+  "tris": 568,
+  "min": [
+   -1.667,
+   -1.667,
+   0.0
+  ],
+  "max": [
+   4.7,
+   1.667,
+   12.4
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "windmill_blades": {
+  "size_x": 0.4,
+  "size_y_height": 4.96,
+  "size_z_depth": 4.885,
+  "tris": 604,
+  "min": [
+   -0.75,
+   -2.442,
+   9.02
+  ],
+  "max": [
+   -0.35,
+   2.442,
+   13.98
+  ],
+  "node_pos_blender": [
+   -0.55,
+   0.0,
+   11.5
+  ]
+ },
+ "water_tower": {
+  "size_x": 5.431,
+  "size_y_height": 14.0,
+  "size_z_depth": 5.496,
+  "tris": 880,
+  "min": [
+   -2.716,
+   -2.716,
+   0.0
+  ],
+  "max": [
+   2.716,
+   2.78,
+   14.0
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "barn": {
+  "size_x": 14.015,
+  "size_y_height": 8.0,
+  "size_z_depth": 8.926,
+  "tris": 408,
+  "min": [
+   -7.0,
+   -4.463,
+   0.0
+  ],
+  "max": [
+   7.015,
+   4.463,
+   8.0
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "hay_rack": {
+  "size_x": 3.0,
+  "size_y_height": 1.18,
+  "size_z_depth": 1.32,
+  "tris": 480,
+  "min": [
+   -1.5,
+   -0.66,
+   0.0
+  ],
+  "max": [
+   1.5,
+   0.66,
+   1.18
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "fuel_pump": {
+  "size_x": 1.4,
+  "size_y_height": 2.2,
+  "size_z_depth": 0.9,
+  "tris": 304,
+  "min": [
+   -0.7,
+   -0.45,
+   0.0
+  ],
+  "max": [
+   0.7,
+   0.45,
+   2.2
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "phone_box": {
+  "size_x": 1.0,
+  "size_y_height": 2.4,
+  "size_z_depth": 1.05,
+  "tris": 492,
+  "min": [
+   -0.5,
+   -0.51,
+   0.0
+  ],
+  "max": [
+   0.5,
+   0.54,
+   2.4
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "bus_stop": {
+  "size_x": 3.153,
+  "size_y_height": 3.26,
+  "size_z_depth": 1.503,
+  "tris": 244,
+  "min": [
+   -1.5,
+   -0.751,
+   0.0
+  ],
+  "max": [
+   1.653,
+   0.751,
+   3.26
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "tent_large": {
+  "size_x": 8.137,
+  "size_y_height": 4.05,
+  "size_z_depth": 5.1,
+  "tris": 220,
+  "min": [
+   -4.057,
+   -2.55,
+   0.0
+  ],
+  "max": [
+   4.08,
+   2.55,
+   4.05
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "camo_net": {
+  "size_x": 6.04,
+  "size_y_height": 3.0,
+  "size_z_depth": 5.04,
+  "tris": 568,
+  "min": [
+   -3.02,
+   -2.52,
+   0.0
+  ],
+  "max": [
+   3.02,
+   2.52,
+   3.0
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "radio_mast": {
+  "size_x": 1.8,
+  "size_y_height": 20.0,
+  "size_z_depth": 1.6,
+  "tris": 832,
+  "min": [
+   -0.9,
+   -0.8,
+   0.0
+  ],
+  "max": [
+   0.9,
+   0.8,
+   20.0
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "sand_dune_grass": {
+  "size_x": 0.958,
+  "size_y_height": 0.9,
+  "size_z_depth": 0.891,
+  "tris": 460,
+  "min": [
+   -0.439,
+   -0.467,
+   0.0
+  ],
+  "max": [
+   0.519,
+   0.424,
+   0.9
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "_total_tris": 12364
+}

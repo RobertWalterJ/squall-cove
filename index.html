@@ -199,6 +199,16 @@ button:disabled{opacity:.45;cursor:default}
   body.sideopen #legend,body.sideopen #notes,body.sideopen .toast,body.sideopen #inspector{left:calc(50% + var(--sideW) / 2)}
   body.sideopen #menuSheet,body.sideopen .help
 }
+#bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:6;pointer-events:none}
+body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
+#bTick{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:700 15px var(--f-display);letter-spacing:.08em}
+#bTick .bB{color:#7fa8e3}#bTick .bR{color:#e58a7e}#bTick .bPts{display:flex;gap:5px}#bTick .bPts i{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.4)}
+body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
+#bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:6;pointer-events:none;font:700 17px var(--f-display);letter-spacing:.06em;color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:180px}
+#bStat .hp{height:10px;background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;height:100%;background:#d64b2c}
+#bHurt{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;box-shadow:inset 0 0 120px 40px rgba(214,40,20,.75)}
+#bSpawn{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:12;background:rgba(10,22,28,.94);border:1px solid var(--brass);border-radius:14px;padding:18px 22px;display:grid;gap:10px;min-width:260px;text-align:center}
+#bSpawn h3{margin:0;font:700 22px var(--f-display);letter-spacing:.06em}#bSpawn p{margin:0;color:var(--muted)}
 #burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
 body.sideopen #burger{display:none}
 #side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -256,6 +266,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 
 <div id="marquee" hidden></div>
 <div id="dropTag" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
 <aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
@@ -2966,7 +2977,7 @@ function poseSwim(p, k) {
 }
 function stepFoot(p, dt, t) {
   let moving = false;
-  const spd = (p.carry ? 1.15 : 1.45) * (1 + 0.28 * (CELL - 1)) * (1 - 0.3 * (p.cold || 0)) * (1 - 0.25 * (p.heat || 0)) * (p.swim ? 0.7 : standY(p.x, p.z) < -0.3 ? 0.8 : 1);      // wading is a little slower, swimming slower still
+  const spd = (p.carry ? 1.15 : 1.45) * (p.bot && p.run ? 2.2 : 1) * (1 + 0.28 * (CELL - 1)) * (1 - 0.3 * (p.cold || 0)) * (1 - 0.25 * (p.heat || 0)) * (p.swim ? 0.7 : standY(p.x, p.z) < -0.3 ? 0.8 : 1);      // wading is a little slower, swimming slower still
   if (!p.order) p.via = null;
   if (p.order && !p.fp) {
     if (p.route && p.route.length) { const w0 = p.route[0]; if (Math.hypot(w0.x - p.x, w0.z - p.z) < 2.2) p.route.shift(); }
@@ -3303,7 +3314,7 @@ function enterFP(p) {
   mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
   $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm. Esc (press twice if the mouse is captured) or the button leaves.';
   if (!isTouch) lockPointer();
-  fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
+  ensureWeapons(); fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
 function exitFP() {
   if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
@@ -3419,7 +3430,7 @@ function fpCamera(dt, t) {
   let px = p.x, py = p.y + fpEye(p), pz = p.z;
   if (p.state === 'rag' && p.rag) { const hd = p.rag.bodies.head.interpolatedPosition; px = hd.x; py = hd.y + 0.12; pz = hd.z; }
   else { if (p.fpMoving && !p.swim && !fp.air) py += Math.sin(fp.bob * 2) * 0.012 * Math.min(1.6, fp.spd / 2.5) + Math.abs(Math.sin(fp.bob)) * 0.03 * Math.min(1.6, fp.spd / 3); py -= fp.land * 0.12; }
-  const fov = 62 + Math.min(1, Math.max(0, (fp.spd - 3.4) / 3)) * 9; fp.fov += (fov - fp.fov) * Math.min(1, dt * 6); if (Math.abs(camera.fov - fp.fov) > 0.05) { camera.fov = fp.fov; camera.updateProjectionMatrix(); }
+  const fov = fp.zoom && WPN[fp.tool] && WPN[fp.tool].zoom ? WPN[fp.tool].zoom : 62 + Math.min(1, Math.max(0, (fp.spd - 3.4) / 3)) * 9; fp.fov += (fov - fp.fov) * Math.min(1, dt * 6); if (Math.abs(camera.fov - fp.fov) > 0.05) { camera.fov = fp.fov; camera.updateProjectionMatrix(); }
   camera.position.set(px, py, pz);
   const cp = Math.cos(fp.pitch); camera.lookAt(px + Math.sin(fp.yaw) * cp, py + Math.sin(fp.pitch), pz + Math.cos(fp.yaw) * cp);
 }
@@ -3439,7 +3450,7 @@ canvas.addEventListener('wheel', (e) => { if (fp.on) e.preventDefault(); }, { pa
   const lEnd = (e) => { if (e.pointerId === lid) lid = null; }; lk.addEventListener('pointerup', lEnd); lk.addEventListener('pointercancel', lEnd);
 }
 function fpJumpOrGetUp() {
-  const p = fp.p; if (!p) return;
+  const p = fp.p; if (!p) return; if (BATTLE.on && BATTLE.down) return;
   if (p.state === 'rag') { if (standY(p.rag.bodies.pelvis.position.x, p.rag.bodies.pelvis.position.z) >= 0.15) standUp(p); else { const pb = p.rag.bodies.pelvis.position; freeRag(p); p.state = 'idle'; p.floating = false; p.x = pb.x; p.z = pb.z; p.swim = true; p.y = waveH(p.x, p.z, simT) - 1.15; for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } p.obj.quaternion.identity(); giveBody(p); } return; }
   fp.jump = true;
 }
@@ -3449,18 +3460,24 @@ addEventListener('keydown', (e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'h') e.stopImmediatePropagation();      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
-  else if (k === '1' || k === '2' || k === '3') fpSetTool(FPT[+k - 1][0]);
+  else if (/^[1-7]$/.test(k)) fpSetTool(FPT[+k - 1][0]); else if (k === 'r') fpReload(); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo();
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
 
 /* ================================================================ first-person tools: hands (pick up, carry, throw), fishing rod, rifle (cartoon knock-outs) */
-const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['rifle', 'Rifle', '3']];
+const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['pistol', 'Pistol', '3'], ['smg', 'SMG', '4'], ['rifle', 'Rifle', '5'], ['shotgun', 'Shotgun', '6'], ['sniper', 'Sniper', '7']];
 fp.tool = 'hands'; fp.rod = null; fp.cool = 0; fp.kick = 0; fp.fish = { n: 0, kg: 0, log: [] }; fp.ko = 0;
 const fpToolMesh = {};
 (() => {
   const dark = new THREE.MeshStandardMaterial({ color: 0x24282b, roughness: 0.5, metalness: 0.6 }), wood = new THREE.MeshStandardMaterial({ color: 0x7a5232, roughness: 0.7 }), cane = new THREE.MeshStandardMaterial({ color: 0xc9a86a, roughness: 0.6 });
   const rifle = new THREE.Group(); { const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.5), dark); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.5, 8), dark); br.rotation.x = Math.PI / 2; br.position.set(0, 0.02, -0.45); const st = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.28), wood); st.position.set(0, -0.03, 0.34); rifle.add(b, br, st); rifle.position.set(0.2, -0.2, -0.55); }
   const rod = new THREE.Group(); { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.016, 1.5, 6).translate(0, 0.75, 0), cane); r.rotation.x = -Math.PI / 2 + 0.38; const h = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 8), wood); h.rotation.x = Math.PI / 2; h.position.z = 0.05; rod.add(r, h); rod.position.set(0.22, -0.2, -0.45); }
+  const gun = (len, h, col, scope) => { const g = new THREE.Group(), m = col || dark; const b = new THREE.Mesh(new THREE.BoxGeometry(0.06, h, len * 0.55), m), br = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, len * 0.55, 8), m); br.rotation.x = Math.PI / 2; br.position.set(0, h * 0.2, -len * 0.5); const st = new THREE.Mesh(new THREE.BoxGeometry(0.05, h * 1.3, len * 0.3), wood); st.position.set(0, -h * 0.4, len * 0.4); g.add(b, br, st); if (scope) { const sc = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8), m); sc.rotation.x = Math.PI / 2; sc.position.set(0, h * 0.8, -0.05); g.add(sc); } g.position.set(0.2, -0.2, -0.5); return g; };
+  const flashGeo = new THREE.PlaneGeometry(0.28, 0.28), flashMat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide });
+  const extra = { pistol: gun(0.34, 0.1), smg: gun(0.55, 0.1), shotgun: gun(0.95, 0.09), sniper: gun(1.15, 0.09, null, true) };
+  for (const k in extra) { const f = new THREE.Mesh(flashGeo, flashMat); f.position.set(0, 0.02, -(k === 'pistol' ? 0.34 : k === 'smg' ? 0.55 : k === 'shotgun' ? 0.95 : 1.15) * 0.78); f.visible = false; f.name = 'flash'; extra[k].add(f); }
+  { const f = new THREE.Mesh(flashGeo, flashMat); f.position.set(0, 0.02, -0.7); f.visible = false; f.name = 'flash'; rifle.add(f); }
+  for (const k in extra) { extra[k].visible = false; extra[k].traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 8; } }); camera.add(extra[k]); fpToolMesh[k] = extra[k]; }
   for (const [k, m] of [['rifle', rifle], ['rod', rod]]) { m.visible = false; m.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 8; } }); camera.add(m); fpToolMesh[k] = m; }
 })();
 const bobber = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshStandardMaterial({ color: 0xd64b2c, roughness: 0.5 })); bobber.visible = false; scene.add(bobber);
@@ -3469,13 +3486,13 @@ function fpSetTool(t) {
   fp.tool = t; if (t !== 'rod') fpRodReset(true);
   for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === t;
   $('fpTools').innerHTML = ''; for (const [id, name, key] of FPT) { const b = document.createElement('button'); b.type = 'button'; b.textContent = (isTouch ? '' : key + ' ') + name; b.setAttribute('aria-pressed', String(id === t)); b.addEventListener('click', () => fpSetTool(id)); $('fpTools').append(b); }
-  $('fpFire').textContent = t === 'rifle' ? 'Fire' : t === 'rod' ? 'Cast / reel' : 'Pick up / throw';
-  if (fp.on) toast(t === 'hands' ? 'Hands: click or E picks up, click again throws, G drops' : t === 'rod' ? 'Rod: click to cast onto water, click when the float dips' : 'Rifle: click to fire. People are knocked out, never hurt.');
+  $('fpFire').textContent = WPN[t] ? 'Fire' : t === 'rod' ? 'Cast / reel' : 'Pick up / throw'; fp.zoom = false;
+  if (fp.on) toast(t === 'hands' ? 'Hands: click or E picks up, click again throws, G drops' : t === 'rod' ? 'Rod: click to cast onto water, click when the float dips' : WPN[t].name + ': click to fire' + (WPN[t].zoom ? ', right click to zoom' : '') + ', R reloads. Knock-outs only, never gore.');
 }
 function fpRodReset(quiet) { fp.rod = null; bobber.visible = lineMesh.visible = false; if (!quiet && fp.p) Snd.fx('ppl_fishing_reel', fp.p.x, fp.p.z, { gain: 0.5 }); refreshSide(); }
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _ray = new THREE.Ray(), _bx = new THREE.Box3(), _hit = new THREE.Vector3(), _w = new THREE.Vector3();
-function fpAim(maxD) {
-  camera.getWorldPosition(_o); camera.getWorldDirection(_d); const me = fp.p; let best = { t: maxD, kind: null, ref: null };
+function fpAim(maxD, jit) {
+  camera.getWorldPosition(_o); camera.getWorldDirection(_d); if (jit) { _d.x += (Math.random() - 0.5) * 2 * jit; _d.y += (Math.random() - 0.5) * 2 * jit; _d.z += (Math.random() - 0.5) * 2 * jit; _d.normalize(); } const me = fp.p; let best = { t: maxD, kind: null, ref: null };
   for (let t = 0.8; t <= maxD; t += (t < 30 ? 0.6 : 1.4)) { const x = _o.x + _d.x * t, y = _o.y + _d.y * t, z = _o.z + _d.z * t, gh = heightAt(x, z); if (y <= gh) { best = { t, kind: 'land', ref: null }; break; } if (gh < -0.05 && y <= waveH(x, z, simT)) { best = { t, kind: 'water', ref: null }; break; } }
   for (const q of people) { if (q === me || q.state === 'rag') continue; for (const cy of [0.5, 1.25]) { const cx = q.x - _o.x, cyy = q.y + cy - _o.y, cz = q.z - _o.z, t = cx * _d.x + cyy * _d.y + cz * _d.z; if (t < 0.4 || t >= best.t) continue; const dx = _o.x + _d.x * t - q.x, dy = _o.y + _d.y * t - (q.y + cy), dz = _o.z + _d.z * t - q.z; if (dx * dx + dy * dy + dz * dz < 0.2) { best = { t, kind: 'person', ref: q }; break; } } }
   _ray.set(_o, _d);
@@ -3516,10 +3533,27 @@ function fpCatch() {
   const f = tbl[Math.floor(Math.random() * tbl.length)], kg = f[1] * (0.6 + Math.random() * 0.9); fp.fish.n++; fp.fish.kg += kg; fp.fish.log.unshift(f[0] + ', ' + kg.toFixed(1) + ' kg'); fp.fish.log.length = Math.min(fp.fish.log.length, 14);
   splash(r.x, r.z, 0.5); toast(f[0] === 'old boot' ? 'You caught an old boot.' : 'You caught a ' + f[0] + ', ' + kg.toFixed(1) + ' kg.'); npcEv('fishCaught'); fpRodReset(true); Snd.fx('ppl_fishing_reel', p.x, p.z, { gain: 0.7 }); refreshSide();
 }
-function fpPrimary() { if (!fp.on || mode !== 'fp') return; if (fp.tool === 'rifle') fpShoot(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
+function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = 1.7; fp.reloadTool = fp.tool; Snd.fx('mat_wood_tock', fp.p.x, fp.p.z, { gain: 0.5 }); }
+function fpFireGun() {
+  const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { fpReload(); return; }
+  fp.ammo[id]--; fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + 0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)); fp.yaw += (Math.random() - 0.5) * 0.006; fp.flash = 0.05;
+  { const sn = 'wpn_' + id + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
+  const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
+  const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1);
+  for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z);
+    impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) hurt(q, w.dmg * fall, p, head); else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
+    else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
+    else if (h.kind === 'obj') { const o = h.ref; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(_d.x * w.dmg * 3, _d.y * w.dmg * 3 + 12, _d.z * w.dmg * 3), new CANNON.Vec3(pt.x - o.body.position.x, pt.y - o.body.position.y, pt.z - o.body.position.z)); if (o.m && o.m.frag && o.m.str < 120 && Math.random() < 0.2) fracture(o, 'shot'); }
+    }
+  if (fp.ammo[id] <= 0) fpReload();
+}
+function fpPrimary() { if (!fp.on || mode !== 'fp') return; if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
 function fpToolsUpdate(dt, t) {
   const p = fp.p; fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6);
-  const rm = fpToolMesh.rifle; if (rm) rm.position.z = -0.55 + fp.kick * 0.07;
+  for (const k in WPN) { const m = fpToolMesh[k]; if (m) { m.position.z = (m.userData.bz !== undefined ? m.userData.bz : k === 'rifle' ? -0.55 : -0.5) + fp.kick * 0.07; const f = m.getObjectByName('flash'); if (f) f.visible = fp.flash > 0 && fp.tool === k; } } fp.flash = Math.max(0, (fp.flash || 0) - dt);
+  if (fp.reload > 0) { fp.reload -= dt; if (fp.reload <= 0) { fp.ammo = fp.ammo || {}; const w = WPN[fp.reloadTool]; if (w) fp.ammo[fp.reloadTool] = w.mag; } }
+  if (fp.fireHeld && WPN[fp.tool] && WPN[fp.tool].auto) fpFireGun();
+  if (BATTLE.on && p) { p.hp = Math.min(100, (p.hp === undefined ? 100 : p.hp) + (BATTLE.hurtT <= 0 && p.hp > 0 ? dt * 3 : 0)); battleHud(); }
   const r = fp.rod; if (!r || !p) return;
   if (Math.hypot(p.x - r.x, p.z - r.z) > 75) { fpRodReset(true); toast('Line out of reach. Reeled in.'); return; }
   const wy = waveH(r.x, r.z, simT); const tip = camera.localToWorld(_w.set(0.22, 0.25, -1.6));
@@ -3529,7 +3563,7 @@ function fpToolsUpdate(dt, t) {
     else if (r.state === 'bite' && r.t > 7) { fpRodReset(true); toast('It got away.'); return; } }
   const a = lineGeo.attributes.position; for (let i = 0; i < 10; i++) { const u = i / 9, sag = r.state === 'fly' ? 0 : Math.sin(u * Math.PI) * 0.6; a.setXYZ(i, tip.x + (bobber.position.x - tip.x) * u, tip.y + (bobber.position.y - tip.y) * u - sag, tip.z + (bobber.position.z - tip.z) * u); } a.needsUpdate = true;
 }
-$('fpFire').addEventListener('click', fpPrimary);
+$('fpFire').addEventListener('pointerdown', () => { fp.fireHeld = true; fpPrimary(); }); $('fpFire').addEventListener('pointerup', () => { fp.fireHeld = false; });
 
 /* ================================================================ the side pane: Place (everything you can put down), Live (everything that is in the world), Play (drop in, tools, catch) */
 const sideEl = $('side'), sBody = $('sBody'); let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
@@ -3537,7 +3571,7 @@ const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'
 function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
-  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
+  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['battle', 'Battle'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
     const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
@@ -3555,6 +3589,18 @@ function renderSide() {
       sBody.append(mkB('Run the day (scripted events)', 'sItem', portDay));
       const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Objectives'; sBody.append(h);
       for (const st of sites) { const owner = st.owner || (st.kind === 'build' || st.kind === 'yard' ? 'Port' : ''); const stock = objects.filter(o => !o.gone && Math.hypot(o.body.position.x - st.x, o.body.position.z - st.z) < 14).length; const b = mkB('', 'sMain sRowBtn', () => camFlyTo(st.x, st.z, 45 * CELL)); b.style.width = '100%'; b.style.marginBottom = '4px'; const t = document.createElement('b'); t.textContent = SITE_INFO[st.kind][0] + (owner ? ' (' + owner + ')' : ''); const sm = document.createElement('small'); sm.textContent = st.kind === 'build' ? (st.done ? 'finished' : 'stage ' + st.stage + ' of 8') : st.kind === 'yard' ? stock + ' items stocked' : st.kind === 'plant' ? st.planted + ' trees planted' : SITE_INFO[st.kind][1]; b.append(t, sm); sBody.append(b); }
+    }
+  } else if (sideTab === 'battle') {
+    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'A battle for the capture points: knock out the other side, hold more points, and their tickets run down. Nobody is hurt; the fallen are carried off. Works best on the Port and mountains map.'; sBody.append(n);
+    const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); };
+    rg('Bots per side', 3, isTouch ? 8 : 14, 1, BATTLE.size, v => { BATTLE.size = v; }, v => v);
+    sBody.append(mkB('Enemy: ' + BATTLE.redKind + ' (tap to change)', 'sItem', () => { BATTLE.redKind = BATTLE.redKind === 'Raiders' ? 'Invaders' : 'Raiders'; renderSide(); }));
+    if (!BATTLE.on) { sBody.append(mkB('Start the battle and watch', 'sItem', () => { battleStart(); renderSide(); })); sBody.append(mkB('Fight for the Port (first person)', 'sItem', () => { playBattle('blue'); setSide(false); })); sBody.append(mkB('Fight for the ' + BATTLE.redKind + ' (first person)', 'sItem', () => { playBattle('red'); setSide(false); })); }
+    else {
+      sBody.append(mkB('Stop the battle', 'sItem', () => { battleStop(); renderSide(); })); sBody.append(mkB('Drop in as a Port soldier', 'sItem', () => { if (!fp.on) { playBattle('blue'); setSide(false); } }));
+      const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Tickets: Port ' + BATTLE.tickets.blue + ', ' + BATTLE.redKind + ' ' + BATTLE.tickets.red + ' · knock-outs ' + BATTLE.kills.blue + ' to ' + BATTLE.kills.red; sBody.append(h);
+      const hp = document.createElement('div'); hp.className = 'sCat'; hp.textContent = 'Battle plan (Port side)'; sBody.append(hp);
+      for (const p of BATTLE.points) { const row = document.createElement('div'); row.className = 'sRow'; const m = mkB('', 'sMain', () => camFlyTo(p.x, p.z, 55 * CELL)); const b = document.createElement('b'); b.textContent = p.name; const sm = document.createElement('small'); sm.textContent = (p.owner === 'blue' ? 'Port' : p.owner === 'red' ? BATTLE.redKind : 'Neutral') + ' · ' + (BATTLE.plan[p.name] || 'auto'); m.append(b, sm); row.append(m); row.append(mkB('A', 'sMini', () => { BATTLE.plan[p.name] = BATTLE.plan[p.name] === 'attack' ? null : 'attack'; planBattle(); renderSide(); }, { 'aria-label': 'Attack' })); row.append(mkB('D', 'sMini', () => { BATTLE.plan[p.name] = BATTLE.plan[p.name] === 'defend' ? null : 'defend'; planBattle(); renderSide(); }, { 'aria-label': 'Defend' })); sBody.append(row); }
     }
   } else if (sideTab === 'live') {
     const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
@@ -3602,7 +3648,7 @@ function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode ==
 function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person') removePerson(r.ref); else if (r.k === 'boat') removeBoat(r.ref); else if (r.k === 'veh') removeVehicle(r.ref); else if (r.k === 'things') { const o = r.ref.find(q => !q.gone); if (o) { removeObj(o); updateCount(); } } liveSig = ''; fillLive(); }
 $('bFP').addEventListener('click', dropIn); $('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
-setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
+setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'battle') { const sg = BATTLE.on ? BATTLE.tickets.blue + '/' + BATTLE.tickets.red + BATTLE.points.map(p => p.owner || '-').join('') : 'off'; if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
 setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
 addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
@@ -3764,6 +3810,203 @@ function paveRoad(pts, w, marks) {                                              
   for (const sg of segs) { pavedGrid('asphalt', sg.cx, sg.cz, sg.len + 1.5, w, sg.ang, 0.06, 8); if (marks) pavedGrid('marks', sg.cx, sg.cz, w, sg.len, sg.ang - Math.PI / 2, 0.085, 0, PAVE.marks); }
 }
 
+/* ================================================================ the battle: Port against Raiders (or Invaders) for the capture points. Health, tickets, spawns and respawns, bots with classes and weapons, squads and orders. Knock-outs only: nobody is hurt, the fallen go down cartoon-style and are carried off. */
+const WPN = {
+  pistol: { name: 'Pistol', dmg: 26, rate: 0.3, mag: 12, spread: 0.012, range: 120, auto: false, bot: 1.3 },
+  smg: { name: 'SMG', dmg: 11, rate: 0.08, mag: 32, spread: 0.03, range: 90, auto: true, bot: 0.16 },
+  rifle: { name: 'Rifle', dmg: 30, rate: 0.16, mag: 25, spread: 0.012, range: 220, auto: true, bot: 0.34 },
+  shotgun: { name: 'Shotgun', dmg: 9, pellets: 8, rate: 0.85, mag: 6, spread: 0.07, range: 45, auto: false, bot: 1.1 },
+  sniper: { name: 'Sniper', dmg: 90, rate: 1.2, mag: 5, spread: 0.002, range: 420, auto: false, zoom: 16, bot: 2.2 },
+};
+const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, kills: { blue: 0, red: 0 }, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: 'blue', plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow' };
+const BPT_DEFS = [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -40, -245, null], ['Landing beach', 250, 90, 'red'], ['Raider camp', 258, -288, 'red']];
+const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red' : null), otherTeam = (t) => t === 'blue' ? 'red' : 'blue';
+const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
+const tracers = (() => { const N = 48, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
+function addTracer(x0, y0, z0, x1, y1, z1) { const T = tracers, i = T.i = (T.i + 1) % T.N; T.pos.set([x0, y0, z0, x1, y1, z1], i * 6); T.life[i] = 0.06; T.g.attributes.position.needsUpdate = true; }
+function updateTracers(dt) { const T = tracers; let ch = false; for (let i = 0; i < T.N; i++) if (T.life[i] > 0) { T.life[i] -= dt; if (T.life[i] <= 0) { T.pos.fill(0, i * 6, i * 6 + 6); ch = true; } } if (ch) T.g.attributes.position.needsUpdate = true; }
+function makeFlag(def) {
+  const [name, x, z, owner] = def, g = new THREE.Group(), pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 9, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); pole.position.y = 4.5;
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2), new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide })); cloth.position.set(1.7, 7.8, 0);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(15.4, 16, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.55, depthWrite: false })); ring.position.y = 0.3;
+  g.add(pole, cloth, ring); g.position.set(x, Math.max(heightAt(x, z), 0), z); scene.add(g);
+  return { name, x, z, r: 16, owner, prog: owner === 'blue' ? 1 : owner === 'red' ? -1 : 0, mesh: g, cloth, ring, nb: 0, nr: 0, base: !!owner };
+}
+function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
+function battleStart() {
+  if (MAP.t !== 'port') { toast('Battles are played on the Port and mountains map. Opening it.'); startMap('port', 'port'); return; }
+  ensureWeapons(); battleStop(true); BATTLE.on = true; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
+  for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
+  for (const bt of boats.slice()) if (boatCrew(bt).length === 0) { }
+  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag);
+  for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
+  document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle: Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
+  if (BATTLE.team === 'red') for (const q of people) if (q.bot) { /* teams are fixed; the player joins the red side below */ }
+}
+function battleStop(quiet) {
+  for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
+}
+const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle', 'shotgun', 'rifle'];
+function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === team); const base = own.length ? own[Math.floor(Math.random() * own.length)] : BATTLE.points.find(p => p.base && (p.owner === team || true)) || BATTLE.points[0]; return base; }
+function spawnBot(team, first) {
+  if (people.length >= MAX_PEOPLE) return null; const pt = spawnPointOf(team); if (!pt) return null; let x = pt.x, z = pt.z;
+  for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 4 + Math.random() * 9, xx = pt.x + Math.cos(a) * d, zz = pt.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
+  const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.side = team; q.role = team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider'; if (team === 'red') q.fromHostile = true;
+  const cls = BCLS[Math.floor(Math.random() * BCLS.length)], w = cls === 'medic' ? 'pistol' : cls; q.hp = 100;
+  q.bot = { team, cls, w, ammo: WPN[w].mag, cool: rnd(0.3, 1), scan: rnd(0, 0.3), tgt: null, obj: null, alert: 0, rev: 0, reload: 0, burst: 0, cmdUntil: 0, myOrder: null, follow: false, step: rnd(0, 2), idle: rnd(0, 2) };
+  q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'In the battle';
+  q.bot.wmesh = botWeapon(w); q.obj.add(q.bot.wmesh);
+  if (!first) noteOnce('reinf' + team, (team === 'blue' ? 'Port reinforcements arrive.' : 'Reinforcements arrive for the ' + BATTLE.redKind + '.'));
+  return q;
+}
+function removeBot(q) { if (people.includes(q)) removePerson(q); }
+function losFull(x0, y0, z0, x1, y1, z1) {
+  if (!los(x0, z0, y0, x1, z1, y1)) return false; const d = Math.hypot(x1 - x0, z1 - z0), n = Math.ceil(d / 3);
+  for (const p of props) { const b = p.item && p.item.box; if (!b) continue; const rr = Math.max(b[0], b[2]) + 2, mx = (x0 + x1) / 2 - p.x, mz = (z0 + z1) / 2 - p.z; if (mx * mx + mz * mz > (d / 2 + rr) ** 2) continue; const yaw = p.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), top = heightAt(p.x, p.z) + b[1] * 2;
+    for (let k = 1; k < n; k++) { const u = k / n, x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * u, y = y0 + (y1 - y0) * u, dx = x - p.x, dz = z - p.z, lx = dx * c - dz * sn, lz = dx * sn + dz * c; if (Math.abs(lx) < b[0] && Math.abs(lz) < b[2] && y < top) return false; } }
+  return true;
+}
+function hurt(q, dmg, from, head) {
+  if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q;
+  if (isP) { BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
+  else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; }
+  if (q.hp <= 0) downPerson(q, from);
+}
+function downPerson(q, from) {
+  const t = teamOf(q); let dx = 0, dz = 1; if (from) { dx = q.x - from.x; dz = q.z - from.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; }
+  try { topple(q, new CANNON.Vec3(dx * 2.5, 2.4, dz * 2.5)); } catch (e) { } q.koUntil = simT + 99999; if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; }
+  if (BATTLE.on && t) { BATTLE.tickets[t] = Math.max(0, BATTLE.tickets[t] - 1); BATTLE.kills[otherTeam(t)]++; }
+  const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
+  npcEv('battleKO');
+}
+function botWeaponMesh() { const g = new THREE.Group(), dark = new THREE.MeshStandardMaterial({ color: 0x23272a, roughness: 0.5, metalness: 0.5 }); const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.62), dark); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.018, 0.4, 6), dark); br.rotation.x = Math.PI / 2; br.position.set(0, 0.02, 0.5); g.add(b, br); g.position.set(0.14, 1.12, 0.3); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; }
+function senseEnemy(q, b) {
+  const w = WPN[b.w], sight = b.cls === 'sniper' ? 200 : 85, fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
+  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + 1.4, e.z)) continue; bd = d; best = e; }
+  return best;
+}
+function botFire(q, b, e, d) {
+  const w = WPN[b.w]; b.ammo--; b.cool = w.rate + w.bot * (0.7 + Math.random() * 0.8); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 6 : 99)) { b.burst = 0; b.cool += 0.7 + Math.random() * 0.6; }
+  const moving = e.fpMoving || (e.order != null), acc = (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1), hit = Math.random() < acc;
+  const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + 1.3, ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + 1.1 + (hit ? 0 : rnd(-0.5, 0.5));
+  addTracer(sx, sy, sz, ex, ey, ez); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + (b.w === 'medic' ? 'pistol' : b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
+  if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)), q, Math.random() < 0.08); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) e.bot.alert = Math.max(e.bot.alert, 3); impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d); if (fp.on && fp.p === e) Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), e.x, e.z, { gain: 0.8 }); }
+  if (b.ammo <= 0) { b.reload = 2.2; b.ammo = w.mag; }
+}
+function botThink(q, dt) {
+  const b = q.bot; if (!b) return;
+  if (q.state === 'rag') { if (!b.dead) { b.dead = true; b.deadAt = simT; } if (simT - b.deadAt > 16 && !(fp.on && fp.p === q)) removeBot(q); return; }
+  if (q.fp || q.hop || q.ride || q.hp <= 0) return;
+  b.alert = Math.max(0, b.alert - dt); b.cool -= dt; b.reload -= dt; b.scan -= dt;
+  q.aim = (q.aim || 0) + ((b.tgt ? 1 : 0) - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4);
+  if (q.order && q.order !== b.myOrder) { b.cmdUntil = simT + 25; b.myOrder = q.order; b.cmd = true; }
+  if (b.cmd && !q.order) b.cmd = false;
+  if (b.scan <= 0) { b.scan = 0.25 + Math.random() * 0.15; b.tgt = senseEnemy(q, b); if (b.tgt && !b.seen) { b.seen = true; } }
+  const e = b.tgt;
+  if (e && e.state !== 'rag' && e.hp > 0) {
+    const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz);
+    if (d > w.range * 0.75 || (d > 28 && b.cls !== 'sniper' && b.alert <= 0 && !q.order)) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, e.x - dx / d * 12, e.z - dz / d * 12); b.myOrder = q.order; q.run = true; } }
+    else { if (q.order && q.order === b.myOrder) { q.order = null; q.route = null; b.myOrder = null; } q.run = false;
+      b.step -= dt; if (b.step <= 0 && b.cls !== 'sniper') { b.step = rnd(1.2, 2.6); const sx = Math.cos(q.heading) * rnd(-3, 3), sz = -Math.sin(q.heading) * rnd(-3, 3); if (standY(q.x + sx, q.z + sz) > 0.5) { setFootOrder(q, q.x + sx, q.z + sz); b.myOrder = q.order; } }   // a little strafe
+      if (b.reload <= 0 && b.cool <= 0 && d <= w.range) botFire(q, b, e, d); }
+    return;
+  }
+  b.tgt = null; q.run = true;
+  // a medic goes for the nearest fallen friend
+  if (b.cls === 'medic') { let f = null, fd = 60; for (const a of people) if (a !== q && a.state === 'rag' && teamOf(a) === b.team && a.bot && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 12) { const d = Math.hypot(a.x - q.x, a.z - q.z); if (d < fd) { fd = d; f = a; } }
+    if (f) { if (fd > 2.5) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, f.x, f.z); b.myOrder = q.order; } } else { q.order = null; b.rev += dt; if (b.rev > 2.2) { b.rev = 0; f.hp = 45; f.bot.dead = false; f.bot.revived = true; f.koUntil = 0; standUp(f); f.bot.revived = false; BATTLE.tickets[b.team] = Math.min(120, BATTLE.tickets[b.team] + 0); noteOnce('rev' + simT, 'A medic got someone back on their feet.'); } } return; } }
+  if (simT < b.cmdUntil && q.order) return;
+  // walk to the objective, or follow the player
+  let tx, tz; if (b.follow && fp.on && fp.p) { tx = fp.p.x + rnd(-6, 6); tz = fp.p.z + rnd(-6, 6); } else if (b.obj) { const a = Math.random() * 6.283, r = Math.random() * 10; tx = b.obj.x + Math.cos(a) * r; tz = b.obj.z + Math.sin(a) * r; }
+  if (tx === undefined) return; if (!q.order) { b.idle -= dt; if (b.idle <= 0) { b.idle = rnd(1.5, 4); if (standY(tx, tz) > 0.5) { setFootOrder(q, tx, tz); b.myOrder = q.order; } } }
+}
+function planBattle() {
+  for (const team of ['blue', 'red']) {
+    const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag'), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : 0, cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : 0;
+    const enemy = pts.filter(p => p.owner !== team).sort((a, b) => Math.hypot(a.x - cx, a.z - cz) - Math.hypot(b.x - cx, b.z - cz)), mine = pts.filter(p => p.owner === team);
+    const wantAtt = enemy.filter(p => BATTLE.plan[p.name] === 'attack' && team === BATTLE.team), wantDef = mine.filter(p => BATTLE.plan[p.name] === 'defend' && team === BATTLE.team);
+    const threat = (p) => people.filter(e => teamOf(e) === otherTeam(team) && e.state !== 'rag' && Math.hypot(e.x - p.x, e.z - p.z) < 45).length;
+    const defend = mine.slice().sort((a, b) => threat(b) - threat(a));
+    bots.forEach((q, i) => { const squad = Math.floor(i / 4); let t;
+      if (wantDef.length && squad % 3 === 2) t = wantDef[squad % wantDef.length];
+      else if (squad % 4 === 3 && defend.length) t = defend[0];
+      else if (wantAtt.length) t = wantAtt[squad % wantAtt.length]; else t = enemy[Math.min(squad % 3, enemy.length - 1)] || defend[0] || pts[0];
+      if (!q.bot.follow) q.bot.obj = t; q.bot.squad = squad; });
+  }
+}
+function updateBattle(dt) {
+  if (!BATTLE.on) return; updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  if (BATTLE.over) return;
+  for (const q of people) if (q.bot) botThink(q, dt);
+  BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
+    for (const p of BATTLE.points) { let nb = 0, nr = 0; for (const q of people) { if (q.state === 'rag' || q.ride || q.swim || q.hp <= 0) continue; const t = teamOf(q); if (!t || Math.hypot(q.x - p.x, q.z - p.z) > p.r) continue; if (t === 'blue') nb++; else nr++; }
+      p.nb = nb; p.nr = nr; const d = clamp(nb - nr, -4, 4); if (nb && nr && Math.abs(nb - nr) < 1) continue; const before = p.owner; p.prog = clamp(p.prog + d * 0.07 * step * 2, -1, 1); const ow = p.prog > 0.6 ? 'blue' : p.prog < -0.6 ? 'red' : null; if (ow !== p.owner) { p.owner = ow; paintFlag(p); if (ow) noteOnce('cap' + p.name + ow, (ow === 'blue' ? 'The Port' : 'The ' + BATTLE.redKind) + ' captured ' + p.name + '.'); else noteOnce('neu' + p.name, p.name + ' is neutral.'); } }
+    battleHud();
+  }
+  BATTLE.bleedT -= dt; if (BATTLE.bleedT <= 0) { BATTLE.bleedT = 8; const nbl = BATTLE.points.filter(p => p.owner === 'blue').length, nrd = BATTLE.points.filter(p => p.owner === 'red').length; if (nbl > nrd + 1) BATTLE.tickets.red = Math.max(0, BATTLE.tickets.red - (nbl - nrd - 1)); else if (nrd > nbl + 1) BATTLE.tickets.blue = Math.max(0, BATTLE.tickets.blue - (nrd - nbl - 1)); }
+  BATTLE.planT -= dt; if (BATTLE.planT <= 0) { BATTLE.planT = 12; planBattle(); }
+  BATTLE.spawnT -= dt; if (BATTLE.spawnT <= 0) { BATTLE.spawnT = 2.5; for (const team of ['blue', 'red']) { const alive = people.filter(q => q.bot && q.bot.team === team && !q.bot.dead).length; if (alive < BATTLE.size && BATTLE.tickets[team] > BATTLE.size - alive) { const q = spawnBot(team, false); if (q) planBattle(); } } }
+  if (!BATTLE.over && (BATTLE.tickets.blue <= 0 || BATTLE.tickets.red <= 0)) { BATTLE.over = true; const win = BATTLE.tickets.blue > 0 ? 'The Port wins' : 'The ' + BATTLE.redKind + ' win'; toast(win + '. Open the Battle tab to play again.'); battleHud(); }
+}
+function battleHud(force) {
+  const h = $('bHud'); if (!h || h.hidden) return; const nb = BATTLE.points.filter(p => p.owner === 'blue').length, nr = BATTLE.points.filter(p => p.owner === 'red').length;
+  $('bTick').innerHTML = '<span class="bB">PORT ' + BATTLE.tickets.blue + '</span><span class="bPts">' + BATTLE.points.map(p => '<i style="background:' + (p.owner ? (p.owner === 'blue' ? '#2f5d9f' : '#c0392b') : '#999') + (p.nb || p.nr ? ';outline:2px solid #fff' : '') + '" title="' + p.name + '"></i>').join('') + '</span><span class="bR">' + BATTLE.redKind.toUpperCase() + ' ' + BATTLE.tickets.red + '</span>';
+  const st = $('bStat'); const pp = fp.on && fp.p; st.hidden = !pp; if (pp) { const w = WPN[fp.tool]; st.innerHTML = '<div class="hp"><b style="width:' + clamp(pp.hp, 0, 100) + '%"></b></div>' + (w ? '<div>' + w.name + ' ' + ((fp.ammo && fp.ammo[fp.tool] != null) ? fp.ammo[fp.tool] : w.mag) + ' / ' + w.mag + (fp.reload > 0 ? ' reloading' : '') + '</div>' : ''); }
+}
+function deployMenu() {
+  const so = $('bSpawn'); so.hidden = false; so.innerHTML = '<h3>You were knocked out</h3><p>Choose where to deploy.</p>'; const mine = BATTLE.points.filter(p => p.owner === BATTLE.team); const list = mine.length ? mine : [BATTLE.points.find(p => p.base) || BATTLE.points[0]];
+  for (const p of list) { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.addEventListener('click', () => deploy(p)); so.append(b); }
+}
+function deploy(p) {
+  const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
+  me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
+  const near = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 4); for (const q of near) q.bot.follow = BATTLE.squadMode === 'follow';
+}
+function playBattle(team) {
+  if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } const bd = q.bot; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
+}
+function squadOrder(mode) {
+  BATTLE.squadMode = mode; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag' && q.bot.follow !== undefined).sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
+  for (const q of mine) { q.bot.follow = mode === 'follow'; if (mode === 'hold') { q.order = null; q.route = null; q.bot.obj = { x: q.x, z: q.z }; } } toast(mode === 'follow' ? 'Your squad follows you.' : 'Your squad holds here.');
+}
+function squadGo() {
+  const h = fpAim(300); if (!h.pt) return; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
+  for (const q of mine) { q.bot.follow = false; q.bot.obj = { x: h.pt.x, z: h.pt.z }; q.order = null; q.route = null; } toast('Your squad moves out to where you are looking.');
+}
+
+/* ---- weapon models, hit effects, and the sounds that go with them */
+let wpP = null; const MUZ = { pistol: [0, 0.07, -0.178], smg: [0, 0.102, -0.37], rifle: [0, 0.125, -0.78], shotgun: [0, 0.052, -0.89], sniper: [0, 0.112, -0.96] };
+const ensureWeapons = () => wpP || (wpP = loadGLB('weapons').then(g => { D.glb.weapons = g; applyWeaponModels(); }).catch(e => { wpP = null; }));
+function applyWeaponModels() {
+  const g = D.glb.weapons; if (!g) return; const fgeo = new THREE.PlaneGeometry(0.32, 0.32), fmat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide, toneMapped: false });
+  for (const k of ['pistol', 'smg', 'rifle', 'shotgun', 'sniper']) { const n = nodeByName(g, k); if (!n) continue; const grp = new THREE.Group(), m = n.clone(); grp.add(m);
+    if (k === 'rifle' || k === 'smg') { const ar = nodeByName(g, 'arms_idle'); if (ar) grp.add(ar.clone()); }
+    const f = new THREE.Mesh(fgeo, fmat); f.name = 'flash'; f.position.set(MUZ[k][0], MUZ[k][1], MUZ[k][2] - 0.04); f.visible = false; grp.add(f);
+    grp.position.set(0.17, -0.2, -0.38); grp.userData.bz = -0.38; grp.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.renderOrder = 8; } });
+    const old = fpToolMesh[k]; const vis = old ? old.visible : false; if (old) camera.remove(old); grp.visible = vis; camera.add(grp); fpToolMesh[k] = grp; }
+  for (const q of people) if (q.bot && q.bot.wmesh) { q.obj.remove(q.bot.wmesh); q.bot.wmesh = botWeapon(q.bot.w); q.obj.add(q.bot.wmesh); }
+}
+function botWeapon(w) {
+  const g = D.glb.weapons, n = g && nodeByName(g, w === 'medic' ? 'pistol' : w); if (n) { const m = new THREE.Group(), c = n.clone(); c.rotation.y = Math.PI; m.add(c); m.position.set(0.13, 1.18, 0.22); m.scale.setScalar(1.05); m.traverse(o => { if (o.isMesh) o.castShadow = true; }); return m; }
+  return botWeaponMesh();
+}
+const SURF = { dirt: [[0.45, 0.36, 0.26, 0.55], [0.35, 0.28, 0.2]], grass: [[0.3, 0.4, 0.2, 0.5], [0.3, 0.26, 0.18]], sand: [[0.82, 0.72, 0.5, 0.5], [0.8, 0.7, 0.5]], concrete: [[0.62, 0.62, 0.6, 0.55], [0.7, 0.7, 0.68]], asphalt: [[0.3, 0.3, 0.3, 0.55], [0.35, 0.35, 0.36]], gravel: [[0.6, 0.55, 0.48, 0.55], [0.55, 0.5, 0.45]], wood: [[0.6, 0.45, 0.28, 0.6], [0.6, 0.42, 0.25]], metal: [[0.7, 0.7, 0.72, 0.4], [0.8, 0.8, 0.85]], glass: [[0.8, 0.95, 1, 0.5], [0.85, 0.95, 1]] };
+function surfaceAt(x, z) {
+  const k = Math.round(W2G(z)) * TN + Math.round(W2G(x)); if (MET[k] === 120) return 'gravel'; const j = Math.floor((W2G(x) - 2) / 4 + 0.5), i = Math.floor((W2G(z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64 && ROADCELL[i * 64 + j]) return 'asphalt';
+  if (MAP.t === 'port' && x > -200 && x < 160 && z > 40 && z < 100 && heightAt(x, z) < 2.2) return 'concrete'; const h = heightAt(x, z); return h < 2.8 ? 'sand' : h > 14 ? 'dirt' : 'grass';
+}
+function impactFx(kind, ref, pt, d) {
+  let mat = 'dirt', sparks = false, snd = 'imp_dirt';
+  if (kind === 'water') { splash(pt.x, pt.z, 0.3); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
+  if (kind === 'person') { for (let i = 0; i < 4; i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
+  if (kind === 'boat') { mat = 'metal'; sparks = true; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; sparks = mat === 'metal' || mat === 'concrete'; snd = 'imp_' + mat; } else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; sparks = mat === 'concrete' || mat === 'asphalt'; }
+  const c = (SURF[mat] || SURF.dirt)[0], c2 = (SURF[mat] || SURF.dirt)[1];
+  for (let i = 0; i < 7; i++) fxS.emit(pt.x, pt.y + 0.05, pt.z, rnd(-2.2, 2.2), rnd(1, 4), rnd(-2.2, 2.2), rnd(0.35, 0.7), 0.06, 0.15, [c2[0], c2[1], c2[2], 0.9], 9, 0.5);
+  fxS.emit(pt.x, pt.y + 0.1, pt.z, 0, 0.7, 0, 0.7, 0.45, 3, c, 0, 1);
+  if (sparks) for (let i = 0; i < 5; i++) fxG.emit(pt.x, pt.y + 0.05, pt.z, rnd(-3, 3), rnd(1, 3.5), rnd(-3, 3), 0.25, 0.07, 0.2, [1, 0.8, 0.4, 1], 9, 0.5);
+  Snd.fx(snd + '_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7, y: pt.y }); if (Math.random() < 0.3) Snd.fx('wpn_ricochet_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.4 });
+}
+
 combatReady = true; boats.forEach(setupBoatCombat);
 
 /* ================================================================ weather and time of day */
@@ -3908,7 +4151,7 @@ canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 let lastPType = 'touch';
 canvas.addEventListener('pointerdown', (e) => {
   lastPType = e.pointerType;
-  if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); else if (e.button === 0) fpPrimary(); fp.drag = { x: e.clientX, y: e.clientY }; } return; }
+  if (mode === 'fp') { if (e.pointerType === 'mouse') { if (!fp.locked) lockPointer(); else if (e.button === 0) { fp.fireHeld = true; fpPrimary(); } else if (e.button === 2) fp.zoom = true; fp.drag = { x: e.clientX, y: e.clientY }; } return; }
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button }); god.fling.set(0, 0); god.fly = null; god._pt = performance.now();
   if (ptrs.size === 1) {
     downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, btn: e.button };
@@ -3964,6 +4207,7 @@ const endPtr = (e) => {
     if (e.pointerType !== 'mouse') hoverPt = null;     // no hover on touch: clear the brush ring once the finger lifts
   }
 };
+addEventListener('pointerup', (e) => { if (e.button === 0) fp.fireHeld = false; if (e.button === 2) fp.zoom = false; });
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('pointerleave', () => { lastMouse.on = false; if (!land.painting && !ptrs.size) hoverPt = null; });
 canvas.addEventListener('wheel', (e) => {
@@ -4385,7 +4629,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }
@@ -6938,7 +7182,7 @@ function think(p, ag) {
 function updateAgents(dt) {
   for (const p of people) {
     if (p.state === 'rag' && p.koUntil && simT > p.koUntil && standY(p.x, p.z) > 0.25 && !p.swim) { p.koUntil = 0; standUp(p); }
-    if (p.fp || p.hoist || p.state === 'rag' || p.hop || p === selPerson && p.order && !p.ag) continue;
+    if (p.bot || p.fp || p.hoist || p.state === 'rag' || p.hop || p === selPerson && p.order && !p.ag) continue;
     const ag = p.ag || (p.ag = { goal: null, think: rnd(0.2, 2), intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null });
     if (p.ride) {
       const bt = p.ride.boat;
@@ -7153,7 +7397,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>

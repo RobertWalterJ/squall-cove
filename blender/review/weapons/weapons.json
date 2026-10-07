@@ -1,0 +1,192 @@
+{
+ "pistol": {
+  "size_x": 0.032,
+  "size_y_height": 0.181,
+  "size_z_depth": 0.221,
+  "tris": 148,
+  "min": [
+   -0.016,
+   -0.043,
+   -0.085
+  ],
+  "max": [
+   0.016,
+   0.178,
+   0.096
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "smg": {
+  "size_x": 0.04,
+  "size_y_height": 0.325,
+  "size_z_depth": 0.66,
+  "tris": 232,
+  "min": [
+   -0.02,
+   -0.29,
+   -0.16
+  ],
+  "max": [
+   0.02,
+   0.37,
+   0.165
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "rifle": {
+  "size_x": 0.056,
+  "size_y_height": 0.348,
+  "size_z_depth": 1.187,
+  "tris": 256,
+  "min": [
+   -0.028,
+   -0.407,
+   -0.162
+  ],
+  "max": [
+   0.028,
+   0.78,
+   0.187
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "shotgun": {
+  "size_x": 0.066,
+  "size_y_height": 0.196,
+  "size_z_depth": 1.245,
+  "tris": 208,
+  "min": [
+   -0.033,
+   -0.355,
+   -0.12
+  ],
+  "max": [
+   0.033,
+   0.89,
+   0.076
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "sniper": {
+  "size_x": 0.121,
+  "size_y_height": 0.315,
+  "size_z_depth": 1.5,
+  "tris": 436,
+  "min": [
+   -0.031,
+   -0.54,
+   -0.077
+  ],
+  "max": [
+   0.091,
+   0.96,
+   0.238
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "knife": {
+  "size_x": 0.044,
+  "size_y_height": 0.054,
+  "size_z_depth": 0.357,
+  "tris": 88,
+  "min": [
+   -0.022,
+   -0.072,
+   -0.03
+  ],
+  "max": [
+   0.022,
+   0.285,
+   0.024
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "muzzle_flash": {
+  "size_x": 0.278,
+  "size_y_height": 0.238,
+  "size_z_depth": 0.0,
+  "tris": 32,
+  "min": [
+   -0.139,
+   0.8,
+   0.006
+  ],
+  "max": [
+   0.139,
+   0.8,
+   0.244
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.8,
+   0.125
+  ]
+ },
+ "magazine": {
+  "size_x": 0.036,
+  "size_y_height": 0.22,
+  "size_z_depth": 0.11,
+  "tris": 60,
+  "min": [
+   -0.018,
+   -0.04,
+   0.0
+  ],
+  "max": [
+   0.018,
+   0.07,
+   0.22
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "arms_idle": {
+  "size_x": 0.558,
+  "size_y_height": 0.394,
+  "size_z_depth": 0.999,
+  "tris": 336,
+  "min": [
+   -0.314,
+   -0.641,
+   -0.244
+  ],
+  "max": [
+   0.245,
+   0.358,
+   0.15
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "_total_tris": 1796
+}
