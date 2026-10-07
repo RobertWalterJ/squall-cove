@@ -1533,7 +1533,7 @@ const SPECS = {
   kestrel: { name: 'Kestrel', note: '7.9 m keelboat', kind: 'sail', mass: 1500, area: 24, cx: 70, cz: 3600, comd: 0.45, dist: 22, jib: true, capacity: 4, seat: true, zones: [[-0.36, -0.1, -0.75, 0.75, 0]] },
   bollard: { name: 'Bollard', note: '9.4 m harbour tug', kind: 'motor', mass: 3200, thrust: 7600, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
   bay: { name: 'Bay class', note: '19 m Coast Guard lifeboat', kind: 'motor', mass: 32000, thrust: 52000, cx: 520, cz: 52000, comd: 0.5, dist: 40, glb: 'ccg', capacity: 6, armor: 0.1, guns: [{ x: 0.22, h: 2.4, k: 'mg' }], zones: [[-0.46, -0.12, -1.8, 1.8, 0]] },
-  hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34, capacity: 10, armor: 0.15, guns: [{ x: 0.3, h: 1.6, k: 'gun' }, { x: -0.18, z: 2.4, h: 2.4, k: 'mg' }, { x: -0.18, z: -2.4, h: 2.4, k: 'mg' }], zones: mkZones(42.8, 7.0, { fore: [0.08, 0.28], aft: [0.62, 0.96], side: [0.08, 0.96, 0.8] }) },
+  hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34, capacity: 10, armor: 0.15, guns: [{ x: 0.3, h: 1.6, k: 'heavy' }, { x: -0.18, z: 2.4, h: 2.4, k: 'mg' }, { x: -0.18, z: -2.4, h: 2.4, k: 'mg' }], zones: mkZones(42.8, 7.0, { fore: [0.08, 0.28], aft: [0.62, 0.96], side: [0.08, 0.96, 0.8] }) },
   runner: { name: 'Smuggler runner', note: '9 m go-fast launch, one machine gun', glb: 'raiders', hp: 95, kind: 'motor', mass: 2200, thrust: 44000, cx: 330, cz: 4800, comd: 0.3, dist: 22, capacity: 4, guns: [{ x: 0.1, h: 1.2, k: 'mg' }], zones: [[-0.4, 0.2, -0.8, 0.8, 0]] },
   gunboat: { name: 'Raider gunboat', note: '9 m armed launch, two machine guns', glb: 'raiders', hp: 140, armor: 0.1, kind: 'motor', mass: 3000, thrust: 56000, cx: 400, cz: 5200, comd: 0.3, dist: 22, capacity: 5, guns: [{ x: 0.31, h: 0.5, k: 'mg' }, { x: -0.27, h: 0.5, k: 'mg' }], zones: [[-0.35, 0.1, -0.8, 0.8, 0]] },
   landing: { name: 'Landing craft', note: '16 m beaching craft with a bow ramp', glb: 'raiders', hp: 260, armor: 0.2, kind: 'motor', mass: 14000, thrust: 30000, cx: 900, cz: 18000, comd: 0.4, dist: 40, capacity: 12, turn: 0.5, zones: [[-0.3, 0.38, -1.5, 1.5, 0]] },
@@ -1545,7 +1545,7 @@ const SPECS = {
   radisson: { name: 'Pierre Radisson', note: '98 m icebreaker', kind: 'motor', mass: 5400000, thrust: 2700000, cx: 48214, cz: 8640000, comd: 1.85, dist: 88, glb: 'ccgfleet', turn: 0.122, crewX: 0.36, capacity: 16, armor: 0.4, guns: [{ x: 0.34, h: 2.4, k: 'gun' }, { x: -0.15, z: 6.5, h: 4.5, k: 'mg' }], zones: mkZones(98.3, 19.5, { fore: [0.07, 0.23], heli: [0.87, 0.99, 1.8], side: [0.07, 0.99, 0.72] }) },
   molly: { name: 'Capt. Molly Kool', note: '84 m icebreaker', kind: 'motor', mass: 4250000, thrust: 2125000, cx: 37946, cz: 6800000, comd: 1.68, dist: 75, glb: 'ccgfleet', turn: 0.143, crewX: 0.36, capacity: 14, armor: 0.35, guns: [{ x: 0.3, h: 2.2, k: 'gun' }], zones: mkZones(83.7, 18, { fore: [0.07, 0.33], aft: [0.76, 0.98], side: [0.07, 0.98, 0.8] }) },
   martha: { name: 'Martha L. Black', note: '83 m light icebreaker', kind: 'motor', mass: 3450000, thrust: 1725000, cx: 30804, cz: 5520000, comd: 1.56, dist: 75, glb: 'ccgfleet', turn: 0.145, crewX: 0.36, capacity: 12, armor: 0.3, guns: [{ x: 0.28, h: 2.2, k: 'gun' }], zones: mkZones(83, 16.2, { fore: [0.07, 0.41], heli: [0.9, 0.99, 0.8], side: [0.07, 0.99, 0.8] }) },
-  donjek: { name: 'Donjek', note: '104 m Arctic patrol ship', kind: 'motor', mass: 5040000, thrust: 2520000, cx: 45000, cz: 8064000, comd: 1.79, dist: 93, glb: 'ccgfleet', turn: 0.116, crewX: 0.36, capacity: 20, armor: 0.3, guns: [{ x: 0.36, h: 2.4, k: 'gun' }, { x: 0.02, z: 7.5, h: 4.5, k: 'mg' }, { x: 0.02, z: -7.5, h: 4.5, k: 'mg' }], zones: mkZones(103.6, 19, { fore: [0.07, 0.22], heli: [0.8, 0.98, 2.2], side: [0.07, 0.98, 0.84] }) },
+  donjek: { name: 'Donjek', note: '104 m Arctic patrol ship', kind: 'motor', mass: 5040000, thrust: 2520000, cx: 45000, cz: 8064000, comd: 1.79, dist: 93, glb: 'ccgfleet', turn: 0.116, crewX: 0.36, capacity: 20, armor: 0.3, guns: [{ x: 0.36, h: 2.4, k: 'heavy' }, { x: 0.02, z: 7.5, h: 4.5, k: 'mg' }, { x: 0.02, z: -7.5, h: 4.5, k: 'mg' }], zones: mkZones(103.6, 19, { fore: [0.07, 0.22], heli: [0.8, 0.98, 2.2], side: [0.07, 0.98, 0.84] }) },
   franklin: { name: 'Sir John Franklin', note: '63 m fisheries science', kind: 'motor', mass: 2600000, thrust: 1300000, cx: 23214, cz: 4160000, comd: 1.62, dist: 57, glb: 'ccgfleet', turn: 0.189, crewX: 0.36, capacity: 10, armor: 0.25, zones: mkZones(63.4, 16, { fore: [0.04, 0.12], aft: [0.64, 0.98], side: [0.04, 0.98, 0.86] }) },
 };
 const boats = []; let boatSeq = 0;
@@ -3151,12 +3151,13 @@ function splash(x, z, big) {
 /* ================================================================ weapons, hull damage, fire, flooding, sinking */
 const WEAPONS = {
   gun: { name: 'Deck gun', v: 175, dmg: 22, reload: 2.1, spread: 0.010, range: 280, flash: 1.4, recoil: 2600 },
+  heavy: { name: 'Naval gun', v: 300, dmg: 80, reload: 4.2, spread: 0.005, range: 560, flash: 2.6, recoil: 9000 },
   mg:  { name: 'Machine gun', v: 220, dmg: 3.2, reload: 0.14, spread: 0.016, range: 200, flash: 0.5, recoil: 120 },
 };
 const shots = [];
 const gunMat = new THREE.MeshStandardMaterial({ color: 0x3a3f43, roughness: 0.6, metalness: 0.5 });
 function makeGunMesh(kind) {
-  const g = new THREE.Group(), big = kind === 'gun';
+  const g = new THREE.Group(), big = kind === 'gun' || kind === 'heavy'; if (kind === 'heavy') g.scale.setScalar(1.35);
   const base = new THREE.Mesh(new THREE.CylinderGeometry(big ? 0.7 : 0.3, big ? 0.85 : 0.38, big ? 0.7 : 0.45, 10), gunMat); base.position.y = big ? 0.35 : 0.22; g.add(base);
   const turret = new THREE.Group(); turret.position.y = big ? 0.95 : 0.55; g.add(turret);
   const head = new THREE.Mesh(new THREE.BoxGeometry(big ? 1.5 : 0.5, big ? 0.7 : 0.3, big ? 1.1 : 0.4), gunMat); turret.add(head);
@@ -3182,9 +3183,9 @@ function fireShot(bt, m, tgt) {
   const sp = w.spread + d * 0.00005 + sea.amp * 0.012 + rock * 0.05 + Math.max(0, 3 - crew) * 0.003;
   const yaw = Math.atan2(dx, dz) + rnd(-sp, sp), pitch = th + rnd(-sp, sp), cp = Math.cos(pitch);
   const vx = Math.sin(yaw) * cp * w.v, vz = Math.cos(yaw) * cp * w.v, vy = Math.sin(pitch) * w.v;
-  shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 }); Snd.fx(m.k === 'gun' ? 'veh_gun_fire' : 'veh_mg_burst', from.x, from.z, { gain: m.k === 'gun' ? 1 : 0.6, far: 1.5, y: from.y });
+  shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 }); Snd.fx(m.k !== 'mg' ? 'veh_gun_fire' : 'veh_mg_burst', from.x, from.z, { gain: m.k === 'heavy' ? 1.5 : m.k === 'gun' ? 1 : 0.6, far: m.k === 'heavy' ? 3 : 1.5, y: from.y });
   // muzzle flash, smoke and a little kick
-  const fl = w.flash; fxG.emit(from.x, from.y, from.z, 0, 0, 0, 0.09, 1.1 * fl, 0.6, [1, 0.85, 0.5, 1]); puffSmoke(from.x, from.y, from.z, m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
+  const fl = w.flash; fxG.emit(from.x, from.y, from.z, 0, 0, 0, 0.09, 1.1 * fl, 0.6, [1, 0.85, 0.5, 1]); puffSmoke(from.x, from.y, from.z, m.k === 'heavy' ? 6 : m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
   bt.body.applyImpulse(new CANNON.Vec3(-Math.sin(yaw) * w.recoil, 0, -Math.cos(yaw) * w.recoil), new CANNON.Vec3(from.x - bt.body.position.x, 0, from.z - bt.body.position.z));
   m.burst = 0.12; return yaw;
 }
@@ -3248,7 +3249,7 @@ function updateCombat(dt, t) {
         if (i >= manned || d > m.w.range * 1.1) continue;
         engaged = true;
         if (m.cd <= 0) { fireShot(bt, m, bt.target); m.cd = m.w.reload * (0.85 + 0.3 * Math.random()) / (0.65 + 0.35 * Math.min(2, crew.length - i)); }
-        if (m.mesh) { const ud = m.mesh.userData; ud.barrel.position.x = ud.barrelX - Math.min(1, m.burst / 0.12) * (m.k === 'gun' ? 0.45 : 0.12); }
+        if (m.mesh) { const ud = m.mesh.userData; ud.barrel.position.x = ud.barrelX - Math.min(1, m.burst / 0.12) * (m.k === 'heavy' ? 0.7 : m.k === 'gun' ? 0.45 : 0.12); }
         if (m.mesh) m.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(bt.target.body.position.z - pos.z), bt.target.body.position.x - pos.x) - boatYaw(bt));   // the mount tracks its target
       }
     }
@@ -3298,7 +3299,7 @@ function updateCombat(dt, t) {
     const steps = Math.max(1, Math.ceil(Math.hypot(s.vx, s.vz) * dt / 5)), h = dt / steps;
     for (let k = 0; k < steps && alive; k++) {
       s.vy -= G * h; s.x += s.vx * h; s.y += s.vy * h; s.z += s.vz * h;
-      if (k === 0 || Math.random() < 0.5) fxG.emit(s.x, s.y, s.z, 0, 0, 0, 0.1, s.k === 'gun' ? 0.55 : 0.3, -0.5, [1, 0.85, 0.45, 0.9]);
+      if (k === 0 || Math.random() < 0.5) fxG.emit(s.x, s.y, s.z, 0, 0, 0, 0.1, s.k === 'heavy' ? 0.9 : s.k === 'gun' ? 0.55 : 0.3, -0.5, [1, 0.85, 0.45, 0.9]);
       for (const bt of boats) {
         if (bt === s.owner && s.age < 0.35) continue;
         if (!insideHull(bt, s.x, s.z, 0)) continue;
@@ -3306,10 +3307,10 @@ function updateCombat(dt, t) {
         if (dy < top && dy > bot) { damageBoat(bt, s.dmg, s.x, s.y, s.z, s.owner, s.k); alive = false; break; }
       }
       if (!alive) break;
-      if (s.y < waveH(s.x, s.z, simT)) { splash(s.x, s.z, s.k === 'gun' ? 1.5 : 0.6); alive = false; }
+      if (s.y < waveH(s.x, s.z, simT)) { splash(s.x, s.z, s.k === 'heavy' ? 3.2 : s.k === 'gun' ? 1.5 : 0.6); alive = false; }
       else if (s.y < heightAt(s.x, s.z)) { sparks(s.x, s.y, s.z, 6); puffSmoke(s.x, s.y, s.z, 2, false, 0.6); alive = false; }
     }
-    if (!alive) shots.splice(i, 1);
+    if (!alive) { if (s.k === 'heavy') heavyBlast(s); shots.splice(i, 1); }
   }
   fxS.update(dt); fxG.update(dt);
   updateHpBars();
@@ -4115,6 +4116,24 @@ function airAuto(dt) {
   for (const team of ['blue', 'red']) { if (team === BATTLE.team) continue; const ahead = BATTLE.tickets[team] - BATTLE.tickets[otherTeam(team)], c = AIR.cd[team]; if (Math.random() > (ahead < 0 ? 0.55 : 0.25)) continue; const pick = Math.random();
     if (pick < 0.3 && c.gr <= 0) callAir(team, 'griffon'); else if (pick < 0.45 && c.gs <= 0 && BATTLE.t > 90) callAir(team, 'gunship'); else if (pick < 0.8 && c.pa <= 0) paraWave(team, 5 + Math.floor(Math.random() * 3)); else if (c.bt <= 0 && BATTLE.t > 60) boatWave(team); }
 }
+
+/* ---- heavy naval shells burst: they hurt boats, people and loose cargo around the impact, and throw up a column of water or a cloud of earth */
+function heavyBlast(s) {
+  const wet = s.y < waveH(s.x, s.z, simT) + 1, gy = wet ? waveH(s.x, s.z, simT) : heightAt(s.x, s.z); fxG.emit(s.x, gy + 1.5, s.z, 0, 3, 0, 0.35, 11, 1.6, [1, 0.8, 0.4, 1]); puffSmoke(s.x, gy + 1.5, s.z, 12, true, 1.6); if (!wet) { sparks(s.x, gy + 1, s.z, 24); impactFx('land', null, { x: s.x, y: gy, z: s.z }, 40); }
+  Snd.fx('veh_gun_fire', s.x, s.z, { gain: 1.2, far: 3, y: gy });
+  for (const bt of boats) { if (bt === s.owner || bt.sunk) continue; const d = Math.hypot(bt.body.position.x - s.x, bt.body.position.z - s.z); if (d < 16 && d > 0.1 && !insideHull(bt, s.x, s.z, 0)) damageBoat(bt, s.dmg * 0.6 * (1 - d / 16), s.x, gy, s.z, s.owner, 'heavy'); }
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist) continue; const d = Math.hypot(q.x - s.x, q.z - s.z); if (d < 14 && !q.ride) { if (BATTLE.on) hurt(q, 130 * (1 - d / 14) + 25, null, false); else if (d < 8) topple(q, new CANNON.Vec3((q.x - s.x) * 1.5, 4, (q.z - s.z) * 1.5)); else stagger(q, new CANNON.Vec3((q.x - s.x) * 1.5, 0, (q.z - s.z) * 1.5)); } }
+  for (const o of objects) { if (o.gone || !o.body || !(o.body.mass > 0)) continue; const dx = o.body.position.x - s.x, dz = o.body.position.z - s.z, d = Math.hypot(dx, dz); if (d < 14) o.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * 40 * o.body.mass, 30 * o.body.mass, dz / (d + 1) * 40 * o.body.mass), o.body.position); }
+}
+/* ---- gunnery from the helm: G to man the guns, then click anywhere (a boat, the shore, open water) and every gun on your ship engages that spot */
+const MANQ = [];
+function gunneryFire(bt, pt) {
+  if (!bt || !bt.mounts || !bt.mounts.length || bt.sunk) { toast('This ship has no guns.'); return; }
+  const tgt = { body: { position: { x: pt.x, y: (pt.y || 0) - 1.6, z: pt.z }, velocity: { x: 0, y: 0, z: 0 } } }; let fired = 0, wait = 0;
+  for (const m of bt.mounts) { if (m.k === 'mg') { for (let i = 0; i < 6; i++) MANQ.push({ bt, m, tgt, t: i * 0.11 }); fired++; } else if (m.cd <= 0) { fireShot(bt, m, tgt); m.cd = m.w.reload; fired++; } else wait = Math.max(wait, m.cd); if (m.mesh) m.mesh.userData.turret.rotation.y = wrap(Math.atan2(-(pt.z - bt.body.position.z), pt.x - bt.body.position.x) - boatYaw(bt)); }
+  if (!fired && wait) toast('Reloading. ' + Math.ceil(wait) + ' seconds.');
+}
+function updateManQ(dt) { for (let i = MANQ.length - 1; i >= 0; i--) { const j = MANQ[i]; j.t -= dt; if (j.t > 0) continue; MANQ.splice(i, 1); if (!j.bt.sunk && boats.includes(j.bt)) fireShot(j.bt, j.m, j.tgt); } }
 function planBattle() {
   for (const team of ['blue', 'red']) {
     const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag'), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : 0, cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : 0;
@@ -4130,7 +4149,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); updateAir(dt); if (!BATTLE.on) return; airAuto(dt); updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateManQ(dt); updateAir(dt); if (!BATTLE.on) return; airAuto(dt); updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
@@ -4446,8 +4465,10 @@ function orderBoats(sb, p) {
   });
   toast(sb.length > 1 ? sb.length + ' boats: under way' : first.sp.name + ': under way');
 }
+let gunneryOn = false;
 function tapAt(cx, cy, btn, mods) {
   if (mode === 'fp') return;
+  if (mode === 'helm' && gunneryOn) { const bt = boats[activeIdx], p = pick(cx, cy); if (p) { const sp = new THREE.Vector3(p.x, Math.max(0, p.y), p.z); gunneryFire(bt, sp); } return; }
   if (mode === 'helm') { const p = pick(cx, cy); if (p && BUILD[buildSel] && BUILD[buildSel].cargo !== undefined) place(BUILD[buildSel], p); return; }
   if (tool === 'land') { if (land.finger === 'move') { const p = pick(cx, cy); if (p) { landMark(); brush(p.x, p.z, 0.45); land.dirty = true; commitLand(true); } } return; }   // a tap in Move mode is one dab
   if (tool === 'build') { if (isTouch) return; const p = pick(cx, cy); if (p) place(BUILD[buildSel], p); return; }      // on a phone the cross and the Place button do the placing
@@ -4497,7 +4518,7 @@ addEventListener('keydown', (e) => {
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
   if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else setSel([]); }
   else if (k === 'n') nextBoat();
-  else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); }
+  else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); else if (k === 'g') { gunneryOn = !gunneryOn; toast(gunneryOn ? 'Gunnery: click a target and your guns fire on it. G to stand down.' : 'Guns stood down.'); } }
   if (k === 'r') squall(); else if (k === 'c' && e.shiftKey) clearCargo();
   else if (k === 'escape' && mode === 'god' && (sel.length || insp)) { if (insp) closeInspector(); else { setSel([]); toast('Deselected'); } }
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
@@ -7618,7 +7639,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
