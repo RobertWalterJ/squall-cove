@@ -2594,6 +2594,7 @@ function place(item, p) {
     pr.by = item.id === 'light' ? 8 : r * 0.5; pr.body.position.set(x, g.position.y + pr.by, z); world.addBody(pr.body);
   }
   props.push(pr);
+  if (item.glb && item.node) ladAddModel(item.glb, item.node, g, pr);
 }
 function addBuoy(x, z, nm) {
   const m = shadowAll(nodeByName(D.glb.harbour, nm).clone());
@@ -3426,6 +3427,7 @@ function armedPose(p, dt) {
   ikArm(p, 'R', rh, poleR, k, oq); ikArm(p, 'L', lh, poleL, k, oq);
 }
 function stepFoot(p, dt, t) {
+  if (p.climb) { try { climbFrame(p, dt, t); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); p.climb = null; } return; }
   let moving = false;
   const spd = (p.carry ? 1.15 : 1.45) * (p.bot && p.run ? 2.2 : 1) * (1 + 0.28 * (CELL - 1)) * (1 - 0.3 * (p.cold || 0)) * (1 - 0.25 * (p.heat || 0)) * (p.swim ? 0.7 : standY(p.x, p.z) < -0.3 ? 0.8 : 1);      // wading is a little slower, swimming slower still
   if (!p.order) p.via = null;
@@ -3436,19 +3438,20 @@ function stepFoot(p, dt, t) {
     else {
       const want = Math.atan2(dx, dz), err = wrap(want - p.heading); p.heading += clamp(err, -6 * dt, 6 * dt);
       if (Math.abs(err) < 0.8) {
-        const step = Math.min(d, spd * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standY(nx, nz);
+        const step = Math.min(d, spd * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standYP(p, nx, nz);
         if (gy < WADE && (p.carry || p.job) && !p.swim) { p.order = null; p.via = null; cancelJob(p); noteOnce('nodeep', 'Nobody carries cargo into deep water.'); }
         else if (gy >= WADE && !p.swim && Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; p.via = null; if (!p.job) noteOnce('steep', 'Too steep to walk'); else cancelJob(p); }
         else { if (gy < WADE) p.swim = true; p.x = nx; p.z = nz; moving = true; }
       }
     }
   }
+  if (p.plat && !p.fp) { if (p.plat.rail) { const cl = platClamp(p.plat, p.x, p.z, 0.3); p.x = cl[0]; p.z = cl[1]; } else if (!platHas(p.plat, p.x, p.z, 0.2)) p.plat = null; }
   if (p.stag > 0) { p.stag -= dt; const k = Math.min(1, p.stag / 0.8), nx = p.x + p.stagV.x * k * dt, nz = p.z + p.stagV.z * k * dt; if (standY(nx, nz) > WADE) { p.x = nx; p.z = nz; } }
-  if (!p.fp && !p.swim) { const pu = pushOutOfProps(p, 0.45); if (pu && p.order) { p.stuckT = (p.stuckT || 0) + dt; if (p.stuckT > 0.45) { p.stuckT = 0; detourAround(p, pu); } } else p.stuckT = Math.max(0, (p.stuckT || 0) - dt * 2); }
+  if (!p.fp && !p.swim && !p.plat) { const pu = pushOutOfProps(p, 0.45); if (pu && p.order) { p.stuckT = (p.stuckT || 0) + dt; if (p.stuckT > 0.45) { p.stuckT = 0; detourAround(p, pu); } } else p.stuckT = Math.max(0, (p.stuckT || 0) - dt * 2); }
   p.walkK += ((moving ? 1 : 0) - p.walkK) * Math.min(1, 7 * dt);
   if (moving || p.fpMoving) p.ph += dt * (p.carry ? 5.2 : 6.4);
   if (!p.swim) {
-    const gy = standY(p.x, p.z);
+    const gy = standYP(p, p.x, p.z);
     if (!p.fp) p.y += (gy - p.y) * Math.min(1, 14 * dt);
     if (gy < WADE && !p.fp) p.swim = true;                                                                                 // the ground went out from under them: they swim
   }
@@ -3483,7 +3486,7 @@ const pTmp = new THREE.Vector3();
 function updatePeople(dt, t) {
   for (const p of people.slice()) {
     if (p.hoist) continue;                                          // on the helicopter's cable
-    if (p.state === 'rag') { updateRag(p, dt); continue; }
+    if (p.state === 'rag') { if (p.climb || p.plat) ladRelease(p); updateRag(p, dt); continue; }
     if (p.hop) { stepHop(p, dt, t); continue; }
     stepJob(p, dt, t);
     if (!people.includes(p) || p.state === 'rag') continue;
@@ -3773,7 +3776,7 @@ function enterFP(p) {
 function exitFP() {
   if (fp.veh) { const vc = fp.veh; if (vc.heli) bvHeliDisembark(vc); bvLeavePlayer(vc); }
   { const so = $('fpScope'), s2 = $('fpScope2'); if (so) so.style.display = 'none'; if (s2) s2.style.display = 'none'; }
-  if (!fp.on) return; const p = fp.p; fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
+  if (!fp.on) return; const p = fp.p; sqdOff(); if (p && p.climb) ladDrop(p, false); fpRodReset(true); for (const k in fpToolMesh) fpToolMesh[k].visible = false; if (sideOpen) document.body.classList.add('sideopen');
   if (fp.man) { fp.man.manned = false; fp.man = null; } if (BATTLE.down) { BATTLE.down = false; $('bSpawn').hidden = true; } fp.on = false; fp.p = null; fp.helm = null; fp.vx = fp.vz = 0; releasePerson(p); camera.fov = 52; camera.updateProjectionMatrix(); $('fp').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
   if (p && people.includes(p)) {
     p.fp = false; p.obj.visible = true; p.fpMoving = false; if (p.swim) { p.swim = false; topple(p, null); }
@@ -3809,6 +3812,7 @@ function fpScan() {
     if (!isTouch) out.push({ act: 'overboard', text: 'Q: jump overboard' });
   }
   { const vp = BVL.length || AIR.list.some(u => u.bv) ? bvPrompt(p) : null; if (vp) out.unshift({ act: 'veh', text: vp }); }
+  { const lp = LADDERS.length ? ladPrompt(p) : null; if (lp) out.unshift({ act: 'ladder', text: lp }); }
   fp.prompt = out; $('fpPrompt').textContent = out.length ? out.slice(0, 3).map(o => o.text).join('   |   ') : '';
   $('fpDrop').hidden = !p.carry; $('fpHelm').hidden = !p.ride;
 }
@@ -3826,7 +3830,7 @@ function fpUse() {
   const p = fp.p; if (!p || p.hop || p.state === 'rag') return;
   if (fp.veh) { if (isTouch || !fp.veh.heli) bvLeaveKey(); return; }
   if (fp.man) { fp.man.manned = false; fp.man = null; fpSetTool(fp.tool); toast('You leave the gun.'); return; }
-  if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; if (bvTryEnter()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
+  if (ladUse(p)) return; if (BATTLE.on && fp.tool === 'medkit' && fpRevive()) return; if (bvTryEnter()) return; { const e = nearEmp(p); if (e) { if (BATTLE.on && e.p.owner !== BATTLE.team) { toast('Your side does not hold this point.'); return; } e.manned = true; fp.man = e; for (const k in fpToolMesh) fpToolMesh[k].visible = false; toast('You man the ' + (e.kind === 'aa' ? 'anti-air gun' : e.kind === 'mortar' ? 'mortar' : 'machine gun') + '. Aim and fire with the mouse. E to leave.'); return; } } const a = (fp.prompt || []).find(o => o.act === 'pickup' || o.act === 'board' || o.act === 'ashore');
   if (!a) return;
   if (a.act === 'pickup') { if (liftNeed(a.obj) > 1) { toast('Too heavy for one'); return; } p.job = { type: 'pickup', obj: a.obj, team: [p], phase: 'lift', t: 0, age: 0 }; }
   else if (a.act === 'board') { p.job = { type: 'board', boat: a.boat }; boardHop(p, a.boat); }
@@ -3858,6 +3862,7 @@ function updateFP(dt, t) {
   if (p.hop) { p.fpMoving = true; return; }
   if (fp.veh) { bvFpUpdate(dt, t); return; }
   if (fp.man) { p.x = fp.man.x; p.z = fp.man.z; p.y = fp.man.y; p.fpMoving = false; fp.vx = fp.vz = 0; fpToolsUpdate(dt, t); return; }
+  if (p.climb) { try { fpClimbFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); p.climb = null; } return; }
   // move: quick to respond, brisk to walk, with a little inertia so it feels like a body and not a cursor
   let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy;
   let r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
@@ -3878,19 +3883,20 @@ function updateFP(dt, t) {
     p.ride.lx = q[0]; p.ride.lz = q[1]; p.ride.rel = fp.yaw - beta; p.ride.order = null; fp.jumpBuf = 0;
   } else {
     const trip = (nx, nz) => { for (const tr of trees) { const ex = nx - tr.x, ez = nz - tr.z, rr = (tr.kind === 'shrub' ? 0.35 : 0.5) * tr.sc, d2 = ex * ex + ez * ez; if (d2 < rr * rr && d2 > 1e-6 && Math.abs(tr.h - p.y) < 3) { const d = Math.sqrt(d2); nx = tr.x + ex / d * rr; nz = tr.z + ez / d * rr; } } return [nx, nz]; };
-    const steep = (nx, nz) => !p.swim && standY(nx, nz) - p.y > 0.6 && !fp.air;
+    const steep = (nx, nz) => !p.swim && standYP(p, nx, nz) - p.y > 0.6 && !fp.air;
     let [nx, nz] = trip(p.x + dx, p.z + dz);
     if (steep(nx, nz)) { const [ax, az] = trip(p.x + dx, p.z); if (!steep(ax, az)) { nx = ax; nz = az; } else { const [bx, bz] = trip(p.x, p.z + dz); if (!steep(bx, bz)) { nx = bx; nz = bz; } else { nx = p.x; nz = p.z; fp.vx = fp.vz = 0; } } }      // slide along a cliff or wall instead of stopping dead
-    const gy = standY(nx, nz);
+    if (p.plat) { if (p.plat.rail) { const cl = platClamp(p.plat, nx, nz, 0.3); nx = cl[0]; nz = cl[1]; } else if (!platHas(p.plat, nx, nz, 0.2)) p.plat = null; }
+    const gy = standYP(p, nx, nz);
     if (!p.swim && gy < WADE && !fp.air) { p.swim = true; }
     else if (p.swim && gy > WADE + 0.25) { p.swim = false; }
-    p.x = nx; p.z = nz; pushOutOfProps(p, 0.4); p.heading = fp.yaw;
+    p.x = nx; p.z = nz; if (!p.plat) pushOutOfProps(p, 0.4); p.heading = fp.yaw;
     if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
-      const g2 = standY(p.x, p.z);
-      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { Snd.fx('foley_jump', p.x, p.z, { gain: 0.5 }); fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; }
-      if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; }               // walked off a ledge
-      if (fp.air) { fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) { fp.land = Math.min(1, -fp.vy / 8); Snd.fx(fp.vy < -6 ? 'foley_land_hard' : 'foley_land_soft', p.x, p.z, { gain: 0.6 }); } p.y = g2; fp.vy = 0; fp.air = false; } }
+      const g2 = standYP(p, p.x, p.z);
+      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { Snd.fx('foley_jump', p.x, p.z, { gain: 0.5 }); fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; fp.peakY = p.y; }
+      if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; fp.peakY = p.y; }               // walked off a ledge
+      if (fp.air) { fp.peakY = Math.max(fp.peakY === undefined ? p.y : fp.peakY, p.y); fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { { const drop = fp.peakY - g2; fp.peakY = undefined; if (BATTLE.on && drop > 5 && (p.hp === undefined || p.hp > 0) && !BATTLE.down) hurt(p, (drop - 4) * 12, null, false, 'Fall'); } if (fp.vy < -3) { fp.land = Math.min(1, -fp.vy / 8); Snd.fx(fp.vy < -6 ? 'foley_land_hard' : 'foley_land_soft', p.x, p.z, { gain: 0.6 }); } p.y = g2; fp.vy = 0; fp.air = false; } }
       else p.y += (g2 - p.y) * Math.min(1, 22 * dt);
     }
   }
@@ -3913,7 +3919,7 @@ function fpCamera(dt, t) {
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
 document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
 $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
-addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
+addEventListener('mousemove', (e) => { if (fp.on && fp.locked) { if (SQD.wheel) { sqdWheelMove(e.movementX, e.movementY); return; } fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); } });
 canvas.addEventListener('wheel', (e) => { if (fp.on) { e.preventDefault(); if (!fp.man && Math.abs(e.deltaY) > 4) { const now = performance.now(); if (now - (fp.wheelT || 0) > 160) { fp.wheelT = now; const kt = inKit() ? ['hands', ...kitTools()] : FPT.filter(f => !NEWT.has(f[0])).map(f => f[0]), i = kt.indexOf(fp.tool); fpSetTool(kt[(i + (e.deltaY > 0 ? 1 : kt.length - 1)) % kt.length]); } } } }, { passive: false });
 { // touch: stick and look pad
   const st = $('fpStick'), kn = $('fpKnob'), lk = $('fpLook'); let sid = null, lid = null, lx = 0, ly = 0;
@@ -3944,7 +3950,7 @@ onKey((e) => {
   if (fp.veh && bvKey(k, e)) return;
   if (k === 'h') keyStop = true;      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
-  else if (/^[1-9]$/.test(k)) { if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer();
+  else if (/^[1-9]$/.test(k)) { if (SQD.wheel) sqdWheelPick(+k); else if (inKit()) { const kt = kitTools()[+k - 1]; if (kt) fpSetTool(kt); } else fpSetTool(FPT[+k - 1][0]); } else if (k === '0') fpSetTool('grenade'); else if (k === '-') fpSetTool('c4'); else if (k === 'r') fpReload(); else if (k === 'c') fpStance(fp.stance === 1 ? 0 : 1); else if (k === 'p') fpStance(fp.stance === 2 ? 0 : 2); else if (k === 'x' && BATTLE.on) squadOrder(BATTLE.squadMode === 'follow' ? 'hold' : 'follow'); else if (k === 'z' && BATTLE.on) squadGo(); else if (k === 'f') fpEngineer();
   else if (k === ' ') { fpJumpOrGetUp(); e.preventDefault(); } else if (k === 'escape' || k === 'tab' || k === 'o') { exitFP(); e.preventDefault(); }
 });
 
@@ -4021,7 +4027,7 @@ function fpFireGun() {
     }
   if (fp.ammo[id] <= 0) fpReload();
 }
-function fpPrimary() { if (!fp.on || mode !== 'fp' || fp.veh) return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (fp.tool === 'atmine') fpPlaceMine(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
+function fpPrimary() { if (!fp.on || mode !== 'fp' || fp.veh || (fp.p && fp.p.climb)) return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (fp.tool === 'atmine') fpPlaceMine(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
 function fpToolsUpdate(dt, t) {
   const p = fp.p; fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6); { const rp = fpToolMesh.rpg, rk = rp && rp.userData.rocket; if (rk) rk.visible = !fp.ammo || fp.ammo.rpg == null || fp.ammo.rpg > 0; }
   for (const k in WPN) { const m = fpToolMesh[k]; if (m) { m.position.z = (m.userData.bz !== undefined ? m.userData.bz : k === 'rifle' ? -0.55 : -0.5) + fp.kick * 0.07; const f = m.getObjectByName('flash'); if (f) f.visible = fp.flash > 0 && fp.tool === k; } } fp.flash = Math.max(0, (fp.flash || 0) - dt);
@@ -4582,7 +4588,7 @@ function makeFlag(def) {
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
   if (!isBattleMap()) { offerBattleMaps(); return; }
-  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
+  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   BATTLE.points = BM().points.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); kitStart(gen);
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
@@ -4595,7 +4601,7 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
+function battleStop(quiet) { sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
@@ -4629,7 +4635,7 @@ function removeBot(q) { if (people.includes(q)) removePerson(q); }
 function losFull(x0, y0, z0, x1, y1, z1) {
   if (!los(x0, z0, y0, x1, z1, y1)) return false; const d = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(d / 8)), G = propGrid(), st = ++pgStamp, eps = Math.min(0.45, 0.8 / (d + 0.01));
   for (let k = 0; k <= n; k++) { const u = k / n, cell = G.get(pgKey(Math.floor((x0 + (x1 - x0) * u) / PG_C), Math.floor((z0 + (z1 - z0) * u) / PG_C))); if (!cell) continue;
-    for (const p of cell) { if (p._pst === st) continue; p._pst = st; const b = p.item.box, yaw = p.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), top = heightAt(p.x, p.z) + b[1] * 2;      // an exact segment-against-box test, so a thin fence or wall cannot be slipped through between samples
+    for (const p of cell) { if (p._pst === st) continue; p._pst = st; const b = p.item.box, yaw = p.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw), top = Math.min(heightAt(p.x, p.z) + b[1] * 2, p.lTop === undefined ? 1e9 : p.lTop);      // an exact segment-against-box test, so a thin fence or wall cannot be slipped through between samples
       const ax = x0 - p.x, az = z0 - p.z, bx = x1 - p.x, bz = z1 - p.z, lax = ax * c - az * sn, laz = ax * sn + az * c, ldx = (bx * c - bz * sn) - lax, ldz = (bx * sn + bz * c) - laz, dy = y1 - y0; let t0 = eps, t1 = 1 - eps, miss = false;
       if (Math.abs(ldx) < 1e-9) { if (Math.abs(lax) >= b[0]) miss = true; } else { let a = (-b[0] - lax) / ldx, e = (b[0] - lax) / ldx; if (a > e) { const tmp = a; a = e; e = tmp; } if (a > t0) t0 = a; if (e < t1) t1 = e; }
       if (!miss) { if (Math.abs(ldz) < 1e-9) { if (Math.abs(laz) >= b[2]) miss = true; } else { let a = (-b[2] - laz) / ldz, e = (b[2] - laz) / ldz; if (a > e) { const tmp = a; a = e; e = tmp; } if (a > t0) t0 = a; if (e < t1) t1 = e; } }
@@ -4651,11 +4657,11 @@ function killFeedAdd(from, q, wn) {
   BATTLE.feed.push({ a: from && from !== q ? nm(from) : '', ta: teamOf(from), b: nm(q), tb: tq, w: wn || '', at: performance.now() }); while (BATTLE.feed.length > 5) BATTLE.feed.shift(); renderKillFeed(); setTimeout(renderKillFeed, 9100);
 }
 function hurt(q, dmg, from, head, wn) {
-  if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.vin) { bvHurtOcc(q, dmg, from, wn); return; } if (q.bvImm > simT) dmg = Math.min(dmg, 28); if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q; if (from && from !== q && fp.on && fp.p === from) hitMarker(q.hp <= 0);
+  if (!q || q.state === 'rag' || q.hp <= 0) return; if (from && from !== q && BATTLE.on && teamOf(from) && teamOf(from) === teamOf(q)) return; if (q.vin) { bvHurtOcc(q, dmg, from, wn); return; } if (q.bvImm > simT) dmg = Math.min(dmg, 28); if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q; if (from && from !== q && fp.on && fp.p === from) hitMarker(q.hp <= 0);
   if (q.bot) q.bot.hitT = simT; if (q.gun) q.gun.hitT = simT;
   { const fa = from ? wrap(Math.atan2(from.x - q.x, from.z - q.z) - (q.heading || 0)) : 0; q.flinch = { t: 0.5, a: fa, s: Math.min(1.2, 0.5 + dmg / 50) }; }
   if (isP) { Snd.fx('foley_breath_hurt', q.x, q.z, { gain: 0.6, gap: 0.5 }); BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
-  else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; if (q.hp < 35 && simT - (q.bot.shT2 || -99) > 14) { q.bot.shT2 = simT; Snd.fx('ppl_shout_help', q.x, q.z, { gain: 0.5, y: q.y + 1.5, gap: 0.3 }); } }
+  else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; if (q.hp < 35 && simT - (q.bot.shT2 || -99) > 14) { q.bot.shT2 = simT; Snd.fx('ppl_shout_help', q.x, q.z, { gain: 0.5, y: q.y + 1.5, gap: 0.3 }); vsay(q, 'medic_call', 3); } if (from && from !== q && simT - (q.bot.tfT || -99) > 8) { q.bot.tfT = simT; vsay(q, 'taking_fire', 3); } }
   if (q.hp <= 0) downPerson(q, from, wn);
 }
 function downPerson(q, from, wn) {
@@ -4665,6 +4671,7 @@ function downPerson(q, from, wn) {
     try { topple(q, new CANNON.Vec3(ix, iy, iz)); } catch (e) { } } q.koUntil = simT + (BATTLE.on ? 99999 : 22); if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; for (const m of people) if (m !== q && m.bot && m.bot.team === q.bot.team && m.state !== 'rag' && Math.hypot(m.x - q.x, m.z - q.z) < 25) m.bot.morale -= 0.15; }
   if (BATTLE.on && t) { BATTLE.tickets[t] = Math.max(0, BATTLE.tickets[t] - 1); BATTLE.kills[otherTeam(t)]++; if (fp.on && from === fp.p && from !== q) BATTLE.myKills = (BATTLE.myKills || 0) + 1; if (fp.on && fp.p === q) BATTLE.myDeaths = (BATTLE.myDeaths || 0) + 1; killFeedAdd(from, q, wn); }
   Snd.fx('imp_ko', q.x, q.z, { gain: 0.7, y: q.y + 1 }); Snd.fx('ppl_grunt_topple', q.x, q.z, { gain: 0.55, y: q.y + 1, gap: 0.2 }); const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) Snd.ui('ui_kill', 0.7); if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
+  sqdDownVoice(q, from); if (q.climb || q.plat) ladRelease(q);
   npcEv('battleKO');
 }
 /* ---- every fighting person is armed: guards, raiders, invaders and the SWAT team carry weapons you can see, and shoot when they see the other side */
@@ -4691,19 +4698,19 @@ function findCover(q, e) {                                           // a spot b
   return best;
 }
 function senseEnemy(q, b) {
-  const w = WPN[b.w], sight = (b.cls === 'sniper' ? 200 : 85) * BKIT.sightK, fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
+  const w = WPN[b.w], sight = (b.cls === 'sniper' ? 200 : 85) * BKIT.sightK * (q.plat ? 1.3 : 1), fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
   for (const e of people) { if (e === q || e.state === 'rag' || e.ride || e.vin || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
 }
 const eyeOf = (e) => e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4);
 function botFire(q, b, e, d) {
-  const w = WPN[b.w]; if (BATTLE.on && !losFull(q.x, q.y + 1.3, q.z, e.x, eyeOf(e), e.z)) { b.cool = 0.3; b.scan = Math.min(b.scan, 0.05); b.tgt = null; return; }          // no shooting through walls
+  const w = WPN[b.w]; if (b.psq && SQD.hf) { b.cool = 0.3; return; } if (BATTLE.on && !losFull(q.x, q.y + 1.3, q.z, e.x, eyeOf(e), e.z)) { b.cool = 0.3; b.scan = Math.min(b.scan, 0.05); b.tgt = null; return; }          // no shooting through walls
   b.ammo--; b.cool = w.rate + w.bot * (0.7 + Math.random() * 0.8); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 6 : 99)) { b.burst = 0; b.cool += 0.7 + Math.random() * 0.6; }
-  const moving = e.fpMoving || (e.order != null), vsMe = !!e.fp, acc = Math.min(0.85, (e.fp ? [1, 0.8, 0.55][fp.stance || 0] : 1) * (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1) * (vsMe ? 1.5 : 1)), hit = Math.random() < acc;      // against the player a rifleman now needs roughly 3 to 4 s to drop a standing target at 40 m
+  const moving = e.fpMoving || (e.order != null), vsMe = !!e.fp, acc = Math.min(0.85, (e.fp ? [1, 0.8, 0.55][fp.stance || 0] : 1) * (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1) * (vsMe ? 1.5 : 1) * (q.plat ? 1.2 : 1)), hit = Math.random() < acc;      // against the player a rifleman now needs roughly 3 to 4 s to drop a standing target at 40 m
   const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + 1.3, ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + 1.1 + (hit ? 0 : rnd(-0.5, 0.5));
   addTracer(sx, sy, sz, ex, ey, ez); ejectCasing(q.x, q.y + 1.2, q.z, q.heading); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + wsnd(b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
   if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)) * (vsMe ? 1.5 : 1), q, Math.random() < 0.08, w.name); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) { e.bot.alert = Math.max(e.bot.alert, 3); e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.25); } impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d); if (fp.on && fp.p === e) Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), e.x, e.z, { gain: 0.8 }); }
-  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; }
+  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); } else if (b.ammo === Math.ceil(w.mag * 0.2)) vsay(q, 'low_ammo', 1);
 }
 let sqT = -9, sqMap = new Map();
 function squadOf(q) {                                               // living members of this soldier's squad, leader first
@@ -4719,24 +4726,28 @@ function botThink(q, dt) {
   const b = q.bot; if (!b) return;
   if (q.state === 'rag') { if (!b.dead) { b.dead = true; b.deadAt = simT; } if (simT - b.deadAt > 8 && !(fp.on && fp.p === q)) removeBot(q); return; }          // the fallen are carried off after eight seconds, so they never crowd out the reinforcements
   if (q.fp || q.hop || q.ride || q.hp <= 0 || q.vin) return;
+  if (q.climb) { try { climbBotThink(q, b, dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); q.climb = null; } return; }
   if (b.crew && crewThink(q, dt)) return; b.alert = Math.max(0, b.alert - dt); b.cool -= dt; b.reload -= dt; b.scan -= dt; b.supp = Math.max(0, (b.supp || 0) - dt * 0.25); if (b.morale === undefined) b.morale = 1; b.morale = Math.min(1, b.morale + dt * 0.02); if (q.hp < 40) b.morale -= dt * 0.03;
   // never stand about in a loop: if the order is not getting them closer, drop it and try somewhere else
   b.stT = (b.stT || 0) + dt; if (b.stT > 4) { b.stT = 0; const mv = Math.hypot(q.x - (b.stX || 0), q.z - (b.stZ || 0)); b.stX = q.x; b.stZ = q.z; b.stN = (b.stN || 0) + 1;
     if (q.order && !b.atCover && !b.tgt) { const gd = Math.hypot(q.order.x - q.x, q.order.z - q.z); const stuck = mv < 2.0 || (b.stN % 2 === 0 && b.gdPrev !== undefined && gd > b.gdPrev - 3); if (b.stN % 2 === 0) b.gdPrev = gd; if (stuck) { b.stuck = (b.stuck || 0) + 1; q.order = null; q.route = null; b.myOrder = null; b.idle = 0; const a = rnd(0, 6.283), nx = q.x + Math.cos(a) * 16, nz = q.z + Math.sin(a) * 16; if (standY(nx, nz) > 0.5) { setFootOrder(q, nx, nz); b.myOrder = q.order; } if (b.stuck > 2) { b.obj = null; b.stuck = 0; } } else if (mv > 6) b.stuck = 0; } else b.gdPrev = undefined; }
-  if (b.morale < 0.3 && !(b.retreat > simT)) { b.retreat = simT + 12; b.morale = 0.6; const bp = spawnPointOf(b.team); if (bp) { setFootOrder(q, bp.x + rnd(-6, 6), bp.z + rnd(-6, 6)); b.myOrder = q.order; } }
-  if (b.retreat > simT) { q.run = true; b.tgt = null; if (!q.order) { const bp = spawnPointOf(b.team); if (bp) { setFootOrder(q, bp.x + rnd(-6, 6), bp.z + rnd(-6, 6)); b.myOrder = q.order; } } return; }
+  if (b.morale < 0.3 && !(b.retreat > simT)) { b.retreat = simT + 12; b.morale = 0.6; vsay(q, Math.random() < 0.5 ? 'cannot_hold' : 'retreat', 4); for (const m of squadOf(q)) if (m !== q && m.bot && !m.bot.psq) m.bot.morale -= 0.2; const bp = retreatPt(q, b); if (bp && !q.plat) { setFootOrder(q, bp.x + rnd(-6, 6), bp.z + rnd(-6, 6)); b.myOrder = q.order; } }
+  if (b.retreat > simT && !q.plat) { q.run = true; b.tgt = null; if (!q.order) { const bp = retreatPt(q, b); if (bp) { setFootOrder(q, bp.x + rnd(-6, 6), bp.z + rnd(-6, 6)); b.myOrder = q.order; } } return; }
   q.aim = (q.aim || 0) + ((b.tgt ? 1 : 0) - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4);
   if (q.order && q.order !== b.myOrder) { b.cmdUntil = simT + 25; b.myOrder = q.order; b.cmd = true; }
   if (b.cmd && !q.order) b.cmd = false;
   if (b.scan <= 0) { b.scan = 0.25 + Math.random() * 0.15 + Math.min(0.5, people.length * 0.003); b.tgt = senseEnemy(q, b); if (b.tgt && !b.seen) { b.seen = true; } }
   const e = b.tgt;
+  if (q.plat) { let r = false; try { r = deckThink(q, b, dt, e); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); q.plat = null; } if (r) return; }
+  if (b.tower && !q.plat) { let r = false; try { r = towerWalk(q, b); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); b.tower = null; } if (r) return; }
+  if (b.psq) { let r = false; try { r = squadThink(q, b, dt, e); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); sqdUnbind(q); } if (r) return; }
   if (e && e.state !== 'rag' && e.hp > 0) {
     const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz);
     b.memE = e; b.memT = simT; b.stance = chooseStance(q, b, e, d);
-    if (simT - (b.shT || 0) > 1.5) { b.shT = simT; for (const m of squadOf(q)) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } }
+    if (simT - (b.shT || 0) > 1.5) { b.shT = simT; for (const m of squadOf(q)) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } shareContact(q, e); if (b.lastE !== e) { b.lastE = e; if (simT - (b.callT || -9) > 5) { b.callT = simT; sqdCall(q, b, e, d); } } }
     if ((b.supp || 0) > 0.65) { b.crouch = true; if (Math.random() < dt * 1.3) { b.crouch = false; b.supp = 0.55; } if (b.crouch) return; }
-    if (d > 9 && d < 30 && simT > (b.gT || 0) && Math.random() < dt * 0.12 && (b.cls === 'rifle' || b.cls === 'smg' || b.cls === 'shotgun')) { b.gT = simT + 22 + Math.random() * 20; throwNadeAt(q, e.x, e.z); }
-    if (d <= w.range * 0.8 && d > 6) {                                    // fight from cover: run to it, duck, pop up to shoot, duck again, change cover when hurt
+    if (d > 9 && d < 30 && simT > (b.gT || 0) && Math.random() < dt * 0.12 && (b.cls === 'rifle' || b.cls === 'smg' || b.cls === 'shotgun')) { b.gT = simT + 22 + Math.random() * 20; if (!friendNear(b.team, e.x, e.z, 7)) { throwNadeAt(q, e.x, e.z); vsay(q, 'grenade', 3); } }
+    if (!b.noCover && d <= w.range * 0.8 && d > 6) {                                    // fight from cover: run to it, duck, pop up to shoot, duck again, change cover when hurt
       if (!b.coverPt || b.coverFor !== e || (b.hitT && simT - b.hitT < 0.6 && Math.random() < 0.02)) { const cv = findCover(q, e); if (cv) { b.coverPt = cv; b.coverFor = e; b.lastCover = cv; b.atCover = false; } }
       if (b.coverPt) { const dc = Math.hypot(b.coverPt.x - q.x, b.coverPt.z - q.z);
         if (dc > 1.7 && !b.atCover) { b.crouch = false; q.run = true; if (!q.order || q.order === b.myOrder) { setFootOrder(q, b.coverPt.x, b.coverPt.z); b.myOrder = q.order; } if (b.cool <= 0 && d < 40 && Math.random() < 0.3 && b.reload <= 0) botFire(q, b, e, d); return; }
@@ -4761,7 +4772,8 @@ function botThink(q, dt) {
   b.tgt = null; q.run = true; b.crouch = false; b.coverPt = null; b.atCover = false; b.stance = 0;
   // a medic goes for the nearest fallen friend
   if (b.cls === 'medic') { let f = null, fd = 60; for (const a of people) if (a !== q && a.state === 'rag' && teamOf(a) === b.team && a.bot && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 7) { const d = Math.hypot(a.x - q.x, a.z - q.z); if (d < fd) { fd = d; f = a; } }
-    if (f) { if (fd > 2.5) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, f.x, f.z); b.myOrder = q.order; } } else { q.order = null; b.rev += dt; if (b.rev > (holdN(b.team, 'depot') ? 1.4 : 2.2)) { b.rev = 0; f.hp = 45; f.bot.dead = false; f.bot.revived = true; f.koUntil = 0; standUp(f); f.bot.revived = false; BATTLE.tickets[b.team] = Math.min(tixCap(), BATTLE.tickets[b.team] + 0); noteOnce('rev' + simT, 'A medic got someone back on their feet.'); } } return; } }
+    if (f) { if (fd > 2.5) { if (!q.order || q.order === b.myOrder) { setFootOrder(q, f.x, f.z); b.myOrder = q.order; } } else { q.order = null; b.rev += dt; if (b.rev > (holdN(b.team, 'depot') ? 1.4 : 2.2)) { b.rev = 0; f.hp = 45; f.bot.dead = false; f.bot.revived = true; f.koUntil = 0; standUp(f); f.bot.revived = false; BATTLE.tickets[b.team] = Math.min(tixCap(), BATTLE.tickets[b.team] + 0); noteOnce('rev' + simT, 'A medic got someone back on their feet.'); vsay(f, 'thanks', 1); vsay(q, 'patched', 2); } } return; } }
+  if (!b.crew && LADDERS.length) { let r = false; try { r = towerBot(q, b); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); b.tower = null; b.twCool = simT + 60; } if (r) return; }
   if (b.post && botPost(q, b)) return; if (simT < b.cmdUntil && q.order) return;
   if (b.hint && simT - b.hint.t < 8 && !q.order && !b.follow) { const dd = Math.hypot(b.hint.x - q.x, b.hint.z - q.z); if (dd > 10 && dd < 70) { setFootOrder(q, b.hint.x + rnd(-8, 8), b.hint.z + rnd(-8, 8)); b.myOrder = q.order; q.run = true; return; } }
   if (!b.obj) { const ps = BATTLE.points.filter(p => p.owner !== b.team), pp = ps.length ? ps[Math.floor(Math.random() * ps.length)] : BATTLE.points[Math.floor(Math.random() * BATTLE.points.length)]; if (pp) b.obj = { x: pp.x, z: pp.z }; }
@@ -5026,7 +5038,7 @@ function blast(x, y, z, o) {                                        // one explo
   if (!wet) { debrisBurst(x, gy + 0.5, z, Math.min(44, Math.round(R * 3.2)), R * 0.9, surfaceAt(x, z)); if (R >= 5) debrisBurst(x, gy + 1, z, Math.min(30, Math.round(R * 2)), R * 1.4, 'metal', true); } if (!wet && R >= 5) scorchAt(x, z, R * 0.7);
   for (const bt of boats) { if (bt === o.owner || bt.sunk) continue; const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < R * 1.3 && !insideHull(bt, x, z, 0)) damageBoat(bt, dmg * 0.6 * (1 - d / (R * 1.3)), x, gy, z, o.owner || null, 'heavy'); }
   if (BVL.length) bvBlast(x, y, z, o);
-  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist || q.ride) continue; const d = Math.hypot(q.x - x, q.z - z); if (d >= R) continue; const f = 1 - d / R;
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist || q.ride) continue; if (o.team && BATTLE.on && teamOf(q) === o.team) continue; const d = Math.hypot(q.x - x, q.z - z); if (d >= R) continue; const f = 1 - d / R;
     if (BATTLE.on) { hurt(q, dmg * f + 20, null, false, o.name || 'Explosion'); if (q.state !== 'rag' && f > 0.35) stagger(q, new CANNON.Vec3((q.x - x) * 2.5, 0, (q.z - z) * 2.5)); } else if (f > 0.5) topple(q, new CANNON.Vec3((q.x - x) / (d + 1) * 8, 6, (q.z - z) / (d + 1) * 8)); else stagger(q, new CANNON.Vec3((q.x - x) * 2, 0, (q.z - z) * 2)); }
   for (const ob of objects) { if (ob.gone || !ob.body || !(ob.body.mass > 0)) continue; const dx = ob.body.position.x - x, dz = ob.body.position.z - z, d = Math.hypot(dx, dz); if (d < R * 2.2) { const f = 1 - d / (R * 2.2); { const pu = (o.push || 1) * 55 * f * ob.body.mass; ob.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * pu, 0.73 * pu, dz / (d + 1) * pu), ob.body.position); } } }
   if (!wet && R >= 8) { clearTreesNear(x, z, R * 0.45); if (R >= 10) igniteTreesNear(x, z, R * 1.2); }
@@ -5161,7 +5173,7 @@ function updateBombs(dt) {
     if (b.y <= Math.max(heightAt(b.x, b.z), waveH(b.x, b.z, simT) - 0.2)) { BOMBS.splice(i, 1); blast(b.x, b.y, b.z, { R: b.R, dmg: b.dmg, crater: b.crater, depth: b.depth, owner: null }); if (b.fire) burnArea(b.x, b.z, b.R * 2.2); } }
   for (let i = NADES.length - 1; i >= 0; i--) { const n = NADES[i]; n.t -= dt; n.vy -= 9.8 * dt; n.x += n.vx * dt; n.y += n.vy * dt; n.z += n.vz * dt; const gy = heightAt(n.x, n.z);
     if (n.y < gy + 0.08) { if (gy < -0.2 && n.y < waveH(n.x, n.z, simT)) { splash(n.x, n.z, 0.8); scene.remove(n.mesh); NADES.splice(i, 1); continue; } n.y = gy + 0.08; if (n.vy < -1.2) { n.vy *= -0.35; n.vx *= 0.6; n.vz *= 0.6; Snd.fx('mat_wood_tock', n.x, n.z, { gain: 0.3 }); } else { n.vy = 0; n.vx *= 0.85; n.vz *= 0.85; } }
-    n.mesh.position.set(n.x, n.y, n.z); if (n.t <= 0) { scene.remove(n.mesh); NADES.splice(i, 1); if (n.smoke) fireOne('smoke', { x: n.x, z: n.z }, 0.5, n.team); else blast(n.x, n.y, n.z, { R: 8, dmg: 150, owner: null }); } }
+    n.mesh.position.set(n.x, n.y, n.z); if (n.t <= 0) { scene.remove(n.mesh); NADES.splice(i, 1); if (n.smoke) fireOne('smoke', { x: n.x, z: n.z }, 0.5, n.team); else blast(n.x, n.y, n.z, { R: 8, dmg: 150, owner: null, team: n.team }); } }
 }
 /* ---- the command tablet: T opens it. Calls support for your side, and from the overview arms a fire control that strikes wherever you tap the map */
 function tabletSide() { return fp.on ? (BATTLE.team || 'blue') : (FIRE.team || BATTLE.team || 'blue'); }
@@ -5217,8 +5229,17 @@ function renderTablet() {
       wrow('heli', heli.on ? 'Recall rescue helicopter' : 'Call rescue helicopter', 'lifts people off roofs and wrecks', null, () => { callHeli(); renderTablet(); }); wrow('para', bomber.on ? 'Recall water bomber' : 'Call water bomber', 'scoops from the sea and drops on fires', null, () => { callBomber(true); renderTablet(); });
     }
   } else if (tbTab === 'squad') {
-    head('Squad orders', 'person'); note('Your nearest four soldiers follow these orders.');
-    wrow('person', 'Follow me', 'the squad keeps close', null, () => { squadOrder('follow'); toggleTablet(false); }); wrow('anchor', 'Hold here', 'the squad stays where it is', null, () => { squadOrder('hold'); toggleTablet(false); }); wrow('marker', 'Move to my crosshair', 'the squad goes where you aim', null, () => { squadGo(); toggleTablet(false); });
+    head('Squad orders', 'person');
+    if (!fp.on) note('Drop into first person in a battle to command your own squad. Every order below then works.');
+    else {
+      note(SQD.mates.length ? 'Your squad: ' + SQD.mates.map(callsignOf).join(', ') + '. Orders use your crosshair. Hold N for the order ring.' : 'Deploy to get a squad.');
+      for (const [id, label, nt, icn] of SQD_ORD) wrow(icn, id === 'mount' ? (SQD.mates.some(q => q.vin) ? 'Dismount' : 'Mount up') : label, nt, null, () => { sqdSet(id); toggleTablet(false); }, SQD.on && SQD.order.k === id);
+      head('Formation and fire', 'chevrons');
+      const fo = document.createElement('div'); fo.className = 'tbOpt'; const fl = document.createElement('span'); fl.className = 'tbLab'; fl.textContent = 'Formation'; fo.append(fl);
+      for (const [v, n] of [['wedge', 'Wedge'], ['line', 'Line'], ['column', 'Column']]) fo.append(mkB(n, '', () => { SQD.form = v; sqdHud(true); renderTablet(); }, { 'aria-pressed': String(SQD.form === v) })); body.append(fo);
+      const fi = document.createElement('div'); fi.className = 'tbOpt'; const fl2 = document.createElement('span'); fl2.className = 'tbLab'; fl2.textContent = 'Fire'; fi.append(fl2);
+      fi.append(mkB(SQD.hf ? 'Free fire' : 'Hold fire', '', () => { sqdToggleFire(); renderTablet(); }, { 'aria-pressed': String(SQD.hf) }), mkB('Ping crosshair', '', () => { sqdPing(); toggleTablet(false); })); body.append(fi);
+    }
   } else if (tbTab === 'points') {
     head('Capture points', 'flag'); note('Tap a name to fly there. Attack and Defend set your plan once you have joined a side.');
     for (const p of BATTLE.points) {
@@ -5236,6 +5257,7 @@ setInterval(() => { if ($('tablet').hidden) return; const s = tbSigNow(); if (s 
 $('tbClose').addEventListener('click', () => toggleTablet(false));
 onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
 function planBattle() {
+  sqdMergeSmall();
   for (const team of ['blue', 'red']) {
     const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag' && !q.bot.dead && !q.bot.crew && q.bot.sq), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.x, 0) / bots.length : 0), cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.z, 0) / bots.length : 0);
     if (!bots.length || !pts.length) continue;
@@ -5256,12 +5278,13 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); updateTracers(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } if (!BATTLE.on) return; airAuto(dt); updateKit(dt); updateTracers(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
+  try { sqdFrame(dt); voiceTick(); voiceWatch(); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); }
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
     for (const p of BATTLE.points) { let nb = 0, nr = 0; for (const q of people) { if (q.state === 'rag' || q.ride || q.swim || q.hp <= 0 || (q.bot && q.bot.crew)) continue; const t = teamOf(q); if (!t || Math.hypot(q.x - p.x, q.z - p.z) > p.r) continue; if (t === 'blue') nb++; else nr++; }
-      p.nb = nb; p.nr = nr; const d = clamp(nb - nr, -4, 4); if (nb && nr && Math.abs(nb - nr) < 1) { if (p.owner) p.prog = clamp(p.prog + (p.owner === 'blue' ? 1 : -1) * 0.02, -1, 1); continue; } if (p.type === 'hq' && p.owner && ((p.owner === 'blue' && d < 0) || (p.owner === 'red' && d > 0)) && BATTLE.points.some(o => o !== p && o.owner === p.owner)) { noteOnce('hql' + p.name, p.name + ' cannot be taken while its side holds other points.'); continue; } const before = p.owner; p.prog = clamp(p.prog + d * 0.06 * step * 2, -1, 1); const ow = p.prog > 0.5 ? 'blue' : p.prog < -0.5 ? 'red' : null; if (ow !== p.owner) { p.owner = ow; paintFlag(p); Snd.ui(BATTLE.team && ow !== BATTLE.team ? 'ui_flag_lost' : 'ui_flag_capture', 0.8); if (ow) noteOnce('cap' + p.name + ow, (ow === 'blue' ? 'The Port' : 'The ' + BATTLE.redKind) + ' captured ' + p.name + '.'); else noteOnce('neu' + p.name, p.name + ' is neutral.'); } }
+      p.nb = nb; p.nr = nr; const d = clamp(nb - nr, -4, 4); if (nb && nr && Math.abs(nb - nr) < 1) { if (p.owner) p.prog = clamp(p.prog + (p.owner === 'blue' ? 1 : -1) * 0.02, -1, 1); continue; } if (p.type === 'hq' && p.owner && ((p.owner === 'blue' && d < 0) || (p.owner === 'red' && d > 0)) && BATTLE.points.some(o => o !== p && o.owner === p.owner)) { noteOnce('hql' + p.name, p.name + ' cannot be taken while its side holds other points.'); continue; } const before = p.owner; p.prog = clamp(p.prog + d * 0.06 * step * 2, -1, 1); const ow = p.prog > 0.5 ? 'blue' : p.prog < -0.5 ? 'red' : null; if (ow !== p.owner) { p.owner = ow; pointVoice(p, ow, before); paintFlag(p); Snd.ui(BATTLE.team && ow !== BATTLE.team ? 'ui_flag_lost' : 'ui_flag_capture', 0.8); if (ow) noteOnce('cap' + p.name + ow, (ow === 'blue' ? 'The Port' : 'The ' + BATTLE.redKind) + ' captured ' + p.name + '.'); else noteOnce('neu' + p.name, p.name + ' is neutral.'); } }
     battleHud();
   }
   if (!BATTLE.lowSnd && BATTLE.team && BATTLE.tickets[BATTLE.team] < Math.max(15, BATTLE.tix0 * 0.19)) { BATTLE.lowSnd = true; Snd.ui('ui_tickets_low', 0.7); }
@@ -5330,18 +5353,10 @@ function deployMenu() {                                             // knocked o
 function deploy(p) {
   const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
   me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; Snd.ui('ui_respawn', 0.7); $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
-  const near = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 4); for (const q of near) q.bot.follow = BATTLE.squadMode === 'follow'; fp.nades = 3; fp.c4 = 3; fp.smokes = 2; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
+  sqdBind(me); fp.nades = 3; fp.c4 = 3; fp.smokes = 2; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
 }
 function playBattle(team) {
   if (!isBattleMap()) { offerBattleMaps(); return; } if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } q.botSaved = q.bot; q.roleSaved = q.role; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
-}
-function squadOrder(mode) {
-  BATTLE.squadMode = mode; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag' && q.bot.follow !== undefined).sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
-  for (const q of mine) { q.bot.follow = mode === 'follow'; if (mode === 'hold') { q.order = null; q.route = null; q.bot.obj = { x: q.x, z: q.z }; } } toast(mode === 'follow' ? 'Your squad follows you.' : 'Your squad holds here.');
-}
-function squadGo() {
-  const h = fpAim(300); if (!h.pt) return; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
-  for (const q of mine) { q.bot.follow = false; q.bot.obj = { x: h.pt.x, z: h.pt.z }; q.order = null; q.route = null; } toast('Your squad moves out to where you are looking.');
 }
 
 /*BD-START*/
@@ -5418,7 +5433,7 @@ function bTry(name, x, z, yaw, o) {                                    // build 
   const part = (n) => nodeByName({ scene: g }, n), s = { name, p: o.p || null, x, z, y: g.position.y, yaw, g, hx, hz, h: bb.h, pr, body, fi, cover: !!o.cover, mine: !!o.mine, aimYaw: yaw, elev: 0.15, kick: 0, spin: 0 };
   if (name === 'radar_station') s.dish = part('radar_dish'); else if (name === 'artillery_battery') s.barrel = part('howitzer_barrel'); else if (name === 'mortar_pit') s.tube = part('mortar_tube'); else if (name === 'helipad') s.sock = part('windsock'); else if (name === 'oil_pumpjack') s.head = part('pump_head');
   else if (name === 'searchlight_tower') { s.lamp = part('searchlight_lamp'); if (s.lamp) { const geo = new THREE.ConeGeometry(4.5, 40, 14, 1, true).translate(0, -20, 0).rotateX(-Math.PI / 2), mat2 = new THREE.MeshBasicMaterial({ color: 0xfff2c8, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }); s.cone = new THREE.Mesh(geo, mat2); s.cone.visible = false; s.cone.frustumCulled = false; s.lamp.add(s.cone); } }
-  STRUCT.push(s); return s;
+  STRUCT.push(s); ladAddModel('battle', name, g, pr); return s;
 }
 function removeStruct(s) {
   const i = STRUCT.indexOf(s); if (i >= 0) STRUCT.splice(i, 1); scene.remove(s.g); if (s.pr) { const k = props.indexOf(s.pr); if (k >= 0) props.splice(k, 1); } if (s.body) world.removeBody(s.body);
@@ -6155,13 +6170,13 @@ function bvEnter(c, seat) {
   fp.yaw = c.heli ? c.hd : c.yaw; fp.pitch = -0.14; BV.ly = fp.yaw; BV.lp = fp.pitch; BV.vy = fp.yaw; BV.mt = 0; BV.camMode = 'chase'; p.obj.visible = !!seat.vis;
   if (c.heli) bvHeliBoarded(c, seat); else { c.active = true; if (c.ai && seat.kind === 'driver') bvAIRelease(c, true); }
   $('fpPrompt').textContent = ''; $('fpHint').textContent = isTouch ? 'Stick drives. Fire button shoots. Use button gets out.' : 'In the ' + bvName(c).toLowerCase() + ': E gets out, V changes the view, X changes seat. The full list is in the Menu under Controls.';
-  toast('You are the ' + bvSeatName(seat) + ' of the ' + bvName(c).toLowerCase() + '.'); Snd.fx('mat_metal_clang_s', c.x, c.z, { gain: 0.35, y: c.y + 1 }); return true;
+  toast('You are the ' + bvSeatName(seat) + ' of the ' + bvName(c).toLowerCase() + '.'); Snd.fx('mat_metal_clang_s', c.x, c.z, { gain: 0.35, y: c.y + 1 }); if (SQD.on && SQD.order.k === 'follow') sqdMount(c); return true;
 }
 function bvLeavePlayer(c, spot) {
   const p = fp.p; if (!p || fp.veh !== c) return; if (!spot) { _bvO.rear = false; if (c.heli) { _bvO.x = c.x + Math.sin(c.hd + 1.6) * 4; _bvO.z = c.z + Math.cos(c.hd + 1.6) * 4; if (standY(_bvO.x, _bvO.z) < 0.35) { _bvO.x = c.x - Math.sin(c.hd + 1.6) * 4; _bvO.z = c.z - Math.cos(c.hd + 1.6) * 4; } } else bvExitSpot(c, fp.vseat && fp.vseat.kind === 'driver' ? 0 : 1, _bvO); spot = _bvO; }
   const sx = spot.x, sz = spot.z; bvUnboard(c, p, { x: sx, z: sz }); p.fp = true; p.obj.visible = false; p.fpMoving = false; fp.veh = null; fp.vseat = null; fp.vx = fp.vz = 0; fp.air = false; fp.vy = 0; fp.pitch = 0; fp.fireHeld = false;
   pushOutOfProps(p, 0.4); if (c.heli) bvHeliLeft(c); else { c.poseDirty = true; if (c.ai) { c.ai.st = 'park'; c.ai.t = BATTLE.t + 25; } }
-  if (BV.hud) BV.hud.hidden = true; for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === fp.tool; if (!isTouch && fp.on && !fp.locked) lockPointer();
+  if (BV.hud) BV.hud.hidden = true; for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === fp.tool; if (!isTouch && fp.on && !fp.locked) lockPointer(); sqdDismountAll(c);
 }
 function bvLeaveKey() {
   const c = fp.veh; if (!c) return; if (c.heli && !bvHeliCanLeave(c)) { toast('Land first. You can get out when you are under 3 metres up and slow.'); return; }
@@ -6432,7 +6447,7 @@ const bvHeliOnGround = (u) => u.y - bvHeliGround(u) < 0.6 && bvHeliSpeed(u) < 2 
 const bvHeliCanLeave = (u) => u.y - bvHeliGround(u) < 3 && bvHeliSpeed(u) < 2;
 function bvHeliBoarded(u, seat) {
   if (seat.kind !== 'driver') { bvHeliGunSeatOn(u, seat); return; } u.hold = false; let n = 0;
-  for (const q of people) { if (!q.bot || teamOf(q) !== u.team || q.vin || q.state === 'rag' || q.hp <= 0 || q.bot.crew || q.fp || !q.bot.follow || Math.hypot(q.x - u.x, q.z - u.z) > 30) continue; const s = u.seats.find(z => z.kind === 'pass' && !z.q); if (!s) break; if (bvBoard(u, q, s)) n++; }
+  for (const q of people) { if (!q.bot || teamOf(q) !== u.team || q.vin || q.state === 'rag' || q.hp <= 0 || q.bot.crew || q.fp || !q.bot.follow || (q.bot.psq && SQD.order.k !== 'follow') || Math.hypot(q.x - u.x, q.z - u.z) > 30) continue; const s = u.seats.find(z => z.kind === 'pass' && !z.q); if (!s) break; if (bvBoard(u, q, s)) n++; }
   if (n) toast(n + (n === 1 ? ' soldier of your squad climbs' : ' soldiers of your squad climb') + ' aboard.');
 }
 function bvHeliGunSeatOn(u, seat) { u.hold = true; }
@@ -6600,7 +6615,7 @@ function impactFx(kind, ref, pt, d) {
 /* ---- getting into the action and back out: take over any soldier, watch the fight from behind one, swap to the next, go back to the overview. When you let go, they carry on by themselves. */
 function possess(q) {
   if (!q || q.state === 'rag' || fp.on || q.hop || q.ride) return false; if (BATTLE.on && !BATTLE.team && teamOf(q)) BATTLE.team = teamOf(q); if (q.bot) { q.botSaved = q.bot; q.bot = null; q.roleSaved = q.role; } else if (q.gun) { q.gunSaved = q.gun; q.gun = null; }
-  q.hp = Math.max(q.hp || 100, 70); BATTLE.spec = null; if (q.order) { q.order = null; q.route = null; } enterFP(q); if (fp.on) { fpSetTool(BATTLE.on ? (q.botSaved && WPN[q.botSaved.w] ? q.botSaved.w : 'rifle') : 'rifle'); } return fp.on;
+  q.hp = Math.max(q.hp || 100, 70); BATTLE.spec = null; if (q.order) { q.order = null; q.route = null; } enterFP(q); if (fp.on) { fpSetTool(BATTLE.on ? (q.botSaved && WPN[q.botSaved.w] ? q.botSaved.w : 'rifle') : 'rifle'); if (BATTLE.on && BATTLE.team) sqdBind(q); } return fp.on;
 }
 function releasePerson(q) {
   if (!q) return; if (q.botSaved) { q.bot = q.botSaved; q.botSaved = null; q.bot.tgt = null; q.bot.coverPt = null; q.bot.atCover = false; q.bot.crouch = false; q.bot.myOrder = null; if (q.roleSaved) { q.role = q.roleSaved; q.roleSaved = null; } }
@@ -7428,7 +7443,13 @@ const KEYMAP = [
   ['fp', 'Q', 'Jump overboard'],
   ['fp', 'H', 'Take the helm'],
   ['fp', 'F', 'Engineer: set down a sandbag corner (six at most)'],
-  ['fp', 'X, Z', 'In a battle: squad follow or hold, squad move to the crosshair'],
+  ['fp', 'X, Z', 'In a battle: squad follow or hold (X toggles), squad move to the crosshair (Z)'],
+  ['fp', 'Hold N, then 1 to 8', 'Squad order ring. Hold N, move the mouse to a slot (or press 1 to 8), let go to give the order: Follow, Move, Attack, Suppress, Take cover, Fall back, Hold, Defend', 'h'],
+  ['fp', 'I', 'Ping: mark the spot or enemy under the crosshair. The squad turns to it, and Attack uses it'],
+  ['fp', 'M', 'Squad mounts up in the vehicle beside you, or gets out'],
+  ['fp', 'U', 'Heal me: the nearest medic comes and patches you up'],
+  ['fp', 'K', 'Squad hold fire, or free fire'],
+  ['fp', 'E at a ladder', 'Climb a ladder (stand at its foot and face it, or stand at the top to go down). W and S climb, Space jumps off, E lets go. You can look 50 degrees either way and your weapon is put away', 'h'],
   ['fp', 'T', 'Command'],
   ['fp', 'B', 'Detonate placed charges'],
   ['fp', 'Y', 'Swap to the nearest friendly soldier'],
@@ -7452,7 +7473,7 @@ const KEYMAP = [
   ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Support', 'Calls for your side, with Ready, Recharging or Offline shown: Griffon, gunship, attack helicopter, medevac, air strike, artillery, battery barrage, troop transport, boat landing. Shot-down aircraft stay offline for a while'],
-  ['tab', 'Squad', 'Follow, hold, or move to your crosshair'],
+  ['tab', 'Squad', 'Follow me, hold here, move to your crosshair, attack that, defend this point, take cover, fall back, suppress, heal me, mount up or dismount, plus formation (wedge, line, column), hold fire and ping. The same orders as the ring (hold N)'],
 ];
 function keyRows(where, flag) { return KEYMAP.filter(r => where.includes(r[0]) && (!flag || (r[3] || '').includes(flag))); }
 function fillHelpKeys() { const host = document.getElementById('helpKeys'); if (!host) return; for (const [, k, d] of keyRows(['over', 'help', 'fp'], 'h')) { const b = document.createElement('b'), sp = document.createElement('span'); b.textContent = k; sp.textContent = d; host.append(b, sp); } }
@@ -10175,6 +10196,591 @@ $('mEasy').addEventListener('click', () => { const ez = applyLook().ez; try { lo
 applyLook();
 /* the Menu in four tabs: Play, Settings, Help, App */
 { const tabs = menuMain.querySelectorAll('.mtabs button'), secs = menuMain.querySelectorAll('.mtab'); const show = (id) => { tabs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mt === id))); secs.forEach(s => { s.hidden = s.dataset.mt !== id; }); }; tabs.forEach(b => b.addEventListener('click', () => show(b.dataset.mt))); show('play'); }
+/* ================================================================ the player's own squad: binding, orders, formation, markers, command ring, HUD
+   Tuning constants (all in one place): SQD_MAX 5 mates (4 on a phone); regroup beyond 35 m; slot tolerance 5.5 m; bounding switches every 3.2 s;
+   Suppress lasts 8 s; Take cover and Fall back lapse after 20 s; the squad thinks every frame but only re-plans a walk every 0.6 s; markers show to 70 m. */
+const SQD_NAMES = ['Alex', 'Ben', 'Cal', 'Dan', 'Eli', 'Finn', 'Gus', 'Hal', 'Ian', 'Jack', 'Kai', 'Leo', 'Max', 'Nate', 'Omar', 'Pete', 'Quin', 'Raj', 'Sam', 'Tom', 'Uri', 'Vic', 'Will', 'Zed'];
+const SQD_MAX = isTouch ? 4 : 5;
+const SQD = { on: false, mates: [], order: { k: 'follow', n: 0 }, form: 'wedge', hf: false, used: new Set(), hd: 0, faceYaw: 0, wheel: false, wx: 0, wy: 0, sel: -1, ping: null, pingE: null, pingT: -99, tk: 0, hudSig: '', mv: null, fillT: 0, ordN: 0, mk: null, pk: null, arrT: 0, els: [], hudEl: null, wheelEl: null, marksEl: null, v3: null };
+const SQD_ORD = [['follow', 'Follow me', 'keep close, stay in formation', 'person'], ['hold', 'Hold here', 'stay where you are and watch', 'anchor'], ['move', 'Move to my crosshair', 'go there and wait', 'marker'], ['attack', 'Attack that', 'engage and assault what you aim at', 'rifle'], ['defend', 'Defend this point', 'hold the nearest point', 'flag'], ['cover', 'Take cover', 'get behind something', 'bunker'], ['fall', 'Fall back', 'run back to me', 'chevrons'], ['suppress', 'Suppress', 'pin down the area you aim at', 'belt'], ['heal', 'Heal me', 'the nearest medic comes to you', 'cross'], ['mount', 'Mount up', 'get in a vehicle, or get out', 'door']];
+const SQD_RING = ['follow', 'move', 'attack', 'suppress', 'cover', 'fall', 'hold', 'defend'];            // the order ring, clockwise from the top; 1 to 8 pick a slot directly
+const SQD_WORD = { follow: 'Following', hold: 'Holding', move: 'Moving', attack: 'Attacking', defend: 'Defending', cover: 'Covering', fall: 'Falling back', suppress: 'Suppressing' };
+function newCallsign() { for (const n of SQD_NAMES) if (!SQD.used.has(n)) { SQD.used.add(n); return n; } const k = SQD.used.size; const nm = SQD_NAMES[k % 24] + ' ' + (Math.floor(k / 24) + 1); SQD.used.add(nm); return nm; }
+function callsignOf(q) { const b = q && (q.bot || q.botSaved || q.gun || q.gunSaved); if (!b) return (q && q.role) || 'Soldier'; if (!b.cs) b.cs = newCallsign(); return b.cs; }
+function sqdReset() { for (const q of SQD.mates) if (q.bot) sqdUnbind(q); SQD.mates.length = 0; SQD.on = false; SQD.used.clear(); SQD.order = { k: 'follow', n: 0 }; SQD.ping = SQD.pingE = null; SQD.mv = null; SQD.hf = false; SQD.wheel = false; if (SQD.wheelEl) SQD.wheelEl.hidden = true; if (SQD.mk) SQD.mk.visible = false; if (SQD.pk) SQD.pk.visible = false; sqdHud(true); }
+function sqdUnbind(q) { const b = q.bot; if (!b) return; b.psq = false; b.follow = false; b.mountV = null; b.holdAt = null; b.healFor = 0; b.focus = null; b.noCover = false; b.coverK = 0; }
+function sqdAdopt(q) {
+  if (SQD.mates.includes(q) || SQD.mates.length >= SQD_MAX + 1 || !q.bot) return false; const b = q.bot; b.psq = true; b.follow = true; b.cs = b.cs || newCallsign(); b.holdAt = null; b.mountV = null; SQD.mates.push(q); SQD.mates.forEach((m, i) => { if (m.bot) m.bot.slot = i; }); return true;
+}
+function sqdBind(me) {                                              // the nearest friendly soldiers become the player's squad: 3 to 5, with callsigns, the player as leader
+  if (!BATTLE.on || !me || !BATTLE.team) return; sqdUiInit(); const team = BATTLE.team, prev = SQD.mates.slice(), mySq = me.botSaved && me.botSaved.sq;
+  for (const q of SQD.mates) if (q.bot) sqdUnbind(q); SQD.mates.length = 0;
+  const c = people.filter(q => q !== me && q.bot && q.bot.team === team && !q.bot.crew && !q.bot.dead && q.state !== 'rag' && !q.vin && !q.hop && !q.ride && q.hp > 0);
+  const dd = (q) => Math.hypot(q.x - me.x, q.z - me.z) - (prev.includes(q) ? 30 : 0) - (mySq && q.bot.sq === mySq ? 25 : 0); c.sort((a, b) => dd(a) - dd(b));
+  const near = c.filter(q => Math.hypot(q.x - me.x, q.z - me.z) < 90).length, n = Math.min(c.length, clamp(near, 3, SQD_MAX));
+  SQD.order = { k: 'follow', n: ++SQD.ordN, t: simT }; for (let i = 0; i < n; i++) sqdAdopt(c[i]);
+  SQD.on = true; SQD.hd = fp.on ? fp.yaw : 0; SQD.faceYaw = SQD.hd; sqdHud(true);
+  if (SQD.mates.length) toast('Your squad: ' + SQD.mates.map(callsignOf).join(', ') + '.');
+}
+function sqdOff() { for (const q of SQD.mates) if (q.bot) { sqdUnbind(q); q.order = null; q.route = null; } SQD.mates.length = 0; SQD.on = false; SQD.wheel = false; if (SQD.wheelEl) SQD.wheelEl.hidden = true; sqdHud(true); }
+function sqdLeader() { const me = fp.on && fp.p; if (me && me.state !== 'rag' && !BATTLE.down && me.hp > 0) return me; for (const q of SQD.mates) if (q.state !== 'rag' && q.bot && !q.bot.dead && !q.vin && q.hp > 0) return q; return null; }
+function sqdSlot(b, lead, hd) {
+  const n = Math.max(1, SQD.mates.length), k = b.slot || 0, f = SQD.form; let side, back;
+  if (f === 'line') { side = (k - (n - 1) / 2) * 3.2; back = -1.5; } else if (f === 'column') { side = k % 2 ? 0.7 : -0.7; back = -3 - k * 2.6; } else { const r = Math.floor(k / 2) + 1; side = (k % 2 ? 1 : -1) * 2.4 * r; back = -2.2 - r * 2.0; }
+  const x = lead.x + Math.cos(hd) * side + Math.sin(hd) * back, z = lead.z - Math.sin(hd) * side + Math.cos(hd) * back;
+  return standY(x, z) > 0.5 && !footBlocked(x, z, 0.4) ? { x, z } : { x: lead.x + Math.sin(hd) * -1.5, z: lead.z + Math.cos(hd) * -1.5 };
+}
+function sqGo(q, b, x, z, run) {                                    // walk there; a new path only when the goal has moved and not more than twice a second
+  q.run = !!run; const o = q.order; if (o && Math.hypot(o.x - x, o.z - z) < 2.5) return true; if (simT - (b.goT || -9) < 0.6 && o) return true; if (standY(x, z) < 0.5) return false;
+  b.goT = simT; setFootOrder(q, x, z); b.myOrder = q.order; return true;
+}
+function sqFace(q, yaw, dt) { if (!q.order) q.heading += wrap(yaw - q.heading) * Math.min(1, dt * 4); }
+function sqFireAt(q, b, x, y, z) {                                  // suppressive fire into an area: tracers and dust, and anyone there is pinned
+  const w = WPN[b.w]; if (b.reload > 0 || b.cool > 0 || SQD.hf) return; b.ammo--; b.cool = w.rate + w.bot * (0.9 + Math.random() * 0.9); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 5 : 99)) { b.burst = 0; b.cool += 0.5 + Math.random() * 0.5; }
+  const dx = x - q.x, dz = z - q.z; q.heading = Math.atan2(dx, dz); const ex = x + rnd(-2.2, 2.2), ez = z + rnd(-2.2, 2.2), ey = y + rnd(0.3, 1.4);
+  addTracer(q.x + Math.sin(q.heading) * 0.6, q.y + 1.3, q.z + Math.cos(q.heading) * 0.6, ex, ey, ez); ejectCasing(q.x, q.y + 1.2, q.z, q.heading);
+  Snd.fx('wpn_' + wsnd(b.w) + '_fire_0' + (1 + Math.floor(Math.random() * 3)), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, Math.hypot(dx, dz));
+  for (const e of people) { if (e.state === 'rag' || !e.bot || teamOf(e) !== otherTeam(b.team)) continue; if (Math.hypot(e.x - x, e.z - z) < 7) { e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.12); e.bot.alert = Math.max(e.bot.alert, 3); } }
+  if (b.ammo <= 0) { b.reload = 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); }
+}
+function shareContact(q, e) {                                       // anyone of the same side within 40 m hears about a sighting, whatever squad they are in
+  const t = q.bot.team; for (const m of people) { const mb = m.bot; if (m === q || !mb || mb.team !== t || m.state === 'rag' || mb.dead || m.vin) continue; if (Math.abs(m.x - q.x) > 40 || Math.abs(m.z - q.z) > 40) continue; mb.alert = Math.max(mb.alert, 2); if (!mb.hint || simT - mb.hint.t > 4) mb.hint = { x: e.x, z: e.z, t: simT }; }
+}
+function sqdShare(q, e) { for (const m of SQD.mates) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } shareContact(q, e); }
+function sqdAnchor(q, b, lead) {                              // where this soldier should be, for the current order
+  const o = SQD.order, k = o.k, n = b.slot || 0;
+  if (k === 'hold' || k === 'suppress') { if (!b.holdAt) b.holdAt = { x: q.x, z: q.z }; return { x: b.holdAt.x, z: b.holdAt.z, tol: 3 }; }
+  if (k === 'move' || k === 'attack' || k === 'defend') { const a = n * 2.1 + 0.6, r = k === 'defend' ? 4.5 + (n % 2) * 2.5 : 2.2 + (n % 3) * 1.2, x = o.x + Math.cos(a) * r, z = o.z + Math.sin(a) * r; return standY(x, z) > 0.5 ? { x, z, tol: k === 'defend' ? 7 : 4 } : { x: o.x, z: o.z, tol: 5 }; }
+  if (k === 'fall') { const hd = SQD.hd, bx = lead.x - Math.sin(hd) * 14 + Math.cos(hd) * (n - 2) * 2.4, bz = lead.z - Math.cos(hd) * 14 - Math.sin(hd) * (n - 2) * 2.4; return standY(bx, bz) > 0.5 ? { x: bx, z: bz, tol: 5 } : { x: lead.x, z: lead.z, tol: 6 }; }
+  const slot = sqdSlot(b, lead, SQD.hd); return { x: slot.x, z: slot.z, tol: 5.5 };
+}
+function sqdBearing(x, z) {                                         // clock position of a point as the player faces: 12 is straight ahead
+  const me = fp.on && fp.p, ox = me ? me.x : camera.position.x, oz = me ? me.z : camera.position.z, a = wrap(Math.atan2(x - ox, z - oz) - (me ? fp.yaw : 0)); let h = Math.round(-a / (Math.PI / 6)); h = ((h % 12) + 12) % 12; return h || 12;
+}
+function sqdCompass(x, z) { const me = fp.on && fp.p, dx = x - (me ? me.x : camera.position.x), dz = z - (me ? me.z : camera.position.z); return Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'east' : 'west') : (dz > 0 ? 'south' : 'north'); }
+function sqdCall(q, b, e, d) {                                      // the contact call: clock position and range
+  const h = sqdBearing(e.x, e.z), m = Math.max(10, Math.round(d / 10) * 10); b.lastE = e;
+  vsay(q, 'contact', 4, { clock: h, dist: m, side: h >= 10 || h <= 2 ? (h === 12 || h === 1 || h === 11 ? 'front' : h === 2 ? 'right' : 'left') : (h <= 5 ? 'right' : h >= 7 && h <= 9 ? 'left' : 'behind') });
+}
+function sqdMedic(q, b, dt, lead) {                                 // a medic: the fallen squad mates first, then the player, then any wounded mate
+  let tgt = null, fd = 60, revive = false;
+  for (const a of people) if (a !== q && a.state === 'rag' && a.bot && a.bot.team === b.team && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 7) { const d = Math.hypot(a.x - q.x, a.z - q.z) - (a.bot.psq ? 25 : 0); if (d < fd) { fd = d; tgt = a; revive = true; } }
+  if (!tgt) { const me = fp.on && fp.p; if (me && me.state !== 'rag' && !BATTLE.down && ((me.hp || 100) < 70 || b.healFor > simT) && (me.hp || 100) < 100) tgt = me; else for (const m of SQD.mates) if (m !== q && m.state !== 'rag' && m.hp > 0 && m.hp < 60 && !m.vin) { tgt = m; break; } }
+  if (!tgt) return false; const d = Math.hypot(tgt.x - q.x, tgt.z - q.z);
+  if (d > (revive ? 2.5 : 2.2)) { if (!b.mdT || simT - b.mdT > 6) { b.mdT = simT; vsay(q, 'medic_coming', 3); } sqGo(q, b, tgt.x, tgt.z, true); return true; }
+  q.order = null; q.route = null; q.heading = Math.atan2(tgt.x - q.x, tgt.z - q.z);
+  if (revive) { b.rev += dt; if (b.rev > (holdN(b.team, 'depot') ? 1.4 : 2.2)) { b.rev = 0; tgt.hp = 45; tgt.bot.dead = false; tgt.bot.revived = true; tgt.koUntil = 0; standUp(tgt); tgt.bot.revived = false; noteOnce('rev' + simT, 'A medic got someone back on their feet.'); vsay(tgt, 'thanks', 1); vsay(q, 'patched', 2); } }
+  else { tgt.hp = Math.min(100, (tgt.hp || 100) + 26 * dt); if (tgt.hp >= 99 || (tgt.hp >= 70 && b.healFor <= simT)) { b.healFor = 0; vsay(q, 'patched', 2); if (tgt === fp.p) toast('Your medic patched you up.'); } }
+  return true;
+}
+function sqdMountStep(q, b) {                                       // walk to the vehicle and get in; a gun seat only if there is no passenger seat
+  const v = b.mountV; if (!v || v.dead || v.down || v.hp <= 0) { b.mountV = null; return false; } if (v.heli && bvHeliGround(v) + 3 < v.y) { b.mountV = null; return false; }
+  const d = Math.hypot(v.x - q.x, v.z - q.z) - (v.rad || 3);
+  if (d < 3.4) { const s = v.seats.find(z => z.kind === 'pass' && !z.q) || v.seats.find(z => z.kind === 'gunner' && !z.q && !v.heli); if (s && bvBoard(v, q, s)) { vsay(q, 'mount', 2); b.mountV = null; return true; } b.mountV = null; vsay(q, 'full', 1); return false; }
+  q.run = true; sqGo(q, b, v.x, v.z, true); return true;
+}
+function sqdMount(v) { SQD.mv = v; for (const q of SQD.mates) if (q.bot && !q.vin && q.state !== 'rag') q.bot.mountV = v; }
+function sqdDismountAll(v) {                                        // the player got out (or ordered it): everyone aboard steps out and carries on
+  SQD.mv = null; let n = 1; for (const q of SQD.mates) { const b = q.bot; if (!b) continue; b.mountV = null; if (q.vin && (!v || q.vin === v)) { const c = q.vin; _bvO.rear = true; if (c.heli) { const a = c.hd + 1.6 + n * 0.5; _bvO.x = c.x + Math.sin(a) * (4 + n * 0.6); _bvO.z = c.z + Math.cos(a) * (4 + n * 0.6); if (standY(_bvO.x, _bvO.z) < 0.35) { _bvO.x = c.x; _bvO.z = c.z; } } else bvExitSpot(c, n + 1, _bvO); bvUnboard(c, q, _bvO); n++; q.run = true; b.cmdUntil = 0; b.myOrder = null; vsay(q, 'dismount', 2); } }
+}
+function sqdMountKey() {
+  const me = fp.p; if (!me) return false; if (SQD.mates.some(q => q.vin)) { sqdDismountAll(null); toast('Squad: dismounting.'); return true; }
+  const v = fp.veh || bvNear(me, 24); if (!v) { toast('No friendly vehicle close by.'); return false; } if (!fp.veh && v.seats[0] && v.seats[0].q && v.seats[0].q.bot) { toast('That vehicle already has a driver.'); return false; } sqdMount(v); toast('Squad: mounting up.'); sqdAck('mount'); return true;
+}
+function sqdHeal() { const m = SQD.mates.find(q => q.bot && q.bot.cls === 'medic' && q.state !== 'rag' && !q.bot.dead && !q.vin) || sqdPullMedic(); if (!m) { toast('No medic close by.'); return false; } m.bot.healFor = simT + 25; toast('Squad: ' + callsignOf(m) + ' is coming to patch you up.'); vsay(m, 'medic_coming', 3); return true; }
+function sqdPullMedic() { const me = fp.p; let m = null, bd = 90; for (const q of people) { const b = q.bot; if (!b || b.team !== BATTLE.team || b.cls !== 'medic' || b.crew || b.dead || q.state === 'rag' || q.vin || b.psq) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d < bd) { bd = d; m = q; } } if (m) sqdAdopt(m); return m; }
+function sqdEnemyAimed(h) { return h && h.kind === 'person' && h.ref && teamOf(h.ref) === otherTeam(BATTLE.team) && h.ref.hp > 0 && h.ref.state !== 'rag' ? h.ref : null; }
+function sqdAck(kind) { let m = null, bd = 1e9; for (const q of SQD.mates) { if (q.state === 'rag' || !q.bot) continue; const d = Math.hypot(q.x - fp.p.x, q.z - fp.p.z); if (d < bd) { bd = d; m = q; } } if (m) vsay(m, 'ack_' + kind, 2); }
+function sqdSet(kind, quiet) {                                      // one order for the whole squad, from the keys, the ring or the Command panel
+  if (!BATTLE.on || !fp.on || !fp.p) { toast('Drop into first person in a battle to command a squad.'); return false; }
+  if (!SQD.on) sqdBind(fp.p);
+  if (!SQD.mates.length) { toast('You have no squad yet.'); return false; }
+  if (kind === 'heal') return sqdHeal(); if (kind === 'mount') return sqdMountKey();
+  const me = fp.p, o = { k: kind, n: ++SQD.ordN, t: simT, x: me.x, z: me.z, y: me.y, e: null, until: 0 };
+  if (kind === 'move' || kind === 'attack' || kind === 'suppress' || kind === 'defend') {
+    const h = fpAim(300); let pt = h.pt;
+    if (kind === 'attack') { const en = sqdEnemyAimed(h) || (SQD.pingE && SQD.pingE.hp > 0 && SQD.pingE.state !== 'rag' && simT - SQD.pingT < 30 ? SQD.pingE : null); if (en) { o.e = en; pt = { x: en.x, y: en.y, z: en.z }; } else if (SQD.ping && simT - SQD.pingT < 30) pt = SQD.ping; }
+    if (!pt) { toast('Aim at the ground first.'); return false; } o.x = pt.x; o.z = pt.z; o.y = pt.y;
+    if (kind === 'defend') { let bp = null, bd = 80; for (const p of BATTLE.points) { const d = Math.hypot(p.x - o.x, p.z - o.z); if (d < bd) { bd = d; bp = p; } } if (bp) { o.x = bp.x; o.z = bp.z; o.pt = bp; } }
+    if (standY(o.x, o.z) < 0.5) { toast('Pick dry land.'); return false; }
+  }
+  if (kind === 'suppress') o.until = simT + 8; if (kind === 'cover' || kind === 'fall') o.until = simT + 20;
+  sqdApply(o); if (!quiet) { toast(({ follow: 'Squad: follow me.', hold: 'Squad: hold here.', move: 'Squad: moving to your mark.', attack: o.e ? 'Squad: attack that target.' : 'Squad: attack that spot.', defend: 'Squad: defend ' + (o.pt ? o.pt.name : 'this spot') + '.', cover: 'Squad: take cover.', fall: 'Squad: fall back.', suppress: 'Squad: suppress that area.' })[kind]); sqdAck(kind); } return true;
+}
+function sqdApply(o) {
+  SQD.order = o; SQD.faceYaw = fp.on ? fp.yaw : SQD.faceYaw; SQD.arrT = 0;
+  for (const q of SQD.mates) { const b = q.bot; if (!b) continue; b.follow = true; b.holdAt = null; b.coverPt = null; b.atCover = false; b.coverK = 0; b.noCover = false; b.retreat = 0; b.focus = o.e || null; if (o.k === 'hold' || o.k === 'suppress') { q.order = null; q.route = null; b.myOrder = null; } b.goT = 0; }
+  sqdMarkSet(o);
+}
+function sqdPing() {                                                // mark a spot or an enemy; the squad turns to it and the Attack order will use it
+  if (!BATTLE.on || !fp.on || !fp.p) return; if (!SQD.on) sqdBind(fp.p); const h = fpAim(320); if (!h.pt) { toast('Aim at something first.'); return; }
+  const en = sqdEnemyAimed(h); SQD.pingT = simT; SQD.ping = { x: h.pt.x, y: h.pt.y, z: h.pt.z }; SQD.pingE = en || null; if (en) SQD.ping = { x: en.x, y: en.y, z: en.z };
+  sqdPingMark(); Snd.ui('ui_toast_info', 0.5); toast(en ? 'Squad: enemy marked.' : 'Squad: spot marked.');
+  for (const q of SQD.mates) { const b = q.bot; if (!b || q.state === 'rag') continue; if (en) { b.alert = Math.max(b.alert, 4); b.hint = { x: en.x, z: en.z, t: simT }; b.focus = en; } if (!q.order && !q.vin) q.heading = Math.atan2(SQD.ping.x - q.x, SQD.ping.z - q.z); }
+  const m = SQD.mates.find(q => q.state !== 'rag' && q.bot) ; if (m) { if (en) sqdCall(m, m.bot, en, Math.hypot(en.x - m.x, en.z - m.z)); else vsay(m, 'ack_ping', 2); }
+}
+function squadThink(q, b, dt, e) {                                  // one soldier of the player's squad; returns true when it has done everything this frame
+  const S = SQD; if (!S.on || !BATTLE.on) { sqdUnbind(q); return false; }
+  if (b.mountV && sqdMountStep(q, b)) return true;
+  const lead = sqdLeader(); if (!lead) return false; if (lead === q) { b.follow = false; return false; }
+  const o = S.order, k = o.k, w = WPN[b.w], hd = S.hd, dl = Math.hypot(lead.x - q.x, lead.z - q.z), playerLead = lead === fp.p, hf = S.hf;
+  const live = e && e.state !== 'rag' && e.hp > 0;
+  if (b.focus && b.focus.state !== 'rag' && b.focus.hp > 0 && !live && losFull(q.x, q.y + 1.5, q.z, b.focus.x, eyeOf(b.focus), b.focus.z) && Math.hypot(b.focus.x - q.x, b.focus.z - q.z) < 160) { b.tgt = b.focus; return squadThink(q, b, dt, b.focus); }
+  if (live) {
+    const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); q.heading = Math.atan2(dx, dz); b.memE = e; b.memT = simT;
+    if (simT - (b.shT || 0) > 1.5) { b.shT = simT; sqdShare(q, e); } if (b.lastE !== e && simT - (b.callT || -9) > 5) { b.callT = simT; sqdCall(q, b, e, d); } else if (b.lastE !== e) b.lastE = e;
+    const canShoot = !hf && b.reload <= 0 && b.cool <= 0 && d <= w.range;
+    if (k === 'attack' && !hf) { b.noCover = true; if (b.cls !== 'sniper') { b.tac = 'push'; b.pref = 0.12; } return false; }       // the ordinary assault logic: run at them, shoot, no ducking behind things
+    b.noCover = false;
+    if (k === 'cover' && !hf) { if (b.cls !== 'sniper') { b.tac = 'hold'; b.pref = 0.95; } b.coverK = o.n; return false; }              // the ordinary cover routine: run to cover, duck, peek, shoot
+    if (k === 'fall') { const a = sqdAnchor(q, b, lead); b.crouch = false; b.stance = 0; sqGo(q, b, a.x, a.z, true); if (canShoot && Math.random() < 0.08) botFire(q, b, e, d); if (Math.hypot(a.x - q.x, a.z - q.z) < 6) { q.order = null; q.run = false; b.crouch = true; } return true; }
+    if (k === 'suppress' && !live) return false;
+    const a = sqdAnchor(q, b, lead), far = Math.hypot(a.x - q.x, a.z - q.z), moving = playerLead && (lead.fpMoving || fp.spd > 1.2);
+    let advance = far > a.tol; if (k === 'follow' && moving && far > 4) advance = ((Math.floor(simT / 3.2) + (b.slot || 0)) % 2) === 0 || far > 14;
+    if (advance) { b.crouch = false; b.stance = 0; sqGo(q, b, a.x, a.z, true); if (!b.mvT || simT - b.mvT > 7) { b.mvT = simT; vsay(q, 'moving', 2); } if (canShoot && Math.random() < 0.25) botFire(q, b, e, d); return true; }
+    if (q.order && q.order === b.myOrder) { q.order = null; q.route = null; b.myOrder = null; } q.run = false;
+    if (k === 'follow' && moving && (!b.cvT || simT - b.cvT > 8)) { b.cvT = simT; vsay(q, 'covering', 2); }
+    b.stance = (b.supp || 0) > 0.8 ? 2 : (k === 'follow' && !moving) || k === 'hold' || k === 'defend' || k === 'suppress' || k === 'move' ? 1 : 0; b.crouch = (b.supp || 0) > 0.65 && Math.random() < 0.7;
+    if (playerLead && k === 'follow' && (fp.stance || 0) >= 1) b.stance = Math.max(b.stance, fp.stance);      // the player kneels or goes prone: so do they
+    if (b.supp > 0.65 && Math.random() < dt * 0.4) vsay(q, 'pinned', 3);
+    if (!b.crouch && canShoot) botFire(q, b, e, d); return true;
+  }
+  // no one in sight
+  if (b.memE && simT - (b.memT || 0) > 6 && b.lastE) { if (simT - (b.clrT || -99) > 25) { b.clrT = simT; vsay(q, 'clear', 1); } b.lastE = null; }
+  b.tgt = null; b.crouch = false; b.stance = 0; b.coverPt = null; b.atCover = false; b.noCover = false;
+  if (b.cls === 'medic' && sqdMedic(q, b, dt, lead)) return true;
+  if (k === 'suppress' && o.x !== undefined) { b.stance = 1; q.run = false; if (q.order) { q.order = null; q.route = null; b.myOrder = null; } sqFireAt(q, b, o.x, o.y || heightAt(o.x, o.z), o.z); return true; }
+  const a = sqdAnchor(q, b, lead), far = Math.hypot(a.x - q.x, a.z - q.z);
+  if (k === 'cover') {
+    if (b.cls === 'sniper' && !b.tower && !q.plat) towerOffer(q, b, { x: lead.x, z: lead.z });
+    if (b.tower) return false;
+    if (!b.coverPt || b.coverK !== o.n) { const fk = { x: lead.x + Math.sin(S.faceYaw) * 45, z: lead.z + Math.cos(S.faceYaw) * 45 }; b.coverPt = findCover(q, fk); b.coverK = o.n; b.atCover = false; }
+    if (b.coverPt) { const dc = Math.hypot(b.coverPt.x - q.x, b.coverPt.z - q.z); if (dc > 1.5) { sqGo(q, b, b.coverPt.x, b.coverPt.z, true); return true; } if (q.order) { q.order = null; q.route = null; b.myOrder = null; } b.atCover = true; b.crouch = true; q.run = false; sqFace(q, S.faceYaw, dt); return true; }
+  }
+  if (far > a.tol) {
+    const run = far > 8 || dl > 20 || k === 'fall' || k === 'attack'; sqGo(q, b, a.x, a.z, run);
+    if (k === 'follow' && dl > 35 && (!b.rgT || simT - b.rgT > 14)) { b.rgT = simT; vsay(q, 'regroup', 2); }
+    // stuck handling: no progress for 3 s means a new path, then a nudge, then (out of sight) a jump to the slot
+    b.pgT = (b.pgT || 0) + dt; if (b.pgT > 3) { const mv = Math.hypot(q.x - (b.pgX || 0), q.z - (b.pgZ || 0)); b.pgT = 0; b.pgX = q.x; b.pgZ = q.z; if (mv < 1.2 && q.order) { b.pgN = (b.pgN || 0) + 1; q.order = null; q.route = null; if (b.pgN >= 2) setFootOrder(q, a.x + rnd(-3, 3), a.z + rnd(-3, 3)); if (b.pgN >= 4 || dl > 130) { const cam = Math.sin(fp.yaw) * (q.x - lead.x) + Math.cos(fp.yaw) * (q.z - lead.z); if (cam < 0 || dl > 90) { q.x = a.x; q.z = a.z; q.y = standY(a.x, a.z); q.order = null; q.route = null; b.pgN = 0; } } } else b.pgN = 0; }
+    return true;
+  }
+  if (q.order && q.order === b.myOrder && Math.hypot(q.order.x - q.x, q.order.z - q.z) < 1.5) { q.order = null; q.route = null; b.myOrder = null; }
+  q.run = false;
+  if (k === 'follow') {
+    sqFace(q, hd, dt);
+    // wait for orders: a mate speaks up now and then when nothing is happening
+    if (dl < 14 && (!b.idT || simT - b.idT > 40 + (b.slot || 0) * 9)) { b.idT = simT; if (Math.random() < 0.6) vsay(q, 'idle', 1); }
+  } else if (k === 'defend') { sqFace(q, Math.atan2(q.x - o.x, q.z - o.z), dt); if (!b.dfT || simT - b.dfT > 30) { b.dfT = simT; vsay(q, 'defend', 2); } if (b.cls === 'sniper' || b.cls === 'marksman') towerOffer(q, b, o); }
+  else { sqFace(q, S.faceYaw, dt); }
+  return true;
+}
+function sqdStatus(q) {
+  const b = q.bot; if (!b) return 'Down'; if (q.state === 'rag' || b.dead) return 'Down'; if (q.vin) return 'Mounted'; if (q.climb) return 'Climbing'; if (b.reload > 0) return 'Reloading';
+  if (b.atCover || (b.tgt && b.crouch)) return 'Covering'; if (b.mountV) return 'Moving'; const k = SQD.order.k; if (b.retreat > simT) return 'Falling back';
+  if (q.order && (k === 'follow' || k === 'hold')) return 'Moving'; return SQD_WORD[k] || 'Following';
+}
+/* ---- the markers: a ring and arrow on the ground for a move, a red crosshair for an attack, a diamond for a ping; they fade once the squad has arrived */
+function sqdMarkInit() {
+  if (SQD.mk) return; const mat = (c) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, side: THREE.DoubleSide }), mk = new THREE.Group(), ping = new THREE.Group();
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.2, 28).rotateX(-Math.PI / 2), mat(0xe8cf8a)), arrow = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.3, 4).rotateX(Math.PI), mat(0xe8cf8a)); arrow.position.y = 2.6;
+  const bar = (r) => { const m = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.06, 0.16), mat(0xff6a55)); m.rotation.y = r; m.position.y = 0.12; return m; }, rr = new THREE.Mesh(new THREE.RingGeometry(1.5, 1.75, 28).rotateX(-Math.PI / 2), mat(0xff6a55));
+  mk.add(ring, arrow, bar(0), bar(Math.PI / 2), rr); mk.userData = { ring, arrow, bars: [mk.children[2], mk.children[3], rr] }; mk.traverse(o => { if (o.isMesh) o.renderOrder = 9; }); mk.visible = false; scene.add(mk); SQD.mk = mk;
+  const dia = new THREE.Mesh(new THREE.OctahedronGeometry(0.5), mat(0x7fe0ff)); dia.position.y = 2.4; const pr = new THREE.Mesh(new THREE.RingGeometry(0.7, 0.95, 24).rotateX(-Math.PI / 2), mat(0x7fe0ff)); ping.add(dia, pr); ping.traverse(o => { if (o.isMesh) o.renderOrder = 9; }); ping.visible = false; scene.add(ping); SQD.pk = ping;
+}
+function sqdMarkSet(o) {
+  sqdMarkInit(); const m = SQD.mk, u = m.userData, show = o.x !== undefined && (o.k === 'move' || o.k === 'attack' || o.k === 'defend' || o.k === 'suppress');
+  m.visible = show; if (!show) return; m.position.set(o.x, Math.max(heightAt(o.x, o.z), 0) + 0.15, o.z); const atk = o.k === 'attack' || o.k === 'suppress'; u.ring.visible = u.arrow.visible = !atk; u.bars.forEach(x => { x.visible = atk; });
+  m.traverse(c => { if (c.material) c.material.opacity = 0.9; }); SQD.arrT = 0;
+}
+function sqdPingMark() { sqdMarkInit(); const p = SQD.ping; if (!p) return; SQD.pk.visible = true; SQD.pk.position.set(p.x, Math.max(heightAt(p.x, p.z), 0) + 0.15, p.z); SQD.pk.traverse(c => { if (c.material) c.material.opacity = 0.9; }); }
+function sqdMarkFrame(dt) {
+  const m = SQD.mk, o = SQD.order;
+  if (m && m.visible) { m.rotation.y += dt * 0.8; const u = m.userData; u.arrow.position.y = 2.6 + Math.sin(simT * 4) * 0.25; let near = 0, n = 0; for (const q of SQD.mates) { if (q.state === 'rag') continue; n++; if (Math.hypot(q.x - o.x, q.z - o.z) < 9) near++; }
+    if (n && near * 2 >= n) { SQD.arrT = (SQD.arrT || 0) + dt; const f = 1 - SQD.arrT / 3; m.traverse(c => { if (c.material) c.material.opacity = Math.max(0, 0.9 * f); }); if (f <= 0) m.visible = false; } else SQD.arrT = 0; }
+  const pk = SQD.pk; if (pk && pk.visible) { pk.rotation.y += dt * 2; const f = 1 - (simT - SQD.pingT) / 14; pk.traverse(c => { if (c.material) c.material.opacity = Math.max(0, 0.9 * f); }); if (f <= 0) { pk.visible = false; SQD.ping = null; } }
+}
+/* ---- the squad list top left, the callsign chevrons above heads, and the order ring */
+function sqdUiInit() {
+  const fpEl = document.getElementById('fp'); if (!fpEl || SQD.hudEl) return;
+  const st = document.createElement('style'); st.textContent = '#sqHud{position:absolute;left:14px;top:calc(124px + var(--safe-t));display:grid;gap:4px;pointer-events:none;z-index:4;width:178px}body.touch #sqHud{top:calc(112px + var(--safe-t));width:150px}#sqHud .r{display:grid;grid-template-columns:20px 1fr;gap:1px 7px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font:600 13px/1.15 var(--f-body);color:var(--paper)}#sqHud .r.dn{opacity:.55}#sqHud .r .ic{width:18px;height:18px;grid-row:1/3}#sqHud .nm{display:flex;justify-content:space-between;gap:6px}#sqHud .nm i{font-style:normal;font-weight:500;opacity:.85}#sqHud .hb{height:5px;background:rgba(0,0,0,.55);border-radius:3px;overflow:hidden;grid-column:2}#sqHud .hb b{display:block;height:100%;background:#6fcf7a;transform-origin:0 50%}#sqHud .hd{font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);padding:0 2px}'
+    + '#sqMarks{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}#sqMarks .m{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;justify-items:center;font:700 12px var(--f-body);color:#fff;text-shadow:0 1px 3px #000}#sqMarks .m:after{content:"";width:0;height:0;border:6px solid transparent;border-top:8px solid var(--c,#7db2ff);border-bottom:0;margin-top:1px}#sqMarks .m.dn{opacity:.45}'
+    + '#sqWheel{position:absolute;left:50%;top:50%;width:0;height:0;z-index:8;pointer-events:none}#sqWheel .c{position:absolute;transform:translate(-50%,-50%);min-width:150px;text-align:center;font:700 15px var(--f-display);letter-spacing:.04em;text-shadow:0 1px 4px #000;color:var(--brass)}#sqWheel .s{position:absolute;width:112px;min-height:56px;margin:-28px 0 0 -56px;display:grid;justify-items:center;align-content:center;gap:1px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:4px;font:600 13px/1.15 var(--f-body);color:var(--paper);text-align:center}#sqWheel .s .ic{width:22px;height:22px}#sqWheel .s .k{font:600 11px var(--f-mono);color:var(--brass)}#sqWheel .s.on{border-color:var(--brass);background:rgba(60,48,20,.96);transform:scale(1.1)}body.touch #sqWheel .s{pointer-events:auto}'
+    + '#killFeed .vc,#sideFeed .vc{display:inline-flex;align-items:center;gap:5px}#sideFeed .vc svg{width:13px;height:13px;flex:none;opacity:.8}';
+  document.head.appendChild(st);
+  const hud = document.createElement('div'); hud.id = 'sqHud'; hud.hidden = true; fpEl.appendChild(hud); SQD.hudEl = hud;
+  const mk = document.createElement('div'); mk.id = 'sqMarks'; fpEl.appendChild(mk); SQD.marksEl = mk;
+  const wh = document.createElement('div'); wh.id = 'sqWheel'; wh.hidden = true; fpEl.appendChild(wh); SQD.wheelEl = wh;
+  const c = document.createElement('div'); c.className = 'c'; c.textContent = 'Squad orders'; wh.appendChild(c); SQD.wheelC = c;
+  SQD_RING.forEach((id, i) => { const od = SQD_ORD.find(x => x[0] === id), a = -Math.PI / 2 + i * Math.PI / 4, b = document.createElement('button'); b.type = 'button'; b.className = 's'; b.style.left = Math.cos(a) * 150 + 'px'; b.style.top = Math.sin(a) * 118 + 'px'; b.innerHTML = ic(od[3]) + '<span></span><span class="k">' + (i + 1) + '</span>'; b.children[1].textContent = od[1].replace(' to my crosshair', '').replace(' this point', '').replace(' me', ''); b.addEventListener('click', () => { sqdWheelClose(true, i); }); wh.appendChild(b); });
+  SQD.v3 = new THREE.Vector3();
+}
+function sqdWheelOpen() { if (SQD.wheel || !BATTLE.on || !fp.on || !fp.p) return; sqdUiInit(); if (!SQD.on) sqdBind(fp.p); SQD.wheel = true; SQD.wx = SQD.wy = 0; SQD.sel = -1; SQD.wheelEl.hidden = false; sqdWheelPaint(); }
+function sqdWheelMove(dx, dy) { SQD.wx = clamp(SQD.wx + dx, -120, 120); SQD.wy = clamp(SQD.wy + dy, -120, 120); const r = Math.hypot(SQD.wx, SQD.wy); SQD.sel = r < 28 ? -1 : (Math.round((Math.atan2(SQD.wy, SQD.wx) + Math.PI / 2) / (Math.PI / 4)) + 8) % 8; sqdWheelPaint(); }
+function sqdWheelPaint() { const sl = SQD.wheelEl.querySelectorAll('.s'); sl.forEach((b, i) => b.classList.toggle('on', i === SQD.sel)); SQD.wheelC.textContent = SQD.sel >= 0 ? SQD_ORD.find(x => x[0] === SQD_RING[SQD.sel])[1] : 'Move the mouse, or press 1 to 8'; }
+function sqdWheelClose(run, idx) { if (!SQD.wheel) return; SQD.wheel = false; if (SQD.wheelEl) SQD.wheelEl.hidden = true; const i = idx !== undefined ? idx : SQD.sel; if (run && i >= 0) sqdSet(SQD_RING[i]); }
+function sqdHud(force) {
+  const hud = SQD.hudEl; if (!hud) return; const show = fp.on && SQD.on && SQD.mates.length > 0; if (hud.hidden === show) hud.hidden = !show; if (!show) { hud.textContent = ''; SQD.hudSig = ''; return; }
+  const ICN = { rifle: 'rifle', smg: 'rifle', shotgun: 'rifle', sniper: 'scope', medic: 'cross', heavy: 'belt', engineer: 'wrench', marksman: 'scope' };
+  const rows = SQD.mates.map(q => { const b = q.bot; if (!b) return null; return { cs: callsignOf(q), hp: Math.round(clamp(q.hp || 0, 0, 100)), st: sqdStatus(q), ic: ICN[b.cls] || 'rifle' }; }).filter(Boolean), sig = rows.map(r => r.cs + r.hp + r.st + r.ic).join('|') + SQD.order.k + SQD.form + SQD.hf;
+  if (!force && sig === SQD.hudSig) return; SQD.hudSig = sig; hud.textContent = ''; const hd = document.createElement('div'); hd.className = 'hd'; hd.textContent = 'Squad: ' + (SQD_ORD.find(x => x[0] === SQD.order.k) || [0, SQD.order.k])[1].replace(' to my crosshair', '').replace(' this point', '').toLowerCase() + (SQD.hf ? ' (hold fire)' : ''); hud.appendChild(hd);
+  for (const r of rows) { const d = document.createElement('div'); d.className = 'r' + (r.st === 'Down' ? ' dn' : ''); d.innerHTML = ic(r.ic) + '<span class="nm"><span></span><i></i></span><span class="hb"><b></b></span>'; d.querySelector('.nm span').textContent = r.cs; d.querySelector('.nm i').textContent = r.st; d.querySelector('.hb b').style.transform = 'scaleX(' + (r.hp / 100) + ')'; d.querySelector('.hb b').style.background = r.hp < 35 ? '#d64b2c' : r.hp < 65 ? '#e0b030' : '#6fcf7a'; hud.appendChild(d); }
+}
+let guardN = 0;
+function sqdMarks() {
+  const host = SQD.marksEl; if (!host) return; const els = SQD.els; let n = 0;
+  if (fp.on && SQD.on && !fp.veh) { const col = TEAM_HTML[BATTLE.team] || '#7db2ff', me = fp.p;
+    for (const q of SQD.mates) { if (!q.bot || !people.includes(q) || q.vin) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d > 70) continue; const v = SQD.v3.set(q.x, q.y + (q.state === 'rag' ? 0.8 : 2.3), q.z).project(camera); if (v.z > 1 || v.z < -1) continue; const px = (v.x * 0.5 + 0.5) * innerWidth, py = (-v.y * 0.5 + 0.5) * innerHeight; if (px < -20 || px > innerWidth + 20 || py < -20 || py > innerHeight + 20) continue;
+      let el = els[n]; if (!el) { el = document.createElement('div'); el.className = 'm'; host.appendChild(el); els[n] = el; } el.hidden = false; el.style.setProperty('--c', col); el.className = 'm' + (q.state === 'rag' ? ' dn' : ''); el.textContent = callsignOf(q); el.style.transform = 'translate(' + px.toFixed(0) + 'px,' + py.toFixed(0) + 'px) translate(-50%,-100%)'; n++; } }
+  for (let i = n; i < els.length; i++) els[i].hidden = true;
+}
+function sqdFrame(dt) {                                             // once a frame from updateBattle: leader heading, order timers, refilling the squad, markers and HUD
+  const S = SQD; if (!S.on) { if (S.hudEl && !S.hudEl.hidden) sqdHud(true); if (S.els.length && S.els[0] && !S.els[0].hidden) sqdMarks(); return; }
+  S.tk += dt; sqdMarkFrame(dt);
+  if (S.tk >= 0.2) { S.tk = 0; const me = fp.on && fp.p;
+    if (me && fp.spd > 1.0 && !fp.veh) S.hd += wrap(Math.atan2(fp.vx, fp.vz) - S.hd) * 0.5; else if (me && fp.veh) S.hd = fp.veh.heli ? fp.veh.hd : fp.veh.yaw;
+    const o = S.order; if (o.until && simT > o.until) { const wasSup = o.k === 'suppress'; sqdApply({ k: 'follow', n: ++S.ordN, t: simT }); if (wasSup && S.mates[0]) vsay(S.mates[0], 'ack_follow', 1); }
+    for (let i = S.mates.length - 1; i >= 0; i--) if (!people.includes(S.mates[i])) { if (S.mates[i].bot) sqdUnbind(S.mates[i]); S.mates.splice(i, 1); S.mates.forEach((m, j) => { if (m.bot) m.bot.slot = j; }); }
+    S.fillT -= 0.2; const alive = S.mates.filter(q => q.state !== 'rag' && q.bot && !q.bot.dead).length;
+    if (S.fillT <= 0 && alive < 3 && me && me.state !== 'rag') { S.fillT = 6; let best = null, bd = 70; for (const q of people) { const b = q.bot; if (!b || b.psq || b.team !== BATTLE.team || b.crew || b.dead || q.state === 'rag' || q.vin || q.hop || q.ride) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d < bd) { bd = d; best = q; } } if (best) { sqdAdopt(best); toast(callsignOf(best) + ' joins your squad.'); vsay(best, 'ack_follow', 2); } }
+    const v = fp.veh; if (v && v.burn) { if (S.mates.some(q => q.vin === v)) { sqdDismountAll(v); vsay(S.mates[0], 'bail', 3); toast('Squad: bailing out of the burning vehicle.'); } }
+    if (me && !fp.veh && o.k === 'follow') sqdLadderFollow(me);
+    sqdHud(false);
+  }
+  sqdMarks();
+}
+/* ---- keys: N hold for the ring, I ping, M mount or dismount, U heal me, K hold fire or free fire */
+onKey((e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; if (!fp.on || mode !== 'fp' || !BATTLE.on || e.repeat) return; const k = e.key.toLowerCase();
+  if (k === 'n') { sqdWheelOpen(); e.preventDefault(); } else if (k === 'i') sqdPing(); else if (k === 'm') { sqdUiInit(); sqdSet('mount'); } else if (k === 'u') sqdSet('heal'); else if (k === 'k') sqdToggleFire();
+});
+addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 'n' && SQD.wheel) sqdWheelClose(true); });
+addEventListener('blur', () => sqdWheelClose(false));
+addEventListener('pointermove', (e) => { if (SQD.wheel && !fp.locked) { const r = SQD.wheelEl.getBoundingClientRect(); SQD.wx = clamp(e.clientX - r.left, -120, 120); SQD.wy = clamp(e.clientY - r.top, -120, 120); const rr = Math.hypot(SQD.wx, SQD.wy); SQD.sel = rr < 28 ? -1 : (Math.round((Math.atan2(SQD.wy, SQD.wx) + Math.PI / 2) / (Math.PI / 4)) + 8) % 8; sqdWheelPaint(); } });
+function sqdWheelPick(n) { if (n >= 1 && n <= 8) { SQD.sel = n - 1; sqdWheelClose(true); } }
+function sqdToggleFire() { if (!SQD.on) return; SQD.hf = !SQD.hf; toast(SQD.hf ? 'Squad: hold fire.' : 'Squad: free to fire.'); const m = SQD.mates.find(q => q.state !== 'rag' && q.bot); if (m) vsay(m, SQD.hf ? 'ack_holdfire' : 'ack_freefire', 2); sqdHud(true); }
+function squadOrder(mode) { if (!fp.on) { toast('Drop into first person to command a squad.'); return; } BATTLE.squadMode = mode; sqdSet(mode === 'follow' ? 'follow' : 'hold'); }
+function squadGo() { if (!fp.on) { toast('Drop into first person to command a squad.'); return; } sqdSet('move'); }
+function retreatPt(q, b) {                                          // where a shaken soldier runs: back to the player's squad leader, or to the nearest point their side holds
+  if (b.psq) { const l = sqdLeader(); if (l && l !== q) return { x: l.x, z: l.z }; } let best = null, bd = 1e9; for (const p of BATTLE.points) if (p.owner === b.team) { const d = Math.hypot(p.x - q.x, p.z - q.z); if (d < bd) { bd = d; best = p; } } return best || spawnPointOf(b.team);
+}
+function sqdMergeSmall() {                                          // a squad down to one soldier joins the nearest squad with room (within 90 m), so nobody fights alone for long
+  for (const team of ['blue', 'red']) { const by = new Map();
+    for (const q of people) { const b = q.bot; if (!b || b.team !== team || b.psq || b.crew || b.dead || q.state === 'rag' || !b.sq || q.vin) continue; if (!by.has(b.sq)) by.set(b.sq, []); by.get(b.sq).push(q); }
+    for (const [id, m] of Array.from(by)) { if (m.length !== 1 || !by.has(id)) continue; const q = m[0]; let best = null, bd = 90; for (const [id2, m2] of by) { if (id2 === id || m2.length >= 4) continue; const d = Math.hypot(m2[0].x - q.x, m2[0].z - q.z); if (d < bd) { bd = d; best = id2; } }
+      if (best) { const grp = by.get(best), used = grp.map(z => z.bot.sqi || 0); let i = 0; while (used.includes(i)) i++; q.bot.sq = best; q.bot.sqi = i; grp.push(q); by.delete(id); sqT = -9; } } }
+}
+function sqdDownVoice(q, from) { try { sqdDownVoice0(q, from); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } }
+function sqdDownVoice0(q, from) {                                   // a friend calls the man down, and the shooter confirms the kill
+  if (!BATTLE.on) return; const t = teamOf(q); if (!t) return; let f = null, fd = 45;
+  for (const m of people) { if (m === q || !m.bot || m.bot.team !== t || m.state === 'rag' || m.bot.dead) continue; const d = Math.hypot(m.x - q.x, m.z - q.z); if (d < fd) { fd = d; f = m; } }
+  if (f) vsay(f, 'man_down', 5, { name: q.bot ? callsignOf(q) : 'Boss' }); if (from && from.bot && from !== q && teamOf(from) !== t) vsay(from, 'kill', 2);
+}
+
+/* ================================================================ squad voices: short spoken lines (Web Speech API) with captions
+   Rules: one line at a time, a short priority queue (man down 5, contact 4, under fire 3, orders 2, chatter 1), 6 s per soldier (3 s for a man down), 1.2 s between lines,
+   friends within 60 m (the player's own squad at any distance, as if on the radio), enemy shouts within 25 m at a different pitch, nothing while the page is hidden.
+   Settings: 'squall-cove-voices' (on/off), 'squall-cove-captions' (on/off), 'squall-cove-voice-vol' (0 to 100). Captions work with the voices off. */
+const VLINES = {
+  contact: ["Contact, {clock} o'clock, {dist} metres", 'Contact {side}!', "Enemy at {clock} o'clock", "Eyes on, {clock} o'clock, {dist} metres", 'Hostiles, {side}'],
+  taking_fire: ['Taking fire!', 'We are taking fire!', 'Under fire!', 'They are shooting at us!'],
+  pinned: ['Pinned down!', 'I cannot move!', 'Heads down, we are pinned!'],
+  moving: ['Moving!', 'On the move!', 'Go go go!', 'Moving up!'],
+  covering: ['Covering!', 'I have you covered!', 'Covering fire!'],
+  reload: ['Reloading!', 'Changing mag!', 'Reloading, cover me!'],
+  low_ammo: ['Low on ammo!', 'Almost dry!', 'Running low!'],
+  grenade: ['Grenade out!', 'Frag!', 'Grenade!', 'Fire in the hole!'],
+  medic_call: ['Medic!', 'I need a medic!', 'Man hit, medic!'],
+  medic_coming: ['Medic coming!', 'Hold on, I am coming!', 'On my way!'],
+  patched: ['Patched up.', 'You are good.', 'All fixed.'],
+  thanks: ['Thanks, medic.', 'Thanks!', 'Good as new.'],
+  man_down: ['Man down!', 'They got {name}!', '{name} is down!'],
+  kill: ['Got one.', 'Target down.', 'He is down.', 'Hostile down.'],
+  flag_secured: ['Flag secured.', 'The point is ours.', 'We hold the point.'],
+  losing_point: ['We are losing the point!', 'They are taking the point!', 'The point is slipping!'],
+  defend: ['Defend the point!', 'Holding the point.', 'We hold here.'],
+  ack_follow: ['Roger, following.', 'On you.', 'Following you.', 'Right behind you.'],
+  ack_hold: ['Holding here.', 'Roger, holding.', 'Staying put.'],
+  ack_move: ['Moving to your mark.', 'Roger, moving.', 'On the way.'],
+  ack_attack: ['Attacking!', 'Roger, going in.', 'Engaging!', 'Moving to engage.'],
+  ack_defend: ['Defending the point.', 'Roger, we hold it.', 'Digging in.'],
+  ack_cover: ['Taking cover.', 'Getting down.', 'Roger, cover.'],
+  ack_fall: ['Falling back!', 'Pulling back!', 'Roger, back we go.'],
+  ack_suppress: ['Suppressing!', 'Laying down fire!', 'Keeping their heads down.'],
+  ack_ping: ['Marked.', 'Got it.', 'I see it.'],
+  ack_holdfire: ['Holding fire.', 'Weapons tight.', 'Fire held.'],
+  ack_freefire: ['Free to fire.', 'Weapons free.', 'Fire at will.'],
+  ack_mount: ['Mounting up.', 'Getting in.', 'Roger, mounting.'],
+  idle: ['Waiting for orders.', 'All quiet.', 'Standing by.'],
+  regroup: ['On you!', 'Regroup!', 'Catching up!', 'Coming to you!'],
+  mount: ['Mounting up.', 'Getting in.', 'In!'],
+  dismount: ['Dismounting.', 'Out!', 'Getting out.'],
+  full: ['No room!', 'It is full.', 'No seat for me.'],
+  bail: ['Vehicle on fire, bail out!', 'Bail out, it is burning!', 'Everybody out!'],
+  climbing: ['Climbing.', 'Going up.', 'On the ladder.'],
+  in_position: ['In position.', 'Set up top.', 'I have the high ground.'],
+  retreat: ['Fall back!', 'Back, back!', 'Get out of here!', 'Pull back!'],
+  cannot_hold: ['We cannot hold!', 'We are being overrun!', 'It is too much!'],
+  clear: ['Clear.', 'Area clear.', 'All clear.'],
+  aircraft: ['Aircraft inbound!', 'Helicopter overhead!', 'Aircraft, take cover!'],
+  vehicle: ['{what} to the {dir}!', '{what}, {dir}!', 'Armour! {what} to the {dir}!'],
+  e_contact: ['There they are!', 'Over there!', 'Enemy spotted!', 'I see them!'],
+  e_fire: ['Open fire!', 'Get them!', 'Hit them!'],
+  e_grenade: ['Grenade!', 'Frag out!', 'Take this!'],
+  e_down: ['Man down!', 'They killed him!', 'Medic!'],
+};
+const VENEMY = { contact: 'e_contact', taking_fire: 'e_fire', grenade: 'e_grenade', man_down: 'e_down' };
+const VOICE = { on: true, caps: true, vol: 0.9, voices: [], prof: new Map(), q: [], busyUntil: 0, lastEnd: 0, ready: false };
+try { const a = localStorage.getItem('squall-cove-voices'), c = localStorage.getItem('squall-cove-captions'), v = localStorage.getItem('squall-cove-voice-vol'); if (a !== null) VOICE.on = a !== '0'; if (c !== null) VOICE.caps = c !== '0'; if (v !== null && !isNaN(+v)) VOICE.vol = clamp(+v / 100, 0, 1); } catch (e) { }
+function voiceLoad() { const ss = window.speechSynthesis; if (!ss) return; try { const l = ss.getVoices(); if (l && l.length) { VOICE.voices = Array.from(l); VOICE.ready = true; VOICE.prof.clear(); } } catch (e) { } }
+if (window.speechSynthesis) { try { window.speechSynthesis.addEventListener('voiceschanged', voiceLoad); } catch (e) { if ('onvoiceschanged' in window.speechSynthesis) window.speechSynthesis.onvoiceschanged = voiceLoad; } voiceLoad(); }
+function vProfile(q, team) {                                        // a stable voice, pitch and rate for each named soldier
+  const nm = callsignOf(q), key = nm + team, c = VOICE.prof.get(key); if (c) return c; let h = 0; for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  const en = VOICE.voices.filter(v => /^en/i.test(v.lang)), pool0 = en.length ? en : VOICE.voices, accent = team === 'red' ? /en[-_](GB|IE|AU|NZ|ZA)/i : /en[-_](US|CA)/i, pref = pool0.filter(v => accent.test(v.lang)), pool = pref.length ? pref : pool0;
+  const b = q.bot || q.botSaved, p = { v: pool.length ? pool[h % pool.length] : null, pitch: clamp(0.8 + ((h >> 3) % 51) / 100 - (b && b.sqi === 0 ? 0.1 : 0), 0.8, 1.3), rate: 0.95 + ((h >> 9) % 31) / 100 }; VOICE.prof.set(key, p); return p;
+}
+function vFmt(line, vars) { return vars ? line.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : '')) : line; }
+function friendNear(team, x, z, r) { for (const m of people) { if (m.state === 'rag' || teamOf(m) !== team) continue; if (Math.abs(m.x - x) < r && Math.abs(m.z - z) < r && Math.hypot(m.x - x, m.z - z) < r) return true; } return false; }
+function vsay(q, key, pri, vars) { try { vsay0(q, key, pri, vars); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } }
+function vsay0(q, key, pri, vars) {                                 // a soldier wants to say something; the gate decides whether anyone hears it
+  if (!q || !BATTLE.on || !BATTLE.team || (!VOICE.on && !VOICE.caps) || document.hidden) return; const b = q.bot || q.botSaved; if (!b || q.state === 'rag' || b.dead && key !== 'man_down') return;
+  const enemy = b.team !== BATTLE.team; if (enemy && !VENEMY[key]) return; if (simT - (b.vT || -99) < (pri >= 5 ? 3 : 6)) return;
+  const lx = fp.on && fp.p ? fp.p.x : god.tgt.x, lz = fp.on && fp.p ? fp.p.z : god.tgt.z, d = Math.hypot(q.x - lx, q.z - lz);
+  if (enemy) { if (d > 25) return; } else if (!(b.psq && SQD.on) && d > 60) return;
+  const lines = VLINES[enemy ? VENEMY[key] : key]; if (!lines) return; const text = vFmt(lines[Math.floor(Math.random() * lines.length)], vars); b.vT = simT;
+  if (VOICE.q.some(it => it.q === q && it.key === key)) return;
+  const it = { q, b, key, text, pri, t: performance.now(), enemy, name: callsignOf(q), team: b.team };
+  VOICE.q.push(it); VOICE.q.sort((a, c) => c.pri - a.pri || a.t - c.t); while (VOICE.q.length > 4) VOICE.q.pop(); voiceTick();
+}
+function voiceTick() {
+  const now = performance.now(); if (document.hidden) { VOICE.q.length = 0; return; } if (!VOICE.q.length || now < VOICE.busyUntil || now - VOICE.lastEnd < 1200) return;
+  while (VOICE.q.length && now - VOICE.q[0].t > 6000) VOICE.q.shift(); const it = VOICE.q.shift(); if (!it) return;
+  if (VOICE.caps) captionAdd(it.name, it.text, it.team, it.enemy);
+  const ss = window.speechSynthesis; let spoke = false;
+  if (VOICE.on && ss && VOICE.vol > 0 && !ss.speaking) {
+    try { const p = vProfile(it.q, it.team), u = new SpeechSynthesisUtterance(it.text); if (p.v) u.voice = p.v; u.lang = (p.v && p.v.lang) || 'en-US'; u.pitch = it.enemy ? clamp(p.pitch + 0.22, 0.8, 1.5) : p.pitch; u.rate = it.enemy ? Math.min(1.35, p.rate + 0.1) : p.rate; u.volume = VOICE.vol;
+      const done = () => { VOICE.busyUntil = 0; VOICE.lastEnd = performance.now(); }; u.onend = done; u.onerror = done; ss.speak(u); spoke = true; VOICE.busyUntil = now + 900 + it.text.length * 110; } catch (e) { }
+  }
+  if (!spoke) { VOICE.busyUntil = now + 500 + it.text.length * 45; VOICE.lastEnd = VOICE.busyUntil - 500; }
+}
+function captionAdd(name, text, team, enemy) {                      // 'Callsign: line' in the soldier's team colour, with a small speech icon
+  let f = document.getElementById('sideFeed'); if (!f) { f = document.createElement('div'); f.id = 'sideFeed'; document.body.appendChild(f); }
+  const el = document.createElement('div'); el.innerHTML = '<span class="vc"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16v12H9.5L5 20v-4H4z"/></svg><span><b></b>: <span></span></span></span>';
+  const b = el.querySelector('b'); b.textContent = name; b.style.color = TEAM_HTML[team] || '#f1ece2'; el.querySelector('span span span').textContent = text; f.appendChild(el); requestAnimationFrame(() => el.classList.add('on')); while (f.children.length > 5) f.firstChild.remove();
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => el.remove(), 400); }, 3800);
+}
+function voiceTest() {
+  const ss = window.speechSynthesis; if (!ss) { toast('This browser cannot speak.'); return; } if (!VOICE.on) { toast('Squad voices are off.'); if (VOICE.caps) captionAdd('Test', 'Contact, 12 o' + "'" + 'clock, 80 metres', 'blue', false); return; }
+  try { ss.cancel(); } catch (e) { } const items = [['blue', 'Contact, 12 o' + "'" + 'clock, 80 metres'], ['red', 'Over there!']]; let i = 0;
+  const next = () => { if (i >= items.length) return; const [team, text] = items[i++], u = new SpeechSynthesisUtterance(text), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[(i - 1) % en.length]; u.pitch = team === 'blue' ? 1 : 1.2; u.rate = 1.05; u.volume = VOICE.vol; u.onend = next; u.onerror = next; if (VOICE.caps) captionAdd(team === 'blue' ? 'Test one' : 'Test two', text, team, team === 'red'); ss.speak(u); };
+  next();
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) { VOICE.q.length = 0; try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { } VOICE.busyUntil = 0; } });
+(function voiceSettingsInit() {                                    // the Settings rows and the Help paragraph
+  const st = menuMain.querySelector('.mtab[data-mt="settings"]'), hp = menuMain.querySelector('.mtab[data-mt="help"]'); if (!st || !hp) return;
+  const sty = document.createElement('style'); sty.textContent = '.mvol{display:flex;align-items:center;gap:10px;margin:8px 2px;font:600 15px var(--f-body)}.mvol input{flex:1;min-height:34px}.mnote{font:500 14px/1.5 var(--f-body);margin:10px 2px 0;color:var(--paper)}'; document.head.appendChild(sty);
+  const h = document.createElement('div'); h.className = 'mhead'; h.textContent = 'Squad voices'; const g = document.createElement('div'); g.className = 'mgrid';
+  const mk = (id, txt) => { const b = document.createElement('button'); b.type = 'button'; b.id = id; b.textContent = txt; return b; }, bv = mk('mVoice', ''), bc = mk('mCaps', ''), bt = mk('mVtest', 'Test voice');
+  const paint = () => { bv.textContent = 'Squad voices: ' + (VOICE.on ? 'on' : 'off'); bc.textContent = 'Captions: ' + (VOICE.caps ? 'on' : 'off'); bv.setAttribute('aria-pressed', String(VOICE.on)); bc.setAttribute('aria-pressed', String(VOICE.caps)); }; paint();
+  bv.addEventListener('click', () => { VOICE.on = !VOICE.on; try { localStorage.setItem('squall-cove-voices', VOICE.on ? '1' : '0'); } catch (e) { } if (!VOICE.on) { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) { } } paint(); });
+  bc.addEventListener('click', () => { VOICE.caps = !VOICE.caps; try { localStorage.setItem('squall-cove-captions', VOICE.caps ? '1' : '0'); } catch (e) { } paint(); });
+  bt.addEventListener('click', voiceTest); g.append(bv, bc, bt);
+  const lab = document.createElement('label'); lab.className = 'mvol'; lab.append('Voice volume '); const rg = document.createElement('input'); rg.type = 'range'; rg.id = 'mVvol'; rg.min = '0'; rg.max = '100'; rg.value = String(Math.round(VOICE.vol * 100)); rg.setAttribute('aria-label', 'Voice volume'); lab.append(rg);
+  rg.addEventListener('input', () => { VOICE.vol = +rg.value / 100; try { localStorage.setItem('squall-cove-voice-vol', rg.value); } catch (e) { } }); st.append(h, g, lab);
+  const p = document.createElement('p'); p.className = 'mnote'; p.textContent = 'Squad voices. Soldiers near you say short lines about what they are doing, each in their own voice. Your own squad speaks from any distance, as if on the radio. Enemy shouts are heard within 25 metres. Turn voices and captions on or off in Settings. Captions still show when the voices are off. The voices come from your device, so they sound different on different devices.'; hp.append(p);
+})();
+let vwT = 0;
+function pointVoice(p, ow, before) { try { pointVoice0(p, ow, before); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } }
+function pointVoice0(p, ow, before) {                               // a point changed hands: the nearest soldier of the new owner says so, or the old owner's nearest says it is lost
+  if (!BATTLE.team) return; const pick = (team, r) => { let best = null, bd = r; for (const q of people) { const b = q.bot; if (!b || b.team !== team || q.state === 'rag' || b.dead) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; best = q; } } return best; };
+  const w = ow ? pick(ow, 40) : null; if (w) vsay(w, 'flag_secured', 4); else if (before) { const l = pick(before, 60); if (l) vsay(l, 'losing_point', 4); }
+}
+function voiceWatch() {                                             // once a second: new aircraft and enemy vehicles in view, and points that are slipping away
+  if (simT - vwT < 1.0 || !BATTLE.team || !BATTLE.on) return; vwT = simT; const lx = fp.on && fp.p ? fp.p.x : god.tgt.x, lz = fp.on && fp.p ? fp.p.z : god.tgt.z;
+  const near = (x, z, r) => { let best = null, bd = r; for (const q of people) { const b = q.bot; if (!b || b.team !== BATTLE.team || q.state === 'rag' || b.dead) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; };
+  for (const u of AIR.list) { if (u.down || u.team === BATTLE.team || u.vcalled) continue; if (Math.hypot(u.x - lx, u.z - lz) < 320) { u.vcalled = true; const q = near(lx, lz, 70) || SQD.mates[0]; if (q) vsay(q, 'aircraft', 4); } }
+  for (const v of BVL) { if (v.dead || v.team === BATTLE.team || v.vcalled) continue; if (Math.hypot(v.x - lx, v.z - lz) < 130) { const q = near(v.x, v.z, 90); if (q && losFull(q.x, q.y + 1.5, q.z, v.x, v.y + 1.5, v.z)) { v.vcalled = true; const nm = String(v.sp.name || 'Vehicle'); vsay(q, 'vehicle', 4, { what: nm.charAt(0).toUpperCase() + nm.slice(1), dir: sqdCompass(v.x, v.z) }); } } }
+  for (const p of BATTLE.points) { if (p.owner !== BATTLE.team) continue; const mine = BATTLE.team === 'blue' ? p.nb : p.nr, theirs = BATTLE.team === 'blue' ? p.nr : p.nb; if (theirs > mine && simT - (p.lpT || -99) > 30) { p.lpT = simT; const q = near(p.x, p.z, p.r + 20); if (q) vsay(q, 'losing_point', 4); } }
+}
+
+/* ================================================================ climbable ladders and platforms
+   LADDERS: { bx, bz (foot of the rungs), tx, tz (top of the rungs), y0 (ground), y1 (top), fx, fz (the way the climber faces: toward the wall), yaw, len, plat, ex, ez (where you step onto the deck), users[] }
+   PLATFORMS: { x, z, yaw, hx, hz (half sizes of a turned rectangle) or r (a circle), y (deck height), rail (cannot walk off), roof, lads[], spots[] (places to stand and shoot), occ[] (people on it), bots (soldiers sent or assigned) }
+   They are built when a model is placed (place() and bTry()): first from marker nodes in the model file named <model>_ladder_bottom, <model>_ladder_top, <model>_deck and <model>_seat (several seats allowed);
+   a _deck marker may carry custom properties hx, hz (half sizes in metres), r (a circle), rail (0 or 1), roof (0 or 1), mat ('wood' or 'metal'); the defaults are hx = hz = 1.4 and a rail.
+   Models without markers use the hand table below (metres in the model's own frame, +Z forward, +X to the model's left, y up from the base). Tuning: climb speed 1.5 m/s, a rung sound every 0.3 m,
+   grab range 1.5 m from the foot of the rungs, 2 climbers per ladder, at most 2 assigned soldiers per tower and 3 people on a deck, look limit +-50 degrees on the ladder. */
+const LADDERS = [], PLATFORMS = [];
+const LAD_SPEED = 1.5, LAD_RUNG = 0.3, LAD_OFF = 0.42;
+const LAD_HAND = {
+  'port:watchtower': { bot: [1.5, 0], top: [1.3, 8.0, 0], deck: { c: [0, 0], hx: 1.5, hz: 1.5, y: 8.2, rail: true }, spots: [[-0.9, 0.6], [-0.9, -0.6], [0, -1.0]], lTop: 8.0, mat: 'metal' },
+  'port:silo': { bot: [2.65, 0], top: [2.55, 15.0, 0], deck: { c: [0, 0], r: 2.1, y: 15.25, rail: true }, spots: [[-0.9, 0.7], [-0.9, -0.7]], lTop: 15.0, mat: 'metal' },
+  'port:fuel_tank': { bot: [5.2, 0], top: [5.1, 7.9, 0], deck: { c: [0, 0], r: 4.7, y: 8.0, rail: true }, spots: [[-2.4, 1.6], [-2.4, -1.6], [0, -3.4]], lTop: 7.8, mat: 'metal' },
+  'battle:watch_tower_wood': { bot: [0, 2.2], top: [0, 6.6, 1.3], deck: { c: [0, 0], hx: 1.5, hz: 1.5, y: 6.58, rail: true, roof: true }, spots: [[0, 0], [-1.0, -0.9], [1.0, -0.9]], mat: 'wood' },
+  'battle:radar_station': { bot: [0, 2.3], top: [0, 9.2, 2.05], deck: { c: [0, 0], hx: 2.2, hz: 2.2, y: 9.2, rail: true }, spots: [[1.5, 1.2], [1.5, -1.2], [-1.6, 1.2]], mat: 'metal' },
+  'battle:searchlight_tower': { bot: [0, 1.1], top: [0, 5.7, 0.8], deck: { c: [0, 0], hx: 1.0, hz: 1.0, y: 5.77, rail: true }, spots: [[0.55, -0.35], [-0.55, -0.35]], mat: 'metal' },
+  'battle:radio_mast': { bot: [0, 1.78], top: [0, 20.8, 1.02], deck: { c: [0, 0], r: 1.25, y: 20.8, rail: true }, spots: [[0, -0.5]], mat: 'metal' },
+};
+function platHas(P, x, z, pad) {
+  const dx = x - P.x, dz = z - P.z; if (P.r) return Math.hypot(dx, dz) <= P.r + pad; const c = Math.cos(P.yaw), s = Math.sin(P.yaw), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) <= P.hx + pad && Math.abs(lz) <= P.hz + pad;
+}
+function platClamp(P, x, z, m) {                                    // keep a person inside the rail
+  const dx = x - P.x, dz = z - P.z; if (P.r) { const d = Math.hypot(dx, dz), R = Math.max(0.3, P.r - m); return d > R ? [P.x + dx / d * R, P.z + dz / d * R] : [x, z]; }
+  const c = Math.cos(P.yaw), s = Math.sin(P.yaw), lx = clamp(dx * c - dz * s, -(P.hx - m), P.hx - m), lz = clamp(dx * s + dz * c, -(P.hz - m), P.hz - m); return [P.x + lx * c + lz * s, P.z - lx * s + lz * c];
+}
+function standYP(p, x, z) { const g = standY(x, z), P = p.plat; return P && platHas(P, x, z, 0.1) ? Math.max(g, P.y) : g; }
+function ladMarkers(glbKey, node, g) {                              // marker nodes named <model>_ladder_bottom, _ladder_top, _deck, _seat: in the placed copy first, then at the top level of the model file
+  const by = new Map(), v = new THREE.Vector3(); let inClone = false;
+  const take = (o, local) => {
+    const m = /^(.+)_(ladder_bottom|ladder_top|deck|seat)\.?\d*$/.exec(o.name || ''); if (!m) return; const pre = m[1], kind = m[2]; if (!local && !(pre === node || pre.startsWith(node + '_'))) return;
+    if (local) o.getWorldPosition(v), g.worldToLocal(v); else { o.updateWorldMatrix(true, false); o.getWorldPosition(v); }
+    let r = by.get(pre); if (!r) by.set(pre, r = { seats: [] }); const p = [v.x, v.y, v.z]; if (kind === 'seat') r.seats.push(p); else if (!r[kind]) { r[kind] = p; if (kind === 'deck') r.dx = o.userData || {}; }
+    if (local) inClone = true;
+  };
+  g.traverse(o => take(o, true)); if (!inClone) { const glb = D.glb[glbKey]; if (glb && glb.scene) glb.scene.traverse(o => take(o, false)); }
+  const out = []; for (const [pre, r] of by) { if (!r.ladder_bottom || !r.ladder_top) continue; const t = r.ladder_top, b = r.ladder_bottom, d = r.deck, u = r.dx || {};
+    let cx, cz, dy; if (d) { cx = d[0]; cz = d[2]; dy = d[1]; } else { const hz = Math.hypot(t[0], t[2]) || 1; cx = t[0] - t[0] / hz * 1.4; cz = t[2] - t[2] / hz * 1.4; dy = t[1] + 0.05; }
+    const deck = { c: [cx, cz], y: dy, hx: +u.hx || 1.4, hz: +u.hz || 1.4, r: +u.r || 0, rail: u.rail === undefined ? true : !!+u.rail, roof: !!+u.roof };
+    out.push({ bot: [b[0], b[2]], top: [t[0], t[1], t[2]], deck, spots: r.seats.map(s => [s[0], s[2], s[1]]), mat: u.mat || (/wood/.test(pre) ? 'wood' : 'metal'), tag: pre }); }
+  return out;
+}
+function ladBuild(spec, g, node, pr) {
+  const sc = g.scale.x || 1, cy = Math.cos(g.rotation.y), sy = Math.sin(g.rotation.y), W = (lx, lz) => [g.position.x + (lx * cy + lz * sy) * sc, g.position.z + (-lx * sy + lz * cy) * sc];
+  const d = spec.deck, [cx, cz] = W(d.c[0], d.c[1]), [bx, bz] = W(spec.bot[0], spec.bot[1]), [tx, tz] = W(spec.top[0], spec.top[2]);
+  const P = { name: node + (spec.tag ? ':' + spec.tag : ''), x: cx, z: cz, yaw: g.rotation.y, hx: (d.hx || d.r || 1.4) * sc, hz: (d.hz || d.r || 1.4) * sc, r: (d.r || 0) * sc, y: g.position.y + d.y * sc, rail: d.rail !== false, roof: !!d.roof, lads: [], spots: [], occ: [], bots: 0, team: null, own: g };
+  const sp = spec.spots && spec.spots.length ? spec.spots : [[d.c[0] - 0.5, d.c[1] - 0.5], [d.c[0] + 0.5, d.c[1] + 0.5]];
+  for (const s of sp) { const [x, z] = W(s[0], s[1]); P.spots.push({ x, z, y: s[2] !== undefined ? g.position.y + s[2] * sc : P.y, q: null }); }
+  const y0 = standY(bx, bz), y1 = g.position.y + spec.top[1] * sc; let fx = cx - bx, fz = cz - bz; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
+  const len = Math.max(1, Math.hypot(tx - bx, tz - bz, y1 - y0)); let ex = tx + fx * 0.8, ez = tz + fz * 0.8; if (!platHas(P, ex, ez, -0.15)) { ex = cx; ez = cz; }
+  const L = { name: P.name, bx, bz, tx, tz, y0, y1, fx, fz, yaw: Math.atan2(fx, fz), len, plat: P, ex, ez, own: g, users: [], mat: spec.mat || 'metal' }; P.lads.push(L);
+  if (pr) pr.lTop = Math.min(pr.lTop === undefined ? 1e9 : pr.lTop, spec.lTop !== undefined ? g.position.y + spec.lTop * sc : P.y - 0.15);
+  PLATFORMS.push(P); LADDERS.push(L); return L;
+}
+const LAD_IDX = new WeakMap();
+function ladIndex(glbKey) {                                         // the model prefixes that have ladder markers anywhere in a loaded file, found once
+  const glb = D.glb[glbKey]; if (!glb || !glb.scene) return []; let r = LAD_IDX.get(glb); if (!r) { r = []; glb.scene.traverse(o => { const m = /^(.+)_(ladder_bottom|ladder_top|deck|seat)\.?\d*$/.exec(o.name || ''); if (m && !r.includes(m[1])) r.push(m[1]); }); LAD_IDX.set(glb, r); } return r;
+}
+function ladAddModel(glbKey, node, g, pr) {                         // called whenever a model is placed; builds its ladders and platforms from markers or the hand table
+  try {
+    if (!LAD_HAND[glbKey + ':' + node] && !ladIndex(glbKey).some(pre => pre === node || pre.startsWith(node + '_'))) return 0;
+    g.updateMatrixWorld(true); const found = ladMarkers(glbKey, node, g); let n = 0;
+    if (found.length) { for (const s of found) if (ladBuild(s, g, node, pr)) n++; } else { const h = LAD_HAND[glbKey + ':' + node]; if (h && ladBuild(h, g, node, pr)) n++; }
+    return n;
+  } catch (e) { window.__laderr = String(e && e.stack || e); return 0; }
+}
+function ladRelease(p) { const c = p.climb; if (c) { const i = c.L.users.indexOf(p); if (i >= 0) c.L.users.splice(i, 1); p.climb = null; } if (p.plat) { const i = p.plat.occ.indexOf(p); if (i >= 0) p.plat.occ.splice(i, 1); for (const s of p.plat.spots) if (s.q === p) s.q = null; p.plat = null; } if (p.bot) towerRelease(p, p.bot); }
+function ladSweep() {                                               // every second: forget towers that were removed, and people who left
+  for (let i = LADDERS.length - 1; i >= 0; i--) { const L = LADDERS[i]; if (L.own.parent) { for (let k = L.users.length - 1; k >= 0; k--) if (!people.includes(L.users[k]) || !L.users[k].climb) L.users.splice(k, 1); continue; }
+    for (const p of L.users.slice()) { p.climb = null; } LADDERS.splice(i, 1); }
+  for (let i = PLATFORMS.length - 1; i >= 0; i--) { const P = PLATFORMS[i]; if (P.own.parent) { for (let k = P.occ.length - 1; k >= 0; k--) { const q = P.occ[k]; if (!people.includes(q) || q.plat !== P || q.state === 'rag') { if (q.plat === P) q.plat = null; P.occ.splice(k, 1); } } for (const s of P.spots) if (s.q && (!people.includes(s.q) || s.q.plat !== P)) s.q = null; P.bots = Math.max(0, Math.min(P.bots, 6)); if (!P.occ.length && !P.bots) P.team = null; continue; }
+    for (const q of P.occ) q.plat = null; PLATFORMS.splice(i, 1); }
+  for (const q of people) { if (q.plat && !PLATFORMS.includes(q.plat)) q.plat = null; if (q.climb && !LADDERS.includes(q.climb.L)) q.climb = null; }
+}
+let ladT = 0;
+function ladFrame(dt) { ladT -= dt; if (ladT <= 0) { ladT = 1; if (LADDERS.length || PLATFORMS.length) ladSweep(); } }
+/* ---- the climb itself: shared by the player and the soldiers */
+function ladPlace(p) { const c = p.climb, L = c.L, u = c.s / L.len; p.x = L.bx + (L.tx - L.bx) * u - L.fx * LAD_OFF; p.z = L.bz + (L.tz - L.bz) * u - L.fz * LAD_OFF; p.y = L.y0 + (L.y1 - L.y0) * u; p.heading = L.yaw; }
+function ladGrab(p, L, fromTop) {
+  if (p.climb || L.users.length >= 2 || p.state === 'rag' || p.vin || p.swim) return false;
+  const c = { L, s: fromTop ? L.len : 0, dir: 0, ph: 0, acc: 0, mode: 'on', t: 0 }; p.climb = c; L.users.push(p); if (p.plat) { const i = p.plat.occ.indexOf(p); if (i >= 0) p.plat.occ.splice(i, 1); for (const s of p.plat.spots) if (s.q === p) s.q = null; p.plat = null; }
+  p.order = null; p.route = null; p.via = null; p.run = false; p.walkK = 0; if (p.bot) { const b = p.bot; b.tgt = null; b.crouch = false; b.atCover = false; b.coverPt = null; b.stance = 0; b.myOrder = null; }
+  p.proneK = 0; p.crouchK = 0; p.kneelK = 0; ladPlace(p);
+  if (fp.on && fp.p === p) { fp.vx = fp.vz = 0; fp.air = false; fp.vy = 0; fp.yaw = L.yaw; fp.pitch = 0; fp.zoom = false; fp.stance = 0; fp.fireHeld = false; for (const k in fpToolMesh) fpToolMesh[k].visible = false; { const so = $('fpScope'), s2 = $('fpScope2'); if (so) so.style.display = 'none'; if (s2) s2.style.display = 'none'; } toast('On the ladder.'); }
+  else vsay(p, 'climbing', 2);
+  return true;
+}
+function climbHandsInit() {
+  if (fp.hands) return; const m = new THREE.MeshStandardMaterial({ color: 0xc99a78, roughness: 0.7 }), a = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.2), m), b = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.2), m);
+  for (const x of [a, b]) { x.visible = false; x.frustumCulled = false; x.renderOrder = 8; x.material.depthTest = false; camera.add(x); } fp.hands = [a, b];
+}
+function climbHands(on, ph) { climbHandsInit(); const [a, b] = fp.hands; a.visible = b.visible = on; if (!on) return; const S = Math.sin(ph); a.position.set(-0.22, -0.05 + 0.2 * S, -0.55); b.position.set(0.22, -0.05 - 0.2 * S, -0.55); }
+function poseClimb(p, c) {                                          // hands and feet take turns on the rungs
+  const R = p.ax.right, S = Math.sin(c.ph), pos = (v) => Math.max(0, v);
+  blendPose(p, 'upper_arm.L', R, 2.3 + 0.45 * S, 1); blendPose(p, 'upper_arm.R', R, 2.3 - 0.45 * S, 1); blendPose(p, 'forearm.L', R, 0.55 + 0.35 * pos(-S), 1); blendPose(p, 'forearm.R', R, 0.55 + 0.35 * pos(S), 1);
+  blendPose(p, 'thigh.L', R, 0.35 + 0.75 * pos(S), 1); blendPose(p, 'thigh.R', R, 0.35 + 0.75 * pos(-S), 1); blendPose(p, 'shin.L', R, -0.4 - 0.9 * pos(S), 1); blendPose(p, 'shin.R', R, -0.4 - 0.9 * pos(-S), 1); blendPose(p, 'spine', R, -0.08, 1);
+}
+function ladEnd(p, toDeck) {                                        // off the ladder: onto the deck at the top, or onto the ground at the foot
+  const c = p.climb, L = c.L; const i = L.users.indexOf(p); if (i >= 0) L.users.splice(i, 1); p.climb = null;
+  if (toDeck) { p.x = L.ex; p.z = L.ez; p.y = L.plat.y; p.plat = L.plat; if (!L.plat.occ.includes(p)) L.plat.occ.push(p); L.plat.team = L.plat.team || teamOf(p); p.heading = Math.atan2(L.plat.x - p.x, L.plat.z - p.z) || L.yaw; }
+  else { p.x = L.bx - L.fx * 0.9; p.z = L.bz - L.fz * 0.9; p.y = standY(p.x, p.z); p.plat = null; }
+  if (fp.on && fp.p === p) { climbHands(false, 0); for (const k in fpToolMesh) fpToolMesh[k].visible = k === fp.tool; if (!toDeck) fp.pitch = 0; }
+  if (p.bot) { const b = p.bot; if (toDeck) { b.inPos = false; b.spot = null; b.leaveN = 0; } else { towerRelease(p, b); b.twMode = null; b.deckLeave = false; b.inPos = false; b.spot = null; b.cmdUntil = 0; b.goT = 0; } }
+}
+function climbFrame(p, dt, t) {                                     // called first thing in stepFoot for anyone on a ladder
+  const c = p.climb, L = c.L;
+  if (c.mode === 'top' || c.mode === 'bottom') {
+    c.t = Math.min(1, c.t + dt / 0.45); const u = c.t, tx = c.mode === 'top' ? L.ex : L.bx - L.fx * 0.9, tz = c.mode === 'top' ? L.ez : L.bz - L.fz * 0.9, ty = c.mode === 'top' ? L.plat.y : standY(tx, tz);
+    p.x = c.x0 + (tx - c.x0) * u; p.z = c.z0 + (tz - c.z0) * u; p.y = c.y0 + (ty - c.y0) * u + Math.sin(u * Math.PI) * 0.2; if (u >= 1) { const top = c.mode === 'top'; ladEnd(p, top); if (top && !(fp.on && fp.p === p)) vsay(p, 'in_position', 2); return; }
+  } else {
+    const sp = c.dir * LAD_SPEED; if (sp) { c.s = clamp(c.s + sp * dt, 0, L.len); c.ph += sp * dt / 0.6 * Math.PI; c.acc += Math.abs(sp * dt); while (c.acc >= LAD_RUNG) { c.acc -= LAD_RUNG; Snd.fx(L.mat === 'wood' ? 'ppl_step_wood' : 'ppl_step_metal', p.x, p.z, { gain: 0.35, y: p.y + 0.5, gap: 0.05 }); } }
+    ladPlace(p);
+    if (c.s >= L.len - 0.005 && c.dir > 0) { c.mode = 'top'; c.t = 0; c.x0 = p.x; c.z0 = p.z; c.y0 = p.y; } else if (c.s <= 0.005 && c.dir < 0) { c.mode = 'bottom'; c.t = 0; c.x0 = p.x; c.z0 = p.z; c.y0 = p.y; }
+  }
+  animStep(p, dt); poseClimb(p, c); const gm = p.gunMesh || (p.bot && p.bot.wmesh); if (gm) gm.visible = false;
+  p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.order = 'YXZ'; p.obj.rotation.set(0, p.heading - p.yawOff, 0);
+  if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
+}
+function fpClimbFrame(dt) {                                         // the player on a ladder: W and S climb, look is limited, Space jumps off, E lets go
+  const p = fp.p, c = p.climb, L = c.L; let f = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - fp.sy; f = clamp(f, -1, 1); if (Math.abs(f) < 0.25) f = 0;
+  c.dir = c.mode === 'on' ? f : 0; fp.yaw = L.yaw + clamp(wrap(fp.yaw - L.yaw), -0.87, 0.87); fp.pitch = clamp(fp.pitch, -1.2, 1.0); fp.vx = fp.vz = 0; p.fpMoving = false; fp.bob = 0; fp.fireHeld = false;
+  if (fp.jump) { fp.jump = false; if (c.mode === 'on') { ladDrop(p, true); return; } }
+  $('fpPrompt').textContent = isTouch ? 'Stick up or down climbs. Jump leaps off. Use lets go.' : 'W up, S down, Space jumps off, E lets go'; climbHands(c.mode === 'on' || c.mode === 'top', c.ph);
+}
+function ladDrop(p, jump) {                                         // let go (E) or jump off backward (Space)
+  const c = p.climb; if (!c) return; const L = c.L; if (fp.on && fp.p === p) { fp.air = true; fp.vy = jump ? 2.2 : 0; fp.vx = -L.fx * (jump ? 3.4 : 0.5); fp.vz = -L.fz * (jump ? 3.4 : 0.5); fp.peakY = p.y; fp.coyote = 0; climbHands(false, 0); for (const k in fpToolMesh) fpToolMesh[k].visible = k === fp.tool; toast(jump ? 'You jump off.' : 'You let go.'); }
+  const i = L.users.indexOf(p); if (i >= 0) L.users.splice(i, 1); p.climb = null; p.plat = null; p.x -= L.fx * 0.25; p.z -= L.fz * 0.25; if (p.bot) { towerRelease(p, p.bot); }
+}
+function ladNearFor(p) {                                            // the ladder the player could grab now, and whether from its foot or from the top
+  let best = null, bd = 1.6; for (const L of LADDERS) { if (L.users.length >= 2) continue;
+    if (!p.plat) { const d = Math.hypot(p.x - L.bx, p.z - L.bz); if (d < bd && Math.abs(p.y - L.y0) < 1.4) { if (fp.on && fp.p === p && Math.abs(wrap(Math.atan2(L.bx - p.x, L.bz - p.z) - fp.yaw)) > 1.3) continue; bd = d; best = { L, top: false }; } }
+    else if (p.plat === L.plat) { const d = Math.hypot(p.x - L.ex, p.z - L.ez); if (d < Math.min(bd, 1.6) && Math.abs(p.y - L.plat.y) < 0.8) { bd = d; best = { L, top: true }; } } }
+  return best;
+}
+function ladPrompt(p) { if (p.climb || p.swim || p.hop || p.carry) return null; const n = ladNearFor(p); return n ? (isTouch ? 'Use' : 'E') + (n.top ? ': climb down the ladder' : ': climb the ladder') : null; }
+function ladUse(p) {                                                // E: grab a ladder, or let go
+  if (p.climb) { ladDrop(p, false); return true; } if (p.swim || p.hop || p.carry) return false; const n = ladNearFor(p); if (!n) return false; return ladGrab(p, n.L, n.top);
+}
+/* ---- soldiers on towers */
+function towerRelease(q, b) { if (!b || !b.tower) return; const P = b.tower.plat; P.bots = Math.max(0, P.bots - 1); if (!P.bots && !P.occ.length) P.team = null; for (const s of P.spots) if (s.q === q) s.q = null; b.tower = null; b.twCool = simT + 25; b.twFollow = false; }
+function towerPick(q, b, ob) {                                      // a ladder near the point this soldier is holding, on a tower with room that is not the enemy's
+  let best = null, bd = 1e9; for (const L of LADDERS) { const P = L.plat; if (P.bots >= 2 || P.occ.length + P.bots >= 3 || L.users.length >= 2) continue; if (P.team && P.team !== b.team) continue;
+    if (Math.hypot(L.bx - ob.x, L.bz - ob.z) > 40) continue; const d = Math.hypot(L.bx - q.x, L.bz - q.z); if (d > 90 || d >= bd) continue; let hot = false; for (const e of people) { if (teamOf(e) !== otherTeam(b.team) || e.state === 'rag') continue; if (Math.abs(e.x - L.bx) < 14 && Math.abs(e.z - L.bz) < 14) { hot = true; break; } } if (hot) continue; bd = d; best = L; }
+  return best;
+}
+function towerClaim(q, b, L, follow) { const P = L.plat; P.bots++; P.team = b.team; b.tower = L; b.twMode = 'up'; b.twT0 = simT; b.twFollow = !!follow; b.deckLeave = false; b.twG = 0; }
+function towerOffer(q, b, o) { if (!LADDERS.length || b.tower || q.plat || q.climb || simT < (b.twN || 0)) return; b.twN = simT + 6; const L = towerPick(q, b, o); if (L) towerClaim(q, b, L, false); }
+function towerBot(q, b) {                                           // an ordinary soldier holding a point: snipers and marksmen always, every second rifleman, climb a tower beside it
+  if (!LADDERS.length || q.plat || q.climb) return false; if (b.tower) return towerWalk(q, b); if (simT < (b.twN || 0) || simT < (b.twCool || 0)) return false; b.twN = simT + rnd(5, 9);
+  if (!(b.cls === 'sniper' || b.cls === 'marksman' || (b.cls === 'rifle' && (b.sqi || 0) % 2 === 1))) return false; const ob = b.obj; if (!ob || ob.owner !== b.team || Math.hypot(ob.x - q.x, ob.z - q.z) > 45) return false;
+  const L = towerPick(q, b, ob); if (!L) return false; towerClaim(q, b, L, false); return true;
+}
+function towerWalk(q, b) {                                          // walk to the foot of the ladder and start up; give up after 70 s
+  const L = b.tower; if (!LADDERS.includes(L) || simT - b.twT0 > 70 || b.retreat > simT) { towerRelease(q, b); return false; } if (q.vin) return false;
+  const ax = L.bx - L.fx * 0.9, az = L.bz - L.fz * 0.9, d = Math.hypot(ax - q.x, az - q.z);
+  if (d > 1.0) { if (!q.order || simT - (b.twG || 0) > 3) { b.twG = simT; setFootOrder(q, ax, az); b.myOrder = q.order; } q.run = true; return true; }
+  if (!ladGrab(q, L, false)) { if (L.users.length >= 2) return true; towerRelease(q, b); return false; } b.twMode = 'up'; return true;
+}
+function climbBotThink(q, b, dt) { const c = q.climb; if (c.mode !== 'on') return; b.tgt = null; b.cmdUntil = 0; c.dir = (b.twMode === 'down' || !b.tower) ? -1 : 1; }
+function deckThink(q, b, dt, e) {                                   // a soldier standing on a platform: holds a spot, shoots from up there with the view it gives, comes down when it is time
+  const P = q.plat; if (!P.occ.includes(q)) P.occ.push(q); if (!b.spot) { b.spot = P.spots.find(s => !s.q) || null; if (b.spot) b.spot.q = q; }
+  b.dkT = (b.dkT || 0) - dt; if (b.dkT <= 0) { b.dkT = 0.5; const sqm = b.psq && SQD.on; let leave = !!b.deckLeave || b.retreat > simT || !b.tower && !sqm && !b.obj;
+    if (!leave && sqm) { const k = SQD.order.k; const me = fp.on && fp.p; leave = k === 'move' || k === 'attack' || k === 'fall' || k === 'mount' || (b.twFollow && !(me && (me.plat === P || (me.climb && me.climb.L.plat === P)))); }
+    else if (!leave) { const ob = b.obj; const lost = !ob || ob.owner !== b.team || Math.hypot(ob.x - P.x, ob.z - P.z) > 70; if (lost) { b.leaveN = (b.leaveN || 0) + 1; leave = b.leaveN >= 4; } else b.leaveN = 0; }
+    if (leave) { const L = b.tower || P.lads[0]; if (L) { b.tower = L; b.twMode = 'down'; if (ladGrab(q, L, true)) return true; } } }
+  if (b.spot && Math.hypot(b.spot.x - q.x, b.spot.z - q.z) > 0.4 && !q.order) { q.order = { x: b.spot.x, z: b.spot.z }; q.route = null; q.via = null; q.run = false; b.myOrder = q.order; }
+  q.aim = (q.aim || 0) + ((e ? 1 : 0) - (q.aim || 0)) * Math.min(1, 6 * dt); b.crouch = false; b.stance = 0;
+  if (!b.inPos && !q.order) { b.inPos = true; vsay(q, 'in_position', 2); }
+  if (e && e.state !== 'rag' && e.hp > 0) { const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz); b.memE = e; b.memT = simT; if (simT - (b.shT || 0) > 1.5) { b.shT = simT; if (b.psq && SQD.on) sqdShare(q, e); else { for (const m of squadOf(q)) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } shareContact(q, e); } }
+    if (b.lastE !== e && simT - (b.callT || -9) > 5) { b.callT = simT; sqdCall(q, b, e, d); } b.lastE = e; if (!q.order && b.reload <= 0 && b.cool <= 0 && d <= w.range * 1.15) botFire(q, b, e, d); }
+  else if (!q.order && b.obj) q.heading += wrap(Math.atan2(b.obj.x - q.x, b.obj.z - q.z) - q.heading) * Math.min(1, dt * 2);
+  return true;
+}
+function sqdLadderFollow(me) {                                      // the player is up on a deck and the order is Follow: up to three of the squad climb after
+  const P = me.plat; if (!P || !P.lads.length) return; const L = P.lads[0]; let n = 0; for (const m of SQD.mates) if (m.plat === P || (m.bot && m.bot.tower && m.bot.tower.plat === P)) n++; if (n >= 3 || P.occ.length + P.bots >= 4) return;
+  let best = null, bd = 45; for (const m of SQD.mates) { const b = m.bot; if (!b || m.plat || m.climb || b.tower || m.vin || m.state === 'rag' || b.dead || b.mountV) continue; const d = Math.hypot(m.x - L.bx, m.z - L.bz); if (d < bd) { bd = d; best = m; } }
+  if (best) { towerClaim(best, best.bot, L, true); }
+}
+
+Object.assign(window.__sc, { SQD, SQD_ORD, sqdSet, sqdBind, sqdOff, sqdLeader, sqdPing, sqdMount, sqdDismountAll, sqdWheelOpen, sqdWheelClose, callsignOf, VOICE, VLINES, vsay, voiceTest, captionAdd, LADDERS, PLATFORMS, LAD_HAND, ladAddModel, ladGrab, ladDrop, ladUse, ladNearFor, ladMarkers, ladSweep, climbFrame, platHas, platClamp, standYP, towerPick, towerClaim, towerRelease });
 Object.assign(window.__sc, { openCommand, openBattleSetup, closeSetup, renderSetup, setupGo, SETUP, applyLook, objectiveHint, tbTabList, renderTablet, ic });
 </script>
 

@@ -93,7 +93,6 @@ def apc():
     # ---- gun at the trunnion (pivot about X)
     GP = (0.0, 2.32, 1.35 + 0.82)
     G = M.node('_gun', 'apc_turret', GP); Lg = Loc(G, GP)
-    Lg.box((0, 0, 0.18), (0.54, 0.34, 0.26), 'veh_paint', bevel=0.02)
     Lg.cyl((0, 0, 0.30), (0, 0, 2.30), 0.042, 0.038, 10, 'veh_steel_dark', True)
     Lg.cyl((0, 0, 0.30), (0, 0, 1.25), 0.075, 0.07, 10, 'veh_metal', True)
     Lg.cyl((0, 0, 1.25), (0, 0, 1.31), 0.085, 0.06, 10, 'veh_steel_dark', False)
@@ -102,6 +101,11 @@ def apc():
     Lg.box((-0.24, 0.0, 0.40), (0.07, 0.07, 0.2), 'veh_steel_dark')
     Lg.box((0.26, -0.02, 0.12), (0.1, 0.16, 0.2), 'veh_can', bevel=0.01)
     M.empty('apc_muzzle', (GP[0], GP[1], GP[2] + 2.40), 'apc_gun', 'ARROWS')
+    # mantlet + cheek plates: a child of the gun (pitch) node, so it elevates with the barrel
+    S = M.node('_gun_mantlet', 'apc_gun', GP); Ls = Loc(S, GP)
+    Ls.loft([[(-0.32, -0.20, 0.04), (0.32, -0.20, 0.04), (0.32, 0.20, 0.04), (-0.32, 0.20, 0.04)],
+             [(-0.27, -0.16, 0.42), (0.27, -0.16, 0.42), (0.27, 0.16, 0.42), (-0.27, 0.16, 0.42)]], 'veh_paint', False, (True, True))
+    for sx in (-1, 1): wing(S, sx * 0.30, sx * 0.52, GP[1] - 0.20, GP[1] + 0.20, GP[2] + 0.06, 0.03, 'veh_paint', fold=28, ch=0.08)
     M.empty('apc_seat_driver', (0.45, 1.20, 2.75)); M.empty('apc_seat_gunner', (0.0, 1.95, 1.2), 'apc_turret')
     k = 0
     for s in (1, -1):
@@ -222,7 +226,6 @@ def light_tank():
     # ---- barrel (about X at the trunnion)
     GP = (0.0, 1.62, 0.12 + 0.98)
     G = M.node('_barrel', 'light_tank_turret', GP); Lg = Loc(G, GP)
-    Lg.box((0, 0, 0.10), (0.58, 0.42, 0.24), 'veh_paint', bevel=0.03)
     Lg.cyl((0, 0, 0.2), (0, 0, 2.55), 0.052, 0.045, 10, 'veh_steel_dark', True)
     Lg.cyl((0, 0, 0.2), (0, 0, 0.55), 0.09, 0.08, 10, 'veh_metal', True)
     Lg.cyl((0, 0, 1.45), (0, 0, 1.75), 0.07, 0.07, 10, 'veh_metal', True)
@@ -230,6 +233,11 @@ def light_tank():
     Lg.cyl((0.22, 0.0, 0.2), (0.22, 0.0, 0.85), 0.022, 0.022, 6, 'veh_steel_dark', False)
     Lg.box((0.22, 0.0, 0.35), (0.07, 0.07, 0.2), 'veh_steel_dark')
     M.empty('light_tank_muzzle', (GP[0], GP[1], GP[2] + 2.64), 'light_tank_barrel', 'ARROWS')
+    # mantlet + gun shield cheeks: a child of the barrel (pitch) node, so it elevates with the barrel
+    S = M.node('_barrel_mantlet', 'light_tank_barrel', GP); Ls = Loc(S, GP)
+    Ls.loft([[(-0.34, -0.23, -0.06), (0.34, -0.23, -0.06), (0.34, 0.23, -0.06), (-0.34, 0.23, -0.06)],
+             [(-0.29, -0.19, 0.30), (0.29, -0.19, 0.30), (0.29, 0.19, 0.30), (-0.29, 0.19, 0.30)]], 'veh_paint', False, (True, True))
+    for sx in (-1, 1): wing(S, sx * 0.33, sx * 0.54, GP[1] - 0.23, GP[1] + 0.23, GP[2] + 0.03, 0.03, 'veh_paint', fold=30, ch=0.08)
     M.empty('light_tank_seat_driver', (0.5, 0.9, 1.55)); M.empty('light_tank_seat_gunner', (-0.34, 1.45, 0.32), 'light_tank_turret')
     M.empty('light_tank_seat_p0', (0.30, 1.50, -0.12), 'light_tank_turret'); M.empty('light_tank_seat_p1', (-0.5, 0.9, 1.55))
     M.empty('light_tank_exit_L', (1.8, 0.0, -0.2)); M.empty('light_tank_exit_R', (-1.8, 0.0, -0.2))

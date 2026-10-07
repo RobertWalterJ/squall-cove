@@ -90,6 +90,11 @@ def jeep():
     G.pivot = Vector(GP)
     gz = machinegun(Loc(G, GP), barrel=1.0)
     M.empty('jeep_muzzle', (GP[0], GP[1], GP[2] + gz), 'jeep_gun', 'ARROWS')
+    # gun shield: child of the gun (pitch) node so it turns and elevates with the barrel
+    S = M.node('_gun_shield', 'jeep_gun', GP); zs = GP[2] + 0.30; gy = GP[1]
+    for sx in (-1, 1): wing(S, sx * 0.05, sx * 0.27, gy - 0.14, gy + 0.26, zs, 0.02, 'veh_paint', fold=12, ch=0.07)
+    bx(S, -0.05, 0.05, gy + 0.10, gy + 0.26, zs - 0.01, zs + 0.01, 'veh_paint'); bx(S, -0.05, 0.05, gy - 0.14, gy - 0.06, zs - 0.01, zs + 0.01, 'veh_paint')
+    for sx in (-1, 1): tube(S, (sx * 0.04, gy - 0.10, GP[2] + 0.08), (sx * 0.10, gy - 0.10, zs - 0.01), 0.025, 'veh_steel_dark')
     # markers
     M.empty('jeep_seat_driver', (0.33, 0.66, 0.45)); M.empty('jeep_seat_p0', (-0.33, 0.66, 0.45))
     M.empty('jeep_seat_p1', (0.31, 0.66, -0.74)); M.empty('jeep_seat_p2', (-0.31, 0.66, -0.74))
@@ -184,11 +189,16 @@ def technical():
     for sx in (-1, 1): Lg.cyl((sx * 0.10, 0.0, -0.46), (sx * 0.10, 0.0, -0.56), 0.02, 0.02, 6, 'veh_dark', False); Lg.box((sx * 0.10, 0.0, -0.58), (0.03, 0.16, 0.03), 'veh_dark')
     Lg.box((0.22, -0.04, 0.05), (0.2, 0.26, 0.3), 'veh_can', bevel=0.01)                                                 # ammo box
     Lg.box((0.12, 0.02, 0.05), (0.06, 0.06, 0.14), 'veh_metal')
-    for sx in (-1, 1): Lg.box((sx * 0.30, 0.08, 0.40), (0.02, 0.4, 0.46) if False else (0.02, 0.32, 0.28), 'veh_paint')    # shield wings
-    Lg.box((0, 0.16, 0.40), (0.62, 0.34, 0.025), 'veh_paint')                                                            # gun shield
     Lg.box((0, 0.0, 0.40), (0.14, 0.14, 0.04), 'veh_dark')
     Lg.box((0, 0.05, 0.42), (0.04, 0.08, 0.02), 'veh_dark')
     M.empty('technical_muzzle', (0, GP[1], GP[2] + 1.66), 'technical_gun', 'ARROWS')
+    # gun shield plates: children of the gun (pitch) node, so they elevate and traverse with the barrel
+    S = M.node('_gun_shield', 'technical_gun', GP); zs = GP[2] + 0.40; gy = GP[1]
+    for sx in (-1, 1): wing(S, sx * 0.07, sx * 0.36, gy - 0.12, gy + 0.32, zs, 0.025, 'veh_paint', fold=14, ch=0.08)
+    bx(S, -0.07, 0.07, gy + 0.07, gy + 0.32, zs - 0.012, zs + 0.012, 'veh_paint'); bx(S, -0.07, 0.07, gy - 0.12, gy - 0.06, zs - 0.012, zs + 0.012, 'veh_paint')
+    for sx in (-1, 1):
+        tube(S, (sx * 0.08, gy - 0.07, GP[2] + 0.05), (sx * 0.20, gy - 0.07, zs - 0.01), 0.03, 'veh_steel_dark')
+        tube(S, (sx * 0.08, gy + 0.07, GP[2] + 0.05), (sx * 0.20, gy + 0.22, zs - 0.01), 0.03, 'veh_steel_dark')
     # markers
     M.empty('technical_seat_driver', (0.34, 0.98, 0.45)); M.empty('technical_seat_p0', (-0.34, 0.98, 0.45))
     M.empty('technical_seat_p1', (0.34, 0.98, -0.20)); M.empty('technical_seat_p2', (-0.34, 0.98, -0.20))

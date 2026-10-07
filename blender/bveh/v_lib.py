@@ -212,3 +212,25 @@ class Loc:
 
 def mirror_x(P, fn_build):
     pass
+
+
+def slab(P, outline, origin, ua, ub, thick, mat):
+    """Flat plate: polygon (a, b) in the plane of unit vectors ua, ub through `origin`, thickness along ua x ub (centred)."""
+    o = Vector(origin); ua = Vector(ua).normalized(); ub = Vector(ub).normalized(); nm = ua.cross(ub).normalized()
+    outline = list(outline); n = len(outline)
+    area = sum(outline[i][0] * outline[(i + 1) % n][1] - outline[(i + 1) % n][0] * outline[i][1] for i in range(n))
+    if area < 0: outline.reverse()
+    pts = []
+    for h in (-thick / 2, thick / 2): pts += [tuple(o + ua * a + ub * b + nm * h) for a, b in outline]
+    faces = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+    for t in ear_clip(outline):
+        faces.append(tuple(n + i for i in t)); faces.append(tuple(reversed(t)))
+    return P.add(pts, faces, mat, False)
+
+
+def wing(P, xi, xo, y0, y1, z, thick, mat, fold=0.0, ch=0.0):
+    """Upright plate from inner edge x=xi to outer edge x=xo at depth z; folds back (toward -Z) by `fold` degrees; top outer corner chamfered."""
+    s = 1 if xo > xi else -1; w = abs(xo - xi)
+    outline = [(0, y0), (w, y0), (w, y1 - ch), (w - ch, y1), (0, y1)]
+    ua = (s * math.cos(rad(fold)), 0, -math.sin(rad(fold)))
+    return slab(P, outline, (xi, 0, z), ua, (0, 1, 0), thick, mat)
