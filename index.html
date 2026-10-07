@@ -2080,7 +2080,7 @@ function place(item, p) {
     if (h > -(sp.D - sp.fb) - 0.4) { toast('Too shallow for the ' + sp.name); return; }
     for (const o of boats) if (Math.hypot(o.body.position.x - x, o.body.position.z - z) < (o.sp.L + sp.L) * 0.42) { toast('Too close to the ' + o.sp.name); return; }   // overlapping hulls would fling each other apart
     const nb = makeBoat(item.boat, null, null, x, z, god.yaw + Math.PI / 2 + buildRot);
-    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; if (item.side) { sideCrew(nb, item.side); } else ensureSkipper(nb); selectBoat(nb); toast(item.side ? (item.side === 'red' ? 'A red ' : 'A blue ') + sp.name + ' launched' : sp.name + ' launched'); return;
+    nb.anchor = nb.body.position.clone(); nb.status = 'Anchored'; if (item.side) { sideCrew(nb, item.side); if (item.boat === 'landing' || item.boat === 'swatrib') { crewOn(nb, Math.max(0, (nb.sp.capacity || 4) - 4)); const role = item.side === 'blue' ? 'SWAT' : 'Invader'; for (const q of people) if (q.ride && q.ride.boat === nb) { q.role = role; q.side = item.side; if (item.side === 'red') q.fromHostile = true; } const L = landingSpotNear(nb); if (L) registerLanding(nb, L, role, item.side); } } else ensureSkipper(nb); selectBoat(nb); toast(item.side ? (item.side === 'red' ? 'A red ' : 'A blue ') + sp.name + ' launched' : sp.name + ' launched'); return;
   }
   if (item.buoy) { if (h > -1) { toast('Marks go in the water'); return; } addBuoy(x, z, item.buoy); return; }
   if (item.land && h < 0.2) { toast(item.name + ' needs dry land'); return; }
@@ -3451,7 +3451,7 @@ function collectLive() {
 function fillLive() {
   if (!sideOpen || sideTab !== 'live') return; const rows = collectLive(), sig = liveF + '|' + rows.map(r => r.label + r.sub).join('~'); document.getElementById('sCount').textContent = people.length + ' people · ' + boats.length + ' boats · ' + VEHS.length + ' vehicles · ' + objects.length + ' things'; if (sig === liveSig) { liveRows = rows; return; } liveSig = sig; liveRows = rows;
   const list = document.getElementById('sLive'); list.innerHTML = '';
-  rows.forEach((r, i) => { const d = document.createElement('div'); d.className = 'sRow'; const m = mkB('', 'sMain', () => liveGo(i)); const b = document.createElement('b'); b.textContent = r.label; const sm = document.createElement('small'); sm.textContent = r.sub; m.append(b, sm); d.append(m); if (r.k === 'person') d.append(mkB('Be', 'sMini', () => liveBe(i))); d.append(mkB('X', 'sMini', () => liveDel(i), { 'aria-label': 'Remove' })); list.append(d); });
+  rows.forEach((r, i) => { const d = document.createElement('div'); d.className = 'sRow'; const m = mkB('', 'sMain', () => liveGo(i)); const b = document.createElement('b'); b.textContent = r.label; const sm = document.createElement('small'); sm.textContent = r.sub; m.append(b, sm); d.append(m); if (r.k === 'person') d.append(mkB('Be', 'sMini', () => liveBe(i))); if (r.k === 'boat' && !r.ref.landing && boatCrew(r.ref).length) d.append(mkB('Land', 'sMini', () => { const bt = r.ref, L = landingSpotNear(bt); if (!L) { toast('No shore to land on'); return; } const c0 = boatCrew(bt)[0]; registerLanding(bt, L, c0 && c0.role || 'Crew', c0 && c0.side || null); toast('The ' + bt.sp.name + ' is heading for the beach to land its crew.'); }, { 'aria-label': 'Land the crew on the nearest beach' })); d.append(mkB('X', 'sMini', () => liveDel(i), { 'aria-label': 'Remove' })); list.append(d); });
   if (!rows.length) { const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Nothing here yet. Place something from the Place tab.'; list.append(n); }
 }
 function liveGo(i) { const r = liveRows[i]; if (!r) return; if (fp.on) return; let x = r.x, z = r.z; if (r.k === 'things') { const a = r.ref.filter(o => !o.gone); a.sort((p, q) => Math.hypot(p.body.position.x - god.tgt.x, p.body.position.z - god.tgt.z) - Math.hypot(q.body.position.x - god.tgt.x, q.body.position.z - god.tgt.z)); if (a[0]) { x = a[0].body.position.x; z = a[0].body.position.z; } }
@@ -5347,15 +5347,23 @@ function landingParty(side, n, nboats, kind) {
   LANDINGS.push({ boats: boatsL, side, role }); noteOnce('inv' + simT, invade ? 'Boats are coming in from the horizon. They look foreign and they look serious.' : side === 'red' ? 'A raider boat is heading for the beach.' : 'A response boat is racing for the shore.');
   return true;
 }
+function landCrewMember(p, bt) {                                 // step ashore if dry land is in reach, otherwise go over the side and swim in
+  if (p.hop || !p.ride) return; const stp = fpClimbTarget(p), from = new THREE.Vector3(p.x, p.y, p.z); p.order = null;
+  if (stp) { const dy = Math.abs(stp.y - p.y); startHop(p, from, (o) => o.set(stp.x + rnd(-1.5, 1.5), stp.y, stp.z + rnd(-1.5, 1.5)), clamp(0.8 + 0.08 * dy, 0.8, 2), 0.6, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = stp.x; p.z = stp.z; p.y = stp.y; giveBody(p); }); return; }
+  const l = toBoatLocal(bt, p.x, p.z), sd = Math.sign(l.z || 1), out = new THREE.Vector3(); worldOfDeck(bt, l.x, 0, sd * (bt.sp.B / 2 + 2.4), out); const wy = waveH(out.x, out.z, simT) - 1.15;
+  startHop(p, from, (o) => o.set(out.x, wy, out.z), 0.9, 0.9, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = out.x; p.z = out.z; p.y = wy; p.swim = true; giveBody(p); const L2 = nearestLand(p); if (L2) setFootOrder(p, L2.x, L2.z); });
+}
+function landingSpotNear(bt) { const a = Math.atan2(bt.body.position.z, bt.body.position.x), cp = coastPoint(a, 2), sea = coastPoint(a, -10); return cp ? { cp, sea: sea || cp, a } : null; }
+function registerLanding(bt, L, role, side) { bt.landing = { state: 'run', L, role, t: 0, k: 0 }; bt.anchor = null; const bp = { x: L.cp.x + Math.cos(L.a) * 5, z: L.cp.z + Math.sin(L.a) * 5 }; orderTo(bt, bp.x, bp.z); LANDINGS.push({ boats: [bt], side, role }); }
 function runLandings(dt) {
   for (let i = LANDINGS.length - 1; i >= 0; i--) {
     const Ln = LANDINGS[i]; let live = 0;
     for (const bt of Ln.boats) {
       const st = bt.landing; if (!st || bt.sunk || !boats.includes(bt)) continue; live++; st.t += dt; const pos = bt.body.position, crew = people.filter(q => q.ride && q.ride.boat === bt && q.state !== 'rag');
-      if (st.state === 'run') { if (Math.hypot(pos.x - (st.L.cp.x), pos.z - (st.L.cp.z)) < 16 || st.t > 120) { st.state = 'unload'; st.t = 0; st.k = 0; bt.order = null; bt.throttle = 0; bt.anchor = pos.clone(); noteOnce('ramp' + bt.id, 'The ' + bt.sp.name + ' has grounded on the beach. The ramp goes down.'); Snd.fx('veh_water_drop_whoosh_01', pos.x, pos.z, { gain: 0.6 }); } }
+      if (st.state === 'run') { const dL = Math.hypot(pos.x - (st.L.cp.x), pos.z - (st.L.cp.z)), sp0 = Math.hypot(bt.body.velocity.x, bt.body.velocity.z); st.slow = sp0 < 0.4 && dL < 45 ? (st.slow || 0) + dt : 0; if (!bt.order && dL > 12 && st.t < 100) orderTo(bt, st.L.cp.x + Math.cos(st.L.a) * 5, st.L.cp.z + Math.sin(st.L.a) * 5); if (dL < 16 || st.slow > 6 || st.t > 110) { st.state = 'unload'; st.t = 0; st.k = 0; bt.order = null; bt.throttle = 0; bt.anchor = pos.clone(); noteOnce('ramp' + bt.id, 'The ' + bt.sp.name + ' has grounded on the beach. The ramp goes down.'); Snd.fx('veh_water_drop_whoosh_01', pos.x, pos.z, { gain: 0.6 }); } }
       else if (st.state === 'unload') {
         if (bt.rampNode) bt.rampNode.rotation.z += (-1.745 - bt.rampNode.rotation.z) * Math.min(1, dt * 2.2);
-        if (st.t > 1.5 && crew.length) { st.k -= dt; if (st.k <= 0) { st.k = 0.7; const p = crew[0]; const stp = fpClimbTarget(p); if (stp && !p.hop) { const from = new THREE.Vector3(p.x, p.y, p.z), dy = Math.abs(stp.y - p.y); p.order = null; startHop(p, from, (o) => o.set(stp.x + rnd(-1.5, 1.5), stp.y, stp.z + rnd(-1.5, 1.5)), clamp(0.8 + 0.08 * dy, 0.8, 2), 0.6, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = stp.x; p.z = stp.z; p.y = stp.y; giveBody(p); p.ag = p.ag || undefined; }); } else if (!stp) { p.ride = null; } } }
+        if (st.t > 1.5 && crew.length) { st.k -= dt; if (st.k <= 0) { st.k = 0.7; const p = crew.find(q => !q.hop); if (p) landCrewMember(p, bt); } }
         else if (!crew.length || st.t > 40) { st.state = 'leave'; st.t = 0; bt.anchor = null; const dd = Math.hypot(pos.x, pos.z) || 1; orderTo(bt, pos.x / dd * (EXT + 8), pos.z / dd * (EXT + 8)); noteOnce('ld' + simT, Ln.role === 'SWAT' ? 'The response team is ashore.' : Ln.role === 'Invader' ? 'The invaders are ashore.' : 'The raiders are ashore.'); }
       } else if (st.state === 'leave') { if (bt.rampNode) bt.rampNode.rotation.z += (0 - bt.rampNode.rotation.z) * Math.min(1, dt * 3); if (Math.hypot(pos.x, pos.z) > EXT - 10 || st.t > 90) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); } }
     }
@@ -6370,6 +6378,7 @@ function updateFleet(dt) {
     if (cg && bt.order && bt.order !== me.myOrder) { me.pause = 25; me.mission = 'Following your order'; continue; }
     if (me.pause > 0) { me.pause -= step; continue; }
     const pos = bt.body.position, armed = bt.mounts && bt.mounts.length, range = armed ? Math.max(...bt.mounts.map(m => m.w.range)) : 0;
+    if (bt.landing) { me.mission = bt.landing.state === 'run' ? 'Running for the beach' : bt.landing.state === 'unload' ? 'Landing its crew' : 'Pulling away'; continue; }
     if (hostile) {
       if (bt.medic || bt.threat === 'smuggler') { me.mission = bt.medic ? 'Collecting their people' : bt.dropped ? 'Making their escape' : 'Running contraband to the shore'; continue; }
       me.robbed = me.robbed || {}; let mark = null, md = 300; for (const o of boats) { if (o.sunk || isHostile(o) || o.sp.kind !== 'sail' || (me.robbed[o.id] || -999) > simT - 240) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < md) { md = d; mark = o; } }
