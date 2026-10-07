@@ -93,12 +93,12 @@ def fetch_dem(lat0, lon0, size_m=768.0, cell_m=None, z=14, margin=4):
     return h
 
 # ---------------------------------------------------------------- OSM
-def overpass_queries(S, W, Nn, E):
+def overpass_queries(S, W, Nn, E, big=None):
     b = f'({S:.6f},{W:.6f},{Nn:.6f},{E:.6f})'
     groups = [
         [f'way["highway"]{b};', f'way["railway"]{b};'],
         [f'way["building"]{b};'],
-        [f'way["landuse"]{b};', f'way["natural"]{b};', f'way["leisure"~"park|pitch|stadium|garden|marina|golf_course|sports_centre|playground"]{b};'],
+        [f'way["landuse"]{b};', f'way["natural"]["natural"!="coastline"]{b};', f'way["leisure"~"park|pitch|stadium|garden|marina|golf_course|sports_centre|playground"]{b};'],
         [f'relation["natural"~"water|bay|wood|scrub|beach"]{b};', f'relation["landuse"]{b};', f'relation["building"]{b};'],
         [f'way["waterway"]{b};', f'way["man_made"]{b};', f'way["aeroway"]{b};', f'way["harbour"]{b};', f'way["military"]{b};',
          f'way["power"~"line|minor_line"]{b};', f'way["barrier"~"wall|fence"]{b};', f'way["amenity"~"parking|fuel|place_of_worship|school|hospital|townhall|marketplace"]{b};'],
@@ -106,13 +106,17 @@ def overpass_queries(S, W, Nn, E):
          f'node["place"]{b};', f'node["natural"~"peak|cape|bay|beach"]{b};', f'node["aeroway"]{b};', f'node["amenity"~"fuel|place_of_worship|ferry_terminal"]{b};',
          f'node["historic"]{b};', f'node["military"]{b};'],
     ]
-    return ['[out:json][timeout:120];(' + chr(10).join(g) + ');out geom;' for g in groups]
+    qs = ['[out:json][timeout:120];(' + chr(10).join(g) + ');out geom;' for g in groups]
+    bb = '(%.6f,%.6f,%.6f,%.6f)' % big
+    qs.append('[out:json][timeout:120];(way["natural"="coastline"]%s;);out geom%s;' % (b, bb))   # geometry clipped to a wider box
+    return qs
 
 def fetch_osm_raw(lat0, lon0, size_m, margin=60):
     P = Proj(lat0, lon0); h = size_m / 2 + margin
     S, _ = P.inv(0, h); Nn, _ = P.inv(0, -h); _, W = P.inv(-h, 0); _, E = P.inv(h, 0)
     els = {}
-    for q in overpass_queries(S, W, Nn, E):
+    big = (S - 0.02, W - 0.025, Nn + 0.02, E + 0.025)
+    for q in overpass_queries(S, W, Nn, E, big):
         key = hashlib.md5(q.encode()).hexdigest()[:12]
         def go():
             last = None
