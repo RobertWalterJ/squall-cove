@@ -203,21 +203,21 @@ def emp_mortar():
     for k in range(3): shell(B, (-1.22 + k * 0.17, 0.205, -0.80), (0.0, 0.0, 1.0), 0.40, 0.04)
     # ---- yaw: traverse ring turning on the base plate
     Y = M.node('_yaw', None, BALL)
-    Y.cyl((0, 0.14, 0), (0, 0.17, 0), 0.30, 0.30, 14, 'emp_steel', False)
+    Y.cyl((0, 0.14, 0), (0, 0.17, 0), 0.30, 0.30, 14, 'emp_paint', False)
     Y.cyl((0, 0.17, 0), (0, 0.24, 0), 0.11, 0.09, 10, 'emp_steel_dark', False)
     for sx in (-1, 1): Y.box((sx * 0.27, 0.18, 0), (0.10, 0.03, 0.06), 'emp_steel_dark')
     # ---- pitch: tube plus bipod (the bipod follows the tube; its feet reach the ground at 65 degrees elevation)
     T = M.node('_pitch', 'emp_mortar_yaw', BALL)
     T.ellipsoid(BALL, (0.085, 0.085, 0.085), 'emp_steel_dark', 8, 4)
     T.cyl(BALL, (0, 0.20, 1.18), 0.052, 0.048, 10, 'emp_steel', True)
-    T.cyl((0, 0.20, 0.0), (0, 0.20, 0.12), 0.075, 0.075, 10, 'emp_steel_dark', False)
+    T.cyl((0, 0.20, 0.0), (0, 0.20, 0.12), 0.075, 0.075, 10, 'emp_paint', False)
     T.cyl((0, 0.20, 1.10), (0, 0.20, 1.20), 0.068, 0.068, 10, 'emp_steel_dark', False)
-    T.cyl((0, 0.20, 0.30), (0, 0.20, 0.34), 0.064, 0.064, 8, 'emp_steel_dark', False)
-    collar = Vector((0, 0.20, 0.62))
-    T.cyl((0, 0.20, 0.57), (0, 0.20, 0.67), 0.072, 0.072, 10, 'emp_steel_dark', False)
+    T.cyl((0, 0.20, 0.80), (0, 0.20, 0.84), 0.064, 0.064, 8, 'emp_steel_dark', False)
+    collar = Vector((0, 0.20, 0.40))
+    T.cyl((0, 0.20, 0.35), (0, 0.20, 0.45), 0.072, 0.072, 10, 'emp_steel_dark', False)
     feet = []
     for sx in (-1, 1):
-        wf = (sx * 0.50, 0.05, 0.78)                          # wanted foot position at 65 degrees (world)
+        wf = (sx * 0.44, 0.05, 0.62)                          # wanted foot position at 65 degrees (world)
         f = unpitch(wf, BALL, ELEV); feet.append(f)
         bar(T, tuple(collar + V(sx * 0.04, 0, 0)), tuple(f), 0.045, 'emp_steel')
         pad = f
@@ -226,9 +226,9 @@ def emp_mortar():
     mid0 = (feet[0] * 0.55 + collar * 0.45); mid1 = (feet[1] * 0.55 + collar * 0.45)
     rod(T, tuple(mid0), tuple(mid1), 0.016, 'emp_steel_dark', 6)
     rod(T, tuple(collar + V(0, -0.02, 0.0)), tuple((mid0 + mid1) / 2), 0.014, 'emp_black', 6)
-    T.box((0.075, 0.275, 0.48), (0.05, 0.10, 0.06), 'emp_black')
-    T.cyl((0.075, 0.33, 0.48), (0.075, 0.33, 0.58), 0.026, 0.026, 8, 'emp_steel_dark', False)
-    T.box((0.075, 0.33, 0.585), (0.034, 0.034, 0.012), 'emp_glass')
+    T.box((0.075, 0.275, 0.86), (0.05, 0.10, 0.06), 'emp_black')
+    T.cyl((0.075, 0.33, 0.86), (0.075, 0.33, 0.96), 0.026, 0.026, 8, 'emp_steel_dark', False)
+    T.box((0.075, 0.33, 0.965), (0.034, 0.034, 0.012), 'emp_glass')
     M.empty('emp_mortar_muzzle', (0.0, 0.20, 1.20), 'emp_mortar_pitch', 'ARROWS')
     return M
 

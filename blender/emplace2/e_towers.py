@@ -49,6 +49,9 @@ def rail_run(P, a, b, y0, h, mat='emp_galv', mid=True, post_step=1.0, toe=True, 
     ax, az = a; bx_, bz = b; Ln = math.hypot(bx_ - ax, bz - az); n = max(1, round(Ln / post_step))
     for i in range(n + 1):
         t = i / n; px = ax + (bx_ - ax) * t; pz = az + (bz - az) * t
+        key = (round(px, 2), round(pz, 2), round(y0, 2)); seen = P.__dict__.setdefault('_posts', set())
+        if key in seen: continue                       # corner posts are shared by two rail runs (avoid coplanar duplicates)
+        seen.add(key)
         bar(P, (px, y0, pz), (px, y0 + h, pz), 0.05, mat)
     bar(P, (ax, y0 + h, az), (bx_, y0 + h, bz), 0.05, mat)
     if mid: bar(P, (ax, y0 + h * 0.52, az), (bx_, y0 + h * 0.52, bz), 0.035, mat)
@@ -105,7 +108,7 @@ def tower_guard_wood():
     for (a, b, mid) in (((1.0, -1.0), (1.0, 1.0), False), ((-1.0, -1.0), (-1.0, 1.0), True), ((-1.0, -1.0), (1.0, -1.0), True), ((-1.0, 1.0), (1.0, 1.0), False)):
         rail_run(B, a, b, DY, top, 'emp_wood', mid, post_step=0.7, toe=True)
     # sandbag parapet: +X side and +Z side (right of the hatch and left of it)
-    bagline(B, (0.84, -0.98), (0.84, 0.70), 4, rng, y0=DY, rows=1)
+    bagline(B, (0.96, -0.98), (0.96, 0.70), 4, rng, y0=DY, rows=1)
     bagline(B, (0.44, 0.98), (0.98, 0.98), 4, rng, y0=DY)
     bagline(B, (-0.98, 0.98), (-0.44, 0.98), 4, rng, y0=DY)
     # roof: top plates, posts already run to 7.18; sloped panels with ribs; gable boards

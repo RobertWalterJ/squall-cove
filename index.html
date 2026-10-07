@@ -11,12 +11,236 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<style id="bootcss">
+#boot{display:none;position:fixed;inset:0;z-index:100;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(165deg,#12323d 0%,#0c1a20 55%,#16241f 100%);color:#f1ece2;font:500 16px/1.45 Barlow,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+html.boot #boot{display:block}
+html.boot body>*:not(#boot):not(script):not(svg):not(style):not(link):not(title){visibility:hidden}
+#boot *{box-sizing:border-box}
+#boot .bw{width:min(880px,100%);margin:0 auto;padding:22px 16px 40px}
+#boot h1{margin:0;font:700 clamp(40px,9vw,76px)/1 "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.04em}
+#boot .btag{margin:8px 0 18px;color:#d8cfbd;font-size:17px}
+#boot h2{margin:22px 0 8px;font:700 20px "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.03em;color:#e8cf8a}
+#boot button{font:inherit;color:inherit;cursor:pointer;text-align:left;border:1px solid rgba(201,169,90,.4);background:rgba(14,32,40,.85);border-radius:12px;padding:12px 14px;min-height:52px}
+#boot button:hover,#boot button:focus-visible{border-color:#e3a948;outline:2px solid transparent;box-shadow:0 0 0 2px #e3a948}
+#boot button[aria-pressed="true"]{background:#1d4a58;border-color:#e3a948}
+#boot button[disabled],#boot button[aria-disabled="true"]{opacity:.38;cursor:not-allowed}
+#boot b{display:block;font-size:18px}
+#boot small,#boot .bs{display:block;color:#b9c4c0;font-size:14px;font-weight:500}
+#boot .bmode,#boot .bopts,#boot .bchips{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+#boot .bmaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+#boot .bmap{display:grid;gap:4px;align-content:start;padding:0;overflow:hidden}
+#boot .bmap .bsw{display:block;height:74px;background-size:cover;background-position:center}
+#boot .bmap .bt{padding:2px 12px 10px;display:grid;gap:3px}
+#boot .bmap em{font-style:normal;color:#e8cf8a;font-size:14px}
+#boot .bchips{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+#boot .bbat{display:none}
+#boot.bat .bbat{display:block}
+#boot .brg{display:grid;gap:4px;margin:10px 0}
+#boot input[type=range]{width:100%;min-height:32px}
+#boot .bsize{margin:20px 0 8px;font-size:19px;font-weight:600}
+#boot .bgo{width:100%;text-align:center;min-height:68px;font:700 26px "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.05em;background:#e3a948;color:#1a1204;border-color:#e3a948}
+#boot .bgo:hover,#boot .bgo:focus-visible{background:#f0bb5e}
+#boot .bfoot{margin-top:20px;color:#9fa9a5;font-size:13px}
+#boot .berr{color:#ffb4a4;margin-top:10px}
+html.nb #boot{display:none}
+</style>
+<script>
+(function () {
+  var skip = false;
+  try {
+    var q = new URLSearchParams(location.search), ss = sessionStorage;
+    var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
+    if (q.get('menu')) skip = false;
+    else if (q.get('legacy') || q.get('nointro') || q.get('battle') || q.get('help') || navigator.webdriver) skip = true;
+    else if (ss.getItem('sc-boot-skip') === '1') { skip = true; ss.removeItem('sc-boot-skip'); }
+    else if (ss.getItem('sc-booted') === '1' && nav.type === 'reload') skip = true;
+  } catch (e) { skip = true; }
+  window.__BOOTSKIP = skip;
+  document.documentElement.classList.add(skip ? 'nb' : 'boot');
+  window.__bip = null;
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__bip = e; });
+  try { if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
+})();
+</script>
 </head>
 <body>
+<div id="boot" role="dialog" aria-modal="true" aria-labelledby="bootTitle"><div class="bw">
+<h1 id="bootTitle">Squall Cove</h1>
+<p class="btag">A harbour sandbox of boats, weather, people and the odd war.</p>
+<h2>What do you want to play?</h2>
+<div class="bmode" id="bMode" role="group" aria-label="Mode">
+<button type="button" data-mode="sandbox" aria-pressed="true"><b>Sandbox</b><small>Build, sail and watch. Any map.</small></button>
+<button type="button" data-mode="battle" aria-pressed="false"><b>Battle</b><small>Capture points. Battle maps only.</small></button></div>
+<h2>Map</h2>
+<div class="bmaps" id="bMaps" role="group" aria-label="Map">
+<button type="button" class="bmap" data-map="cove" aria-pressed="true"><i class="bsw" style="background:linear-gradient(135deg,#1f5f7a 0 45%,#6b8f4e 45% 70%,#d8c48a 70%)"></i><span class="bt"><b>The Cove</b><small>The original island. Boats and weather.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="cove_large" aria-pressed="false"><i class="bsw" style="background:linear-gradient(135deg,#1b4f66 0 70%,#6b8f4e 70% 85%,#1b4f66 85%)"></i><span class="bt"><b>The large cove</b><small>A wide sea with room for fleets.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="port" aria-pressed="false"><i class="bsw" style="background:linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)"></i><span class="bt"><b>Port and mountains</b><small>A working harbour, a town, farms and hills.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="urban" aria-pressed="false"><i class="bsw" style="background:linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)"></i><span class="bt"><b>Urban port</b><small>A street grid, close alleys, a stadium and a working quay.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="desert" aria-pressed="false"><i class="bsw" style="background:linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)"></i><span class="bt"><b>Desert and far port</b><small>Open dunes, wadis and an oasis, with a port at the end of one long road.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="lemnos_myrina" aria-pressed="false"><i class="bsw" style="background-image:url(assets/map_lemnos_myrina_thumb.jpg)"></i><span class="bt"><b>Lemnos: Myrina</b><small>A real castle hill, harbour and old town.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="lemnos_mudros" aria-pressed="false"><i class="bsw" style="background-image:url(assets/map_lemnos_mudros_thumb.jpg)"></i><span class="bt"><b>Lemnos: Moudros</b><small>A real fishing harbour and flat town.</small><em data-sz></em></span></button>
+<button type="button" class="bmap" data-map="lemnos_airport" aria-pressed="false"><i class="bsw" style="background-image:url(assets/map_lemnos_airport_thumb.jpg)"></i><span class="bt"><b>Lemnos: airport</b><small>A real airfield: apron, taxiways and a runway.</small><em data-sz></em></span></button>
+</div>
+<div class="bbat" id="bBat">
+<h2>Battle setup</h2>
+<p class="bs">You fight for, or command, one side.</p>
+<div class="bchips" id="bSide"><button type="button" data-v="blue" aria-pressed="true">Port (blue)</button><button type="button" data-v="red" aria-pressed="false">The enemy (red)</button></div>
+<p class="bs" style="margin-top:12px">The red side is:</p>
+<div class="bchips" id="bRed"><button type="button" data-v="Raiders" aria-pressed="true">Raiders</button><button type="button" data-v="Invaders" aria-pressed="false">Invaders</button></div>
+<div class="brg"><label for="bSize" id="bSizeL">Soldiers per side: 9</label><input id="bSize" type="range" min="3" max="70" step="1" value="9"></div>
+<p class="bs">Tickets run down as soldiers fall. The side that runs out loses.</p>
+<div class="bchips" id="bTixM"><button type="button" data-v="auto" aria-pressed="true">Tickets: auto</button><button type="button" data-v="hand" aria-pressed="false">Tickets: by hand</button></div>
+<div class="brg"><label for="bTix" id="bTixL">Tickets per side: 100</label><input id="bTix" type="range" min="60" max="400" step="10" value="100"></div>
+<p class="bs">Command power is fire control and support.</p>
+<div class="bchips" id="bCmd"><button type="button" data-v="cost" aria-pressed="true">Costs tickets</button><button type="button" data-v="free" aria-pressed="false">Free</button></div>
+<p class="bs" style="margin-top:12px">Your class:</p>
+<div class="bchips" id="bKit"></div>
+<p class="bs" style="margin-top:12px">How do you start?</p>
+<div class="bchips" id="bHow"><button type="button" data-v="begin" aria-pressed="true">Command from above</button><button type="button" data-v="fight" aria-pressed="false">Fight as a soldier</button><button type="button" data-v="watch" aria-pressed="false">Watch only</button></div>
+</div>
+<h2>Options</h2>
+<div class="bopts" id="bOpts">
+<button type="button" data-opt="sound" aria-pressed="true"><b>Sound: on</b><small data-osz>about 7 MB</small></button>
+<button type="button" data-opt="skins" aria-pressed="false"><b>Soldier skins: off</b><small>about 13 MB. Better looking soldiers.</small></button>
+<button type="button" data-opt="quality" aria-pressed="true"><b>Quality: high</b><small>Low is lighter on a phone.</small></button>
+<button type="button" data-opt="voices" aria-pressed="true"><b>Squad voices: on</b><small>Spoken calls in a battle.</small></button>
+</div>
+<p class="bsize" id="bSizeT" aria-live="polite">Download size about 11 MB</p>
+<button type="button" class="bgo" id="bGo">Start</button>
+<p class="berr" id="bErr" hidden></p>
+<p class="bfoot">Nothing downloads until you press the button. Sizes are estimates, less if this device has played before.<br>Real-map data: (c) OpenStreetMap contributors, ODbL 1.0. Terrain: Mapzen terrain tiles (SRTM, GMTED, NED). <span id="bVer"></span></p>
+</div></div>
+<script>
+(function () {
+  var D = document, root = D.documentElement, boot = D.getElementById('boot');
+  function $(s, r) { return (r || D).querySelector(s); }
+  function $$(s, r) { return [].slice.call((r || D).querySelectorAll(s)); }
+  function lsg(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var touch = matchMedia('(pointer: coarse)').matches;
+  var MB = { base: 11.1, town: 2.7, build: 5.5, men: 7.4, skins: 12.7, sound: 6.6 };
+  var KEYF = { base: 'assets/people.glb.b64.txt', town: 'assets/port.glb.b64.txt', build: 'assets/battle.glb.b64.txt', men: 'assets/bveh.glb.b64.txt', skins: 'assets/troops2.glb.b64.txt', sound: 'audio/amb_sea_calm.ogg' };
+  var MAPS = {
+    cove: { n: 'The Cove', t: 'cove', size: 'standard' }, cove_large: { n: 'The large cove', t: 'cove', size: 'large' },
+    port: { n: 'Port and mountains', t: 'port', b: 1, town: 1 }, urban: { n: 'Urban port', t: 'urban', b: 1, town: 1 }, desert: { n: 'Desert and far port', t: 'desert', b: 1, town: 1 },
+    lemnos_myrina: { n: 'Lemnos: Myrina', t: 'lemnos_myrina', b: 1, town: 1, real: 0.40 }, lemnos_mudros: { n: 'Lemnos: Moudros', t: 'lemnos_mudros', b: 1, town: 1, real: 0.42 }, lemnos_airport: { n: 'Lemnos: airport', t: 'lemnos_airport', b: 1, town: 1, real: 0.34 }
+  };
+  KEYF['m_lemnos_myrina'] = 'assets/map_lemnos_myrina.json'; KEYF['m_lemnos_mudros'] = 'assets/map_lemnos_mudros.json'; KEYF['m_lemnos_airport'] = 'assets/map_lemnos_airport.json';
+  var KITS = [['assault', 'Assault'], ['marksman', 'Marksman'], ['heavy', 'Heavy'], ['engineer', 'Engineer'], ['spotter', 'Spotter'], ['medic', 'Medic'], ['scout', 'Sniper'], ['tankhunter', 'Tank hunter'], ['trooper', 'Trooper'], ['breacher', 'Breacher'], ['aa', 'Air defence']];
+  var S = { map: 'cove', mode: 'sandbox', sound: true, skins: null, quality: touch ? 'low' : 'high', voices: true, saved: false, b: { side: 'blue', red: 'Raiders', size: touch ? 5 : 9, tixAuto: true, tix: 100, kit: 'assault', cmdFree: false, how: 'begin' } };
+  var cached = {}, started = false;
+  try {
+    var sv = JSON.parse(lsg('squall-cove-boot') || 'null');
+    if (sv) { S.saved = true; if (MAPS[sv.map]) S.map = sv.map; if (sv.mode) S.mode = sv.mode; if (sv.skins === true || sv.skins === false) S.skins = sv.skins; if (sv.b) for (var k in sv.b) S.b[k] = sv.b[k]; }
+    else { var om = JSON.parse(lsg('squall-cove-map') || 'null'); if (om && MAPS[om.t]) S.map = om.t; if (om && om.t === 'cove' && lsg('squall-cove-size') === 'large') S.map = 'cove_large'; }
+    var qm = new URLSearchParams(location.search).get('map'); if (qm && MAPS[qm]) S.map = qm;
+    var qs = new URLSearchParams(location.search).get('size'); if (qm === 'cove' && qs === 'large') S.map = 'cove_large';
+    var q = lsg('sc-quality'); if (q === 'low' || q === 'high') S.quality = q;
+    if (lsg('squall-cove-voices') === '0') S.voices = false;
+    var pf = JSON.parse(lsg('squall-cove-prefs') || '{}'); if (pf.sound && pf.sound.on === false) S.sound = false;
+  } catch (e) {}
+  if (S.mode === 'battle' && !MAPS[S.map].b) S.map = 'port';
+  var origMap = S.map, origMode = S.mode;
+  function skinsOn() { return S.skins === null ? S.mode === 'battle' : S.skins; }
+  function groups() {
+    var m = MAPS[S.map], g = ['base'];
+    if (m.town) g.push('town'); if (m.real) g.push('m_' + m.t);
+    if (S.mode === 'battle') { g.push('build'); g.push('men'); }
+    if (skinsOn()) g.push('skins'); if (S.sound) g.push('sound');
+    return g;
+  }
+  function mbOf(g) { return g.indexOf('m_') === 0 ? MAPS[g.slice(2)].real : MB[g]; }
+  function totalMb(mapId) { var keep = S.map; S.map = mapId; var t = 0; groups().forEach(function (g) { if (!cached[g]) t += mbOf(g); }); S.map = keep; return t; }
+  function fmt(t) { return t < 0.3 ? 'nothing new to download' : 'about ' + (t < 10 ? t.toFixed(1) : Math.round(t)) + ' MB'; }
+  function paint() {
+    var m = MAPS[S.map], bat = S.mode === 'battle';
+    boot.classList.toggle('bat', bat);
+    $$('#bMode button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
+    $$('#bMaps .bmap').forEach(function (b) { var id = b.dataset.map, dis = bat && !MAPS[id].b; b.setAttribute('aria-pressed', String(id === S.map)); b.disabled = dis; $('[data-sz]', b).textContent = dis ? 'Sandbox only' : 'Download ' + fmt(totalMb(id)); });
+    var o = { sound: S.sound, skins: skinsOn(), quality: S.quality === 'high', voices: S.voices }, names = { sound: 'Sound', skins: 'Soldier skins', quality: 'Quality', voices: 'Squad voices' };
+    $$('#bOpts button').forEach(function (b) { var k = b.dataset.opt, v = o[k]; b.setAttribute('aria-pressed', String(v)); $('b', b).textContent = names[k] + ': ' + (k === 'quality' ? (v ? 'high' : 'low') : (v ? 'on' : 'off')); });
+    $('[data-osz]').textContent = 'about 7 MB. Loads now, more arrives while you play.';
+    $$('#bSide button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.side)); });
+    $$('#bRed button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.red)); });
+    $$('#bTixM button').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.v === 'auto') === S.b.tixAuto)); });
+    $$('#bCmd button').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.v === 'free') === S.b.cmdFree)); });
+    $$('#bHow button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.how)); });
+    $$('#bKit button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === S.b.kit)); });
+    var sz = $('#bSize'), tx = $('#bTix'); sz.max = touch ? 10 : 70; sz.value = S.b.size; $('#bSizeL').textContent = 'Soldiers per side: ' + S.b.size;
+    var auto = Math.round(Math.min(400, Math.max(60, 40 + 6 * S.b.size))); tx.value = S.b.tixAuto ? auto : S.b.tix; tx.disabled = S.b.tixAuto; $('#bTixL').textContent = 'Tickets per side: ' + tx.value;
+    $('#bSizeT').textContent = 'Download size ' + fmt(totalMb(S.map)) + (S.sound ? ' (sound arrives in two parts)' : '');
+    var go = $('#bGo'); go.textContent = (S.saved && S.map === origMap && S.mode === origMode ? 'Continue: ' : 'Start: ') + m.n + (bat ? ' (battle)' : '');
+  }
+  function save() { lss('squall-cove-boot', JSON.stringify({ map: S.map, mode: S.mode, skins: S.skins, b: S.b })); }
+  function checkCache() {
+    try {
+      if (!window.caches) return;
+      caches.keys().then(function (ks) {
+        ks = ks.filter(function (k) { return /^squall-cove-v[\d.]+$/.test(k); });
+        var ps = [];
+        Object.keys(KEYF).forEach(function (g) { ps.push(Promise.all(ks.map(function (k) { return caches.open(k).then(function (c) { return c.match(new URL(KEYF[g], location.href).href); }); })).then(function (r) { cached[g] = r.some(function (x) { return !!x; }); })); });
+        return Promise.all(ps);
+      }).then(paint).catch(function () {});
+    } catch (e) {}
+  }
+  var kitHost = $('#bKit');
+  KITS.forEach(function (k) { var b = D.createElement('button'); b.type = 'button'; b.dataset.v = k[0]; b.textContent = k[1]; kitHost.appendChild(b); });
+  function on(sel, fn) { $$(sel).forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) return; fn(b); paint(); }); }); }
+  on('#bMode button', function (b) { S.mode = b.dataset.mode; if (S.mode === 'battle' && !MAPS[S.map].b) S.map = 'port'; });
+  on('#bMaps .bmap', function (b) { S.map = b.dataset.map; });
+  on('#bOpts button', function (b) { var k = b.dataset.opt; if (k === 'sound') S.sound = !S.sound; else if (k === 'skins') S.skins = !skinsOn(); else if (k === 'quality') S.quality = S.quality === 'high' ? 'low' : 'high'; else S.voices = !S.voices; });
+  on('#bSide button', function (b) { S.b.side = b.dataset.v; });
+  on('#bRed button', function (b) { S.b.red = b.dataset.v; });
+  on('#bTixM button', function (b) { S.b.tixAuto = b.dataset.v === 'auto'; });
+  on('#bCmd button', function (b) { S.b.cmdFree = b.dataset.v === 'free'; });
+  on('#bHow button', function (b) { S.b.how = b.dataset.v; });
+  on('#bKit button', function (b) { S.b.kit = b.dataset.v; });
+  $('#bSize').addEventListener('input', function () { S.b.size = +this.value; paint(); });
+  $('#bTix').addEventListener('input', function () { S.b.tix = +this.value; S.b.tixAuto = false; paint(); });
+
+  function plan() {
+    var m = MAPS[S.map], p = [{ id: 'map', label: 'Loading the map', mb: MB.base + (m.real || 0) }];
+    if (m.town) p.push({ id: 'town', label: 'Loading buildings', mb: MB.town });
+    if (S.mode === 'battle') { p.push({ id: 'kit', label: 'Loading buildings', mb: MB.build }); p.push({ id: 'men', label: 'Loading soldiers', mb: MB.men }); }
+    if (skinsOn()) p.push({ id: 'skins', label: 'Loading soldiers', mb: MB.skins });
+    if (S.sound) p.push({ id: 'sound', label: 'Loading sound', mb: MB.sound });
+    return p;
+  }
+  function launch(cfg) {
+    if (window.__scLaunched) return; window.__scLaunched = 1; window.__BOOT = cfg || null;
+    function go() {
+      var src = D.getElementById('gamesrc');
+      if (!src) { var m = D.getElementById('loadMsg'); if (m) m.textContent = 'Squall Cove could not start: the game code is missing.'; return; }
+      var s = D.createElement('script'); s.type = 'module'; s.textContent = src.textContent; D.head.appendChild(s);
+    }
+    if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', go); else go();
+  }
+  window.__scLaunch = launch;
+  addEventListener('error', function (e) { if (window.__scUp) return; var m = D.getElementById('loadMsg'); if (m) m.textContent = 'Squall Cove could not start: ' + (e.message || 'an error'); var b = D.getElementById('loadBar'); if (b) b.style.background = '#d64b2c'; });
+  function start() {
+    if (started) return; started = true; S.saved = true; save();
+    var m = MAPS[S.map], t = m.t;
+    lss('squall-cove-map', JSON.stringify({ t: t, seed: t })); if (t === 'cove') lss('squall-cove-size', m.size);
+    lss('sc-quality', S.quality); lss('squall-cove-voices', S.voices ? '1' : '0');
+    try { var p = JSON.parse(lsg('squall-cove-prefs') || '{}'); p.sound = p.sound || { on: true, vol: 0.8, mus: 0.35 }; p.sound.on = S.sound; lss('squall-cove-prefs', JSON.stringify(p)); } catch (e) {}
+    try { sessionStorage.setItem('sc-booted', '1'); sessionStorage.setItem('sc-intro', '1'); sessionStorage.removeItem('sc-setup'); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + '?map=' + t + (t === 'cove' ? '&size=' + m.size : '')); } catch (e) {}
+    var cfg = { map: S.map, t: t, mode: S.mode, sound: S.sound, skins: skinsOn(), quality: S.quality, voices: S.voices, plan: plan(), b: S.mode === 'battle' ? S.b : null };
+    root.classList.remove('boot'); root.classList.add('nb');
+    var lm = D.getElementById('loadMsg'); if (lm) lm.textContent = 'Loading the map'; var lb = D.getElementById('loadBar'); if (lb) lb.style.width = '2%';
+    launch(cfg);
+  }
+  $('#bGo').addEventListener('click', start);
+  $('#bVer').textContent = 'v9.1 start menu';
+  paint(); checkCache();
+  if (window.__BOOTSKIP) { launch(null); }
+})();
+</script>
 <title>Squall Cove</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* Layout: full-bleed 3D sea; instruments pinned top-left, actions top-right, cargo tray and helm along the bottom edge. Single dusk look, deliberately one theme. */
 :root{
@@ -218,6 +442,8 @@ body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
 .prw button.pl{min-width:76px;min-height:56px}
 body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe-t))}
 #fireArm{position:fixed;left:50%;bottom:calc(var(--bh,140px) + 66px + var(--safe-b));transform:translateX(-50%);z-index:8;background:#8e2a1a;color:#fff;padding:8px 16px;border-radius:999px;font:600 15px var(--f-body);pointer-events:none;max-width:94vw;text-align:center}
+#cheatChip{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:30;padding:3px 12px;border-radius:999px;background:rgba(214,75,44,.92);color:#fff;font:600 13px var(--f-body);pointer-events:none}
+#cheatChip[hidden]{display:none}
 #intro{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;overflow:auto}
 #intro .introBg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(10,30,40,.8),rgba(4,10,14,.96))}
 #intro .introCard{position:relative;width:min(760px,100%);text-align:center;color:#f1ece2}
@@ -433,6 +659,8 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
 <button id="cmdBtn" type="button" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button>
 <div id="bTip" hidden role="note"><span id="bTipTxt"></span><button type="button" id="bTipX">Got it</button></div>
 <div class="sheet" id="bSetup" hidden role="dialog" aria-modal="true" aria-label="Battle setup"><div class="sc"><div class="sh"><h2>Battle setup</h2><button type="button" class="rd" id="bsRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="bsClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div class="sb" id="bsBody"></div><div class="sf" id="bsFoot"></div></div></div>
+<div class="sheet" id="cheatSheet" hidden role="dialog" aria-modal="true" aria-label="Cheats"><div class="sc"><div class="sh"><h2>Cheats</h2><button type="button" id="chClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div class="sb" id="chBody"></div></div></div>
+<div id="cheatChip" hidden role="status">Cheats on</div>
 <button id="burger" type="button" aria-label="Open the side menu">&#9776; Edit</button>
 <aside id="side" aria-label="Side menu"><div class="sHead"><div class="sTabs" id="sTabs"></div><button id="sClose" type="button">Close</button></div><div id="sBody"></div></aside>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
@@ -446,7 +674,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
   </div>
   <div class="mhead">The world</div>
   <div class="mgrid">
-    <button id="mMap" type="button">New world<small>pick a map and a seed</small></button><button id="mNew" type="button">Start over<small>reset this cove</small></button>
+    <button id="mMap" type="button">New world<small>pick a map and a seed</small></button><button id="mNew" type="button">Start over<small>reset this cove</small></button><button id="mStart" type="button">Start menu<small>pick what to load</small></button>
     <button id="mSave" type="button">Save</button><button id="mLoad" type="button">Load</button>
     <button id="mScen" type="button">Scenarios<small>goals and challenges</small></button><button id="mTry" type="button">Things to try<small>what reacts with what</small></button>
   </div>
@@ -460,7 +688,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
   <div class="mgrid">
     <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats, sound</small></button><button id="bQual" type="button">Quality: High</button>
     <button id="mTheme" type="button">Colours: Dusk</button><button id="mEasy" type="button">Easy read: off</button>
-    <button id="mHide" type="button">Hide buttons</button>
+    <button id="mHide" type="button">Hide buttons</button><button id="mCheats" type="button">Cheats<small>for fun and testing. The ` key opens it</small></button>
   </div>
   </div>
   <div class="mtab" data-mt="help" hidden>
@@ -468,6 +696,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
     <button id="bHelp" type="button">Help</button><button id="mCtl" type="button">Controls<small>every key and button</small></button>
     <button id="mRead" type="button">Read help aloud</button>
   </div>
+  <p style="margin:12px 2px 0;font-size:13px;line-height:1.4;color:var(--muted)">Real maps (Lemnos, Greece): Map data (c) OpenStreetMap contributors, ODbL 1.0. Terrain data from Mapzen terrain tiles (SRTM, GMTED, NED, etc.).</p>
   </div>
   <div class="mtab" data-mt="app" hidden>
   <div class="mgrid">
@@ -590,12 +819,14 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
   "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
 } }
 </script>
-<script type="module">
+<script type="text/plain" id="gamesrc">
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
+window.__scUp = true;
+const BOOT = window.__BOOT || null;                                 // the choices made on the start menu (null on the old direct path: ?nointro=1, ?legacy=1, a reload)
 const $ = (id) => document.getElementById(id);
 var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
 const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
@@ -607,10 +838,10 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const isTouch = matchMedia('(pointer: coarse)').matches; document.body.classList.toggle('touch', isTouch); if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
-let installEv = null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstallTop'); if (b && !(matchMedia('(display-mode: standalone)').matches || navigator.standalone)) b.hidden = false; });
+let installEv = window.__bip || null; addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEv = e; const b = document.getElementById('bInstallTop'); if (b && !(matchMedia('(display-mode: standalone)').matches || navigator.standalone)) b.hidden = false; });
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const setInstallNote = () => { const n = document.getElementById('installNote'), b2 = document.getElementById('bInstall2'); if (!n) return; if (standalone) { n.textContent = ''; return; } b2.hidden = !installEv; n.textContent = installEv ? 'Tap Install to add Squall Cove to your home screen.' : 'To install: open this page in Chrome, tap the three dots at the top right, then Install app or Add to Home screen. On iPhone use Safari, Share, then Add to Home Screen.'; };
-addEventListener('DOMContentLoaded', () => { setInstallNote(); if (standalone) { const b = document.getElementById('bInstall'); if (b) b.hidden = true; } }); addEventListener('beforeinstallprompt', () => setTimeout(setInstallNote, 0));
+{ const onReady = () => { setInstallNote(); if (standalone) { const b = document.getElementById('bInstall'); if (b) b.hidden = true; } if (installEv && !standalone) { const b = document.getElementById('bInstallTop'); if (b) b.hidden = false; } }; if (document.readyState === 'loading') addEventListener('DOMContentLoaded', onReady); else onReady(); } addEventListener('beforeinstallprompt', () => setTimeout(setInstallNote, 0));
 addEventListener('appinstalled', () => { installEv = null; for (const id of ['bInstall', 'bInstallTop']) { const b = document.getElementById(id); if (b) b.hidden = true; } setInstallNote(); });
 let quality = isTouch ? 'low' : 'high';
 try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch (e) {}
@@ -618,7 +849,12 @@ try { const q = localStorage.getItem('sc-quality'); if (q) quality = q; } catch 
 function fail(e) { const m = $('loadMsg'); if (m) m.textContent = 'Squall Cove could not start: ' + (e && e.message ? e.message : e); $('loadBar').style.background = '#d64b2c'; console.error(e); }
 addEventListener('error', (e) => fail(e.error || e.message));
 addEventListener('unhandledrejection', (e) => fail(e.reason));
-function progress(f, msg) { $('loadBar').style.width = Math.round(f * 100) + '%'; if (msg) $('loadMsg').textContent = msg; }
+/* loading plan: with the start menu the bar counts what was asked for (map, buildings, soldiers, sound) by real completed requests, weighted by size */
+const LP = { on: !!(BOOT && BOOT.plan), parts: {} };
+if (LP.on) for (const p of BOOT.plan) LP.parts[p.id] = { label: p.label, mb: p.mb, f: 0 };
+function lpDraw() { let t = 0, d = 0, cur = null; for (const k in LP.parts) { const p = LP.parts[k]; t += p.mb; d += p.mb * p.f; if (p.f < 1 && !cur) cur = p; } progress(t ? Math.min(0.99, d / t) : 0, cur ? cur.label : 'Almost ready', true); }
+function lpSet(id, f) { const p = LP.parts[id]; if (!p) return; p.f = Math.max(p.f, Math.min(1, f)); lpDraw(); }
+function progress(f, msg, lp) { if (LP.on && !lp) return; $('loadBar').style.width = Math.round(f * 100) + '%'; if (msg) $('loadMsg').textContent = msg; }
 
 
 /* ================================================================ sound (see SOUND-DESIGN.md)
@@ -629,25 +865,26 @@ const Snd = (() => {
   const touch = matchMedia('(pointer: coarse)').matches; A.max = touch ? 14 : 24;
   const cl = (v, a, b) => Math.max(a, Math.min(b, v)); A.cl = cl;
   const BUS = ['amb', 'wx', 'water', 'mat', 'veh', 'ppl', 'ui', 'mus'];
-  A.vol = { master: 0.8, amb: 1, wx: 1, water: 1, mat: 1, veh: 1, ppl: 1, ui: 0.9, mus: 0.35 }; A.on = true;
-  A.setPrefs = (p) => { if (!p) return; A.on = p.on !== false; if (p.vol !== undefined) A.vol.master = p.vol; if (p.mus !== undefined) A.vol.mus = p.mus; A.applyVol(); };
+  A.vol = { master: 0.8, amb: 1, wx: 1, water: 1, mat: 1, veh: 1, ppl: 1, ui: 0.9, mus: 0.35 }; A.on = true; try { const sp0 = JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}').sound; if (sp0 && sp0.on === false) A.on = false; } catch (e) { }
+  A.setPrefs = (p) => { if (!p) return; A.on = p.on !== false; if (p.vol !== undefined) A.vol.master = p.vol; if (p.mus !== undefined) A.vol.mus = p.mus; A.applyVol(); if (A.on && A.want && !A.ctx) { A.want = false; A.init(); } };
   A.applyVol = () => { if (!A.ctx) return; const t = A.ctx.currentTime; A.master.gain.setTargetAtTime(A.on ? A.vol.master : 0, t, 0.05); for (const b of BUS) A.buses[b].gain.setTargetAtTime(A.vol[b], t, 0.05); };
   A.init = () => {
     if (A.ctx) { if (A.ctx.state === 'suspended') A.ctx.resume(); return; }
+    if (!A.on) { A.want = true; return; }                                // sound is off: nothing is fetched until it is turned on
     try { const C = window.AudioContext || window.webkitAudioContext; A.ctx = new C({ latencyHint: 'interactive' }); } catch (e) { return; }
     const c = A.ctx; A.master = c.createGain(); A.mlp = c.createBiquadFilter(); A.mlp.type = 'lowpass'; A.mlp.frequency.value = 20000;
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -9; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.003; comp.release.value = 0.18;
     A.master.connect(A.mlp); A.mlp.connect(comp); comp.connect(c.destination); A.buses = {};
     for (const b of BUS) { const g = c.createGain(); g.connect(A.master); A.buses[b] = g; }
     A.applyVol();
-    fetch('audio/manifest.json').then(r => r.ok ? r.json() : null).then(m => {
+    A.initP = fetch('audio/manifest.json').then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
-      A.ready = true; A.group('core').then(() => A.loadRest());
+      A.ready = true; A.coreN = Object.keys(A.man).filter(id => A.man[id].group === 'core').length; A.coreP = A.group('core'); A.coreP.then(() => A.loadRest()); return A.coreP;
     }).catch(() => { });
   };
   A.group = async (g) => {
     if (!A.man || A.grp[g]) return; A.grp[g] = 1; const ids = Object.keys(A.man).filter(id => A.man[id].group === g && !A.bufs[id]); let i = 0;
-    const worker = async () => { while (i < ids.length) { const id = ids[i++]; try { const r = await fetch(A.man[id].file); if (!r.ok) continue; const ab = await r.arrayBuffer(); A.bufs[id] = await A.ctx.decodeAudioData(ab); A.stats.loaded++; } catch (e) { } } };
+    const worker = async () => { while (i < ids.length) { const id = ids[i++]; try { const r = await fetch(A.man[id].file); if (r.ok) { const ab = await r.arrayBuffer(); A.bufs[id] = await A.ctx.decodeAudioData(ab); A.stats.loaded++; } } catch (e) { } if (g === 'core') { A.coreDone = (A.coreDone || 0) + 1; if (A.onCore) A.onCore(A.coreDone / (A.coreN || 1)); } } };
     await Promise.all([worker(), worker(), worker(), worker()]);
   };
   const entry = (id) => A.man && A.man[id];
@@ -779,6 +1016,7 @@ const Snd = (() => {
 })();
 const unlockSound = () => { Snd.init(); };
 addEventListener('pointerdown', unlockSound, { once: false, passive: true }); addEventListener('keydown', unlockSound, { passive: true });
+if (BOOT && BOOT.sound !== false) { if (LP.on) Snd.onCore = (f) => lpSet('sound', f); Snd.init(); }       // the start button was a tap, so the sound can start now and its first files load while the map loads
 addEventListener('click', (e) => { const b = e.target && e.target.closest && e.target.closest('button'); if (b && Snd.ready) Snd.ui(b.dataset && b.dataset.t ? 'ui_tab' : 'ui_tap', 0.9); }, true);
 
 /* ================================================================ waves (one function for GPU and physics) */
@@ -887,7 +1125,21 @@ float ripH(vec2 p){ vec2 f = p - uRipO; if (f.x < 1.0 || f.y < 1.0 || f.x > ${RN
 vec2 ripG(vec2 p){ return vec2(ripH(p + vec2(0.8, 0.0)) - ripH(p - vec2(0.8, 0.0)), ripH(p + vec2(0.0, 0.8)) - ripH(p - vec2(0.0, 0.8))) / 1.6; }`;
 
 /* ================================================================ terrain data */
-const BATTLE_KEYS = ['port', 'urban', 'desert'];      // the maps that support the Battle mode (their data is in BATTLE_MAPS below)
+/* the real-world maps (Lemnos, Greece): one JSON file each in assets/, fetched only when that map is chosen (see tools/realmap/LOADER_SPEC.md) */
+const REALMAPS = {
+  lemnos_myrina: { name: 'Lemnos: Myrina', desc: 'A real castle hill, a small harbour and the old town. Hold the castle or take the town.' },
+  lemnos_mudros: { name: 'Lemnos: Moudros', desc: 'A real fishing harbour with piers, a flat town and open farmland. A harbour fight.' },
+  lemnos_airport: { name: 'Lemnos: airport', desc: 'A real airfield: apron, taxiways and a runway, almost no cover. Vehicles and aircraft rule.' },
+};
+const REAL_IDS = Object.keys(REALMAPS);
+const REAL_ATTR = 'Map data (c) OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright). Terrain data from Mapzen terrain tiles (SRTM, GMTED, NED, etc.)';
+const REALCACHE = {};
+function loadRealMap(id) {                                           // fetches and checks assets/map_<id>.json once; resolves with the parsed data
+  if (!REALMAPS[id]) return Promise.reject(new Error('Unknown real map ' + id));
+  return REALCACHE[id] || (REALCACHE[id] = fetch(A + 'map_' + id + '.json').then(r => { if (!r.ok) throw new Error('map_' + id + ' ' + r.status); return r.json(); }).then(d => { if (d.format !== 'squallcove-realmap/1' || d.grid !== 257) throw new Error('map_' + id + ' is not a map file'); return d; }).catch(e => { delete REALCACHE[id]; throw e; }));
+}
+const RM_ID = (() => { try { const qm = new URLSearchParams(location.search).get('map'); if (qm) return REALMAPS[qm] ? qm : null; const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); return m && REALMAPS[m.t] ? m.t : null; } catch (e) { return null; } })();
+const BATTLE_KEYS = ['port', 'urban', 'desert', ...REAL_IDS];      // the maps that support the Battle mode (their data is in BATTLE_MAPS below)
 const CELL = (() => { try { const qp = new URLSearchParams(location.search), q = qp.get('size'); if (q) return q === 'large' ? 2 : 1; let mt = qp.get('map'); if (!mt) { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); mt = m && m.t; } if (BATTLE_KEYS.includes(mt)) return 3; const sz = localStorage.getItem('squall-cove-size'); if (sz === 'large') return 2; if (sz === 'standard') return 1; return BATTLE_KEYS.includes(mt) ? 3 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
 const TN = 257, TH = 128, EXT = TH * CELL;      // 257 x 257 heights, centred on the origin; EXT is the half width of the world in metres
 const W2G = (x) => x / CELL + TH, G2W = (j) => (j - TH) * CELL;     // world metres to grid cell, and back
@@ -949,15 +1201,16 @@ const loadImg = (n) => loadBlob(n).then(b => createImageBitmap(b));
 const LAYERS = ['sand_wet', 'sand_beach', 'grass_meadow', 'forest_floor', 'rock_granite', 'rock_strata'];
 
 async function loadAll() {
-  let done = 0; const total = 8 + LAYERS.length * 3 + 2;
-  const tick = (p) => { done++; progress(done / total, 'Loading ' + p); return p; };
+  let done = 0; const total = 8 + LAYERS.length * 3 + 2 + (RM_ID ? 1 : 0);
+  const tick = (p) => { done++; if (LP.on) lpSet('map', done / total); else progress(done / total, 'Loading ' + p); return p; };
+  const realP = RM_ID ? loadRealMap(RM_ID).then(d => (tick('map data'), d)) : null;
   const heightsP = getText('terrain_257.f32.b64.txt').then(t => (tick('terrain'), new Float32Array(b64ToBuf(t))));
   const glbs = Promise.all(['fleet', 'nature', 'harbour', 'cargo', 'ccg', 'people', 'raiders'].map(n => loadGLB(n).then(g => (tick(n), g))));
   const sky = loadBlob('sky_2k.jpg').then(b => Promise.all([createImageBitmap(b), createImageBitmap(b, { imageOrientation: 'flipY' })])).then(x => (tick('sky'), x));
   const imgs = Promise.all(LAYERS.flatMap(l => ['albedo', 'normal', 'orh'].map(m => loadImg(`t_${l}_${m}.jpg`).then(im => (tick(l), im)))));
   const extra = Promise.all([loadImg('t_water_normal.jpg'), loadImg('t_macro.jpg')]).then(x => (tick('water'), x));
-  const [h, g, s, li, ex] = await Promise.all([heightsP, glbs, sky, imgs, extra]);
-  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4], people: g[5], raiders: g[6] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1] };
+  const [h, g, s, li, ex, real] = await Promise.all([heightsP, glbs, sky, imgs, extra, realP]);
+  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4], people: g[5], raiders: g[6] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1], real };
 }
 
 function arrayTex(images, size) {
@@ -979,10 +1232,14 @@ function imgTex(im, srgb) {
 const D = await loadAll().catch((e) => { $('loadMsg').textContent = 'Could not load the cove assets: ' + e; throw e; });
 
 /* ---------------- maps: the baked Cove, or a generated island from a template and a seed. The choice is kept in localStorage and applied at start. */
-const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland'], ['port', 'Port and mountains', 'a flat quay with slips, a plain with build sites, mountains behind. Battle ready'], ['urban', 'Urban port', 'a street grid with close alleys, squares, a stadium and a working quay with cranes. Battle ready'], ['desert', 'Desert and far port', 'open dunes, wadis, rock and an oasis, with a port at the far end of one long road. Battle ready']];
+const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland'], ['port', 'Port and mountains', 'a flat quay with slips, a plain with build sites, mountains behind. Battle ready'], ['urban', 'Urban port', 'a street grid with close alleys, squares, a stadium and a working quay with cranes. Battle ready'], ['desert', 'Desert and far port', 'open dunes, wadis, rock and an oasis, with a port at the far end of one long road. Battle ready'], ...REAL_IDS.map(k => [k, REALMAPS[k].name, 'a real place on Lemnos, Greece. Battle ready'])];
 let MAP = { t: 'cove', seed: 'cove' };
 try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); if (m && m.t && MAPS.some(q => q[0] === m.t)) MAP = m; } catch (e) { }
 { const qp = new URLSearchParams(location.search), qm = qp.get('map'); if (qm && MAPS.some(q => q[0] === qm)) MAP = { t: qm, seed: qm === 'cove' ? 'cove' : (qp.get('seed') || qm) }; }
+const HMAX = REALMAPS[MAP.t] ? 95 : 34;                                // the highest the ground can be raised: the real maps have hills up to about 90 m
+let REAL = D.real || null;                                           // the real-world map data (Lemnos) or null
+if (REALMAPS[MAP.t] && (!REAL || REAL.id !== MAP.t)) REAL = await loadRealMap(MAP.t);
+if (!REALMAPS[MAP.t]) REAL = null;
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
 const ROADS_PORT = [                                                          // control points in metres from the centre of the world, with the road height; the ground is graded to these
@@ -1036,6 +1293,27 @@ const BATTLE_MAPS = {
     veh: [['Customs yard', 'blue', ['jeep', 'technical', 'light_tank', 'fuel_truck']], ['Port quay', 'blue', ['jeep', 'supply_truck']], ['Dune ridge', 'blue', ['apc']], ['Fuel depot', 'blue', ['ambulance']], ['Northern camp', 'red', ['jeep', 'technical', 'light_tank', 'fuel_truck']], ['Wadi fort', 'red', ['apc', 'supply_truck', 'ambulance']]],
     heli: [['Dune ridge', 'blue', 'blackhawk'], ['Customs yard', 'blue', 'cobra'], ['Northern camp', 'red', 'griffon'], ['Wadi fort', 'red', 'chinook']],
     seaAng: { blue: [1.0, 2.1], red: [-2.3, -0.85] }, airAng: { blue: [0.4, 2.7], red: [-2.7, -0.4] }, amb: 'desert', concrete: (x, z) => inPaved(x, z),
+  },
+  lemnos_myrina: {                                                 // real map: see tools/realmap/MAPS.md for the design notes. Points are the validated ones from points_lemnos_myrina.json
+    name: 'Lemnos: Myrina',
+    points: [['Castle summit', -159, -120, 'blue', 'hq'], ['Castle east shoulder', -63, -90, 'blue', 'strongpoint'], ['Castle south bastion', -126, -69, 'blue', 'battery'], ['North beach spit', -231, -309, 'blue', 'radio'], ['Harbour quay', 63, 219, null, 'harbour'], ['Castle track junction', 147, -84, null, 'choke'], ['Foot of the hill', 111, 72, null, 'plain'], ['Town edge yard', 171, 69, null, 'depot'], ['Main square', 204, 6, 'red', 'strongpoint'], ['South-east quarter', 303, 105, 'red', 'depot'], ['East town', 330, -39, 'red', 'hq']],
+    veh: [['Castle summit', 'blue', ['jeep', 'supply_truck']], ['North beach spit', 'blue', ['jeep']], ['Town edge yard', 'blue', ['ambulance']], ['East town', 'red', ['jeep', 'technical', 'supply_truck', 'ambulance']], ['South-east quarter', 'red', ['jeep', 'technical']]],
+    heli: [['Castle summit', 'blue', 'griffon'], ['North beach spit', 'blue', 'chinook'], ['East town', 'red', 'huey'], ['South-east quarter', 'red', 'cobra']],
+    seaAng: { blue: [2.6, 3.5], red: [1.0, 1.9] }, airAng: { blue: [2.4, 3.8], red: [-0.6, 0.6] }, amb: 'urban', concrete: (x, z) => realPaved(x, z),
+  },
+  lemnos_mudros: {
+    name: 'Lemnos: Moudros',
+    points: [['North-west rise', -231, -210, 'blue', 'hq'], ['Low ridge', -111, -150, 'blue', 'strongpoint'], ['Shore terrace', -291, -150, 'blue', 'battery'], ['North-west corner', -291, -279, 'blue', 'radio'], ['Harbour road end', -81, 78, null, 'harbour'], ['Harbour junction', 51, 90, null, 'choke'], ['Town-edge yard', 111, -75, null, 'depot'], ['South farmland', 39, 270, null, 'plain'], ['East edge of town', 339, 21, 'red', 'hq'], ['Town centre', 255, -129, 'red', 'strongpoint'], ['South-east yard', 321, 210, 'red', 'depot']],
+    veh: [['North-west rise', 'blue', ['jeep', 'technical', 'apc']], ['North-west corner', 'blue', ['jeep']], ['Low ridge', 'blue', ['ambulance']], ['East edge of town', 'red', ['jeep', 'technical', 'apc', 'supply_truck']], ['South-east yard', 'red', ['jeep', 'ambulance']]],
+    heli: [['North-west rise', 'blue', 'blackhawk'], ['North-west corner', 'blue', 'cobra'], ['East edge of town', 'red', 'huey'], ['South-east yard', 'red', 'griffon']],
+    seaAng: { blue: [2.4, 3.2], red: [1.6, 2.3] }, airAng: { blue: [2.4, 3.8], red: [-0.6, 0.6] }, amb: 'urban', concrete: (x, z) => realPaved(x, z),
+  },
+  lemnos_airport: {
+    name: 'Lemnos: airport',
+    points: [['West perimeter road', -300, -99, 'blue', 'hq'], ['Apron', -189, -249, 'blue', 'airfield'], ['South-west road end', -330, 201, 'blue', 'radio'], ['Service yard', -201, 120, 'blue', 'depot'], ['Taxiway loop', 0, 21, null, 'airfield'], ['North road crossing', 129, -309, null, 'choke'], ['Grass between', 60, -120, null, 'strongpoint'], ['Open grass', 120, 120, null, 'plain'], ['South-east corner', 330, 270, 'red', 'hq'], ['South-east of runway', 231, 150, 'red', 'strongpoint'], ['North-east of runway', 321, -39, 'red', 'battery'], ['North-east parking', 351, -249, 'red', 'depot']],
+    veh: [['West perimeter road', 'blue', ['jeep', 'technical', 'supply_truck', 'apc']], ['Service yard', 'blue', ['ambulance', 'jeep']], ['South-east corner', 'red', ['jeep', 'technical', 'apc', 'fuel_truck']], ['South-east of runway', 'red', ['jeep', 'ambulance']], ['North-east parking', 'red', ['technical']]],
+    heli: [['Apron', 'blue', 'blackhawk'], ['West perimeter road', 'blue', 'cobra'], ['South-east corner', 'red', 'huey'], ['North-east parking', 'red', 'chinook']],
+    seaAng: null, airAng: { blue: [-2.9, -1.9], red: [0.3, 1.2] }, amb: 'desert', concrete: (x, z) => realPaved(x, z),
   },
 };
 const FOOT = [];                                                     // footprints of what has been placed on a battle map: {x, z, hx, hz, t} (t is the turn about the vertical axis, as the game turns it)
@@ -1104,7 +1382,139 @@ function desertStamp(x, z, h) {
   { const w = boxW(x, z, -182, 182, D.RAMP[1], D.COAST, 1.5); if (w > 0) h = h * (1 - w) + D.Q * w; }                                                                               // the quay apron
   return h;
 }
+/*REAL-START*/
+/* ================================================================ REAL-WORLD MAPS (Lemnos): decode the heights, roads from the OSM lines, buildings from the footprints, land cover rasters. See tools/realmap/LOADER_SPEC.md.
+   Nothing here runs unless REAL is set (the player chose one of the lemnos_* maps). */
+let REALC = null;                                                    // 257 x 257 land cover class per cell (see RCLS), built from the polygons
+let REAL_B = [];                                                     // the planned buildings: {id, x, z, t, sx, sy, sz, hx, hz}
+const RCLS = { grass: 1, cemetery: 1, pitch: 1, military: 1, airfield: 1, scrub: 2, orchard: 2, vineyard: 2, farmland: 3, forest: 4, wetland: 5, bare: 6, rock: 7, beach: 8, urban: 9, industrial: 10, harbour: 10, parking: 10, apron: 10, taxiway_area: 10, runway_area: 10 };
+function realPaved(x, z) { if (!REALC) return false; const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 0 || i < 0 || j > 256 || i > 256) return false; return REALC[i * 257 + j] === 10; }
+function realClassAt(x, z) { if (!REALC) return 0; const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 0 || i < 0 || j > 256 || i > 256) return 0; return REALC[i * 257 + j]; }
+function realDecode() {                                              // the base64 Float32 heights, little endian, row major: h[i * 257 + j], i the z row
+  if (REAL._h) return REAL._h; const bin = atob(REAL.h), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return (REAL._h = new Float32Array(u8.buffer));
+}
+function realHAt(RH, x, z) { const fx = clamp(x / CELL + TH, 0, 255.999), fz = clamp(z / CELL + TH, 0, 255.999), j = Math.floor(fx), i = Math.floor(fz), a = fx - j, b = fz - i; return RH[i * 257 + j] * (1 - a) * (1 - b) + RH[i * 257 + j + 1] * a * (1 - b) + RH[(i + 1) * 257 + j] * (1 - a) * b + RH[(i + 1) * 257 + j + 1] * a * b; }
+function realResample(p, step) { const o = []; for (let i = 0; i < p.length; i += 2) { const x = p[i], z = p[i + 1]; if (i) { const a = o[o.length - 1], d = Math.hypot(x - a.x, z - a.z), n = Math.ceil(d / step); for (let k = 1; k < n; k++) o.push({ x: a.x + (x - a.x) * k / n, z: a.z + (z - a.z) * k / n }); } o.push({ x, z }); } return o; }
+function realRuns(o) { const out = []; let cur = []; for (const q of o) { if (Math.abs(q.x) <= 358 && Math.abs(q.z) <= 358) cur.push(q); else { if (cur.length > 1) out.push(cur); cur = []; } } if (cur.length > 1) out.push(cur); return out; }     // the part of a line that stays inside the window (the edge of the map falls away to the open sea)
+function realRoads() {                                               // roads, aeroways and harbour decks as the game's own road records: {name, w, marks, mat, pts: [[x, z, height]]}
+  const RH = realDecode(), R = [], J = [];
+  const SKIP = new Set(['footway', 'steps', 'path', 'cycleway', 'bridleway', 'corridor', 'construction', 'proposed', 'raceway', 'elevator']);
+  const smoothH = (h, passes) => { for (let it = 0; it < passes; it++) h = h.map((v, i) => { let a = 0, n = 0; for (let k = -2; k <= 2; k++) { const q = h[i + k]; if (q !== undefined) { a += q; n++; } } return a / n; }); return h; };
+  for (const r of REAL.roads || []) {
+    if (SKIP.has(r.c) || r.tn || !r.p || r.p.length < 4) continue;
+    const unp = /^(unpaved|gravel|dirt|ground|sand|compacted|grass)$/.test(r.s || '') || r.c === 'track', w = clamp(r.w || 5, 3.2, 12);
+    for (const run of realRuns(realResample(r.p, 12))) {
+      let h = smoothH(run.map(q => Math.max(0.6, realHAt(RH, q.x, q.z))), 3);
+      if (r.br) { const a = h[0], b = h[h.length - 1]; h = h.map((v, i) => a + (b - a) * i / (h.length - 1)); }
+      R.push({ name: r.n || r.c, w, marks: !unp && /^(motorway|trunk|primary|secondary|tertiary)/.test(r.c) && w >= 5.5, mat: unp ? 'gravel' : r.c === 'pedestrian' ? 'concrete' : undefined, pts: run.map((q, i) => [q.x, q.z, h[i]]) });
+    }
+  }
+  for (const a of REAL.aeroways || []) {                             // runways and taxiways are wide asphalt strips with the road markings
+    if (!a.p || a.p.length < 4) continue;
+    for (const run of realRuns(realResample(a.p, 14))) {
+      const h = smoothH(run.map(q => Math.max(0.6, realHAt(RH, q.x, q.z))), 4);
+      R.push({ name: a.k === 'runway' ? 'Runway' : 'Taxiway', w: clamp(a.w || 18, 8, 50), marks: a.k === 'runway' || run.length > 6, air: a.k, pts: run.map((q, i) => [q.x, q.z, h[i]]) });
+    }
+  }
+  REAL._fills = [];
+  for (const hb of REAL.harbour || []) {                             // piers, quays and breakwaters: a concrete deck 1.1 m above the sea (the ground under it is raised to match in realTerrain)
+    if (!hb.p || hb.p.length < 4) continue; const deck = /breakwater|groyne|mole/.test(hb.k) ? 1.5 : 1.1, p = hb.p.slice();
+    if (hb.closed && p.length >= 6) { REAL._fills.push({ p: hb.p, h: deck }); p.push(p[0], p[1]); }
+    for (const run of realRuns(realResample(p, 8))) R.push({ name: 'Pier', w: Math.max(4, hb.w || 5), marks: false, mat: 'concrete', pier: true, k: hb.k, pts: run.map(q => [q.x, q.z, deck]) });
+  }
+  for (const r of R) { if (r.pier || J.length >= 140) continue; for (const e of [r.pts[0], r.pts[r.pts.length - 1]]) { for (const o of R) { if (o === r || o.pier) continue; if (o.pts.some(q => Math.hypot(q[0] - e[0], q[1] - e[1]) < 1.5)) { J.push([e[0], e[1]]); break; } } } }
+  return { roads: R, junctions: J };
+}
+function realPip(p, x, z) { let ins = false; for (let a = 0, b = p.length - 2; a < p.length; b = a, a += 2) { const xi = p[a], zi = p[a + 1], xj = p[b], zj = p[b + 1]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) ins = !ins; } return ins; }
+function realPolyCells(p, fn) {                                      // calls fn(k) for every grid cell whose centre is inside the polygon
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < p.length; i += 2) { x0 = Math.min(x0, p[i]); x1 = Math.max(x1, p[i]); z0 = Math.min(z0, p[i + 1]); z1 = Math.max(z1, p[i + 1]); }
+  const j0 = Math.max(0, Math.floor(W2G(x0))), j1 = Math.min(256, Math.ceil(W2G(x1))), i0 = Math.max(0, Math.floor(W2G(z0))), i1 = Math.min(256, Math.ceil(W2G(z1)));
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) if (realPip(p, G2W(j), G2W(i))) fn(i * 257 + j);
+}
+function realRasterLand() {                                          // later polygons win; the order is the class number: grass first, then scrub, farmland, forest ... paved ground last
+  const C = new Uint8Array(257 * 257), polys = [];
+  for (const l of REAL.landcover || []) { const c = RCLS[l.k]; if (c && l.p && l.p.length >= 6) polys.push({ c, p: l.p }); }
+  polys.sort((a, b) => a.c - b.c); for (const q of polys) realPolyCells(q.p, (k) => { C[k] = q.c; });
+  return C;
+}
+const RB_MODEL = { hangar: ['b-hangar', 12, 10, 5], warehouse: ['b-warehouse', 15, 7, 4.5], office: ['b-office', 7, 5.6, 5.5], workshop: ['b-workshop', 6.2, 4, 2.6], house_a: ['b-house-a', 4.1, 3.6, 3], house_b: ['b-house-b', 4.2, 3.6, 3], house_c: ['b-house-c', 4.1, 3.6, 3.2], silo: ['b-silo', 3.1, 2.8, 8], fuel_tank: ['b-tank', 5.2, 5.1, 4.5], watchtower: ['b-tower', 1.5, 1.5, 5], bunker: ['b-bunker', 4, 3, 1.7], guardhouse: ['b-guard', 2, 2, 1.5], ruin: ['b-house-c', 4.1, 3.6, 3.2] };
+function realLevel(H, x, z, hx, hz, t, h0) {                         // level the ground under a building (and blend 4 m out) so it never floats or sinks on a slope
+  const c = Math.cos(t), s = Math.sin(t), r = Math.hypot(hx, hz) + 6, j0 = Math.floor(W2G(x - r)), j1 = Math.ceil(W2G(x + r)), i0 = Math.floor(W2G(z - r)), i1 = Math.ceil(W2G(z + r));
+  for (let i = Math.max(1, i0); i <= Math.min(255, i1); i++) for (let j = Math.max(1, j0); j <= Math.min(255, j1); j++) {
+    const wx = G2W(j) - x, wz = G2W(i) - z, lx = wx * c - wz * s, lz = wx * s + wz * c, d = Math.hypot(Math.max(Math.abs(lx) - hx - 1.0, 0), Math.max(Math.abs(lz) - hz - 1.0, 0)); let w = 1 - d / 4; if (w <= 0) continue; w = w * w * (3 - 2 * w);
+    const k = i * 257 + j; H[k] = H[k] * (1 - w) + h0 * w;
+  }
+}
+function realPlanBuildings(H) {                                      // which footprints become buildings: dry, not on a road, not overlapping, not on a capture point. Biggest first, capped for the frame rate
+  const out = [], cap = isTouch ? 150 : 300;
+  const add = (m, x, z, th, sx, sy, sz) => {
+    const M = RB_MODEL[m] || RB_MODEL.house_a, hx = M[1] * sx, hz = M[2] * sz;
+    if (mapFits({}, x, z, th * 180 / Math.PI, { box: [hx, hz], minH: 0.7, slope: 3.5, clear: 10, pad: 0.4, m: -0.6 })) return false;
+    const cc = Math.cos(th), sn = Math.sin(th); let sum = heightAt(x, z), n = 1;
+    for (const [ax, az] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { sum += heightAt(x + (ax * hx) * cc + (az * hz) * sn, z - (ax * hx) * sn + (az * hz) * cc); n++; }
+    const h0 = Math.max(0.8, sum / n); realLevel(H, x, z, hx, hz, th, h0);
+    FOOT.push({ x, z, hx, hz, t: th }); out.push({ m, id: M[0], x, z, t: th, sx, sy, sz, hx, hz }); return true;
+  };
+  const list = (REAL.buildings || []).filter(b => b.a >= 12 && b.w > 2).sort((a, b) => b.a - a.a);
+  for (const b of list) {
+    if (out.length >= cap) break; const M = RB_MODEL[b.m] || RB_MODEL.house_a, th = -b.rot, ca = Math.cos(b.rot), sa = Math.sin(b.rot);
+    const n = clamp(Math.ceil(b.w / (2 * M[1] * 2.2)), 1, 3), w1 = b.w / n, sx = clamp(w1 / (2 * M[1]), 0.6, 2.2), sz = clamp(b.d / (2 * M[2]), 0.6, 2.2), ht = b.ht || (b.lv ? b.lv * 3.2 : 0), sy = ht ? clamp(ht / (2 * M[3]), 0.7, 2.5) : 1;
+    for (let i = 0; i < n; i++) { const off = (i - (n - 1) / 2) * w1; add(b.m, b.cx + ca * off, b.cz + sa * off, th, sx, sy, sz); }
+  }
+  if (MAP.t === 'lemnos_airport') realAirportBuildings(add);
+  return out;
+}
+function realAirportBuildings(add) {                                 // OSM has one house here, so an air base is laid out on the apron: terminal, hangars, sheds, fuel tanks, a control tower, gate huts
+  let th = Math.PI / 4; const rw = (REAL.aeroways || []).find(a => a.k === 'runway'); if (rw && rw.p.length >= 4) th = -Math.atan2(rw.p[rw.p.length - 1] - rw.p[1], rw.p[rw.p.length - 2] - rw.p[0]);
+  const spot = (m, sx, sy, sz, cx, cz, rot) => { for (let r = 0; r <= 190; r += 8) { const nn = r ? Math.ceil(2 * Math.PI * r / 10) : 1; for (let k = 0; k < nn; k++) { const a = k / nn * 6.283 + r * 0.7; if (add(m, cx + Math.cos(a) * r, cz + Math.sin(a) * r, rot === undefined ? th : rot, sx, sy, sz)) return true; } } return false; };
+  spot('office', 2.4, 1.1, 2.0, -120, -205); spot('watchtower', 1, 2.4, 1, -150, -170);
+  for (let i = 0; i < 3; i++) spot('hangar', 1.15, 1, 1.1, -230 + i * 15, -270 + i * 12);
+  for (let i = 0; i < 2; i++) spot('warehouse', 1, 1, 1, -270, -180 + i * 18);
+  for (let i = 0; i < 3; i++) spot('fuel_tank', 1.3, 1, 1.3, -60 + i * 14, -300);
+  spot('silo', 1, 1, 1, -80, -320); spot('workshop', 1.3, 1, 1.3, -170, -120); spot('guardhouse', 1, 1, 1, -300, -60); spot('guardhouse', 1, 1, 1, -330, 150); spot('guardhouse', 1, 1, 1, 100, -300);
+}
+function realTerrain(H) {                                            // instead of genTerrain: the real heights, an open sea at the edge, graded roads, raised piers, levelled building plots
+  H.set(realDecode());
+  for (let i = 0; i < 257; i++) for (let j = 0; j < 257; j++) { const e = smooth(0.945, 0.995, Math.max(Math.abs(j - TH), Math.abs(i - TH)) / TH); if (e > 0) { const k = i * 257 + j; H[k] = H[k] * (1 - e) - 16 * e; } }
+  REALC = realRasterLand();
+  for (const f of REAL._fills || []) realPolyCells(f.p, (k) => { if (H[k] < f.h) H[k] = f.h; });           // a closed breakwater outline is solid inside
+  const best = new Float32Array(257 * 257), tgt = new Float32Array(257 * 257);
+  for (const { r, pts } of roadDense()) {
+    const hw = r.w / 2, rad = hw + (r.pier ? 2.4 : 5.5), flat = hw + 0.8;
+    for (const p of pts) {
+      const j0 = Math.floor(W2G(p.x - rad)), j1 = Math.ceil(W2G(p.x + rad)), i0 = Math.floor(W2G(p.z - rad)), i1 = Math.ceil(W2G(p.z + rad));
+      for (let i = Math.max(0, i0); i <= Math.min(256, i1); i++) for (let j = Math.max(0, j0); j <= Math.min(256, j1); j++) {
+        const d = Math.hypot(G2W(j) - p.x, G2W(i) - p.z); if (d > rad) continue; const q = d <= flat ? 1 : 1 - (d - flat) / (rad - flat), w = q * q * (3 - 2 * q), k = i * 257 + j; if (w > best[k]) { best[k] = w; tgt[k] = p.h; }
+      }
+    }
+  }
+  for (let k = 0; k < H.length; k++) if (best[k] > 0) H[k] = H[k] * (1 - best[k]) + tgt[k] * best[k];
+  REAL_B = realPlanBuildings(H);
+}
+function realTrees() {                                               // trees from the land cover: dense forest, light scrub, a few in open ground. Capped for phones
+  const cap = isTouch ? 300 : quality === 'high' ? 780 : 520, grid = new Set(), P = { 4: 0.85, 2: 0.3, 5: 0.1, 1: 0.05, 0: 0.07, 3: 0.012 };
+  for (let k = 0; k < 40000 && trees.length < cap; k++) {
+    const x = (hash2(k, 11) - 0.5) * 2 * (EXT - 22), z = (hash2(k, 23) - 0.5) * 2 * (EXT - 22), h = heightAt(x, z); if (h < 1.6) continue;
+    const c = realClassAt(x, z), pr = P[c]; if (!pr || hash2(k, 31) > pr) continue; if (slopeAt(x, z) > 0.3) continue;
+    if (roadProbe(x, z, 9).d < 4 || footBlocked(x, z, 3)) continue;
+    const gk = Math.round(x / 3) + ',' + Math.round(z / 3); if (grid.has(gk)) continue; grid.add(gk);
+    const r = hash2(k, 5); const kind = c === 2 ? 'shrub' : c === 4 ? (h > 25 || r < 0.5 ? 'pine' : 'broadleaf') : h < 3 ? (r < 0.5 ? 'palm' : 'shrub') : r < 0.5 ? 'broadleaf' : r < 0.8 ? 'shrub' : 'pine';
+    trees.push({ x, z, h, kind, sc: 0.7 + hash2(k, 9) * 0.5, rot: hash2(k, 3) * 6.28, v: Math.floor(hash2(k, 7) * 4) });
+  }
+}
+function paintRealLand(land, noGrass) {                              // the ground tint texture (R dry, G farmland, B paved, A bare rock) and the no-grass mask, from the land cover raster
+  const dry = { 0: 120, 1: 120, 2: 200, 3: 40, 4: 20, 5: 0, 6: 150, 7: 60, 8: 40, 9: 90, 10: 40 };
+  for (let k = 0; k < 257 * 257; k++) {
+    if (HGT[k] < 0.15) continue; const c = REALC[k], o = k * 4;
+    land[o] = dry[c]; land[o + 1] = c === 3 ? 230 : 0; land[o + 2] = c === 10 ? 235 : c === 9 ? 110 : 0; land[o + 3] = c === 7 ? 230 : c === 6 ? 190 : c === 8 ? 90 : 0;
+    noGrass[k] = c === 10 || c === 7 || c === 3 ? 255 : c === 9 ? 170 : c === 6 || c === 8 ? 200 : 0;
+  }
+  for (const b of REAL_B) maskGrass(b.x, b.z, b.hx * 2, b.hz * 2, -b.t);
+}
+/*REAL-END*/
 const MAPGEN = (() => {                                              // the active map's roads and stamp, chosen once
+  if (REAL) return { ...realRoads(), stamp: null };
   if (MAP.t === 'urban') return { ...urbanRoads(), stamp: urbanStamp };
   if (MAP.t === 'desert') return { ...desertRoads(), stamp: desertStamp };
   return null;
@@ -1232,7 +1642,7 @@ function genTerrain(H, tpl, seedStr) {
 }
 const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
 HGT = D.h;
-if (MAP.t !== 'cove') genTerrain(HGT, MAP.t, MAP.seed); else if (CELL > 1) for (let k = 0; k < HGT.length; k++) if (HGT[k] > 0) HGT[k] *= 1.45;
+if (REAL) realTerrain(HGT); else if (MAP.t !== 'cove') genTerrain(HGT, MAP.t, MAP.seed); else if (CELL > 1) for (let k = 0; k < HGT.length; k++) if (HGT[k] > 0) HGT[k] *= 1.45;
 progress(0.95, 'Building the island');
 
 /* ---------------- sky: equirect panorama on a dome, sun taken from its brightest pixel */
@@ -1298,9 +1708,11 @@ const canopyCanvas = document.createElement('canvas'); canopyCanvas.width = cano
 const canopyCtx = canopyCanvas.getContext('2d'); canopyCtx.fillStyle = '#000'; canopyCtx.fillRect(0, 0, CANOPY_N, CANOPY_N);
 const canopyTex = new THREE.CanvasTexture(canopyCanvas); canopyTex.colorSpace = THREE.NoColorSpace;
 
+const landData = new Uint8Array(257 * 257 * 4), landTex = new THREE.DataTexture(landData, 257, 257, THREE.RGBAFormat, THREE.UnsignedByteType);       // real maps: R dry grass, G farmland, B paved ground, A bare rock (all zero on the other maps)
+landTex.minFilter = landTex.magFilter = THREE.LinearFilter; landTex.needsUpdate = true;
 const terrainU = { ...waveU, uCaus: { value: 1 }, uTime: { value: 0 }, uAmp: { value: sea.amp }, tAlb: { value: albArr }, tNrm: { value: nrmArr }, tOrh: { value: orhArr },
-  tMacro: { value: macroTex }, tCanopy: { value: canopyTex } };
-const noGrassData = new Uint8Array(257 * 257), noGrassTex = new THREE.DataTexture(noGrassData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType); noGrassTex.minFilter = noGrassTex.magFilter = THREE.LinearFilter; noGrassTex.needsUpdate = true;       // where there is road, paving, a building or a field: no grass grows
+  tMacro: { value: macroTex }, tCanopy: { value: canopyTex }, tLand: { value: landTex } };
+const noGrassData = new Uint8Array(257 * 257), noGrassTex = new THREE.DataTexture(noGrassData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType); noGrassTex.minFilter = noGrassTex.magFilter = THREE.LinearFilter; noGrassTex.needsUpdate = true; if (REAL) { paintRealLand(landData, noGrassData); landTex.needsUpdate = true; noGrassTex.needsUpdate = true; }       // where there is road, paving, a building or a field: no grass grows
 const ashData = new Uint8Array(257 * 257), ashTex = new THREE.DataTexture(ashData, 257, 257, THREE.RedFormat, THREE.UnsignedByteType);       // where volcanic ash and rock lie
 ashTex.minFilter = ashTex.magFilter = THREE.LinearFilter; ashTex.needsUpdate = true; terrainU.tAsh = { value: ashTex };
 const hotData = new Uint8Array(257 * 257 * 4), hotTex = new THREE.DataTexture(hotData, 257, 257, THREE.RGBAFormat, THREE.UnsignedByteType);       // R: lava cover, G: lava heat
@@ -1318,7 +1730,7 @@ terrainMat.onBeforeCompile = (sh) => {
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>
       precision highp sampler2DArray;
-      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy, tAsh, tHot, tMat, tSnow; uniform float uTime, uAmp, uCaus;
+      uniform sampler2DArray tAlb, tNrm, tOrh; uniform sampler2D tMacro, tCanopy, tAsh, tHot, tMat, tSnow, tLand; uniform float uTime, uAmp, uCaus;
       varying vec3 vWPos; varying vec3 vWNrm; varying float vAO;
       ${quality === 'high' ? `float causticPat(vec2 p, float t){ float v = 0.0; for (int i = 0; i < 3; i++) { float f = 1.0 + float(i) * 0.9; vec2 d = vec2(sin(1.3 * f), cos(1.7 * f)); float ph = dot(p, d) * 0.9 * f + t * (0.6 + 0.25 * f) + sin(dot(p, vec2(d.y, -d.x)) * 0.7 * f - t * 0.5) * 1.5; v += pow(1.0 - abs(sin(ph)), 5.0); } return v / 3.0; }` : ''}
       ${WAVE_GLSL.replace('uniform float uTime; uniform float uAmp;', '')}
@@ -1375,6 +1787,11 @@ terrainMat.onBeforeCompile = (sh) => {
       }
       alb /= tw; pert /= tw; rough /= tw; aoT /= tw;
       alb *= 0.86 + 0.28 * macro.g;                                         // large-scale tonal drift breaks tiling
+      vec4 ln = texture2D(tLand, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0);   // real maps: dry grass, ploughed fields, paved ground, bare rock
+      alb = mix(alb, alb * vec3(1.35, 1.12, 0.62) + vec3(0.025, 0.018, 0.0), ln.r * 0.6 * (1.0 - ln.b));
+      alb = mix(alb, vec3(0.20, 0.15, 0.09) * (0.8 + 0.5 * macro.g), ln.g * 0.55);
+      alb = mix(alb, vec3(0.30, 0.29, 0.28) * (0.85 + 0.3 * macro2.g), ln.b * 0.85);
+      alb = mix(alb, vec3(0.42, 0.38, 0.32) * (0.8 + 0.4 * macro2.r), ln.a * 0.7);
       alb *= mix(vec3(1.0), vec3(0.92, 1.0, 0.86), clamp(macro2.r - 0.4, 0.0, 1.0) * wG);
       vec4 hot4 = texture2D(tHot, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0); vec3 hot = hot4.rgb;
       float ash = texture2D(tAsh, (vWPos.xz / ${CELL}.0 + 128.5) / 257.0).r;
@@ -1503,6 +1920,7 @@ function swayMaterial(src, height, stiff) {
 const trees = [];   // {x, z, r, kind}
 function scatterVegetation() {
   const kinds = { pine: [], broadleaf: [], palm: [], shrub: [] };
+  if (REAL) { realTrees(); return trees; }
   if (MAP.t === 'urban') { urbanTrees(); return trees; } if (MAP.t === 'desert') { desertTrees(); return trees; }                                      // street trees and parks in the city, palms at the oasis only
   for (let k = 0; k < 14000 * CELL && trees.length < (quality === 'high' ? 520 : 340) * (CELL > 2 ? 7 : CELL > 1 ? 1.7 : 1); k++) {
     const x = (hash2(k, 11) - 0.5) * 240 * CELL, z = (hash2(k, 23) - 0.5) * 240 * CELL;
@@ -2297,7 +2715,7 @@ function brush(px, pz, dt) {
     else if (land.op === 'sand') { h += rate * w; if (w > 0.15 && !matData[k * 4]) { matData[k * 4 + 1] = 255; sbx = boxTouch(sbx, j, i, 3); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true; } }
     else if (land.op === 'flatten') h += (land.flatH - h) * Math.min(1, 5 * dt * w);
     else { const a = (snap[k - 1] + snap[k + 1] + snap[k - TN] + snap[k + TN]) / 4; h += (a - h) * Math.min(1, 6 * dt * w); }
-    HGT[k] = clamp(h, -9.2, 34); if (HGT[k] < BED[k]) BED[k] = HGT[k];
+    HGT[k] = clamp(h, -9.2, HMAX); if (HGT[k] < BED[k]) BED[k] = HGT[k];
   }
   slumpArm(Math.round(W2G(px)), Math.round(W2G(pz)), Math.ceil(R) + 4); land.lastEdit = simT;
   land.dirty = true;
@@ -3539,8 +3957,25 @@ const fxS = makeFx(false, 1400), fxG = makeFx(true, 700);
 const rnd = (a, b) => a + Math.random() * (b - a);
 function puffSmoke(x, y, z, n, dark, big) { for (let i = 0; i < n; i++) fxS.emit(x + rnd(-0.4, 0.4), y, z + rnd(-0.4, 0.4), rnd(-0.6, 0.6) + wind.v.x * 0.25, rnd(1.2, 3.2), rnd(-0.6, 0.6) + wind.v.z * 0.25, rnd(2.5, 5.5), rnd(0.9, 1.6) * (big || 1), 4, dark ? [0.14, 0.14, 0.15, 0.42] : [0.7, 0.7, 0.72, 0.32], -0.25, 0.25); }
 function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(-4, 4), rnd(1, 6), rnd(-4, 4), rnd(0.25, 0.6), rnd(0.12, 0.28), -0.6, [1, rnd(0.55, 0.8), 0.25, 1], 9, 0.8); }
+const WSP = [];                                                       // live splash columns and rings
+let wspGeo = null, wspMat = null, wspRingGeo = null;
+function waterSplash(x, z, big) {                                      // a tangible splash: a tapered column of spray that shoots up and collapses, two rings on the surface, droplets and foam
+  if (Math.hypot(x - camera.position.x, z - camera.position.z) > 260) return; const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7));
+  if (!wspGeo) { wspGeo = new THREE.CylinderGeometry(0.55, 1, 1, 14, 1, true); wspGeo.translate(0, 0.5, 0); wspMat = new THREE.MeshBasicMaterial({ color: 0xe6f4ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, fog: true }); wspRingGeo = new THREE.RingGeometry(0.82, 1, 32).rotateX(-Math.PI / 2); }
+  if (WSP.length > 24) { const o = WSP.shift(); scene.remove(o.m); o.m.material.dispose(); }
+  const col = new THREE.Mesh(wspGeo, wspMat.clone()); col.position.set(x, y, z); col.scale.set(0.2 * b, 0.1, 0.2 * b); col.renderOrder = 5; scene.add(col); WSP.push({ m: col, t: 0, life: 0.55 + 0.14 * b, h: 0.7 + 0.9 * b, r: 0.35 + 0.28 * b, col: true });
+  for (let k = 0; k < 2; k++) { const rg = new THREE.Mesh(wspRingGeo, new THREE.MeshBasicMaterial({ color: 0xf2fbff, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false })); rg.position.set(x, y + 0.04 + k * 0.01, z); rg.scale.setScalar(0.3); rg.renderOrder = 4; scene.add(rg); WSP.push({ m: rg, t: -k * 0.12, life: 1.0 + 0.15 * b, r: 1.2 + 1.6 * b, ring: true }); }
+  const n = Math.round(14 + 10 * b); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, sp = (0.5 + Math.random()) * (0.8 + 0.5 * b); fxS.emit(x + Math.cos(a) * 0.2, y + 0.1, z + Math.sin(a) * 0.2, Math.cos(a) * sp, (2.5 + Math.random() * 4) * Math.sqrt(b + 0.4), Math.sin(a) * sp, 0.8 + Math.random() * 0.8, 0.09 + 0.07 * Math.random() * Math.sqrt(b + 0.5), 0.3, [0.9, 0.96, 1, 0.85], 11, 0.2); }
+  fxS.emit(x, y + 0.15, z, 0, 0.4, 0, 1.6, 0.9 + 0.8 * b, 2.4, [0.95, 0.99, 1, 0.5], 0, 1);
+}
+function updateSplashes(dt) {
+  for (let i = WSP.length - 1; i >= 0; i--) { const o = WSP[i]; o.t += dt; if (o.t < 0) { o.m.visible = false; continue; } o.m.visible = true; const u = Math.min(1, o.t / o.life);
+    if (o.col) { const up = u < 0.35 ? u / 0.35 : 1, down = u < 0.35 ? 0 : (u - 0.35) / 0.65; o.m.scale.set(o.r * (0.5 + up * 0.9) * (1 + down * 0.6), Math.max(0.05, o.h * (up - down * 0.9)), o.r * (0.5 + up * 0.9) * (1 + down * 0.6)); o.m.material.opacity = 0.6 * (1 - u * u); }
+    else { const e = 1 - Math.pow(1 - u, 2); o.m.scale.setScalar(0.3 + o.r * e); o.m.material.opacity = 0.7 * (1 - u); }
+    if (u >= 1) { scene.remove(o.m); o.m.material.dispose(); WSP.splice(i, 1); } }
+}
 function splash(x, z, big) {
-  Snd.splash(x, z, big); const y = waveH(x, z, simT); ripple(x, z, 0.8 + 0.9 * big, Math.min(0.3, 0.04 * big), true);
+  Snd.splash(x, z, big); waterSplash(x, z, big); const y = waveH(x, z, simT); ripple(x, z, 0.8 + 0.9 * big, Math.min(0.3, 0.04 * big), true);
   for (let i = 0; i < 10 * big; i++) fxS.emit(x + rnd(-0.3, 0.3), y, z + rnd(-0.3, 0.3), rnd(-1.8, 1.8) * big, rnd(3, 7) * Math.sqrt(big), rnd(-1.8, 1.8) * big, rnd(0.7, 1.4), rnd(0.25, 0.55) * big, 0.6, [0.85, 0.93, 0.97, 0.75], 9, 0.5);
   fxS.emit(x, y + 0.1, z, 0, 1.0, 0, 1.2, 1.2 * big, 5, [0.9, 0.96, 1, 0.55], 0, 1);
 }
@@ -3868,7 +4303,7 @@ function updateFP(dt, t) {
   let r = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0) + fp.sx;
   let len = Math.hypot(f, r); if (len > 1) { f /= len; r /= len; len = 1; }
   if (len < 0.1) { f = r = len = 0; }                                                  // dead zone on the stick
-  const st_ = fp.stance || 0, run = !st_ && (keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.82), top = (run ? 6.4 : 3.3) * [1, 0.5, 0.2][st_] * (p.carry ? 0.8 : 1) * (p.swim ? 0.6 : 1);
+  const st_ = fp.stance || 0, run = !st_ && (keys.has('shift') || Math.hypot(fp.sx, fp.sy) > 0.82), top = (run ? 6.4 : 3.3) * (CHEAT.fast ? 2 : 1) * [1, 0.5, 0.2][st_] * (p.carry ? 0.8 : 1) * (p.swim ? 0.6 : 1);
   const fx_ = Math.sin(fp.yaw), fz_ = Math.cos(fp.yaw), want = top * (run ? 1 : Math.min(1, 0.35 + len * 0.8)) * (len ? 1 : 0);
   const tvx = (fx_ * f + (-fz_) * r) / (len || 1) * want, tvz = (fz_ * f + fx_ * r) / (len || 1) * want;
   const kk = 1 - Math.exp(-dt * (len ? (fp.air ? 3 : 12) : (fp.air ? 0.6 : 15)));
@@ -3894,9 +4329,10 @@ function updateFP(dt, t) {
     if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
       const g2 = standYP(p, p.x, p.z);
-      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { Snd.fx('foley_jump', p.x, p.z, { gain: 0.5 }); fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; fp.peakY = p.y; }
+      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0) && !CHEAT.fly) { Snd.fx('foley_jump', p.x, p.z, { gain: 0.5 }); fp.vy = CHEAT.jump ? 9.5 : 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; fp.peakY = p.y; }
       if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; fp.peakY = p.y; }               // walked off a ledge
-      if (fp.air) { fp.peakY = Math.max(fp.peakY === undefined ? p.y : fp.peakY, p.y); fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { { const drop = fp.peakY - g2; fp.peakY = undefined; if (BATTLE.on && drop > 5 && (p.hp === undefined || p.hp > 0) && !BATTLE.down) hurt(p, (drop - 4) * 12, null, false, 'Fall'); } if (fp.vy < -3) { fp.land = Math.min(1, -fp.vy / 8); Snd.fx(fp.vy < -6 ? 'foley_land_hard' : 'foley_land_soft', p.x, p.z, { gain: 0.6 }); } p.y = g2; fp.vy = 0; fp.air = false; } }
+      if (CHEAT.fly) { const fv = ((keys.has(' ') ? 1 : 0) - (keys.has('control') || keys.has('shift') ? 1 : 0)) * 9; fp.vy = fv; fp.air = true; fp.peakY = p.y; fp.jumpBuf = 0; p.y = Math.max(g2, p.y + fv * dt); }
+      else if (fp.air) { fp.peakY = Math.max(fp.peakY === undefined ? p.y : fp.peakY, p.y); fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { { const drop = fp.peakY - g2; fp.peakY = undefined; if (BATTLE.on && drop > 5 && (p.hp === undefined || p.hp > 0) && !BATTLE.down) hurt(p, (drop - 4) * 12, null, false, 'Fall'); } if (fp.vy < -3) { fp.land = Math.min(1, -fp.vy / 8); Snd.fx(fp.vy < -6 ? 'foley_land_hard' : 'foley_land_soft', p.x, p.z, { gain: 0.6 }); } p.y = g2; fp.vy = 0; fp.air = false; } }
       else p.y += (g2 - p.y) * Math.min(1, 22 * dt);
     }
   }
@@ -4012,10 +4448,10 @@ function fpCatch() {
   const f = tbl[Math.floor(Math.random() * tbl.length)], kg = f[1] * (0.6 + Math.random() * 0.9); fp.fish.n++; fp.fish.kg += kg; fp.fish.log.unshift(f[0] + ', ' + kg.toFixed(1) + ' kg'); fp.fish.log.length = Math.min(fp.fish.log.length, 14);
   splash(r.x, r.z, 0.5); toast(f[0] === 'old boot' ? 'You caught an old boot.' : 'You caught a ' + f[0] + ', ' + kg.toFixed(1) + ' kg.'); npcEv('fishCaught'); fpRodReset(true); Snd.fx('ppl_fishing_reel', p.x, p.z, { gain: 0.7 }); refreshSide();
 }
-function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = w.reloadT || 1.7; fp.reloadTool = fp.tool; Snd.fx('wpn_reload_mag_out', fp.p.x, fp.p.z, { gain: 0.6 }); setTimeout(() => { if (fp.on && fp.p) Snd.fx(fp.tool === 'shotgun' ? 'wpn_pump_shotgun' : fp.tool === 'sniper' ? 'wpn_reload_bolt' : 'wpn_reload_mag_in', fp.p.x, fp.p.z, { gain: 0.6 }); }, 900); }
+function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0 || CHEAT.ammo) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = w.reloadT || 1.7; fp.reloadTool = fp.tool; Snd.fx('wpn_reload_mag_out', fp.p.x, fp.p.z, { gain: 0.6 }); setTimeout(() => { if (fp.on && fp.p) Snd.fx(fp.tool === 'shotgun' ? 'wpn_pump_shotgun' : fp.tool === 'sniper' ? 'wpn_reload_bolt' : 'wpn_reload_mag_in', fp.p.x, fp.p.z, { gain: 0.6 }); }, 900); }
 function fpFireGun() {
   const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { Snd.fx('wpn_dry_click', p.x, p.z, { gain: 0.5 }); fpReload(); return; }
-  fp.ammo[id]--; { const sf = surfaceAt(p.x, p.z); setTimeout(() => Snd.fx('wpn_shell_' + (sf === 'concrete' || sf === 'asphalt' ? 'concrete' : 'dirt'), p.x + 0.5, p.z, { gain: 0.35 }), 380); } fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + (0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)) * (w.recoil || 1)); fp.yaw += (Math.random() - 0.5) * 0.006 * (w.recoil || 1); fp.flash = 0.05;
+  if (!CHEAT.ammo) fp.ammo[id]--; { const sf = surfaceAt(p.x, p.z); setTimeout(() => Snd.fx('wpn_shell_' + (sf === 'concrete' || sf === 'asphalt' ? 'concrete' : 'dirt'), p.x + 0.5, p.z, { gain: 0.35 }), 380); } fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + (0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)) * (w.recoil || 1)); fp.yaw += (Math.random() - 0.5) * 0.006 * (w.recoil || 1); fp.flash = 0.05;
   { const sn = 'wpn_' + wsnd(id) + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
   ejectCasing(p.x, p.y + 1.3, p.z, Math.atan2(_d.x, _d.z)); fpAirHit(w); const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1) * [1, 0.7, 0.45][fp.stance || 0];
@@ -4381,7 +4817,7 @@ function layoutDesert(put, R) {
 /* ---- laying out the Urban port or the Desert once the buildings are loaded: roads, paving, buildings, boats at the quays, a few civilians (they clear off when a battle begins) */
 let mapLaid = false;
 function layMapScenario() {
-  if (mapLaid || !isBattleMap() || MAP.t === 'port') return; mapLaid = true;
+  if (mapLaid || !isBattleMap() || MAP.t === 'port' || REAL) return; mapLaid = true;
   const urban = MAP.t === 'urban', B = BM(), mk = mulberry(seedNum('layout:' + MAP.seed));
   for (const [name, x, z, ow, ty] of B.points) addLabel(x, Math.max(heightAt(x, z), 0) + 9, z, name.toUpperCase(), ty && ty !== 'plain' && POINT_TYPES[ty] ? POINT_TYPES[ty].name : '', ow === 'blue' ? '#6f9be6' : ow === 'red' ? '#e0584a' : '#d9c277');
   camFlyTo(0, urban ? 60 : 150, urban ? 380 : 430); god.yaw = Math.PI * 0.95;
@@ -4406,6 +4842,68 @@ function layMapScenario() {
     updateCount(); noteOnce('maplaid', 'The ' + B.name + ' is laid out. Open the side pane, Map tab, to see every objective.');
   }).catch((e) => { mapLaid = false; window.__layerr = String(e && e.stack || e); toast('The buildings could not be loaded'); });
 }
+/* ---- laying out a real map once the building models are loaded: roads, buildings, harbour fittings, towers, the Myrina castle wall, boats at the quay, a few civilians */
+function realPut(id, x, z, th, sx, sy, sz) {                         // one scaled building or prop, standing on the lowest corner of its footprint
+  const itm = BUILD.find(b => b.id === id); if (!itm || !D.glb[itm.glb]) return null;
+  const node = nodeByName(D.glb[itm.glb], itm.node); if (!node) return null;
+  const cc = Math.cos(th), sn = Math.sin(th), hx = (itm.box ? itm.box[0] : 1) * sx, hz = (itm.box ? itm.box[2] : 1) * sz; let lo = heightAt(x, z);
+  for (const [ax, az] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) lo = Math.min(lo, heightAt(x + ax * hx * cc + az * hz * sn, z - ax * hx * sn + az * hz * cc));
+  const mm = shadowAll(node.clone()); mm.position.set(0, 0, 0); const g = new THREE.Group(); g.add(mm); g.scale.set(sx, sy, sz); g.rotation.y = th; g.position.set(x, lo - 0.02, z); scene.add(g);
+  const pr = { mesh: g, x, z, dy: -0.02, item: itm, body: null, by: 0 };
+  if (itm.box) { const [bx, by, bz] = itm.box; pr.body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(bx * sx, by * sy, bz * sz)) }); pr.by = by * sy; pr.body.position.set(x, g.position.y + pr.by, z); pr.body.quaternion.setFromEuler(0, th, 0); world.addBody(pr.body); }
+  props.push(pr); return pr;
+}
+function realWall(x, z, len, hh, th, geo, mat) {                     // a piece of castle wall: a stone slab with a collider
+  const lo = Math.min(heightAt(x, z), heightAt(x + Math.cos(th) * len / 2, z - Math.sin(th) * len / 2), heightAt(x - Math.cos(th) * len / 2, z + Math.sin(th) * len / 2));
+  const m = new THREE.Mesh(geo, mat); m.scale.set(len, hh + 0.6, 1.1); m.position.set(x, lo + hh / 2 - 0.3, z); m.rotation.y = th; m.castShadow = m.receiveShadow = true; scene.add(m);
+  const body = new CANNON.Body({ mass: 0, material: groundMat, shape: new CANNON.Box(new CANNON.Vec3(len / 2, (hh + 0.6) / 2, 0.55)) }); body.position.copy(m.position); body.quaternion.setFromEuler(0, th, 0); world.addBody(body);
+  props.push({ mesh: m, x, z, dy: 0, item: { id: 'castle-wall', name: 'Castle wall', box: [len / 2, (hh + 0.6) / 2, 0.55] }, body, by: (hh + 0.6) / 2 }); FOOT.push({ x, z, hx: len / 2, hz: 0.55, t: th });
+}
+function realCastle() {                                              // Myrina: a ruined wall ring just below the summit of the hill, with gaps, and a few towers
+  let best = -1e9, bx = 0, bz = 0; for (let i = 20; i < 237; i++) for (let j = 20; j < 237; j++) { const h = HGT[i * 257 + j]; if (h > best) { best = h; bx = G2W(j); bz = G2W(i); } }
+  const mat = new THREE.MeshStandardMaterial({ color: 0x9d9380, roughness: 1 }), geo = new THREE.BoxGeometry(1, 1, 1), R = 44;
+  for (let k = 0; k < 44; k++) {
+    const a = k / 44 * 6.2832, x = bx + Math.cos(a) * R, z = bz + Math.sin(a) * R, h = heightAt(x, z); if (hash2(k, 91) < 0.26 || h < best - 16 || h < 2) continue;
+    if (roadProbe(x, z, 5).d < 3.5 || footBlocked(x, z, 1) || BM().points.some(p => Math.hypot(p[1] - x, p[2] - z) < 11)) continue;
+    const th = Math.atan2(-Math.cos(a), -Math.sin(a)); if (k % 11 === 0) realPut('b-tower', x, z, th, 1.3, 1.1, 1.3); else realWall(x, z, 7.4, 2.4 + hash2(k, 92) * 1.8, th, geo, mat);
+  }
+}
+function realExtras() {                                              // harbour fittings, towers from the data, the castle, runway lamps
+  let nb = 0, nl = 0;
+  for (const { r, pts } of roadDense()) {
+    if (!r.pier) continue; let acc = 0, la = 0;
+    for (let i = 1; i < pts.length - 1; i++) {
+      acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); if (acc < 22) continue; acc = 0; la++;
+      const a = pts[i - 1], b = pts[i + 1]; let tx = b.x - a.x, tz = b.z - a.z; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl; const off = r.w / 2 - 0.5;
+      for (const sg of [-1, 1]) { if (nb >= 40) break; const x = pts[i].x - tz * off * sg, z = pts[i].z + tx * off * sg; if (heightAt(x, z) > 0.6 && realPut('p-bollard', x, z, 0, 1, 1, 1)) nb++; }
+      if (la % 2 === 0 && nl < 10 && heightAt(pts[i].x, pts[i].z) > 0.6) { if (realPut('p-lamp', pts[i].x + tz * off, pts[i].z - tx * off, 0, 1, 1, 1)) nl++; }
+    }
+  }
+  const TW = { water_tower: ['x-water_tower', 1, 1], mast: ['x-radio_mast', 1, 1], tower: ['x-radio_mast', 1, 1], power_tower: ['x-radio_mast', 0.7, 0.7], windmill: ['x-windmill', 1, 1], wind_turbine: ['x-windmill', 2.5, 2.5], storage_tank: ['b-tank', 1, 1], silo: ['b-silo', 1, 1], chimney: ['b-silo', 1, 1.6], crane: ['b-crane', 1, 1], lighthouse: ['b-tower', 1.3, 1.6] };
+  for (const t of REAL.towers || []) { const m = TW[t.k]; if (!m || heightAt(t.x, t.z) < 0.5 || footBlocked(t.x, t.z, 0)) continue; realPut(m[0], t.x, t.z, 0, m[1], m[2], m[1]); }
+  if (MAP.t === 'lemnos_myrina') realCastle();
+  if (MAP.t === 'lemnos_airport') { let acc = 0, n = 0; for (const { r, pts } of roadDense()) { if (r.air !== 'taxiway') continue; for (let i = 1; i < pts.length; i++) { acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); if (acc < 70 || n >= 16) continue; acc = 0; const x = pts[i].x + r.w / 2 + 2.5, z = pts[i].z; if (heightAt(x, z) > 0.5 && !footBlocked(x, z, 1) && roadProbe(x, z, 12).d > r.w / 2 + 1.5 && realPut('p-lamp', x, z, 0, 1, 1, 1)) n++; } } }
+}
+function realLife() {                                                // boats at the quay and a few civilians (they clear off when a battle begins)
+  const B = BM(), hp = B.points.find(p => p[4] === 'harbour'), wat = (cx, cz) => { for (let r = 10; r < 120; r += 6) for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; if (heightAt(x, z) < -3.2 && Math.abs(x) < EXT - 40 && Math.abs(z) < EXT - 40) return { x, z }; } return null; };
+  const moor = (key, x, z, hd) => { try { const b = makeBoat(key, null, null, x, z, hd); b.anchor = b.body.position.clone(); b.status = 'Anchored'; ensureSkipper(b); } catch (e) { } };
+  if (hp) { let p = wat(hp[1], hp[2]); if (p) { moor('kestrel', p.x, p.z, 0.4); p = wat(p.x + 24, p.z + 10); if (p) moor('bollard', p.x, p.z, 1.9); p = wat(hp[1] - 30, hp[2] + 30); if (p) moor('petrel', p.x, p.z, 0.7); }
+    placePeople(3, { x: hp[1], z: hp[2] }, 'Tourist'); placePeople(2, { x: hp[1] + 6, z: hp[2] - 5 }, 'Fisher'); }
+  const pl = B.points.find(p => p[4] === 'plain' || p[4] === 'depot'); if (pl) { placePeople(2, { x: pl[1], z: pl[2] }, 'Photographer'); placePeople(2, { x: pl[1] + 8, z: pl[2] + 6 }, 'Builder'); }
+}
+function layRealMap() {
+  if (mapLaid || !REAL || !isBattleMap()) return; mapLaid = true; const B = BM();
+  for (const [name, x, z, ow, ty] of B.points) addLabel(x, Math.max(heightAt(x, z), 0) + 9, z, name.toUpperCase(), ty && ty !== 'plain' && POINT_TYPES[ty] ? POINT_TYPES[ty].name : '', ow === 'blue' ? '#6f9be6' : ow === 'red' ? '#e0584a' : '#d9c277');
+  camFlyTo(0, 0, 430); god.yaw = Math.PI * 0.95;
+  ensurePort().then(() => ensureProps2()).then(() => {
+    buildRoadMesh(); let nb = 0;
+    for (const b of REAL_B) { try { if (realPut(b.id, b.x, b.z, b.t, b.sx, b.sy, b.sz)) nb++; } catch (e) { window.__realerr = String(e && e.stack || e); } }
+    try { realExtras(); } catch (e) { window.__realerr = String(e && e.stack || e); }
+    window.__layout = { real: MAP.t, buildings: nb, planned: REAL_B.length, foot: FOOT.length, trees: trees.length, props: props.length };
+    if (!BATTLE.on) { try { realLife(); } catch (e) { window.__realerr = String(e && e.stack || e); } }
+    updateCount(); noteOnce('maplaid', 'The ' + B.name + ' is laid out from real map data. Open the side pane, Map tab, to see every objective.');
+  }).catch((e) => { mapLaid = false; window.__layerr = String(e && e.stack || e); toast('The buildings could not be loaded'); });
+}
 function offerBattleMaps() {                                          // a battle was asked for on a map that cannot hold one: open the Map tab with the three maps that can
   toast('Battles are played on the Port and mountains, Urban port or Desert maps. Pick one in Battle setup.');
   try { openBattleSetup(); } catch (e) { }
@@ -4427,6 +4925,7 @@ function desertTrees() {
 let ambT = 0;
 function portAmbience(dt) {
   if (!isBattleMap() || !Snd.ready) return; ambT -= dt; if (ambT > 0) return; ambT = 1; const L = Snd.L || { x: god.tgt.x, z: god.tgt.z }, near = (x, z, R) => Math.max(0, 1 - Math.hypot(L.x - x, L.z - z) / R);
+  if (REAL) { const hp = BM().points.find(q => q[4] === 'harbour'); if (MAP.t !== 'lemnos_airport') Snd.set('bed:amb_town', 'amb_town', 0.3, { tc: 1.5 }); if (hp) Snd.set('bed:amb_quay', 'amb_quay', near(hp[1], hp[2], 150) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 }); return; }
   if (MAP.t === 'urban') { Snd.set('bed:amb_town', 'amb_town', Math.max(near(0, 20, 330), 0.2) * 0.5, { tc: 1.5 }); Snd.set('bed:amb_quay', 'amb_quay', near(0, 228, 150) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 }); return; }
   if (MAP.t === 'desert') { Snd.set('bed:amb_quay', 'amb_quay', near(0, 268, 140) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 }); return; }
   Snd.set('bed:amb_farm', 'amb_farm', Math.max(near(-235, -160, 130), near(205, -185, 130)) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_town', 'amb_town', near(0, -40, 160) * 0.5, { tc: 1.5 }); Snd.set('bed:amb_quay', 'amb_quay', near(-30, 70, 120) * 0.55, { tc: 1.5 });
@@ -4477,7 +4976,7 @@ function portDay() {                                               // a scripted
   ev('Smuggling run')(); later(60, ev('Raider attack')); later(130, ev('Landing party')); later(230, ev('Developer rush')); later(330, ev('Foreign invasion'));
   toast('The day is running: a smuggler now, then raiders, a landing party, developers and an invasion in turn.');
 }
-setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); else if (MAP.t === 'urban' || MAP.t === 'desert') layMapScenario(); }, 3000);
+setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); else if (REAL) layRealMap(); else if (MAP.t === 'urban' || MAP.t === 'desert') layMapScenario(); }, 3000);
 
 /* ================================================================ paving (concrete, asphalt, gravel, road markings) and the port buildings, loaded the first time they are needed */
 let portP = null; const PAVE = {}, pavedMeshes = [];
@@ -4503,7 +5002,7 @@ function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat, landOnly) {
 function layGravel(cx, cz, w, d, rot, depth, seed) {                 // gravel is real loose rock on the ground: it has depth, it slumps at its edges, it can be dug, heaped and washed. The outline is ragged, never a rectangle
   maskGrass(cx, cz, w, d, rot); depth = depth || 0.28; const c = Math.cos(rot), sn = Math.sin(rot), r = Math.hypot(w, d) / 2 + 3, j0 = Math.floor(W2G(cx - r)), j1 = Math.ceil(W2G(cx + r)), i0 = Math.floor(W2G(cz - r)), i1 = Math.ceil(W2G(cz + r)); let n = 0; const ph = (seed || Math.random()) * 6.28, ph2 = ph * 1.7 + 1;
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4) continue; const wx = G2W(j) - cx, wz = G2W(i) - cz, lx = wx * c + wz * sn, lz = -wx * sn + wz * c, th = Math.atan2(lz, lx); const e = Math.pow(Math.pow(Math.abs(lx) / (w / 2), 3) + Math.pow(Math.abs(lz) / (d / 2), 3), 1 / 3);   // a rounded squarish shape
-    const wob = 1 + 0.16 * Math.sin(3 * th + ph) + 0.09 * Math.sin(7 * th + ph2) + 0.05 * Math.sin(13 * th + ph); if (e > wob) continue; const k = i * TN + j; if (HGT[k] < 0.2) continue; const f = Math.min(1, (wob - e) / 0.25), thin = 0.35 + 0.65 * f * (0.8 + 0.2 * Math.sin(lx * 1.3 + lz * 0.9)); HGT[k] = Math.min(34, HGT[k] + depth * thin); flagMat(k, 120); slumpArm(j, i, 3); n++; }
+    const wob = 1 + 0.16 * Math.sin(3 * th + ph) + 0.09 * Math.sin(7 * th + ph2) + 0.05 * Math.sin(13 * th + ph); if (e > wob) continue; const k = i * TN + j; if (HGT[k] < 0.2) continue; const f = Math.min(1, (wob - e) / 0.25), thin = 0.35 + 0.65 * f * (0.8 + 0.2 * Math.sin(lx * 1.3 + lz * 0.9)); HGT[k] = Math.min(HMAX, HGT[k] + depth * thin); flagMat(k, 120); slumpArm(j, i, 3); n++; }
   matTex.needsUpdate = true; matDirty = true; tried('pile'); return n;
 }
 const stainTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 128; const c = cv.getContext('2d'), g = c.createRadialGradient(64, 64, 4, 64, 64, 62); g.addColorStop(0, 'rgba(18,16,14,0.55)'); g.addColorStop(0.6, 'rgba(24,20,16,0.28)'); g.addColorStop(1, 'rgba(24,20,16,0)'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(cv); return t; })();
@@ -4577,7 +5076,7 @@ const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red
 const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
 const tracers = (() => { const N = 160, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
 function addTracer(x0, y0, z0, x1, y1, z1) { const T = tracers, i = T.i = (T.i + 1) % T.N; T.pos.set([x0, y0, z0, x1, y1, z1], i * 6); T.life[i] = 0.06; T.g.attributes.position.needsUpdate = true; }
-function updateTracers(dt) { const T = tracers; let ch = false; for (let i = 0; i < T.N; i++) if (T.life[i] > 0) { T.life[i] -= dt; if (T.life[i] <= 0) { T.pos.fill(0, i * 6, i * 6 + 6); ch = true; } } if (ch) T.g.attributes.position.needsUpdate = true; }
+function updateTracers(dt) { updateSplashes(dt); const T = tracers; let ch = false; for (let i = 0; i < T.N; i++) if (T.life[i] > 0) { T.life[i] -= dt; if (T.life[i] <= 0) { T.pos.fill(0, i * 6, i * 6 + 6); ch = true; } } if (ch) T.g.attributes.position.needsUpdate = true; }
 function makeFlag(def) {
   const [name, x, z, owner, type] = def, g = new THREE.Group(), pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 9, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); pole.position.y = 4.5;
   const cloth = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2), new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide })); cloth.position.set(1.7, 7.8, 0);
@@ -4657,6 +5156,7 @@ function killFeedAdd(from, q, wn) {
   BATTLE.feed.push({ a: from && from !== q ? nm(from) : '', ta: teamOf(from), b: nm(q), tb: tq, w: wn || '', at: performance.now() }); while (BATTLE.feed.length > 5) BATTLE.feed.shift(); renderKillFeed(); setTimeout(renderKillFeed, 9100);
 }
 function hurt(q, dmg, from, head, wn) {
+  if (CHEAT.god && fp.p && fp.p === q) return;
   if (!q || q.state === 'rag' || q.hp <= 0) return; if (from && from !== q && BATTLE.on && teamOf(from) && teamOf(from) === teamOf(q)) return; if (q.vin) { bvHurtOcc(q, dmg, from, wn); return; } if (q.bvImm > simT) dmg = Math.min(dmg, 28); if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q; if (from && from !== q && fp.on && fp.p === from) hitMarker(q.hp <= 0);
   if (q.bot) q.bot.hitT = simT; if (q.gun) q.gun.hitT = simT;
   { const fa = from ? wrap(Math.atan2(from.x - q.x, from.z - q.z) - (q.heading || 0)) : 0; q.flinch = { t: 0.5, a: fa, s: Math.min(1.2, 0.5 + dmg / 50) }; }
@@ -4699,7 +5199,7 @@ function findCover(q, e) {                                           // a spot b
 }
 function senseEnemy(q, b) {
   const w = WPN[b.w], sight = (b.cls === 'sniper' ? 200 : 85) * BKIT.sightK * (q.plat ? 1.3 : 1), fx = Math.sin(q.heading), fz = Math.cos(q.heading); let best = null, bd = 1e9;
-  for (const e of people) { if (e === q || e.state === 'rag' || e.ride || e.vin || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
+  for (const e of people) { if (e === q || (CHEAT.loved && fp.on && e === fp.p) || e.state === 'rag' || e.ride || e.vin || teamOf(e) !== otherTeam(b.team) || e.hp <= 0) continue; const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz); if (d > sight || d >= bd) continue; if (d > 22 && b.alert <= 0 && (dx * fx + dz * fz) / d < 0.15) continue; if (!losFull(q.x, q.y + 1.5, q.z, e.x, e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4), e.z)) continue; bd = d; best = e; }
   return best;
 }
 const eyeOf = (e) => e.y + (e.fp ? [1.4, 0.9, 0.35][fp.stance || 0] : (e.bot || e.gun) && (e.bot || e.gun).crouch ? 0.8 : 1.4);
@@ -5029,7 +5529,7 @@ function updateLife(dt) {
 }
 function lifeClear() { for (const d of LIFE.decals) { scene.remove(d.m); d.m.material.dispose(); } LIFE.decals.length = 0; for (const w of LIFE.wrecks) { scene.remove(w.g); w.m.dispose(); } LIFE.wrecks.length = 0; LIFE.cl.length = 0; if (LIFE.cas) LIFE.cas.count = 0; }
 function blast(x, y, z, o) {                                        // one explosion: flash and smoke, a crater, a shockwave on people, cargo and boats, and trees knocked down
-  const R = o.R || 10, dmg = o.dmg || 100, wet = heightAt(x, z) < 0.3, gy = wet ? waveH(x, z, simT) : heightAt(x, z);
+  const R = (o.R || 10) * (CHEAT.big ? 2 : 1), dmg = o.dmg || 100, wet = heightAt(x, z) < 0.3, gy = wet ? waveH(x, z, simT) : heightAt(x, z);
   fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14);
   if (wet) splash(x, z, Math.min(6, R * 0.3)); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40); }
   Snd.fx(R < 8 ? 'imp_blast_small' : R < 14 ? 'imp_blast_medium' : 'imp_blast_large', x, z, { gain: Math.min(1.5, 0.7 + R * 0.05), far: 4, y: gy }); if (!wet && R >= 6) Snd.fx('imp_crater_thud', x, z, { gain: 0.7, far: 3, y: gy });
@@ -5107,10 +5607,10 @@ function fireOne(kind, pt, m, team) {                               // one weapo
 function cmdCost() { return [1, 2, 3][TAB.size] || 2; }
 function cmdCool(kind) { return (kind === 'gunship' || kind === 'strike' || TAB.size === 2) ? 75 : (kind === 'bomb' || kind === 'missile' || kind === 'arty' || kind === 'cluster' || kind === 'griffon') ? 45 : 25; }
 function cmdReady(quiet) {                                          // is this side's command power charged, and can it pay? (free in the sandbox, or when Command power is set to free)
-  if (!BATTLE.on || BATTLE.cmdFree || BATTLE.over) return true; const team = tabletSide();
+  if (!BATTLE.on || BATTLE.cmdFree || BATTLE.over || CHEAT.free) return true; const team = tabletSide();
   if (CMD.cd[team] > 0) { if (!quiet) toast('Command is recharging.'); return false; } if (BATTLE.tickets[team] <= cmdCost()) { if (!quiet) toast('Not enough tickets to call that in.'); return false; } return true;
 }
-function cmdCharge(kind) { if (!BATTLE.on || BATTLE.cmdFree) return; const team = tabletSide(); BATTLE.tickets[team] = Math.max(1, BATTLE.tickets[team] - cmdCost()); CMD.cd[team] = cmdCool(kind); battleHud(); }
+function cmdCharge(kind) { if (!BATTLE.on || BATTLE.cmdFree || CHEAT.free) return; const team = tabletSide(); BATTLE.tickets[team] = Math.max(1, BATTLE.tickets[team] - cmdCost()); CMD.cd[team] = cmdCool(kind); battleHud(); }
 function fireAt(kind, pt) {                                         // the fire control: where it lands is set by the target, the pattern and how loose the aim is. In a battle it costs tickets and shares one recharge per side.
   if (!cmdReady()) return false; cmdCharge(kind);
   const team = fp.on ? (BATTLE.team || 'blue') : (FIRE.team || BATTLE.team || 'blue'), m = [0.6, 1, 1.7][TAB.size], sp = [0, 12, 30][TAB.spread] || 0, jit = (p) => ({ x: p.x + rnd(-sp, sp), z: p.z + rnd(-sp, sp) });
@@ -5278,7 +5778,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } if (!BATTLE.on) return; airAuto(dt); updateKit(dt); updateTracers(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateManQ(dt); updateAir(dt); updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } updateTracers(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   try { sqdFrame(dt); voiceTick(); voiceWatch(); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); }
@@ -5366,7 +5866,7 @@ const STRUCT = [];                                                    // every b
 const TYPE_TEX = {};
 let bkP = null, t2P = null;
 const ensureBattleKit = () => bkP || (bkP = loadGLB('battle').then(g => { D.glb.battle = g; }).catch(e => { bkP = null; throw e; }));
-const ensureTroops2 = () => t2P || (t2P = loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
+const ensureTroops2 = () => t2P || (t2P = (BOOT && BOOT.skins === false) ? Promise.resolve() : loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
 const SNDW = { lmg: 'rifle', marksman: 'sniper', revolver: 'pistol', carbine: 'rifle', medic: 'pistol', rpg: 'shotgun' };
 const wsnd = (w) => SNDW[w] || w;                                      // which recorded gun sound stands in for each weapon
 const NEWT = new Set(['atmine', 'lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
@@ -5657,7 +6157,7 @@ function updateKit(dt) {
 }
 function kitStart(gen) {
   evInit(); const live = () => BATTLE.on && BATTLE.gen === gen;
-  if (!D.glb.troops2) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
+  if (!D.glb.troops2 && !(BOOT && BOOT.skins === false)) toast('Loading troops'); ensureTroops2().then(() => { if (live() && D.glb.troops2) reskinBots(); });
   Promise.all([ensureAir(), ensureBattleKit().catch(() => null)]).then(() => { if (!live()) return; layAA(); layBattleKit(); return ensureBVeh(); }).then(() => { if (live()) bvLayAll(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
 }
 function reskinBots() {                                                // the troops file arrives a little after the battle starts: swap the first bots over to the new skins
@@ -5764,7 +6264,7 @@ const _sat = { p: 0, nx: 0, nz: 0 }, BC = { thr: 0, str: 0, hb: false, boost: fa
 const ensureBVeh = () => BV.loadP || (BV.loadP = loadGLB('bveh').then(g => { D.glb.bveh = g; g.scene.traverse(o => { if (o.isMesh && o.material && o.material.name === 'veh_glass') { o.material.depthWrite = false; } }); BV.ready = true; return g; }).catch(e => { BV.loadP = null; window.__bverr = String(e && e.stack || e); return null; }));
 
 /* ---- paint: one body-paint material per side and map, with a team panel on the roof and bonnet (the same shader trick as teamMark) */
-const BV_COL = { port: { blue: 0x6a7352, red: 0x5e3a30 }, urban: { blue: 0x7f858c, red: 0x5c3a34 }, desert: { blue: 0xb59d72, red: 0x6a4533 } };
+const BV_COL = { port: { blue: 0x6a7352, red: 0x5e3a30 }, urban: { blue: 0x7f858c, red: 0x5c3a34 }, desert: { blue: 0xb59d72, red: 0x6a4533 }, lemnos_myrina: { blue: 0x7a8068, red: 0x5c3a34 }, lemnos_mudros: { blue: 0x7a8068, red: 0x5c3a34 }, lemnos_airport: { blue: 0x8f8a70, red: 0x5e4333 } };
 function bvPaint(team) {
   const k = team + ':' + MAP.t; if (BV.paint[k]) return BV.paint[k];
   let base = null; D.glb.bveh.scene.traverse(o => { if (!base && o.isMesh && o.material && o.material.name === 'veh_paint') base = o.material; });
@@ -5999,7 +6499,7 @@ function bvOcc(v, dt, t) {                                             // each f
 
 /* ---- damage, fire, destruction, wrecks */
 function damageVehicle(v, dmg, byTeam, weapon, byQ) {
-  if (!v || v.dead || v.hp <= 0 || !(dmg > 0)) return; if (byTeam && byTeam === v.team && weapon !== 'Crash') return;
+  if (!v || v.dead || v.hp <= 0 || !(dmg > 0)) return; if (CHEAT.veh && (v === fp.veh || v.team === chMy())) return; if (byTeam && byTeam === v.team && weapon !== 'Crash') return;
   v.hp -= dmg; v.hitT = simT; if (byQ) v.lastBy = byQ; if (byTeam) v.lastTeam = byTeam; v.lastW = weapon;
   if (fp.veh === v) { BATTLE.hurtT = Math.max(BATTLE.hurtT, 0.5); const hv = $('bHurt'); if (hv) hv.style.opacity = 0.7; if (dmg > 6) dis.quake = Math.max(dis.quake, Math.min(1.1, dmg / 40)); }
   if (v.hp <= 0) { bvDestroy(v, byTeam || v.lastTeam || null, weapon, byQ || v.lastBy || null); return; }
@@ -6601,7 +7101,7 @@ function surfaceAt(x, z) {
 }
 function impactFx(kind, ref, pt, d) {
   let mat = 'dirt', sparks = false, snd = 'imp_dirt';
-  if (kind === 'water') { splash(pt.x, pt.z, 0.3); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
+  if (kind === 'water') { splash(pt.x, pt.z, 0.55); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
   if (kind === 'person') { for (let i = 0; i < 4; i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
   if (kind === 'boat' || kind === 'veh') { mat = 'metal'; sparks = true; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; sparks = mat === 'metal' || mat === 'concrete'; snd = 'imp_' + mat; } else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; sparks = mat === 'concrete' || mat === 'asphalt'; }
   const c = (SURF[mat] || SURF.dirt)[0], c2 = (SURF[mat] || SURF.dirt)[1];
@@ -7249,7 +7749,7 @@ const PF = window.__pf = {}; const PFT = (n, f) => { const a = performance.now()
 let frameErrN = 0;
 function frame(now) { try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
 function frameStep(now) {
-  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  const dt = clamp((now - last) / 1000, 0, 0.05) * (CHEAT.slow ? 0.3 : 1); last = now;
   const bt = boats[activeIdx] || boats[0];
   if (mode === 'helm') {
     const left = keys.has('a') || keys.has('arrowleft') || hold.tL, right = keys.has('d') || keys.has('arrowright') || hold.tR;
@@ -7275,7 +7775,7 @@ function frameStep(now) {
   if (!(mode === 'god' && tool === 'land') && land.holding) sculptEnd();
   land.meshT -= dt; land.physT -= dt;
   if (land.dirty && land.meshT <= 0) { land.meshT = 0.08; commitLand(land.physT <= 0 || !(land.painting || land.holding)); if (land.physT <= 0) land.physT = 0.35; }
-  stepWeather(dt);
+  stepWeather(dt); cheatTick(dt);
   const pw0 = performance.now(); try { world.step(1 / 60, dt, 5); } catch (e) { for (let i = world.bodies.length - 1; i >= 0; i--) { const b = world.bodies[i]; if (!b || !b.position || !isFinite(b.position.x + b.position.y + b.position.z)) world.bodies.splice(i, 1); } world.contacts.length = 0; try { world.broadphase.dirty = true; } catch (e2) { } } PF.worldStep = (PF.worldStep || 0) + performance.now() - pw0;                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
   PFT('updateLake', () => updateLake(dt)); PFT('updateDisasters', () => updateDisasters(dt, t)); PFT('updateVolcanoes', () => updateVolcanoes(dt, t)); PFT('updateLava', () => updateLava(dt)); PFT('updateLavaVents', () => updateLavaVents(dt)); PFT('updateTreeFire', () => updateTreeFire(dt)); PFT('updatePlants', () => updatePlants(dt)); PFT('updateThreats', () => updateThreats(dt)); PFT('updateFleet', () => updateFleet(dt)); PFT('updateAgents', () => updateAgents(dt)); PFT('updateFarms', () => updateFarms(dt)); PFT('armedLayer', () => armedLayer(dt)); PFT('updateBattle', () => updateBattle(dt)); PFT('portAmbience', () => portAmbience(dt)); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; PFT('updateClimate', () => updateClimate(dt)); PFT('ledgerTick', () => ledgerTick(dt)); PFT('updateMaterials', () => updateMaterials(dt)); PFT('updateGuards', () => updateGuards()); PFT('updateIce', () => updateIce(dt)); PFT('updateWindView', () => updateWindView(dt)); PFT('updateStorms', () => updateStorms(dt)); PFT('updateLegend', () => updateLegend(dt)); PFT('updateCamera', () => updateCamera(dt)); PFT('updateCamPad', () => updateCamPad()); PFT('updateHud', () => updateHud());
@@ -7381,9 +7881,23 @@ function frameStep(now) {
   requestAnimationFrame(frame);
 }
 setTool('select'); refreshPanel(); refreshHelm();
-progress(1, 'Ready');
-setTimeout(() => $('loading').classList.add('done'), 250);
-{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') { if (isBattleMap()) startMap('cove', 'cove'); return; } const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
+function runBootPlan() {                                              // what the start menu asked for, fetched while the loading screen is up. Each part reports when it is in
+  const jobs = [], add = (id, fn) => { if (LP.parts[id]) jobs.push(Promise.resolve().then(fn).then(() => lpSet(id, 1), () => lpSet(id, 1))); };
+  add('town', () => Promise.all([ensurePort(), ensureProps2()]));
+  add('kit', () => Promise.all([ensureBattleKit(), ensureAir()]));
+  add('men', () => Promise.all([ensureWeapons(), ensureBVeh()]));
+  add('skins', () => ensureTroops2());
+  add('sound', () => Snd.initP ? Snd.initP : null);
+  return Promise.all(jobs);
+}
+function bootBattle() {                                               // a battle chosen on the start menu begins straight away with those choices
+  const b = BOOT && BOOT.b; if (!b || !isBattleMap()) return;
+  SETUP.side = b.side === 'red' ? 'red' : 'blue'; BATTLE.redKind = b.red === 'Invaders' ? 'Invaders' : 'Raiders'; BATTLE.size = clamp(b.size || BATTLE.size, 3, isTouch ? 10 : 70); BATTLE.tixAuto = b.tixAuto !== false; if (b.tix) BATTLE.tix = b.tix; if (b.kit && LOADOUTS[b.kit]) BATTLE.kit = b.kit; BATTLE.cmdFree = !!b.cmdFree;
+  let n = 0; const go = () => { if (mapLaid || (MAP.t === 'port' && sites.length) || n++ > 40) setupGo(b.how || 'begin'); else setTimeout(go, 300); }; setTimeout(go, 600);
+}
+{ const done = () => { progress(1, 'Ready', true); setTimeout(() => $('loading').classList.add('done'), 250); if (BOOT && BOOT.mode === 'battle') bootBattle(); };
+  if (LP.on) runBootPlan().then(done, done); else done(); }
+{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') { if (isBattleMap()) startMap('cove', 'cove'); return; } const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; try { sessionStorage.setItem('sc-boot-skip', '1'); } catch (e) { } location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
   { const bb = intro.querySelector('[data-go="battle"]'); if (bb && !isBattleMap()) bb.hidden = true; }
   $('introVer').textContent = 'v9.0 battle command'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
   if (qp.get('battle')) setTimeout(openBattleSetup, 1200);
@@ -7415,6 +7929,7 @@ const KEYMAP = [
   ['over', 'T', 'Command: fire, support, squad and points', 'h'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
+  ['over', '` (backtick)', 'Cheats: for fun and testing. Switches, spawns, weather and typed codes. Also in Menu, Settings'],
   ['over', 'V', 'Drop into first person as the selected person (in a battle, the nearest soldier)', 'hp'],
   ['over', 'J, K', 'In a battle: take over the nearest soldier, watch the next one'],
   ['over', 'H', 'Take the helm of the selected boat, or back to the overview', 'h'],
@@ -7430,6 +7945,7 @@ const KEYMAP = [
   ['help', 'Vehicles', 'In a battle, stand beside a jeep, truck, carrier, tank or parked helicopter of your side and press E. E gets you out. The full list is in the Menu under Controls', 'h'],
   ['help', 'People', 'Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves', 'h'],
   ['fp', 'W A S D, mouse', 'Walk and look. Click the view first', 'h'],
+  ['fp', '` (backtick)', 'Cheats panel. With Fly on, Space goes up and Ctrl or Shift goes down'],
   ['fp', 'Shift', 'Run'],
   ['fp', 'Space', 'Jump, or stand up from crouch and prone'],
   ['fp', 'C, P', 'Crouch, lie prone'],
@@ -7868,7 +8384,7 @@ function strikeAt(x, z) {
 }
 function startQuake() {
   dis.quake = 7; landMark();
-  for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, 34); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
+  for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, HMAX); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
   land.dirty = true; commitLand(true); toast('Earthquake');
 }
 function startTsunami() { Snd.fx('wx_tsunami_rumble', undefined, undefined, { gain: 1 }); dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
@@ -7876,7 +8392,7 @@ function startHurricane() { dis.hurricane = 150; stormUp(2, 1, 4); toast('Hurric
 function startMeteor(p) { Snd.fx('wx_meteor_whistle', p.x, p.z, { gain: 1, far: 3 }); setTimeout(() => Snd.fx('wx_meteor_impact', p.x, p.z, { gain: 1.2, far: 4, gap: 0 }), 2600); dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
 function impactMeteor(m) {
   const x = m.x, z = m.z, R = 11; landMark();
-  for (let i = -R - 4; i <= R + 4; i++) for (let j = -R - 4; j <= R + 4; j++) { const d = Math.hypot(i, j), gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; if (d <= R) HGT[k] = clamp(HGT[k] - 5 * (1 - (d / R) ** 2), -9.2, 34); else if (d <= R + 4) HGT[k] = clamp(HGT[k] + 0.9 * (1 - (d - R) / 4), -9.2, 34); }
+  for (let i = -R - 4; i <= R + 4; i++) for (let j = -R - 4; j <= R + 4; j++) { const d = Math.hypot(i, j), gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; if (d <= R) HGT[k] = clamp(HGT[k] - 5 * (1 - (d / R) ** 2), -9.2, HMAX); else if (d <= R + 4) HGT[k] = clamp(HGT[k] + 0.9 * (1 - (d - R) / 4), -9.2, HMAX); }
   land.x0 = x - R - 6; land.x1 = x + R + 6; land.z0 = z - R - 6; land.z1 = z + R + 6; land.dirty = true; commitLand(true);
   const y = Math.max(heightAt(x, z), 0) + 1; for (let i = 0; i < 6; i++) { sparks(x, y, z, 30); puffSmoke(x + rnd(-4, 4), y, z + rnd(-4, 4), 6, true, 2.2); }
   dis.flashes = 1; dis.quake = Math.max(dis.quake, 2.5); heatGround(x, z, 16, 2.4); meteorAftermath(x, z);
@@ -7962,7 +8478,7 @@ function reshape(v) {
     const dx = j - VR, dz = i - VR, r = Math.hypot(dx, dz); if (r > VR) continue;
     const prof = VPEAK * Math.pow(1 - r / VR, 1.4) + (r < 7 ? 1.2 * (1 - r / 7) : 0), val = -14 + (prof + 14) * pp - (r < 6 ? 4.5 * cr * (1 - r / 6) ** 2 : 0);
     const k = (v.gz - VR + i) * TN + v.gx - VR + j, o = v.orig[i * v.n + j], h = Math.max(o, val);
-    HGT[k] = Math.min(34, Math.max(-9.2, h)); BED[k] = HGT[k];
+    HGT[k] = Math.min(HMAX, Math.max(-9.2, h)); BED[k] = HGT[k];
     if (h > o + 0.05 || val > -3) { const a = Math.min(1, (1 - r / VR) * 3.2 + 0.1) * 255; if (a > ashData[k]) ashData[k] = a; }
   }
   ashTex.needsUpdate = true;
@@ -8049,7 +8565,7 @@ function stepLava(dt) {
     let temp = LT[k] - dt * (0.010 + 0.012 / Math.max(0.15, v));
     const sea = HGT[k] < -0.1, wet = WD[k] > 0.02;
     if (sea || wet) { temp -= dt * 0.5; if (wet) WD[k] = Math.max(0, WD[k] - dt * 0.4); { const c = (i >> 2) * CN + (j >> 2); if (c >= 0 && c < CK) { CH[c] = Math.min(160, CH[c] + 0.9 * dt); CT[c] = Math.min(90, CT[c] + 0.5 * dt); } tried('steam'); } if (lavaPuffs < 6 && Math.random() < 0.3) { lavaPuffs++; puffSmoke(G2W(j), Math.max(HGT[k], 0) + 0.8, G2W(i), 3, false, 2.4); if (sea && Math.random() < 0.3) splash(G2W(j), G2W(i), 0.8); } }
-    if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(34, HGT[k] + v * (sea ? 1.1 : 0.75)); LV[k] = 0; LT[k] = 0; if (ashData[k] < (sea ? 255 : 235)) ashData[k] = sea ? 255 : 235; BED[k] = HGT[k]; lavaSolid = true; continue; }
+    if (temp < 0.12 || HGT[k] < -0.3) { HGT[k] = Math.min(HMAX, HGT[k] + v * (sea ? 1.1 : 0.75)); LV[k] = 0; LT[k] = 0; if (ashData[k] < (sea ? 255 : 235)) ashData[k] = sea ? 255 : 235; BED[k] = HGT[k]; lavaSolid = true; continue; }
     LV[k] = Math.min(8, v); LT[k] = temp; live++; if (j < mx0) mx0 = j; if (j > mx1) mx1 = j; if (i < mz0) mz0 = i; if (i > mz1) mz1 = i;
   }
   if (live) lbx = { x0: mx0, x1: mx1, z0: mz0, z1: mz1 }; else { lavaOn = false; for (let q = 0; q < TN * TN; q++) { hotData[q * 4] = 0; hotData[q * 4 + 1] = 0; } hotTex.needsUpdate = true; lavaData.fill(0); lavaTex.needsUpdate = true; lavaMesh.visible = false; }
@@ -8343,7 +8859,7 @@ function addSand(x, z, vol, R, kind) {
   const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)), A = vol / (1.2 * R * R);
   for (let i = -R - 1; i <= R + 1; i++) for (let j = -R - 1; j <= R + 1; j++) {
     const d = Math.hypot(i, j), cx = gx + j, cz = gz + i; if (cx < 3 || cz < 3 || cx > TN - 4 || cz > TN - 4) continue; const k = cz * TN + cx;
-    if (d <= R) HGT[k] = Math.min(34, HGT[k] + A * (1 - (d / R) ** 2));
+    if (d <= R) HGT[k] = Math.min(HMAX, HGT[k] + A * (1 - (d / R) ** 2));
     if (d <= R + 1 && !isGlass(k)) matData[k * 4 + (kind === 'earth' ? 3 : 1)] = 255;
   }
   sbx = boxTouch(sbx, gx, gz, R + 3); sandQuiet = 0; matDirty = true; matTex.needsUpdate = true;
@@ -8403,7 +8919,7 @@ function unflagMat(k) { if (!MET[k]) return; MET[k] = 0; metN--; hotData[k * 4 +
 function depositGrain(x, z, vol, kind) {
   Snd.grain(kind, x, z, vol);
   const j = Math.round(W2G(x)), i = Math.round(W2G(z)); if (j < 3 || i < 3 || j > TN - 4 || i > TN - 4 || vol <= 0) return; const k = i * TN + j;
-  HGT[k] = Math.min(34, HGT[k] + vol / (CELL * CELL)); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
+  HGT[k] = Math.min(HMAX, HGT[k] + vol / (CELL * CELL)); if (matData[k * 4] === 0) { if (kind === 1) matData[k * 4 + 1] = 255; else if (kind === 3) matData[k * 4 + 3] = 255; }
   if (kind === 4 || kind === 5) { flagMat(k, kind === 5 ? 255 : 120); tried('pile'); }                                   // rock rubble and scrap metal pile up, then slump at their own angle
   slumpArm(j, i, 3); matTex.needsUpdate = true;
 }
@@ -8498,7 +9014,7 @@ function stepSand() {
     const fl = MET[k], ch = fl > 200 ? 5 : fl ? 4 : matData[k * 4 + 1] ? 1 : matData[k * 4 + 3] ? 3 : 0, rep = (MATP[ch].rep - (ch >= 4 || ch === 0 ? 0 : 0.4 * Math.min(1, SM[k]) * (ch === 1 ? 0.8 : 1))) * CELL;
     for (let q = 0; q < 4; q++) {
       const n = k + N[q], dh = HGT[k] - HGT[n]; if (dh <= rep || matData[n * 4] > 0) continue;
-      const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(34, HGT[n] + m);
+      const m = Math.min(loose, (dh - rep) * 0.22); if (m <= 0) continue; HGT[k] -= m; loose -= m; HGT[n] = Math.min(HMAX, HGT[n] + m);
       if (fl) flagMat(n, fl); else if (ch && !matData[n * 4 + 1] && !matData[n * 4 + 3]) { matData[n * 4 + ch] = 255; matTex.needsUpdate = true; }
       moved += m; if (m > 0.012 && Math.random() < 0.18) slideGrains(j, i, 1, [N[q] === 1 ? 1 : N[q] === -1 ? -1 : 0, N[q] === TN ? 1 : N[q] === -TN ? -1 : 0]); if (n % TN <= sbx.x0) sbx.x0--; if (n % TN >= sbx.x1) sbx.x1++; const nz = (n - n % TN) / TN; if (nz <= sbx.z0) sbx.z0--; if (nz >= sbx.z1) sbx.z1++;
     }
@@ -8686,13 +9202,23 @@ function disastersSheet() {
 }
 $('mSandbox').addEventListener('click', sandboxSheet);
 const SEEDWORDS = ['kestrel', 'petrel', 'gannet', 'skerry', 'shoal', 'bluff', 'tern', 'halyard', 'fathom', 'driftwood', 'lantern', 'harbor', 'ember', 'thaw', 'cairn', 'osprey'];
-const startMap = (t, seed) => { try { localStorage.setItem('squall-cove-map', JSON.stringify({ t, seed })); } catch (e) { } toast('Building a new world'); setTimeout(() => location.reload(), 350); };
+const goMap = (t, seed, size) => {                                   // switch map: storage AND the address both say the same thing, so a reload can never pick the old map
+  try { localStorage.setItem('squall-cove-map', JSON.stringify({ t, seed })); if (size) localStorage.setItem('squall-cove-size', size); } catch (e) { }
+  try { sessionStorage.setItem('sc-boot-skip', '1'); sessionStorage.setItem('sc-intro', '1'); } catch (e) { }
+  let q = '?map=' + encodeURIComponent(t); if (t !== 'cove' && seed && seed !== t) q += '&seed=' + encodeURIComponent(seed);
+  if (t === 'cove') { let sz = size || 'standard'; if (!size) { try { sz = localStorage.getItem('squall-cove-size') === 'large' ? 'large' : 'standard'; } catch (e) { } } q += '&size=' + sz; }
+  location.search = q;
+};
+const startMap = (t, seed) => { toast('Building a new world'); setTimeout(() => goMap(t, seed), 350); };
+const toStartMenu = () => { try { sessionStorage.removeItem('sc-boot-skip'); } catch (e) { } location.href = location.pathname + '?menu=1'; };
 const randSeed = () => SEEDWORDS[Math.floor(Math.random() * SEEDWORDS.length)] + '-' + Math.floor(Math.random() * 900 + 100);
+$('mStart').addEventListener('click', toStartMenu);
 $('mMap').addEventListener('click', () => openMenu([menuHead('Now: ' + MAPS.find(q => q[0] === MAP.t)[1] + (MAP.t === 'cove' ? '' : ', seed ' + MAP.seed) + '. A new world replaces this one, so save first.'),
+  menuBtn('Back to the start menu', 'choose what to load again', toStartMenu),
   ...MAPS.map(([t, n, d]) => menuBtn(n, d, () => startMap(t, t === 'cove' ? 'cove' : (MAP.t === t ? MAP.seed : randSeed())))),
   menuBtn('Surprise me', 'a random map and seed', () => startMap(MAPS[1 + Math.floor(Math.random() * (MAPS.length - 1))][0], randSeed())),
   menuBtn('Same map, new seed', 'a different island of the same kind', () => startMap(MAP.t === 'cove' ? 'archipelago' : MAP.t, randSeed())),
-  menuBtn('Map size: ' + (CELL > 1 ? 'Large (512 m)' : 'Standard (256 m)'), 'Tap to switch. The game restarts.', () => { try { localStorage.setItem('squall-cove-size', CELL > 1 ? 'standard' : 'large'); } catch (e) { } toast('Changing the map size'); setTimeout(() => location.reload(), 350); }),
+  menuBtn('Map size: ' + (CELL > 1 ? 'Large (512 m)' : 'Standard (256 m)'), 'Tap to switch. The game restarts.', () => { toast('Changing the map size'); setTimeout(() => goMap(MAP.t === 'cove' ? 'cove' : MAP.t, MAP.t === 'cove' ? 'cove' : MAP.seed, CELL > 1 ? 'standard' : 'large'), 350); }),
   menuBtn('Type a seed', 'the same seed gives the same island', () => { const v = (prompt('Seed (any word or number)', MAP.seed === 'cove' ? randSeed() : MAP.seed) || '').trim(); if (v) startMap(MAP.t === 'cove' ? 'archipelago' : MAP.t, v); })]));
 $('mTry').addEventListener('click', () => openMenu([menuHead('Things to try: ' + Object.keys(triedSet).length + ' of ' + TRIES.length), ...TRIES.map(([k, t]) => menuBtn((triedSet[k] ? 'Done  ' : '') + t, triedSet[k] ? 'You have made this happen' : 'Not yet', () => { }))]));
 const calmBtn = $('calmBtn');
@@ -10144,11 +10670,11 @@ $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); })
 window.__sc = { BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
-const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'] };
+const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
 function openBattleSetup() { renderSetup(); const s = $('bSetup'); s.hidden = false; const f = s.querySelector('.sf .big'); if (f && !f.disabled) f.focus({ preventScroll: true }); }
 function closeSetup() { $('bSetup').hidden = true; }
 function setupGo(how) {
-  if (!isBattleMap()) { toast('Pick one of the three battle maps first.'); return; }
+  if (!isBattleMap()) { toast('Pick a battle map first.'); return; }
   closeSetup(); $('tablet').hidden = true; if (fp.on) exitFP(); BATTLE.over = false; battleStart(); if (how !== 'watch') FIRE.team = SETUP.side; if (how === 'fight') playBattle(SETUP.side);
   if (matchMedia('(max-width: 800px)').matches) setSide(false);
 }
@@ -10158,7 +10684,7 @@ function renderSetup() {
   const grp = (title, nt) => { const g = document.createElement('section'); g.className = 'sg'; const h = document.createElement('h3'); h.textContent = title; g.append(h); if (nt) { const n = document.createElement('p'); n.className = 'grp-n'; n.textContent = nt; g.append(n); } body.append(g); return g; };
   const chips = (g, items, cur, fn) => { const c = document.createElement('div'); c.className = 'chips'; for (const [v, n] of items) c.append(mkB(n, '', () => { fn(v); renderSetup(); }, { 'aria-pressed': String(cur === v) })); g.append(c); return c; };
   const say1 = (g, t, top) => { const n = document.createElement('p'); n.className = 'grp-n'; if (top) n.style.marginTop = '12px'; n.textContent = t; g.append(n); };
-  { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick one of these three maps. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
+  { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick a map. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
     for (const k of BATTLE_KEYS) { const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
   { const g = grp('Sides and enemy'); say1(g, 'You fight for, or command, this side.'); chips(g, [['blue', 'Port'], ['red', redN]], side, v => { SETUP.side = v; }); say1(g, 'Port is always the blue side. The red side is:', true); chips(g, [['Raiders', 'Raiders'], ['Invaders', 'Invaders']], redN, v => { BATTLE.redKind = v; }); }
   { const g = grp('Army'); const rg = (label, min, max, step, val, fn, dis) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; i.disabled = !!dis; l.textContent = label + ': ' + val; i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + i.value; }); w.append(l, i); g.append(w); return { i, l }; };
@@ -10782,6 +11308,82 @@ function sqdLadderFollow(me) {                                      // the playe
 
 Object.assign(window.__sc, { SQD, SQD_ORD, sqdSet, sqdBind, sqdOff, sqdLeader, sqdPing, sqdMount, sqdDismountAll, sqdWheelOpen, sqdWheelClose, callsignOf, VOICE, VLINES, vsay, voiceTest, captionAdd, LADDERS, PLATFORMS, LAD_HAND, ladAddModel, ladGrab, ladDrop, ladUse, ladNearFor, ladMarkers, ladSweep, climbFrame, platHas, platClamp, standYP, towerPick, towerClaim, towerRelease });
 Object.assign(window.__sc, { openCommand, openBattleSetup, closeSetup, renderSetup, setupGo, SETUP, applyLook, objectiveHint, tbTabList, renderTablet, ic });
+/* ================================================================ cheats: for fun and testing. Nothing is scored. All off by default, remembered in 'squall-cove-cheats'.
+   The switches are read where the game decides: hurt, fpFireGun, fpReload, cmdReady, cmdCharge, updateFP (speed, jump, fly), senseEnemy, damageVehicle, blast and frameStep (slow motion). */
+const CH_LIST = [
+  ['god', 'God mode', 'You take no damage.'], ['ammo', 'Infinite ammo', 'No reloads. Grenades and charges stay full.'], ['free', 'No cooldowns, free Command', 'Fire control, support and strikes are always ready and cost nothing.'],
+  ['fast', 'Fast legs', 'You run twice as fast.'], ['jump', 'Super jump', 'You jump much higher.'], ['fly', 'Fly', 'First person only. Space goes up, Ctrl or Shift goes down.'],
+  ['reveal', 'Reveal enemies', 'A marker over every enemy, in first person and in the overview.'], ['slow', 'Slow motion', 'The whole world runs slower.'], ['veh', 'Invulnerable vehicles', 'Vehicles of your side take no damage.'],
+  ['loved', 'Everyone loves me', 'Enemy soldiers do not notice you.'], ['big', 'Big blasts', 'Explosions are twice as wide.'],
+];
+const CHEAT = {}; for (const c of CH_LIST) CHEAT[c[0]] = false;
+try { const sv = JSON.parse(localStorage.getItem('squall-cove-cheats') || '{}'); for (const k in CHEAT) if (sv[k] === true) CHEAT[k] = true; } catch (e) { }
+const chMy = () => BATTLE.team || SETUP.side || 'blue', chAny = () => CH_LIST.some(c => CHEAT[c[0]]);
+function chSave() { try { localStorage.setItem('squall-cove-cheats', JSON.stringify(CHEAT)); } catch (e) { } chChip(); if (!$('cheatSheet').hidden) chRender(); }
+function chChip() { const el = $('cheatChip'); if (el) el.hidden = !chAny(); }
+function chSet(k, v) { CHEAT[k] = !!v; if (k === 'slow' && !v) { /* normal speed again */ } chSave(); }
+function chPoint() {                                                 // where the crosshair (first person) or the middle of the view (overview) points
+  try { if (fp.on && fp.p) { const h = fpAim(300, 0); if (h && h.pt) return { x: h.pt.x, z: h.pt.z }; return { x: fp.p.x + Math.sin(fp.yaw) * 12, z: fp.p.z + Math.cos(fp.yaw) * 12 }; } } catch (e) { }
+  return aimPt();
+}
+const chSay = (t) => { const el = $('chRes'); if (el) el.textContent = t; toast(t); return t; };
+function chHeal() { if (fp.p) { fp.p.hp = 100; BATTLE.hurtT = 0; chSay('Healed.'); } else chSay('Heal works in first person.'); }
+function chRefill() { fp.ammo = {}; fp.reload = 0; fp.nades = 3; fp.c4 = 3; fp.smokes = 2; fp.mines = 4; chSay('Ammo and grenades refilled.'); }
+function chTickets() { if (!BATTLE.on) return chSay('No battle is running.'); BATTLE.tickets[chMy()] += 100; try { battleHud(); } catch (e) { } chSay('100 tickets added.'); }
+function chEnd(win) { if (!BATTLE.on || BATTLE.over) return chSay('No battle is running.'); BATTLE.tickets[win ? otherTeam(chMy()) : chMy()] = 0; chSay(win ? 'Winning.' : 'Losing.'); }
+function chKO() { if (!BATTLE.on) return chSay('No battle is running.'); const en = otherTeam(chMy()); let n = 0; for (const e of people.slice()) if (teamOf(e) === en && e.state !== 'rag' && !(e.hp <= 0)) { try { hurt(e, 9999, fp.p || null, false, 'Cheat'); n++; } catch (er) { } } chSay(n + ' enemies knocked out.'); }
+function chVeh(key) { const p = chPoint(); ensureBVeh().then(() => { const v = bvMake(key, chMy(), p.x, p.z, fp.on ? fp.yaw : 0); if (!v) return chSay('Could not place it here.'); try { bvAIInit(v, 1e9, false); v.ai.st = 'park'; } catch (e) { } chSay(BVSPEC[key].name + ' placed.'); }).catch(() => chSay('Could not load vehicles.')); }
+function chHeli(pre) { const p = chPoint(); ensureAir().then(() => { const u = bvHeliMake(pre, chMy(), p.x, p.z, fp.on ? fp.yaw : 0); chSay(u ? BVH[pre].name + ' placed.' : 'Could not place it here.'); }).catch(() => chSay('Could not load helicopters.')); }
+function chStrike(kind) { const p = chPoint(); try { fireOne(kind, p, 1, chMy()); chSay('Done.'); } catch (e) { chSay('That did not work here.'); } }
+function chSky(sky) { wx.sky = sky; chSay('Time of day: ' + sky + '.'); }
+function chWeather(k) { if (k === 'clear') { wx.rain = 0; wx.fog = 0; wx.imp.rain = true; wx.imp.fog = true; } else if (k === 'rain') { wx.rain = 2; wx.imp.rain = true; } else if (k === 'fog') { wx.fog = 2; wx.imp.fog = true; } else if (k === 'storm') { wx.rain = 3; wx.imp.rain = true; startLightning(); } chSay('Weather: ' + k + '.'); }
+function chTeleport(pt) { const x = pt[1], z = pt[2]; if (fp.on && fp.p && !fp.veh) { fp.p.x = x + 2; fp.p.z = z; fp.p.y = standY(x + 2, z); fp.vx = fp.vz = 0; chSay('Moved to ' + pt[0] + '.'); } else { camFlyTo(x, z, 90); chSay('Looking at ' + pt[0] + '.'); } }
+function chAll(on) { for (const c of CH_LIST) CHEAT[c[0]] = on; chSave(); chSay(on ? 'Everything is on.' : 'Everything is off.'); }
+const CH_CODES = { godmode: 'god', ammo: 'ammo', nocool: 'free', fast: 'fast', jump: 'jump', fly: 'fly', reveal: 'reveal', slowmo: 'slow' };
+function chCode(txt) {                                               // typed codes: case does not matter
+  const c = String(txt || '').trim().toLowerCase(); if (!c) return '';
+  if (CH_CODES[c]) { const k = CH_CODES[c]; chSet(k, !CHEAT[k]); return chSay(CH_LIST.find(q => q[0] === k)[1] + (CHEAT[k] ? ' on.' : ' off.')); }
+  const A = { heal: chHeal, win: () => chEnd(true), lose: () => chEnd(false), tickets: chTickets, tank: () => chVeh('light_tank'), jeep: () => chVeh('jeep'), heli: () => chHeli('griffon'), storm: () => chWeather('storm'), night: () => chSky('night'), noon: () => chSky('day'), lava: () => chLava(), meteor: () => startMeteor(chPoint()), tsunami: startTsunami, rosebud: () => chAll(true), clear: () => chAll(false) };
+  if (A[c]) { A[c](); return $('chRes') ? $('chRes').textContent || c + ' done.' : c; }
+  if (c === 'help') return chSay('Codes: ' + Object.keys(CH_CODES).concat(Object.keys(A)).join(', '));
+  return chSay('Unknown code. Type help for the list.');
+}
+function chLava() { startVolcano(chPoint()); chSay('Lava.'); }
+function chRender() {
+  const body = $('chBody'), y = body.scrollTop; body.textContent = '';
+  const grp = (title, nt) => { const g = document.createElement('section'); g.className = 'sg'; const h = document.createElement('h3'); h.textContent = title; g.append(h); if (nt) { const n = document.createElement('p'); n.className = 'grp-n'; n.textContent = nt; g.append(n); } body.append(g); return g; };
+  const chips = (g, items) => { const c = document.createElement('div'); c.className = 'chips'; for (const [n, fn] of items) c.append(mkB(n, '', fn)); g.append(c); };
+  { const g = grp('Switches', 'Cheats are for fun and testing. Nothing is scored.'); const c = document.createElement('div'); c.className = 'chips';
+    for (const [k, n, d] of CH_LIST) { const b = mkB(n + ': ' + (CHEAT[k] ? 'on' : 'off'), '', () => chSet(k, !CHEAT[k]), { 'aria-pressed': String(CHEAT[k]), title: d }); c.append(b); } g.append(c);
+    const nn = document.createElement('p'); nn.className = 'grp-n'; nn.style.marginTop = '8px'; nn.textContent = CH_LIST.map(q => q[1] + ': ' + q[2]).join(' '); g.append(nn); }
+  { const g = grp('Do it now'); chips(g, [['Heal me', chHeal], ['Refill ammo and grenades', chRefill], ['Add 100 tickets to my side', chTickets], ['Win the battle', () => chEnd(true)], ['Knock out all enemies', chKO]]); }
+  { const g = grp('Spawn at my crosshair', 'First person: where you aim. Overview: the middle of the view.'); chips(g, [['Jeep', () => chVeh('jeep')], ['Technical', () => chVeh('technical')], ['APC', () => chVeh('apc')], ['Tank', () => chVeh('light_tank')], ['Supply truck', () => chVeh('supply_truck')], ['Griffon', () => chHeli('griffon')], ['Cobra', () => chHeli('cobra')], ['Chinook', () => chHeli('chinook')], ['Bomb here', () => chStrike('cluster')], ['Missile here', () => chStrike('missile')], ['Lightning here', () => chStrike('lightning')], ['Lava here', chLava]]); }
+  { const g = grp('Weather and time'); chips(g, [['Clear', () => chWeather('clear')], ['Rain', () => chWeather('rain')], ['Storm', () => chWeather('storm')], ['Fog', () => chWeather('fog')], ['Dawn', () => chSky('dawn')], ['Noon', () => chSky('day')], ['Dusk', () => chSky('dusk')], ['Night', () => chSky('night')]]); }
+  if (isBattleMap()) { const g = grp('Teleport to a capture point'); chips(g, BM().points.map(pt => [pt[0], () => chTeleport(pt)])); }
+  { const g = grp('Type a code', 'Press Enter to run it. Type help for the list.'); const inp = document.createElement('input'); inp.type = 'text'; inp.id = 'chIn'; inp.setAttribute('aria-label', 'Cheat code'); inp.autocomplete = 'off'; inp.autocapitalize = 'off'; inp.spellcheck = false; inp.style.cssText = 'width:100%;min-height:44px;font:500 16px var(--f-body);padding:0 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--paper)';
+    inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { chCode(inp.value); inp.value = ''; } else if (e.key === 'Escape') chClose(); }); inp.addEventListener('keyup', (e) => e.stopPropagation());
+    const res = document.createElement('p'); res.className = 'grp-n'; res.id = 'chRes'; res.setAttribute('aria-live', 'polite'); res.style.marginTop = '8px'; g.append(inp, res); }
+  body.scrollTop = y;
+}
+function chOpen() { try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) { } $('cheatSheet').hidden = false; chRender(); }
+function chClose() { $('cheatSheet').hidden = true; }
+$('chClose').addEventListener('click', chClose); $('mCheats').addEventListener('click', () => { closeMenu(); chOpen(); });
+KEY_ROUTE.unshift((e) => { if ((e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; if (e.key === '`' || e.key === '~') { e.preventDefault(); keyStop = true; if ($('cheatSheet').hidden) chOpen(); else chClose(); } else if (e.key === 'Escape' && !$('cheatSheet').hidden) { e.preventDefault(); keyStop = true; chClose(); } });
+const CH_SP = []; let chTex = null;
+function chMarker() {
+  if (!chTex) { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const c = cv.getContext('2d'); c.fillStyle = '#ff3b2f'; c.strokeStyle = '#fff'; c.lineWidth = 4; c.beginPath(); c.moveTo(10, 10); c.lineTo(54, 10); c.lineTo(32, 56); c.closePath(); c.fill(); c.stroke(); chTex = new THREE.CanvasTexture(cv); chTex.colorSpace = THREE.SRGBColorSpace; }
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: chTex, depthTest: false, transparent: true })); s.renderOrder = 999; scene.add(s); return s;
+}
+function cheatTick(dt) {                                             // once a frame: the cooldown and ammo switches, and the enemy markers
+  if (CHEAT.free) { CMD.cd.blue = 0; CMD.cd.red = 0; for (const t of ['blue', 'red']) for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; }
+  if (CHEAT.ammo && fp.on) { if (fp.ammo) for (const k in fp.ammo) { const w = WPN[k]; if (w) fp.ammo[k] = w.mag; } fp.reload = 0; fp.nades = 3; fp.c4 = 3; fp.smokes = 2; fp.mines = 4; }
+  let n = 0;
+  if (CHEAT.reveal) { const en = otherTeam(chMy()); for (const e of people) { if (teamOf(e) !== en || e.state === 'rag' || e.hp <= 0) continue; const s = CH_SP[n] || (CH_SP[n] = chMarker()); n++; s.visible = true; s.position.set(e.x, e.y + 2.6, e.z); const d = camera.position.distanceTo(s.position); const k = clamp(d * 0.03, 1, 12); s.scale.set(k, k, 1); } }
+  for (let i = n; i < CH_SP.length; i++) CH_SP[i].visible = false;
+}
+chChip();
+Object.assign(window.__sc, { CHEAT, chCode, chOpen, chSet });
+Object.assign(window.__sc, { BOOT, LP, loadRealMap, REALMAPS, realPlanBuildings, realRoads, goMap, toStartMenu, bootBattle, runBootPlan, layRealMap, get REAL() { return REAL; }, get REAL_B() { return REAL_B; }, get REALC() { return REALC; } });
 </script>
 
 </body>
