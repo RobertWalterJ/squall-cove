@@ -1,0 +1,3377 @@
+{
+ "wpn_hmg_fire_01": {
+  "id": "wpn_hmg_fire_01",
+  "file": "audio/wpn_hmg_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.9,
+  "rmsDb": -24.1,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg"
+  ]
+ },
+ "wpn_hmg_far_01": {
+  "id": "wpn_hmg_far_01",
+  "file": "audio/wpn_hmg_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.5,
+  "rmsDb": -31.2,
+  "lufs": -32.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg",
+   "far"
+  ]
+ },
+ "wpn_hmg_fire_02": {
+  "id": "wpn_hmg_fire_02",
+  "file": "audio/wpn_hmg_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.9,
+  "rmsDb": -23.6,
+  "lufs": -24.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg"
+  ]
+ },
+ "wpn_hmg_far_02": {
+  "id": "wpn_hmg_far_02",
+  "file": "audio/wpn_hmg_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.4,
+  "rmsDb": -30.8,
+  "lufs": -31.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg",
+   "far"
+  ]
+ },
+ "wpn_hmg_fire_03": {
+  "id": "wpn_hmg_fire_03",
+  "file": "audio/wpn_hmg_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.6,
+  "rmsDb": -23.6,
+  "lufs": -24.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg"
+  ]
+ },
+ "wpn_hmg_far_03": {
+  "id": "wpn_hmg_far_03",
+  "file": "audio/wpn_hmg_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.5,
+  "rmsDb": -30.7,
+  "lufs": -31.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "hmg",
+   "far"
+  ]
+ },
+ "wpn_aa_fire_01": {
+  "id": "wpn_aa_fire_01",
+  "file": "audio/wpn_aa_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 320,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.3,
+  "rmsDb": -23.6,
+  "lufs": -24.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa"
+  ]
+ },
+ "wpn_aa_far_01": {
+  "id": "wpn_aa_far_01",
+  "file": "audio/wpn_aa_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.1,
+  "rmsDb": -31.1,
+  "lufs": -32.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa",
+   "far"
+  ]
+ },
+ "wpn_aa_fire_02": {
+  "id": "wpn_aa_fire_02",
+  "file": "audio/wpn_aa_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 320,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.5,
+  "rmsDb": -23.8,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa"
+  ]
+ },
+ "wpn_aa_far_02": {
+  "id": "wpn_aa_far_02",
+  "file": "audio/wpn_aa_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.4,
+  "rmsDb": -30.8,
+  "lufs": -31.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa",
+   "far"
+  ]
+ },
+ "wpn_aa_fire_03": {
+  "id": "wpn_aa_fire_03",
+  "file": "audio/wpn_aa_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 320,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.4,
+  "rmsDb": -23.5,
+  "lufs": -24.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa"
+  ]
+ },
+ "wpn_aa_far_03": {
+  "id": "wpn_aa_far_03",
+  "file": "audio/wpn_aa_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.7,
+  "rmsDb": -30.7,
+  "lufs": -31.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "aa",
+   "far"
+  ]
+ },
+ "wpn_flak_burst_01": {
+  "id": "wpn_flak_burst_01",
+  "file": "audio/wpn_flak_burst_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.1,
+  "rmsDb": -22.6,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak"
+  ]
+ },
+ "wpn_flak_burst_far_01": {
+  "id": "wpn_flak_burst_far_01",
+  "file": "audio/wpn_flak_burst_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.7,
+  "rmsDb": -31.7,
+  "lufs": -32.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak",
+   "far"
+  ]
+ },
+ "wpn_flak_burst_02": {
+  "id": "wpn_flak_burst_02",
+  "file": "audio/wpn_flak_burst_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -1.9,
+  "rmsDb": -22.6,
+  "lufs": -22.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak"
+  ]
+ },
+ "wpn_flak_burst_far_02": {
+  "id": "wpn_flak_burst_far_02",
+  "file": "audio/wpn_flak_burst_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.4,
+  "rmsDb": -31.7,
+  "lufs": -32.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak",
+   "far"
+  ]
+ },
+ "wpn_flak_burst_03": {
+  "id": "wpn_flak_burst_03",
+  "file": "audio/wpn_flak_burst_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.45,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.4,
+  "rmsDb": -22.7,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak"
+  ]
+ },
+ "wpn_flak_burst_far_03": {
+  "id": "wpn_flak_burst_far_03",
+  "file": "audio/wpn_flak_burst_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.1,
+  "rmsDb": -31.7,
+  "lufs": -32.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "burst",
+   "heavy",
+   "flak",
+   "far"
+  ]
+ },
+ "wpn_mortar_launch_01": {
+  "id": "wpn_mortar_launch_01",
+  "file": "audio/wpn_mortar_launch_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 350,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.9,
+  "rmsDb": -24.5,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar"
+  ]
+ },
+ "wpn_mortar_launch_far_01": {
+  "id": "wpn_mortar_launch_far_01",
+  "file": "audio/wpn_mortar_launch_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.8,
+  "lufs": -32.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar",
+   "far"
+  ]
+ },
+ "wpn_mortar_launch_02": {
+  "id": "wpn_mortar_launch_02",
+  "file": "audio/wpn_mortar_launch_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 350,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -24.5,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar"
+  ]
+ },
+ "wpn_mortar_launch_far_02": {
+  "id": "wpn_mortar_launch_far_02",
+  "file": "audio/wpn_mortar_launch_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.5,
+  "rmsDb": -31.5,
+  "lufs": -32.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar",
+   "far"
+  ]
+ },
+ "wpn_mortar_launch_03": {
+  "id": "wpn_mortar_launch_03",
+  "file": "audio/wpn_mortar_launch_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 350,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.3,
+  "rmsDb": -24.6,
+  "lufs": -25.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar"
+  ]
+ },
+ "wpn_mortar_launch_far_03": {
+  "id": "wpn_mortar_launch_far_03",
+  "file": "audio/wpn_mortar_launch_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.7,
+  "rmsDb": -31.9,
+  "lufs": -32.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "heavy",
+   "mortar",
+   "far"
+  ]
+ },
+ "wpn_mortar_whistle_01": {
+  "id": "wpn_mortar_whistle_01",
+  "file": "audio/wpn_mortar_whistle_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.7,
+  "rmsDb": -26.7,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "whistle",
+   "incoming",
+   "mortar"
+  ]
+ },
+ "wpn_mortar_whistle_02": {
+  "id": "wpn_mortar_whistle_02",
+  "file": "audio/wpn_mortar_whistle_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.4,
+  "rmsDb": -26.7,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "whistle",
+   "incoming",
+   "mortar"
+  ]
+ },
+ "wpn_mortar_whistle_03": {
+  "id": "wpn_mortar_whistle_03",
+  "file": "audio/wpn_mortar_whistle_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.9,
+  "rmsDb": -26.8,
+  "lufs": -25.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "whistle",
+   "incoming",
+   "mortar"
+  ]
+ },
+ "wpn_howitzer_fire_01": {
+  "id": "wpn_howitzer_fire_01",
+  "file": "audio/wpn_howitzer_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -21.5,
+  "lufs": -22.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery"
+  ]
+ },
+ "wpn_howitzer_far_01": {
+  "id": "wpn_howitzer_far_01",
+  "file": "audio/wpn_howitzer_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2100,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.3,
+  "rmsDb": -29.9,
+  "lufs": -30.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "far"
+  ]
+ },
+ "wpn_howitzer_fire_sub_01": {
+  "id": "wpn_howitzer_fire_sub_01",
+  "file": "audio/wpn_howitzer_fire_sub_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.4,
+  "rmsDb": -24.8,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_howitzer_fire_02": {
+  "id": "wpn_howitzer_fire_02",
+  "file": "audio/wpn_howitzer_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.6,
+  "rmsDb": -21.2,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery"
+  ]
+ },
+ "wpn_howitzer_far_02": {
+  "id": "wpn_howitzer_far_02",
+  "file": "audio/wpn_howitzer_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2100,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.6,
+  "rmsDb": -29.4,
+  "lufs": -30.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "far"
+  ]
+ },
+ "wpn_howitzer_fire_sub_02": {
+  "id": "wpn_howitzer_fire_sub_02",
+  "file": "audio/wpn_howitzer_fire_sub_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.7,
+  "rmsDb": -24.9,
+  "lufs": -27.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_howitzer_fire_03": {
+  "id": "wpn_howitzer_fire_03",
+  "file": "audio/wpn_howitzer_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -21.7,
+  "lufs": -22.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery"
+  ]
+ },
+ "wpn_howitzer_far_03": {
+  "id": "wpn_howitzer_far_03",
+  "file": "audio/wpn_howitzer_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2100,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.4,
+  "rmsDb": -30.9,
+  "lufs": -32.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "far"
+  ]
+ },
+ "wpn_howitzer_fire_sub_03": {
+  "id": "wpn_howitzer_fire_sub_03",
+  "file": "audio/wpn_howitzer_fire_sub_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 700,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -24.9,
+  "lufs": -27.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "howitzer",
+   "artillery",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_naval_gun_fire_01": {
+  "id": "wpn_naval_gun_fire_01",
+  "file": "audio/wpn_naval_gun_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.2,
+  "rmsDb": -21.1,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval"
+  ]
+ },
+ "wpn_naval_gun_far_01": {
+  "id": "wpn_naval_gun_far_01",
+  "file": "audio/wpn_naval_gun_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -30.1,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "far"
+  ]
+ },
+ "wpn_naval_gun_fire_sub_01": {
+  "id": "wpn_naval_gun_fire_sub_01",
+  "file": "audio/wpn_naval_gun_fire_sub_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.6,
+  "rmsDb": -24.4,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_naval_gun_fire_02": {
+  "id": "wpn_naval_gun_fire_02",
+  "file": "audio/wpn_naval_gun_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.2,
+  "rmsDb": -21.4,
+  "lufs": -22.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval"
+  ]
+ },
+ "wpn_naval_gun_far_02": {
+  "id": "wpn_naval_gun_far_02",
+  "file": "audio/wpn_naval_gun_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.4,
+  "rmsDb": -30.3,
+  "lufs": -31.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "far"
+  ]
+ },
+ "wpn_naval_gun_fire_sub_02": {
+  "id": "wpn_naval_gun_fire_sub_02",
+  "file": "audio/wpn_naval_gun_fire_sub_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.6,
+  "rmsDb": -24.4,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_naval_gun_fire_03": {
+  "id": "wpn_naval_gun_fire_03",
+  "file": "audio/wpn_naval_gun_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -21.2,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval"
+  ]
+ },
+ "wpn_naval_gun_far_03": {
+  "id": "wpn_naval_gun_far_03",
+  "file": "audio/wpn_naval_gun_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.0,
+  "rmsDb": -30.1,
+  "lufs": -31.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "far"
+  ]
+ },
+ "wpn_naval_gun_fire_sub_03": {
+  "id": "wpn_naval_gun_fire_sub_03",
+  "file": "audio/wpn_naval_gun_fire_sub_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 800,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.7,
+  "rmsDb": -24.4,
+  "lufs": -26.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "naval",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "wpn_tank_cannon_fire_01": {
+  "id": "wpn_tank_cannon_fire_01",
+  "file": "audio/wpn_tank_cannon_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.8,
+  "rmsDb": -24.2,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank"
+  ]
+ },
+ "wpn_tank_cannon_far_01": {
+  "id": "wpn_tank_cannon_far_01",
+  "file": "audio/wpn_tank_cannon_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.7,
+  "rmsDb": -31.7,
+  "lufs": -33.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank",
+   "far"
+  ]
+ },
+ "wpn_tank_cannon_fire_02": {
+  "id": "wpn_tank_cannon_fire_02",
+  "file": "audio/wpn_tank_cannon_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -24.1,
+  "lufs": -24.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank"
+  ]
+ },
+ "wpn_tank_cannon_far_02": {
+  "id": "wpn_tank_cannon_far_02",
+  "file": "audio/wpn_tank_cannon_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -31.1,
+  "lufs": -32.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank",
+   "far"
+  ]
+ },
+ "wpn_tank_cannon_fire_03": {
+  "id": "wpn_tank_cannon_fire_03",
+  "file": "audio/wpn_tank_cannon_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.0,
+  "rmsDb": -24.3,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank"
+  ]
+ },
+ "wpn_tank_cannon_far_03": {
+  "id": "wpn_tank_cannon_far_03",
+  "file": "audio/wpn_tank_cannon_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.9,
+  "rmsDb": -31.6,
+  "lufs": -32.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "tank",
+   "far"
+  ]
+ },
+ "wpn_rpg_launch_01": {
+  "id": "wpn_rpg_launch_01",
+  "file": "audio/wpn_rpg_launch_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.6,
+  "rmsDb": -23.9,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg"
+  ]
+ },
+ "wpn_rpg_launch_far_01": {
+  "id": "wpn_rpg_launch_far_01",
+  "file": "audio/wpn_rpg_launch_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.3,
+  "lufs": -32.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg",
+   "far"
+  ]
+ },
+ "wpn_rpg_launch_02": {
+  "id": "wpn_rpg_launch_02",
+  "file": "audio/wpn_rpg_launch_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.4,
+  "rmsDb": -23.9,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg"
+  ]
+ },
+ "wpn_rpg_launch_far_02": {
+  "id": "wpn_rpg_launch_far_02",
+  "file": "audio/wpn_rpg_launch_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.4,
+  "rmsDb": -31.6,
+  "lufs": -32.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg",
+   "far"
+  ]
+ },
+ "wpn_rpg_launch_03": {
+  "id": "wpn_rpg_launch_03",
+  "file": "audio/wpn_rpg_launch_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 250,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.3,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.4,
+  "rmsDb": -23.9,
+  "lufs": -23.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg"
+  ]
+ },
+ "wpn_rpg_launch_far_03": {
+  "id": "wpn_rpg_launch_far_03",
+  "file": "audio/wpn_rpg_launch_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.6,
+  "rmsDb": -31.6,
+  "lufs": -32.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "launch",
+   "rpg",
+   "far"
+  ]
+ },
+ "wpn_rocket_loop_01": {
+  "id": "wpn_rocket_loop_01",
+  "file": "audio/wpn_rocket_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.1,
+  "rmsDb": -21.9,
+  "lufs": -22.8,
+  "seamDb": -35.5,
+  "tags": [
+   "weapon",
+   "rocket",
+   "loop"
+  ]
+ },
+ "wpn_rocket_loop_02": {
+  "id": "wpn_rocket_loop_02",
+  "file": "audio/wpn_rocket_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.3,
+  "rmsDb": -22.2,
+  "lufs": -23.1,
+  "seamDb": -35.2,
+  "tags": [
+   "weapon",
+   "rocket",
+   "loop"
+  ]
+ },
+ "wpn_rocket_loop_03": {
+  "id": "wpn_rocket_loop_03",
+  "file": "audio/wpn_rocket_loop_03.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.9,
+  "rmsDb": -21.8,
+  "lufs": -22.6,
+  "seamDb": -37.5,
+  "tags": [
+   "weapon",
+   "rocket",
+   "loop"
+  ]
+ },
+ "wpn_rpg_hit_01": {
+  "id": "wpn_rpg_hit_01",
+  "file": "audio/wpn_rpg_hit_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.2,
+  "rmsDb": -23.9,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "rpg"
+  ]
+ },
+ "wpn_rpg_hit_02": {
+  "id": "wpn_rpg_hit_02",
+  "file": "audio/wpn_rpg_hit_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.9,
+  "rmsDb": -24.2,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "rpg"
+  ]
+ },
+ "wpn_rpg_hit_03": {
+  "id": "wpn_rpg_hit_03",
+  "file": "audio/wpn_rpg_hit_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.0,
+  "rmsDb": -24.1,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "rpg"
+  ]
+ },
+ "imp_blast_small_01": {
+  "id": "imp_blast_small_01",
+  "file": "audio/imp_blast_small_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.9,
+  "rmsDb": -22.9,
+  "lufs": -23.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "small"
+  ]
+ },
+ "imp_blast_small_02": {
+  "id": "imp_blast_small_02",
+  "file": "audio/imp_blast_small_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -22.8,
+  "lufs": -23.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "small"
+  ]
+ },
+ "imp_blast_small_03": {
+  "id": "imp_blast_small_03",
+  "file": "audio/imp_blast_small_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.7,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "small"
+  ]
+ },
+ "imp_blast_medium_01": {
+  "id": "imp_blast_medium_01",
+  "file": "audio/imp_blast_medium_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.6,
+  "rmsDb": -23.6,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium"
+  ]
+ },
+ "imp_blast_medium_sub_01": {
+  "id": "imp_blast_medium_sub_01",
+  "file": "audio/imp_blast_medium_sub_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -28.3,
+  "lufs": -30.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_blast_medium_02": {
+  "id": "imp_blast_medium_02",
+  "file": "audio/imp_blast_medium_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.6,
+  "rmsDb": -23.7,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium"
+  ]
+ },
+ "imp_blast_medium_sub_02": {
+  "id": "imp_blast_medium_sub_02",
+  "file": "audio/imp_blast_medium_sub_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.5,
+  "rmsDb": -28.1,
+  "lufs": -30.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_blast_medium_03": {
+  "id": "imp_blast_medium_03",
+  "file": "audio/imp_blast_medium_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.8,
+  "rmsDb": -23.5,
+  "lufs": -24.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium"
+  ]
+ },
+ "imp_blast_medium_sub_03": {
+  "id": "imp_blast_medium_sub_03",
+  "file": "audio/imp_blast_medium_sub_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 650,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -28.3,
+  "lufs": -30.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "medium",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_blast_large_01": {
+  "id": "imp_blast_large_01",
+  "file": "audio/imp_blast_large_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.5,
+  "rmsDb": -23.6,
+  "lufs": -24.5,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large"
+  ]
+ },
+ "imp_blast_large_sub_01": {
+  "id": "imp_blast_large_sub_01",
+  "file": "audio/imp_blast_large_sub_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.6,
+  "rmsDb": -28.6,
+  "lufs": -31.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_blast_large_02": {
+  "id": "imp_blast_large_02",
+  "file": "audio/imp_blast_large_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.6,
+  "rmsDb": -24.0,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large"
+  ]
+ },
+ "imp_blast_large_sub_02": {
+  "id": "imp_blast_large_sub_02",
+  "file": "audio/imp_blast_large_sub_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.6,
+  "rmsDb": -28.6,
+  "lufs": -31.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_blast_large_03": {
+  "id": "imp_blast_large_03",
+  "file": "audio/imp_blast_large_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.0,
+  "rmsDb": -23.3,
+  "lufs": -24.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large"
+  ]
+ },
+ "imp_blast_large_sub_03": {
+  "id": "imp_blast_large_sub_03",
+  "file": "audio/imp_blast_large_sub_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 900,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.6,
+  "rmsDb": -28.6,
+  "lufs": -31.3,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "explosion",
+   "large",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_shell_whistle_01": {
+  "id": "imp_shell_whistle_01",
+  "file": "audio/imp_shell_whistle_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -27.0,
+  "lufs": -26.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "whistle",
+   "incoming",
+   "shell"
+  ]
+ },
+ "imp_shell_whistle_02": {
+  "id": "imp_shell_whistle_02",
+  "file": "audio/imp_shell_whistle_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.6,
+  "rmsDb": -27.1,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "whistle",
+   "incoming",
+   "shell"
+  ]
+ },
+ "imp_shell_whistle_03": {
+  "id": "imp_shell_whistle_03",
+  "file": "audio/imp_shell_whistle_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 300,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.9,
+  "rmsDb": -27.2,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "whistle",
+   "incoming",
+   "shell"
+  ]
+ },
+ "imp_crater_thud_01": {
+  "id": "imp_crater_thud_01",
+  "file": "audio/imp_crater_thud_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.2,
+  "rmsDb": -23.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater"
+  ]
+ },
+ "imp_crater_thud_sub_01": {
+  "id": "imp_crater_thud_sub_01",
+  "file": "audio/imp_crater_thud_sub_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.0,
+  "rmsDb": -26.3,
+  "lufs": -29.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_crater_thud_02": {
+  "id": "imp_crater_thud_02",
+  "file": "audio/imp_crater_thud_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.8,
+  "rmsDb": -23.6,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater"
+  ]
+ },
+ "imp_crater_thud_sub_02": {
+  "id": "imp_crater_thud_sub_02",
+  "file": "audio/imp_crater_thud_sub_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.0,
+  "rmsDb": -26.2,
+  "lufs": -28.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_crater_thud_03": {
+  "id": "imp_crater_thud_03",
+  "file": "audio/imp_crater_thud_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.3,
+  "rmsDb": -23.6,
+  "lufs": -24.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater"
+  ]
+ },
+ "imp_crater_thud_sub_03": {
+  "id": "imp_crater_thud_sub_03",
+  "file": "audio/imp_crater_thud_sub_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.0,
+  "rmsDb": -26.3,
+  "lufs": -29.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ground",
+   "crater",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 35-90 Hz body to layer under the full stem"
+  }
+ },
+ "imp_flak_fragments_01": {
+  "id": "imp_flak_fragments_01",
+  "file": "audio/imp_flak_fragments_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.4,
+  "rmsDb": -30.7,
+  "lufs": -30.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "fragments",
+   "flak"
+  ]
+ },
+ "imp_flak_fragments_02": {
+  "id": "imp_flak_fragments_02",
+  "file": "audio/imp_flak_fragments_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.7,
+  "rmsDb": -30.5,
+  "lufs": -30.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "fragments",
+   "flak"
+  ]
+ },
+ "imp_flak_fragments_03": {
+  "id": "imp_flak_fragments_03",
+  "file": "audio/imp_flak_fragments_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 200,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.8,
+  "rmsDb": -30.7,
+  "lufs": -29.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "fragments",
+   "flak"
+  ]
+ },
+ "veh_gunship_cannon_01": {
+  "id": "veh_gunship_cannon_01",
+  "file": "audio/veh_gunship_cannon_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 600,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -24.5,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft"
+  ]
+ },
+ "veh_gunship_cannon_far_01": {
+  "id": "veh_gunship_cannon_far_01",
+  "file": "audio/veh_gunship_cannon_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.9,
+  "rmsDb": -31.3,
+  "lufs": -32.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft",
+   "far"
+  ]
+ },
+ "veh_gunship_cannon_02": {
+  "id": "veh_gunship_cannon_02",
+  "file": "audio/veh_gunship_cannon_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 600,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.9,
+  "rmsDb": -24.5,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft"
+  ]
+ },
+ "veh_gunship_cannon_far_02": {
+  "id": "veh_gunship_cannon_far_02",
+  "file": "audio/veh_gunship_cannon_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.5,
+  "rmsDb": -31.8,
+  "lufs": -33.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft",
+   "far"
+  ]
+ },
+ "veh_gunship_cannon_03": {
+  "id": "veh_gunship_cannon_03",
+  "file": "audio/veh_gunship_cannon_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 600,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.7,
+  "rmsDb": -24.6,
+  "lufs": -25.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft"
+  ]
+ },
+ "veh_gunship_cannon_far_03": {
+  "id": "veh_gunship_cannon_far_03",
+  "file": "audio/veh_gunship_cannon_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.8,
+  "rmsDb": -31.3,
+  "lufs": -32.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "gunshot",
+   "heavy",
+   "gunship",
+   "aircraft",
+   "far"
+  ]
+ },
+ "veh_gunship_minigun_loop_01": {
+  "id": "veh_gunship_minigun_loop_01",
+  "file": "audio/veh_gunship_minigun_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.4,
+  "rmsDb": -21.8,
+  "lufs": -22.8,
+  "seamDb": -24.8,
+  "tags": [
+   "weapon",
+   "minigun",
+   "gunship",
+   "loop"
+  ]
+ },
+ "veh_gunship_minigun_loop_02": {
+  "id": "veh_gunship_minigun_loop_02",
+  "file": "audio/veh_gunship_minigun_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.1,
+  "rmsDb": -22.1,
+  "lufs": -23.0,
+  "seamDb": -32.6,
+  "tags": [
+   "weapon",
+   "minigun",
+   "gunship",
+   "loop"
+  ]
+ },
+ "veh_gunship_minigun_loop_03": {
+  "id": "veh_gunship_minigun_loop_03",
+  "file": "audio/veh_gunship_minigun_loop_03.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.9,
+  "rmsDb": -22.0,
+  "lufs": -22.9,
+  "seamDb": -33.6,
+  "tags": [
+   "weapon",
+   "minigun",
+   "gunship",
+   "loop"
+  ]
+ },
+ "wpn_ammo_chain_01": {
+  "id": "wpn_ammo_chain_01",
+  "file": "audio/wpn_ammo_chain_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.3,
+  "rmsDb": -27.7,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "belt"
+  ]
+ },
+ "wpn_ammo_chain_02": {
+  "id": "wpn_ammo_chain_02",
+  "file": "audio/wpn_ammo_chain_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.3,
+  "rmsDb": -27.9,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "belt"
+  ]
+ },
+ "wpn_ammo_chain_03": {
+  "id": "wpn_ammo_chain_03",
+  "file": "audio/wpn_ammo_chain_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.9,
+  "rmsDb": -27.7,
+  "lufs": -26.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "belt"
+  ]
+ },
+ "wpn_bolt_heavy_01": {
+  "id": "wpn_bolt_heavy_01",
+  "file": "audio/wpn_bolt_heavy_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.85,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -28.1,
+  "lufs": -28.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "bolt"
+  ]
+ },
+ "wpn_bolt_heavy_02": {
+  "id": "wpn_bolt_heavy_02",
+  "file": "audio/wpn_bolt_heavy_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.85,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.5,
+  "rmsDb": -28.1,
+  "lufs": -28.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "bolt"
+  ]
+ },
+ "wpn_bolt_heavy_03": {
+  "id": "wpn_bolt_heavy_03",
+  "file": "audio/wpn_bolt_heavy_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.85,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.4,
+  "rmsDb": -28.1,
+  "lufs": -28.4,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "bolt"
+  ]
+ },
+ "wpn_barrel_overheat_01": {
+  "id": "wpn_barrel_overheat_01",
+  "file": "audio/wpn_barrel_overheat_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -29.9,
+  "lufs": -27.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "overheat"
+  ]
+ },
+ "wpn_barrel_overheat_02": {
+  "id": "wpn_barrel_overheat_02",
+  "file": "audio/wpn_barrel_overheat_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.4,
+  "rmsDb": -30.1,
+  "lufs": -28.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "overheat"
+  ]
+ },
+ "wpn_barrel_overheat_03": {
+  "id": "wpn_barrel_overheat_03",
+  "file": "audio/wpn_barrel_overheat_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 60,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.2,
+  "rmsDb": -30.8,
+  "lufs": -28.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "handling",
+   "overheat"
+  ]
+ },
+ "foley_turret_traverse_loop_01": {
+  "id": "foley_turret_traverse_loop_01",
+  "file": "audio/foley_turret_traverse_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.7,
+  "rmsDb": -21.9,
+  "lufs": -22.8,
+  "seamDb": -32.5,
+  "tags": [
+   "foley",
+   "turret",
+   "servo",
+   "loop"
+  ]
+ },
+ "foley_turret_traverse_loop_02": {
+  "id": "foley_turret_traverse_loop_02",
+  "file": "audio/foley_turret_traverse_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.9,
+  "rmsDb": -22.0,
+  "lufs": -22.9,
+  "seamDb": -53.0,
+  "tags": [
+   "foley",
+   "turret",
+   "servo",
+   "loop"
+  ]
+ },
+ "foley_turret_traverse_loop_03": {
+  "id": "foley_turret_traverse_loop_03",
+  "file": "audio/foley_turret_traverse_loop_03.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.6,
+  "rmsDb": -22.0,
+  "lufs": -22.9,
+  "seamDb": -38.9,
+  "tags": [
+   "foley",
+   "turret",
+   "servo",
+   "loop"
+  ]
+ },
+ "foley_turret_stop_01": {
+  "id": "foley_turret_stop_01",
+  "file": "audio/foley_turret_stop_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.3,
+  "rmsDb": -26.7,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [
+   "foley",
+   "turret",
+   "clunk"
+  ]
+ },
+ "foley_turret_stop_02": {
+  "id": "foley_turret_stop_02",
+  "file": "audio/foley_turret_stop_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.2,
+  "rmsDb": -26.7,
+  "lufs": -27.7,
+  "seamDb": null,
+  "tags": [
+   "foley",
+   "turret",
+   "clunk"
+  ]
+ },
+ "foley_turret_stop_03": {
+  "id": "foley_turret_stop_03",
+  "file": "audio/foley_turret_stop_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.55,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.7,
+  "rmsDb": -26.7,
+  "lufs": -27.6,
+  "seamDb": null,
+  "tags": [
+   "foley",
+   "turret",
+   "clunk"
+  ]
+ }
+}

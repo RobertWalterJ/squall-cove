@@ -1,7 +1,7 @@
 """Run every generator module, merge the manifest, run the QA. Usage: python render_all.py [module ...]"""
 import os, sys, json, glob, importlib, time
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-MODULES = ['gen_ambience', 'gen_weather', 'gen_water', 'gen_materials', 'gen_fire_electric', 'gen_vehicles', 'gen_people', 'gen_ui_music', 'gen_weapons']
+MODULES = ['gen_ambience', 'gen_weather', 'gen_water', 'gen_materials', 'gen_fire_electric', 'gen_vehicles', 'gen_people', 'gen_ui_music', 'gen_weapons', 'gen_heavy']
 
 def main():
     want = sys.argv[1:] or MODULES

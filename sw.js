@@ -1,5 +1,5 @@
 /* Squall Cove service worker. Touches ONLY its own caches (squall-cove-vN). Bump VERSION on each release. */
-const VERSION = 'v8.6.0';
+const VERSION = 'v9.0.0';      // v9.0.0: battle command (command costs, spectator AI, squads, helicopters, end screen). No new asset files; helis.glb, air.glb, weapons.glb are runtime-cached cache-first under this version.
 const CACHE = 'squall-cove-' + VERSION;
 const MINE = /^squall-cove-v[\d.]+$/;
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {}))); });
