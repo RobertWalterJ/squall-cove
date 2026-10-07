@@ -688,7 +688,7 @@ float ripH(vec2 p){ vec2 f = p - uRipO; if (f.x < 1.0 || f.y < 1.0 || f.x > ${RN
 vec2 ripG(vec2 p){ return vec2(ripH(p + vec2(0.8, 0.0)) - ripH(p - vec2(0.8, 0.0)), ripH(p + vec2(0.0, 0.8)) - ripH(p - vec2(0.0, 0.8))) / 1.6; }`;
 
 /* ================================================================ terrain data */
-const CELL = (() => { try { const qp = new URLSearchParams(location.search), q = qp.get('size'); if (q) return q === 'large' ? 2 : 1; const sz = localStorage.getItem('squall-cove-size'); if (sz === 'large') return 2; if (sz === 'standard') return 1; let mt = qp.get('map'); if (!mt) { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); mt = m && m.t; } return mt === 'port' && !matchMedia('(pointer: coarse)').matches ? 2 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
+const CELL = (() => { try { const qp = new URLSearchParams(location.search), q = qp.get('size'); if (q) return q === 'large' ? 2 : 1; let mt = qp.get('map'); if (!mt) { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); mt = m && m.t; } if (mt === 'port') return 3; const sz = localStorage.getItem('squall-cove-size'); if (sz === 'large') return 2; if (sz === 'standard') return 1; return mt === 'port' ? 3 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
 const TN = 257, TH = 128, EXT = TH * CELL;      // 257 x 257 heights, centred on the origin; EXT is the half width of the world in metres
 const W2G = (x) => x / CELL + TH, G2W = (j) => (j - TH) * CELL;     // world metres to grid cell, and back
 let HGT;                             // Float32Array, row i = z index, column j = x index
@@ -785,20 +785,25 @@ try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); i
 { const qp = new URLSearchParams(location.search), qm = qp.get('map'); if (qm && MAPS.some(q => q[0] === qm)) MAP = { t: qm, seed: qm === 'cove' ? 'cove' : (qp.get('seed') || qm) }; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
-const ROADS = [                                                          // control points in map units (u east, v south) with the road height in metres; the ground is graded to these
-  { name: 'Harbour spine', w: 8, marks: true, pts: [[0.0, 0.15, 1.6], [0.0, 0.03, 2.4], [0.0, -0.1, 3.1], [0.15, -0.16, 3.1]] },
-  { name: 'East road', w: 7, marks: true, pts: [[0.15, -0.16, 3.1], [0.4, -0.11, 3.1], [0.56, -0.03, 3.1]] },
-  { name: 'West farm lane', w: 5, marks: false, pts: [[-0.5, -0.06, 3.1], [-0.5, -0.2, 3.2], [-0.5, -0.32, 3.4]] },
-  { name: 'East farm lane', w: 5, marks: false, pts: [[0.4, -0.11, 3.1], [0.44, -0.24, 3.3], [0.45, -0.34, 3.4]] },
-  { name: 'West road', w: 7, marks: true, pts: [[0.0, -0.06, 3.1], [-0.25, -0.06, 3.1], [-0.5, -0.06, 3.1]] },
-  { name: 'Quay lane', w: 6, marks: true, pts: [[-0.55, 0.17, 1.6], [0.0, 0.17, 1.6], [0.43, 0.17, 1.6]] },
+const ROADS = [                                                          // control points in metres from the centre of the world, with the road height; the ground is graded to these
+  { name: 'Main Street', w: 9, marks: true, pts: [[-232, -40, 4.4], [0, -40, 4.4], [232, -40, 4.4]] },
+  { name: 'Cross -150', w: 7, marks: true, pts: [[-150, -40, 4.4], [-150, 0, 4.4], [-150, 46, 1.6]] },
+  { name: 'Cross -50', w: 7, marks: true, pts: [[-50, -40, 4.4], [-50, 0, 4.4], [-50, 46, 1.6]] },
+  { name: 'Cross 70', w: 7, marks: true, pts: [[70, -40, 4.4], [70, 0, 4.4], [70, 46, 1.6]] },
+  { name: 'Cross 150', w: 7, marks: true, pts: [[150, -40, 4.4], [150, 0, 4.4], [150, 46, 1.6]] },
+  { name: 'Quay lane', w: 7, marks: true, pts: [[-196, 46, 1.6], [-20, 46, 1.6], [156, 46, 1.6]] },
+  { name: 'Site A road', w: 6, marks: false, pts: [[-245, -40, 4.4], [-245, -70, 4.4], [-245, -95, 4.4]] },
+  { name: 'Site B road', w: 6, marks: false, pts: [[-15, -40, 4.4], [-15, -75, 4.4], [-15, -105, 4.4]] },
+  { name: 'Site C road', w: 6, marks: false, pts: [[190, -40, 4.4], [190, -60, 4.4], [190, -80, 4.4]] },
+  { name: 'West farm lane', w: 5, marks: false, pts: [[-195, -40, 4.4], [-190, -100, 4.5], [-180, -150, 4.6]] },
+  { name: 'East farm lane', w: 5, marks: false, pts: [[110, -40, 4.4], [140, -110, 4.5], [165, -175, 4.6]] },
 ];
-const ROAD_JUNCTIONS = [[0.0, -0.06], [0.0, 0.17], [0.15, -0.16], [-0.5, -0.06], [0.4, -0.11]];
-let ROAD_DENSE = null;                                                       // each road resampled as a smooth curve, every 2 m: [{x, z, h}] in metres
-function roadDense(E) {
-  if (ROAD_DENSE && ROAD_DENSE.E === E) return ROAD_DENSE; const out = []; ROAD_DENSE = out; out.E = E;
+const ROAD_JUNCTIONS = [[-150, -40], [-50, -40], [70, -40], [150, -40], [-245, -40], [-15, -40], [190, -40], [-195, -40], [110, -40], [-150, 46], [-50, 46], [70, 46], [150, 46]];
+let ROAD_DENSE = null;                                                       // each road resampled as a smooth curve, every 2 m: [{r, pts: [{x, z, h}]}] in metres
+function roadDense() {
+  if (ROAD_DENSE) return ROAD_DENSE; const out = []; ROAD_DENSE = out;
   for (const r of ROADS) {
-    const P = r.pts.map(q => ({ x: q[0] * E, z: q[1] * E, h: q[2] })), pts = [], n = P.length;
+    const P = r.pts.map(q => ({ x: q[0], z: q[1], h: q[2] })), pts = [], n = P.length;
     for (let i = 0; i < n - 1; i++) {
       const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(n - 1, i + 2)], len = Math.hypot(p2.x - p1.x, p2.z - p1.z), steps = Math.max(2, Math.ceil(len / 2));
       for (let k = 0; k < steps; k++) { const t = k / steps, t2 = t * t, t3 = t2 * t, f = (a, b, c, d) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3); pts.push({ x: f(p0.x, p1.x, p2.x, p3.x), z: f(p0.z, p1.z, p2.z, p3.z), h: p1.h + (p2.h - p1.h) * (t * t * (3 - 2 * t)) }); }
@@ -807,19 +812,26 @@ function roadDense(E) {
   }
   return out;
 }
-function roadGrade(u, v, h, E) {                                             // lay the ground to the road: level across, smooth along, a short shoulder either side
-  const x = u * E, z = v * E; let best = null, bd = 1e9, bh = 0, bw = 0;
-  for (const { r, pts } of roadDense(E)) for (let i = 0; i < pts.length; i++) { const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; bh = p.h; bw = r.w / 2; } }
-  const dist = Math.sqrt(bd); if (dist > bw + 5) return h; const k = dist <= bw + 0.6 ? 1 : 1 - (dist - bw - 0.6) / (4.4); const w = k * k * (3 - 2 * k); return h * (1 - w) + bh * w;
+function roadGrade(x, z, h) {                                                // level the ground to the road: flat across, smooth along, a short shoulder either side
+  let bd = 1e9, bh = 0, bw = 0;
+  for (const { r, pts } of roadDense()) for (let i = 0; i < pts.length; i++) { const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; bh = p.h; bw = r.w / 2; } }
+  const dist = Math.sqrt(bd); if (dist > bw + 6) return h; const k = dist <= bw + 0.8 ? 1 : 1 - (dist - bw - 0.8) / 5.2; const w = k * k * (3 - 2 * k); return h * (1 - w) + bh * w;
 }
-const PORT_COAST = (u, v) => { const du = Math.max(-0.74 - u, 0, u - 0.6) / 0.14, dv = v > 0.34 ? (v - 0.34) / 0.02 : Math.max(-0.02 - v, 0) / 0.14; return Math.max(0, 1 - Math.hypot(du, dv)); };
-const PORT_BOX = (u, v, u0, u1, v0, v1, m) => { const du = Math.max(u0 - u, 0, u - u1), dv = Math.max(v0 - v, 0, v - v1), d = Math.hypot(du, dv); return d <= 0 ? 1 : Math.max(0, 1 - d / m); };
-function portStamp(u, v, h) {                               // the quay, its slips, the building pads and the breakwater: flat, level and exactly where the scenario expects them
-  let w = PORT_BOX(u, v, -0.58, 0.46, 0.12, 0.33, 0.035); h = h * (1 - w) + 1.6 * w;                                  // the quay apron
-  for (const [a, b] of [[-0.31, -0.22], [0.05, 0.14]]) { const sw = PORT_BOX(u, v, a, b, 0.2, 0.55, 0.012); h = h * (1 - sw) + -3.2 * sw; }       // two slips cut into the quay
-  { const rw = PORT_BOX(u, v, -0.58, 0.46, -0.02, 0.12, 0.035); if (rw > 0) { const tz = Math.min(1, Math.max(0, (v + 0.02) / 0.14)), hh = 3.1 + (1.6 - 3.1) * tz; h = h * (1 - rw) + hh * rw; } }            // a gentle ramp from the plain down to the quay so vehicles can drive between them
-  const mole = PORT_BOX(u, v, 0.5, 0.56, 0.2, 0.62, 0.012); h = Math.max(h, 1.3 * mole + h * (1 - mole));                                         // a breakwater
-  for (const [u0, u1, v0, v1] of [[-0.66, -0.34, -0.16, 0.04], [0.0, 0.3, -0.2, 0.0], [0.42, 0.72, -0.14, 0.1], [-0.2, 0.1, -0.42, -0.3], [-0.74, -0.34, -0.48, -0.24], [0.26, 0.64, -0.5, -0.26]]) { const pw = PORT_BOX(u, v, u0, u1, v0, v1, 0.04); h = h * (1 - pw) + 3.1 * pw; }
+/* ---- the Port and mountains plan, all in metres. See MAP-PLAN.md */
+const PORT = {
+  apron: [-200, 160, 40, 100], slips: [[-110, -94], [10, 26]], moles: [[160, 172, 100, 240], [-216, -204, 100, 205]],
+  pads: [[-250, 250, -80, 28, 4.4, 30], [-275, -215, -125, -65, 4.4, 16], [-45, 15, -135, -75, 4.4, 16], [160, 220, -110, -50, 4.4, 16], [-345, -155, -225, -125, 4.5, 24], [115, 305, -245, -145, 4.5, 24], [-350, -318, 38, 72, 6.5, 14], [258, 258, -288, -288, 16, 34]],
+};
+const sstepP = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const boxW = (x, z, x0, x1, z0, z1, m) => { const dx = Math.max(x0 - x, 0, x - x1), dz = Math.max(z0 - z, 0, z - z1); return Math.max(0, 1 - Math.hypot(dx, dz) / m); };
+function portStamp(x, z, h) {                                                // the quay, slips, basin, breakwaters and flat ground for the sites: exactly where the scenario expects them
+  const A = PORT.apron;
+  { const w = boxW(x, z, A[0], A[1], 0, 40, 10); if (w > 0 && h > 0.3) { const t = sstepP(0, 40, z), hh = 4.4 + (1.6 - 4.4) * t; h = h * (1 - w) + hh * w; } }                         // a gentle ramp down from the town to the quay
+  { const w = boxW(x, z, A[0] - 4, A[1] + 4, 102, 176, 16); if (w > 0) { const hh = -7 - 2 * sstepP(102, 176, z); h = h * (1 - w) + Math.min(h, hh) * w; } }                  // the harbour basin: deep enough for ships alongside
+  { const w = boxW(x, z, A[0], A[1], A[2], A[3], 1.5); h = h * (1 - w) + 1.6 * w; }                                                                                         // the apron
+  for (const [a, b] of PORT.slips) { const w = boxW(x, z, a, b, 54, 112, 2.5); h = h * (1 - w) + (-5) * w; }                                                                  // two slips
+  for (const [x0, x1, z0, z1] of PORT.moles) { const w = boxW(x, z, x0, x1, z0, z1, 4); if (w > 0) h = h * (1 - w) + Math.max(h, 1.8) * w; }                                    // breakwaters
+  for (const [x0, x1, z0, z1, hh, m] of PORT.pads) { const w = boxW(x, z, x0, x1, z0, z1, m); if (w > 0 && h > 0.35) h = h * (1 - w) + hh * w; }                 // flat ground only on land: never push the coast out
   return h;
 }
 function genTerrain(H, tpl, seedStr) {
@@ -849,22 +861,30 @@ function genTerrain(H, tpl, seedStr) {
       const lagoon = V > -0.5 && V < bc - 0.03 ? -1.7 : -9; h = Math.max(main, bar, V < bc + 0.04 ? lagoon : Math.max(-9.2, -2.5 - (V - bc) * 14));
     }
     else if (tpl === 'port') {
-      const nw = 1 - ss(-0.78, -0.22, v), plain = 3.0 + 1.3 * fbm(u * 2.2 + 4, v * 2.2), mt = 25 * nw * (0.45 + fbm(U * 3.2 + 2, V * 3.2));
-      const th = Math.atan2(v + 0.12, u), rr = Math.hypot(u * 0.92, (v + 0.12) * 1.05), Rb = 0.8 + 0.2 * (fbm(Math.cos(th) * 1.2 + 7, Math.sin(th) * 1.2 + 3) - 0.5) + 0.03 * Math.sin(5 * th + ph) + 0.015 * Math.sin(11 * th + ph2);          // a ragged coastline
-      const qb = PORT_COAST(u, v);                                                                                          // the harbour front stays solid land, with its own straight south edge
-      const sd = Math.max(Rb - rr, (qb - 0.5) * 0.4);
-      let m = plain + mt; const dr = Math.abs(u - (-0.4 + 0.07 * Math.sin(v * 5 + ph))); m -= 2.4 * (1 - ss(0.0, 0.05, dr)) * ss(-0.55, -0.15, v) * (1 - ss(0.2, 0.3, v));
-      const sea = Math.max(-9.2, -2.6 + Math.min(0, sd) * 16), shore = ss(-0.02, 0.07, sd); h = sea * (1 - shore) + (m * ss(0.0, 0.12, sd) + 0.5 * (1 - ss(0.0, 0.12, sd))) * shore; h = roadGrade(u, v, portStamp(u, v, h), 128 * CELL);
+      const E = 128 * CELL, x = u * E, z = v * E, bump = (cx, cz, R) => { const q = ((x - cx) * (x - cx) + (z - cz) * (z - cz)) / (R * R); return q >= 1 ? 0 : Math.pow(1 - q, 1.6); }, segD = (ax, az, bx, bz) => { const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(x - ax - dx * t, z - az - dz * t); };
+      // the coastline: a ragged main island, a western headland, an eastern peninsula, two islets, with the harbour bay carved out of the south
+      const ang = Math.atan2(z + 70, x), Rb = 1 + 0.16 * (fbm(Math.cos(ang) * 1.3 + 7, Math.sin(ang) * 1.3 + 3) - 0.5) * 2 + 0.05 * Math.sin(5 * ang + ph) + 0.025 * Math.sin(11 * ang + ph2);
+      let sd = (Rb - Math.hypot(x / 290, (z + 70) / 245)) * 245;
+      sd = Math.max(sd, 36 - segD(-285, 15, -352, 70), (1 - Math.hypot((x - 300) / 62, (z + 15) / 105)) * 62, 40 - Math.hypot(x - 40, z - 300), 26 - Math.hypot(x + 210, z - 335));
+      { const w = boxW(x, z, -215, 175, 100, 420, 46); if (w > 0) sd = sd * (1 - w) + (-(z - 100) - 6) * w; }                    // the bay in front of the quay
+      let hl = 0.4 + 2.7 * sstepP(0, 24, sd) + 1.3 * sstepP(24, 95, sd); hl += 1.1 * (fbm(x / 190 + 4, z / 190) - 0.5) * 2 * sstepP(30, 110, sd) + 3.6 * (fbm(x / 105 + 17, z / 105 + 5) - 0.5) * 2 * sstepP(45, 130, sd) + 1.2 * (fbm(x / 38 + 3, z / 38 + 9) - 0.5) * 2 * sstepP(30, 90, sd);                              // rolling country
+      hl += 7 * sstepP(0, 9, sd) * sstepP(110, 190, x) * (1 - sstepP(-160, -60, z)) * (1 - sstepP(-40, 10, z)) * 0 + 7 * sstepP(0, 10, sd) * sstepP(150, 230, x) * sstepP(-40, -140, z);                                                  // sea cliffs on the north-east coast
+      let mt = 62 * bump(-40, -300, 190) + 48 * bump(140, -275, 150) + 40 * bump(-250, -265, 140) + 14 * bump(255, -95, 90); mt *= 0.6 + 0.8 * fbm(x / 95 + 9, z / 95);
+      hl += mt * sstepP(10, 80, sd);
+      { const lk = Math.hypot(x + 60, z + 250), w = 1 - sstepP(30, 48, lk); if (w > 0 && hl > 0) hl = hl * (1 - w) + (-2.4) * w; }                                    // a lake in the mountains
+      { let dr = 1e9; for (const [ax, az, bx, bz] of [[-60, -250, 60, -236], [60, -236, 160, -204], [160, -204, 250, -152], [250, -152, 300, -92], [300, -92, 335, -64]]) { const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); dr = Math.min(dr, Math.hypot(x - ax - dx * t, z - az - dz * t)); } const w = 1 - sstepP(5, 15, dr); if (w > 0 && hl > 0.2) hl = hl * (1 - w) + (-0.8) * w; }   // a river to the east coast
+      const sea = Math.max(-16, -2.2 + sd * 0.075); h = sd < 0 ? sea * (1 - sstepP(-7, 0, sd)) + 0.4 * sstepP(-7, 0, sd) : hl;
+      h = roadGrade(x, z, portStamp(x, z, h));
     }
     else h = Math.max(-9.2, 14 * (1 - r / 0.7) - 1);
     if (tpl !== 'port' && h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
-    const e = tpl === 'port' ? ss(0.93, 0.995, Math.max(Math.abs(u), Math.abs(v))) : ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); h = h * (1 - e) + (-9.2) * e; H[i * N + j] = Math.max(-9.2, Math.min(30, h));
+    const e = tpl === 'port' ? ss(0.93, 0.995, Math.max(Math.abs(u), Math.abs(v))) : ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); { const fl = tpl === 'port' ? -16 : -9.2; h = h * (1 - e) + fl * e; H[i * N + j] = Math.max(fl, Math.min(30, h)); }
   }
   // age the land: let steep faces relax and soften the grain so coasts look worn, not noisy
   for (let pass = 0; pass < 36; pass++) for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) {
     const k = i * N + j; if (H[k] <= 0) continue; for (const q of [1, N]) for (const sg of [1, -1]) { const n = k + sg * q, dh = H[k] - H[n]; if (dh > 1.55 && H[n] > -8) { const m = (dh - 1.55) * 0.2; H[k] -= m; H[n] += m; } }
   }
-  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const uu = (j - C) / C, vv = (i - C) / C; H[i * N + j] = roadGrade(uu, vv, portStamp(uu, vv, H[i * N + j]), 128 * CELL); }
+  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const E = 128 * CELL, xx = (j - C) / C * E, zz = (i - C) / C * E; H[i * N + j] = roadGrade(xx, zz, portStamp(xx, zz, H[i * N + j])); }
   for (let pass = 0; pass < 2; pass++) { const c = H.slice(); for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) { const k = i * N + j; if (c[k] > 0.1) H[k] = (c[k] * 4 + c[k - 1] + c[k + 1] + c[k - N] + c[k + N]) / 8; } }
 }
 const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
@@ -1137,7 +1157,7 @@ function swayMaterial(src, height, stiff) {
 const trees = [];   // {x, z, r, kind}
 function scatterVegetation() {
   const kinds = { pine: [], broadleaf: [], palm: [], shrub: [] };
-  for (let k = 0; k < 14000 * CELL && trees.length < (quality === 'high' ? 520 : 340) * (CELL > 1 ? 1.7 : 1); k++) {
+  for (let k = 0; k < 14000 * CELL && trees.length < (quality === 'high' ? 520 : 340) * (CELL > 2 ? 4.4 : CELL > 1 ? 1.7 : 1); k++) {
     const x = (hash2(k, 11) - 0.5) * 240 * CELL, z = (hash2(k, 23) - 0.5) * 240 * CELL;
     const h = heightAt(x, z); if (h < 1.6) continue;
     const s = slopeAt(x, z); if (s > 0.28) continue;
@@ -1335,7 +1355,7 @@ const waterMat = new THREE.ShaderMaterial({
     float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
     ${quality === 'high' ? 'float cellular(vec2 p){ vec2 i = floor(p), f = fract(p); float d = 1.0; for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 g = vec2(float(x), float(y)); vec2 o = vec2(h21(i + g), h21(i + g + 17.3)); o = 0.5 + 0.5 * sin(uTime * 0.7 + 6.283 * o); d = min(d, length(g + o - f)); } return d; }' : 'float cellular(vec2 p){ return 1.0 - vnoise(p * 2.0); }'}
-    float H(vec2 p){ if (abs(p.x) > ${EXT}.0 || abs(p.y) > ${EXT}.0) return -9.3; vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
+    float H(vec2 p){ if (abs(p.x) > ${EXT}.0 || abs(p.y) > ${EXT}.0) return ${MAP.t === 'port' ? '-16.0' : '-9.3'}; vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     void main(){
       vec3 V = normalize(cameraPosition - vW);
@@ -3589,27 +3609,23 @@ function addLabel(x, y, z, title, sub, col) {
 setInterval(() => { const k = clamp(god.dist * 0.02, 1.4, 5); for (const l of LABELS) { l.visible = labelsOn && mode === 'god'; l.scale.set(k * 4, k, 1); } }, 120);
 function setLabels(o) { labelsOn = o; for (const l of LABELS) l.visible = o && mode === 'god'; }
 function layPortScenario() {
-  if (portLaid) return; portLaid = true; const X = (u) => u * EXT, Z = (v) => v * EXT, Y = (x, z) => Math.max(heightAt(x, z), 0);
-  const lab = (u, v, t, sub, col, up) => addLabel(X(u), Y(X(u), Z(v)) + (up || 9), Z(v), t, sub, col);
-  const yA = addSite('yard', X(-0.12), Z(0.22)), yB = addSite('yard', X(0.28), Z(0.22));
-  const bA = addSite('build', X(-0.5), Z(-0.06)), bB = addSite('build', X(0.15), Z(-0.1)), bC = addSite('build', X(0.56), Z(-0.02), { owner: 'Developers' }); if (bC) bC.flag.material.color.setHex(0x3c5a8f);
-  addSite('plant', X(-0.05), Z(-0.36)); addSite('view', X(-0.1), Z(-0.56));
-  lab(-0.12, 0.22, 'CARGO YARD', 'Dock workers stack cargo here. Guards defend it, raiders raid it.', '#a8794a');
-  lab(0.28, 0.22, 'CARGO YARD', 'Second yard. Stone and crates wait for builders and trucks.', '#a8794a');
-  lab(-0.5, -0.06, 'BUILD SITE (Port)', 'Builders carry stone from the yard and raise a circle. A crane truck helps.', '#e0883a');
-  lab(0.15, -0.1, 'BUILD SITE (Port)', 'Second Port site. If nobody guards it, rivals can take it over.', '#e0883a');
-  lab(0.56, -0.02, 'RIVAL SITE', 'Developers build here and compete for the same stone. Outnumber them for 20 seconds to take it.', '#3c5a8f');
-  lab(-0.05, -0.36, 'PLANT SITE', 'Foresters plant trees here on the foothills.', '#5fbf4a');
-  lab(-0.1, -0.56, 'VIEWPOINT', 'Visitors climb here to look at the harbour. A lookout for watching the coast.', '#a98be0', 6);
-  lab(-0.265, 0.34, 'SLIP', 'A tug works from the slip. Boats can tie up along the quay.', '#7cc4e8', 5); lab(0.095, 0.34, 'SLIP', 'Second slip.', '#7cc4e8', 5);
-  const stoneC = CARGO.find(c => c.id === 'stone'), crateC = CARGO.find(c => c.id === 'crate') || CARGO[0];
-  if (yA) stockYard(yA); if (yB) stockYard(yB, 'noStone');
-  if (yA) placePeople(3, { x: yA.x + 6, z: yA.z - 4 }, 'Guard', 'blue'); placePeople(3, { x: X(-0.5) + 5, z: Z(-0.06) + 5 }, 'Builder'); placePeople(2, { x: X(0.0), z: Z(0.18) }, 'Dock worker'); if (bC) spawnDevelopers(3, { x: bC.x + 4, z: bC.z + 4 });
+  if (portLaid) return; portLaid = true;
+  const yA = addSite('yard', -150, 78), yB = addSite('yard', -45, 70), yC = addSite('yard', 90, 76);
+  const bA = addSite('build', -245, -95), bB = addSite('build', -15, -105), bC = addSite('build', 190, -80, { owner: 'Developers' }); if (bC) bC.flag.material.color.setHex(0x3c5a8f);
+  addSite('plant', 60, -205); addSite('view', -336, 56);
+  const lab = (x, z, t, col, up) => addLabel(x, Math.max(heightAt(x, z), 0) + (up || 9), z, t, '', col);
+  lab(-150, 78, 'CARGO YARD', '#a8794a'); lab(-45, 70, 'CARGO YARD', '#a8794a'); lab(90, 76, 'CARGO YARD', '#a8794a'); lab(-245, -95, 'BUILD SITE', '#e0883a'); lab(-15, -105, 'BUILD SITE', '#e0883a'); lab(190, -80, 'RIVAL SITE', '#3c5a8f'); lab(60, -205, 'PLANT SITE', '#5fbf4a'); lab(-336, 56, 'LIGHTHOUSE', '#a98be0', 14);
+  if (yA) stockYard(yA); if (yB) stockYard(yB, 'noStone'); if (yC) stockYard(yC);
+  if (yA) placePeople(3, { x: yA.x + 10, z: yA.z - 8 }, 'Guard', 'blue'); placePeople(3, { x: -240, z: -88 }, 'Builder'); placePeople(3, { x: -10, z: -98 }, 'Builder'); placePeople(3, { x: -60, z: 52 }, 'Dock worker'); placePeople(2, { x: 80, z: 54 }, 'Dock worker');
+  if (bC) spawnDevelopers(3, { x: bC.x + 5, z: bC.z + 5 }); placePeople(1, { x: -100, z: 50 }, 'Medic'); placePeople(2, { x: -330, z: 52 }, 'Tourist'); placePeople(2, { x: -100, z: 96 }, 'Fisher'); placePeople(1, { x: -300, z: 70 }, 'Hiker');
   updateCount();
-  ensureVehicles().then(() => { if (yA) makeVehicle('cargotruck', yA.x - 8, yA.z + 3, 0, {}); if (yB) makeVehicle('forklift', yB.x + 7, yB.z - 3, 3.14, {}); if (bB) makeVehicle('cranetruck', bB.x - 8, bB.z + 6, 1.5, {}); makeVehicle('patrolcar', X(0.0), Z(0.16), 0, {}); });
-  const tug = makeBoat('bollard', null, null, X(-0.265), Z(0.34), Math.PI / 2); tug.anchor = tug.body.position.clone(); tug.status = 'Anchored'; ensureSkipper(tug);
-  const yacht = makeBoat('kestrel', null, null, X(0.1), Z(0.5), 0.6); yacht.anchor = yacht.body.position.clone(); yacht.status = 'Anchored'; ensureSkipper(yacht);
-  camFlyTo(X(0.0), Z(0.05), 190 * CELL); god.yaw = Math.PI * 1.0;
+  ensureVehicles().then(() => { if (yA) makeVehicle('cargotruck', yA.x + 14, yA.z - 12, 0, {}); if (yB) makeVehicle('forklift', yB.x + 12, yB.z - 10, 3.14, {}); if (bB) makeVehicle('cranetruck', bB.x + 10, bB.z + 14, 1.5, {}); makeVehicle('patrolcar', 0, 40, 0, {}); });
+  const tug = makeBoat('bollard', null, null, -102, 90, Math.PI / 2); tug.anchor = tug.body.position.clone(); tug.status = 'Anchored'; ensureSkipper(tug);
+  const yacht = makeBoat('kestrel', null, null, 60, 150, 0.6); yacht.anchor = yacht.body.position.clone(); yacht.status = 'Anchored'; ensureSkipper(yacht);
+  const cg = makeBoat('bay', null, null, 120, 125, 1.2); cg.anchor = cg.body.position.clone(); cg.status = 'Anchored'; ensureSkipper(cg);
+  const dingy = makeBoat('petrel', null, null, -150, 140, 2.2); dingy.anchor = dingy.body.position.clone(); dingy.status = 'Anchored'; ensureSkipper(dingy);
+  for (const [bx, bz] of [[-20, 200], [-20, 260], [-20, 320], [30, 230]]) try { addBuoy(bx, bz, 'buoy0'); } catch (e) { }
+  camFlyTo(0, 40, 330); god.yaw = Math.PI * 0.95;
   ensurePort().then(layPortBuildings).catch(() => toast('The buildings could not be loaded'));
   noteOnce('portlaid', 'The Port is laid out. Open the side pane, Map tab, to see every objective and to run the day.');
 }
@@ -3621,21 +3637,27 @@ function stockYard(st, kinds) {                                          // a wo
   addSand(st.x + 7, st.z + 6, 18, 3, 'rock');                                                                                                 // a heap of loose rock by the fence
 }
 function layPortBuildings() {
-  const X = (u) => u * EXT, Z = (v) => v * EXT;
-  const clearRect = (u0, u1, v0, v1) => { for (const t of trees) if (!t.dead && t.x > X(u0) && t.x < X(u1) && t.z > Z(v0) && t.z < Z(v1)) hideTree(t, false); };
-  const clearLine = (pts, w) => { for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 3); for (let k = 0; k <= n; k++) { const x = a.x + (b.x - a.x) * k / n, z = a.z + (b.z - a.z) * k / n; for (const t of trees) if (!t.dead && Math.hypot(t.x - x, t.z - z) < w) hideTree(t, false); } } };
-  clearRect(-0.6, 0.48, 0.1, 0.36); for (const [a, b, c, d] of [[-0.68, -0.32, -0.18, 0.06], [-0.02, 0.32, -0.22, 0.02], [0.4, 0.74, -0.16, 0.12], [-0.22, 0.12, -0.44, -0.28]]) clearRect(a, b, c, d);
-  for (const { r, pts } of roadDense(128 * CELL)) clearLine(pts, r.w / 2 + 3);
-  const put = (id, u, v, rotDeg) => { const itm = BUILD.find(b => b.id === id); if (!itm) return; const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x: X(u), z: Z(v) }); buildRot = sv; };
-  for (const [a, b] of [[-0.575, -0.315], [-0.215, 0.045], [0.145, 0.455]]) pavedGrid('concrete', X((a + b) / 2), Z(0.225), (b - a) * EXT, 0.21 * EXT, 0, 0.06, 8);          // the apron, in three pieces between the slips
-  for (const st of sites) if (st.kind === 'build') layGravel(st.x, st.z, 20, 20, 0);
-  buildRoadMesh(EXT);
-  put('b-warehouse', -0.445, 0.2, 0); put('b-office', 0.42, 0.25, 0); put('b-tank', 0.3, 0.27, 0); put('b-silo', 0.225, 0.28, 0); put('b-crane', 0.0, 0.235, -90); put('b-guard', -0.12, 0.145, 0);
-  for (const [c, u] of [['red', 0.2], ['blue', 0.26], ['green', 0.32], ['orange', 0.38]]) put('p-cont-' + c, u, 0.165, 0);
-  for (const u of [-0.5, -0.4, -0.2, -0.1, 0.0, 0.2, 0.3, 0.4]) put('p-lamp', u, 0.315, 0);
+  const put = (id, x, z, rotDeg) => { const itm = BUILD.find(b => b.id === id); if (!itm) return; const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x, z }); buildRot = sv; };
+  const clearRect = (x0, x1, z0, z1) => { for (const t of trees) if (!t.dead && t.x > x0 && t.x < x1 && t.z > z0 && t.z < z1) hideTree(t, false); };
+  const clearLine = (pts, w) => { for (let i = 0; i < pts.length - 1; i += 2) { const a = pts[i]; for (const t of trees) if (!t.dead && Math.hypot(t.x - a.x, t.z - a.z) < w) hideTree(t, false); } };
+  clearRect(-225, 175, 30, 110); for (const [x0, x1, z0, z1] of PORT.pads) clearRect(x0 - 6, x1 + 6, z0 - 6, z1 + 6); for (const { r, pts } of roadDense()) clearLine(pts, r.w / 2 + 3);
+  for (const [a, b] of [[-198, -112], [-92, 8], [28, 158]]) pavedGrid('concrete', (a + b) / 2, 70, b - a, 60, 0, 0.06, 8);                  // the apron, in three pieces between the slips
+  for (const st of sites) if (st.kind === 'build') layGravel(st.x, st.z, 26, 22, 0);
+  buildRoadMesh();
+  scatterStains(-155, 70, 80, 50, 6); scatterStains(-45, 70, 80, 50, 6); scatterStains(95, 70, 100, 50, 7);
+  // quay
+  put('b-warehouse', -158, 52, 0); put('b-office', 138, 54, 0); put('b-tank', 108, 58, 0); put('b-silo', 80, 52, 0); put('b-crane', -30, 88, -90); put('b-crane', 100, 90, -90); put('b-guard', -72, 44, 0); put('b-workshop', -118, 52, 0);
+  for (const [c, x] of [['red', 40], ['blue', 52], ['green', 64], ['orange', 76]]) put('p-cont-' + c, x, 50, 0);
+  for (let x = -190; x <= 150; x += 34) { if ((x > -118 && x < -86) || (x > 2 && x < 34)) continue; put('p-lamp', x, 96, 0); }
+  put('p-barrier', 0, 20, 90); put('p-sign', 8, 20, 0);
+  // the town: houses facing Main Street from both sides
+  const types = ['b-house-a', 'b-house-b', 'b-house-c']; let k = 0;
+  for (const x of [-215, -190, -172, -128, -104, -82, -28, -4, 18, 46, 96, 124, 168, 196, 222]) { if (Math.abs(x + 150) < 10 || Math.abs(x + 50) < 10 || Math.abs(x - 70) < 10 || Math.abs(x - 150) < 10 || Math.abs(x + 245) < 12 || Math.abs(x + 15) < 12 || Math.abs(x - 190) < 12) continue; put(types[k++ % 3], x, -58, 0); put(types[k++ % 3], x + 6, -22, 180); }
+  put('b-workshop', -100, -80, 0); put('b-workshop', 20, -80, 0); put('b-office', 100, -80, 0); put('b-guard', 190, -44, 0);
+  // the camp, the lighthouse headland, the farms' outbuildings are placed with their features
+  put('light', -338, 52, 0); put('light', 40, 292, 0);
+  put('b-tent', 235, -300, 0); put('b-tent', 255, -292, 0); put('b-tent', 275, -300, 90); put('b-bunker', 262, -270, 0); put('p-barrier', 222, -262, 0);
   layFarms(put);
-  put('b-house-a', 0.265, -0.04, 90); put('b-house-b', 0.265, -0.16, 90); put('b-house-c', -0.62, -0.12, 0); put('b-workshop', -0.4, -0.12, 0); put('b-tower', -0.14, -0.55, 0);
-  put('b-tent', 0.48, 0.05, 0); put('b-tent', 0.62, 0.05, 0); put('b-tent', 0.64, -0.08, 90); put('p-barrier', 0.0, 0.1, 90); put('p-sign', 0.03, 0.1, 0);
 }
 function portSupply() {                                           // a delivery lands at the first yard whenever the yards are running low on stone, so builders always have work
   if (!sites.length || MAP.t !== 'port' || objects.length > MAX_OBJ - 40) return; const stoneC = CARGO.find(c => c.id === 'stone'); let stone = 0; for (const o of objects) if (!o.gone && !o.placed && o.c.id === 'stone') stone++; if (stone >= 6) return;
@@ -3647,13 +3669,13 @@ setInterval(() => { if (typeof simT === 'number' && !document.hidden) portSupply
 const FARMS = []; let fieldMat = null;
 function fieldTexture() { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const c = cv.getContext('2d'); c.fillStyle = '#6b4a2e'; c.fillRect(0, 0, 256, 256); for (let i = 0; i < 16; i++) { c.fillStyle = i % 2 ? '#5a3d25' : '#7a5636'; c.fillRect(0, i * 16, 256, 9); } for (let i = 0; i < 1400; i++) { c.fillStyle = 'rgba(' + (60 + Math.random() * 50) + ',' + (40 + Math.random() * 30) + ',24,0.35)'; c.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 function layFarms(put) {
-  const X = (u) => u * EXT, Z = (v) => v * EXT; if (!fieldMat) fieldMat = new THREE.MeshStandardMaterial({ map: fieldTexture(), roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  for (const f of [{ u: -0.52, v: -0.36, du: 0.36, dv: 0.2, house: [-0.72, -0.28], barn: [-0.72, -0.4] }, { u: 0.43, v: -0.38, du: 0.3, dv: 0.2, house: [0.6, -0.3], barn: [0.6, -0.42] }]) {
-    const st = addSite('farm', X(f.u), Z(f.v)); if (!st) continue; const fields = [];
-    for (let i = 0; i < 2; i++) { const w = f.du * EXT * 0.46, d = f.dv * EXT * 0.82, cx = X(f.u) + (i - 0.5) * w * 1.08, cz = Z(f.v); const m = pavedGrid('field', cx, cz, w, d, 0, 0.07, 6, fieldMat.clone()); m.material.color.setHex(0xb08a60); fields.push(m); }
-    const farm = { st, fields, grow: Math.random() * 0.3, t: 0, cart: { x: X(f.house[0]) + 8, z: Z(f.house[1]) + 6 } }; FARMS.push(farm);
-    put('b-house-b', f.house[0], f.house[1], 0); put('b-workshop', f.barn[0], f.barn[1], 0); put('b-silo', f.barn[0] + (f.barn[0] < 0 ? 0.05 : -0.05), f.barn[1], 0);
-    for (let k = 0; k < 2; k++) { const q = makePerson(Math.floor(Math.random() * 16), X(f.u) + rnd(-5, 5), Z(f.v) + rnd(-5, 5)); q.y = standY(q.x, q.z); q.role = 'Farmer'; q.farm = farm; q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'Tending the crops'; farm.farmers = (farm.farmers || []).concat(q); }
+  if (!fieldMat) fieldMat = new THREE.MeshStandardMaterial({ map: fieldTexture(), roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  for (const f of [{ cx: -235, cz: -160, w: 150, d: 70, house: [-150, -165], barn: [-150, -130] }, { cx: 205, cz: -185, w: 150, d: 70, house: [275, -180], barn: [275, -145] }]) {
+    const st = addSite('farm', f.cx, f.cz); if (!st) continue; const fields = [];
+    for (let i = 0; i < 2; i++) { const w = f.w * 0.47, cx = f.cx + (i - 0.5) * w * 1.08; const m = pavedGrid('field', cx, f.cz, w, f.d, 0, 0.07, 6, fieldMat.clone(), true); m.material.color.setHex(0xb08a60); fields.push(m); }
+    const farm = { st, fields, grow: Math.random() * 0.3, t: 0, cart: { x: f.house[0] + 12, z: f.house[1] + 10 } }; FARMS.push(farm);
+    put('b-house-b', f.house[0], f.house[1], 0); put('b-workshop', f.barn[0], f.barn[1], 0); put('b-silo', f.barn[0] + (f.barn[0] < 0 ? -18 : 18), f.barn[1], 0);
+    for (let k = 0; k < 2; k++) { const q = makePerson(Math.floor(Math.random() * 16), f.cx + rnd(-20, 20), f.cz + rnd(-15, 15)); q.y = standY(q.x, q.z); q.role = 'Farmer'; q.farm = farm; q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'Tending the crops'; farm.farmers = (farm.farmers || []).concat(q); }
     for (let k = 0; k < 3; k++) { const x = farm.cart.x + rnd(-1, 1), z = farm.cart.z + k * 1.4; spawn(CARGO.find(c => c.id === 'sack'), x, standY(x, z) + 0.6, z); }
   }
 }
@@ -3682,10 +3704,10 @@ async function loadPaving() {
   const tx = new THREE.CanvasTexture(cv); tx.wrapT = THREE.RepeatWrapping; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; PAVE.marks = new THREE.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 });
 }
 const ensurePort = () => portP || (portP = Promise.all([loadGLB('port').then(g => (D.glb.port = g)), loadPaving()]).catch(e => { portP = null; throw e; }));
-function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat) {                         // a w by d patch of surface that follows the ground, turned by rot
+function pavedGrid(kind, cx, cz, w, d, rot, lift, tile, mat, landOnly) {                         // a w by d patch of surface that follows the ground, turned by rot
   const nx = Math.max(1, Math.ceil(w / 3)), nz = Math.max(1, Math.ceil(d / 3)), pos = [], uv = [], idx = [], c = Math.cos(rot), sn = Math.sin(rot);
   for (let i = 0; i <= nz; i++) for (let j = 0; j <= nx; j++) { const lx = (j / nx - 0.5) * w, lz = (i / nz - 0.5) * d, x = cx + lx * c - lz * sn, z = cz + lx * sn + lz * c; pos.push(x, Math.max(heightAt(x, z), 0) + lift, z); uv.push(tile ? lx / tile : j / nx, tile ? lz / tile : i * d / nz / 12); }
-  for (let i = 0; i < nz; i++) for (let j = 0; j < nx; j++) { const a = i * (nx + 1) + j, b = a + 1, cc = a + nx + 1, dd = cc + 1; idx.push(a, cc, b, b, cc, dd); }
+  for (let i = 0; i < nz; i++) for (let j = 0; j < nx; j++) { const a = i * (nx + 1) + j, b = a + 1, cc = a + nx + 1, dd = cc + 1; if (landOnly && (pos[a * 3 + 1] < 1.2 || pos[b * 3 + 1] < 1.2 || pos[cc * 3 + 1] < 1.2 || pos[dd * 3 + 1] < 1.2)) continue; idx.push(a, cc, b, b, cc, dd); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
   const m = new THREE.Mesh(g, mat || PAVE[kind]); m.receiveShadow = true; m.renderOrder = 1; scene.add(m); pavedMeshes.push(m); return m;
 }
@@ -3704,8 +3726,8 @@ function paveRectRot(kind, cx, cz, w, d, rot, marks) {
   if (kind === 'gravel') { layGravel(cx, cz, w, d, rot); return; }
   pavedGrid(kind, cx, cz, w, d, rot, 0.06, 8); if (marks) pavedGrid('marks', cx, cz, w, d, rot, 0.085, 0, PAVE.marks);
 }
-function buildRoadMesh(E) {
-  for (const { r, pts } of roadDense(E)) {
+function buildRoadMesh() {
+  for (const { r, pts } of roadDense()) {
     const n = pts.length, pos = [], uvA = [], uvM = [], idx = []; let acc = 0;
     for (let i = 0; i < n; i++) {
       const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; let tx = b.x - a.x, tz = b.z - a.z; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl; const nx = -tz, nz = tx, hw = r.w / 2;
@@ -3718,7 +3740,7 @@ function buildRoadMesh(E) {
     mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03);
     for (const p of pts) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i2 = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i2 >= 0 && j >= 0 && i2 < 64 && j < 64) ROADCELL[i2 * 64 + j] = 1; }
   }
-  for (const [u, v] of ROAD_JUNCTIONS) { const x = u * E, z = v * E; pavedGrid('asphalt', x, z, 9, 9, Math.PI / 4, 0.055, 8); }
+  for (const [x, z] of ROAD_JUNCTIONS) pavedGrid('asphalt', x, z, 11, 11, Math.PI / 4, 0.055, 8);
 }
 const ROADCELL = new Uint8Array(64 * 64);
 function paveRoad(pts, w, marks) {                                                      // an asphalt strip along a polyline, with a centre line
