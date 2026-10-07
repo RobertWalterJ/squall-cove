@@ -188,6 +188,7 @@ button:disabled{opacity:.45;cursor:default}
   .toast{top:calc(8px + var(--safe-t))}
 }
 #dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
+@media (pointer:coarse){button,.chip,.tabs button{min-height:44px}.chip .dn,.mrow span,.mgrid small{font-size:13px}}
 #burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
 body.sideopen #burger{display:none}
 #side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -350,11 +351,16 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
       <div class="keys key-only">
         <b>Drag</b><span>Move the map (right-drag turns it, wheel zooms)</span>
         <b>W A S D · Q E · Z X</b><span>Pan · turn · zoom</span>
-        <b>Command</b><span>Click a boat, then click open water to send it there</span>
+        <b>Command</b><span>Left click selects a boat or person (empty ground deselects). Right click sends the selection there</span>
         <b>Place</b><span>Pick a kind (Boats, Water, Devices ...) then a thing, then tap to place it. Tap a device in Command to change its settings</span>
         <b>Land</b><span>Drag to raise, lower, flatten or smooth the island</span>
         <b>Sky</b><span>Wind, time of day, rain, fog, air temperature, maps and disasters</span>
         <b>H</b><span>Take the helm of the selected boat, or back to the overview</span>
+        <b>V</b><span>Drop into first person as the selected person, or back out. In first person 1, 2, 3 pick Hands, Rod, Rifle</span>
+        <b>P</b><span>Open or close the side pane (Place, Events, Live, Play)</span>
+        <b>Mouse wheel</b><span>With a cargo item or boulder chosen in Place, sets the drop height. [ and ] change its size. Shift and wheel zooms</span>
+        <b>N</b><span>Next boat</span>
+        <b>R</b><span>Rain crates. Shift and C clears all cargo</span>
         <b>Delete</b><span>Remove the selected boat or person, or whatever is under the pointer</span>
         <b>Shift + drag</b><span>Box-select people or boats. Double-click picks every one on screen. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it</span>
         <b>People</b><span>Select, then click a boat to board it, a crate to carry it, land to walk. Boats dock alongside by themselves</span>
@@ -365,7 +371,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
         <b>Drag</b><span>Move the map</span>
         <b>Two fingers</b><span>Pinch to zoom, twist to turn</span>
         <b>Command</b><span>Tap a boat, then tap open water to send it</span>
-        <b>Build</b><span>Tap to place</span>
+        <b>Place</b><span>Tap to place</span>
         <b>Land</b><span>Tap to dab the island. Switch Drag to Paints land to shape it with a finger</span>
         <b>Take the helm</b><span>Sail the selected boat yourself</span>
         <b>Select a group</b><span>Touch and hold empty ground, then drag a box. Lift without dragging to deselect. Or turn on Add and tap each one</span>
@@ -1022,7 +1028,7 @@ function meshesOf(node) { const out = []; node.updateMatrixWorld(true); node.tra
 function shadowAll(o, cast = true, recv = true) { o.traverse(m => { if (m.isMesh) { m.castShadow = cast; m.receiveShadow = recv; } }); return o; }
 
 /* ================================================================ wind */
-const WIND_LEVELS = [{ name: 'Light', ms: 3.2, amp: 0.12 }, { name: 'Moderate', ms: 6.2, amp: 0.25 }, { name: 'Fresh', ms: 9.5, amp: 0.42 }, { name: 'Gale', ms: 16, amp: 0.75 }, { name: 'Hurricane', ms: 38, amp: 1.25 }];
+const WIND_LEVELS = [{ name: 'Light', ms: 3.2, amp: 0.12 }, { name: 'Moderate', ms: 6.2, amp: 0.25 }, { name: 'Fresh', ms: 9.5, amp: 0.42 }, { name: 'Gale', ms: 16, amp: 0.75 }, { name: 'Storm force', ms: 38, amp: 1.25 }];
 const wind = { level: 1, ms: 6.2, ang: Math.PI, v: new CANNON.Vec3() };
 function updateWind(t) {
   const L = WIND_LEVELS[wind.level];
@@ -3396,13 +3402,13 @@ $('fpFire').addEventListener('click', fpPrimary);
 /* ================================================================ the side pane: Place (everything you can put down), Live (everything that is in the world), Play (drop in, tools, catch) */
 const sideEl = $('side'), sBody = $('sBody'); let sideTab = 'place', sideQ = '', liveF = 'all', liveRows = [], sideOpen = false, liveSig = '';
 const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; if (cls) b.className = cls; if (fn) b.addEventListener('click', fn); if (attrs) for (const k in attrs) b.setAttribute(k, attrs[k]); return b; };
-function setSide(o) { sideOpen = o; sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
+function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
   const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
-    const q = document.createElement('input'); q.type = 'search'; q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
+    const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
     q.addEventListener('input', () => { sideQ = q.value.toLowerCase(); fillPlace(list); }); fillPlace(list);
   } else if (sideTab === 'events') {
     const grp = (title, list, gate) => { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = title; sBody.append(h); for (const [n, d, fn] of list) { const b = mkB('', 'sItem', () => { if (gate && !gateDisaster()) return; if (gate) pushWorldUndo(); fn(); if (matchMedia('(max-width: 800px)').matches) setSide(false); }); const t = document.createElement('span'); t.textContent = n; const sm = document.createElement('small'); sm.textContent = d; t.append(sm); b.append(t); sBody.append(b); } };
@@ -3455,7 +3461,7 @@ function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person
 $('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
 setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); }, 900);
-setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); }, 400);
+setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
 addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
 combatReady = true; boats.forEach(setupBoatCombat);
@@ -3728,9 +3734,9 @@ addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey) return; const k = k0; keys.add(k);
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
   if (k === 'h') toggleMode(); else if (k === 'escape') { if (mode === 'helm') toggleMode(); else setSel([]); }
-  else if (k === 'tab') { e.preventDefault(); nextBoat(); }
+  else if (k === 'n') nextBoat();
   else if (mode === 'helm') { if (k === 't') toggleAuto(); else if (k === 'x') rightBoat(); }
-  if (k === 'r') squall(); else if (k === 'c') clearCargo();
+  if (k === 'r') squall(); else if (k === 'c' && e.shiftKey) clearCargo();
   else if (k === 'escape' && mode === 'god' && (sel.length || insp)) { if (insp) closeInspector(); else { setSel([]); toast('Deselected'); } }
   else if (/^[1-4]$/.test(k) && mode === 'god') setTool(['select', 'build', 'land', 'weather'][+k - 1]);
 });
@@ -3836,15 +3842,14 @@ const PLACE_CATS = [
   { id: 'boats', name: 'Boats', test: it => (it.cat === 'Boats' || it.cat === 'Coast Guard') && !BIGSHIPS.includes(it.id) },
   { id: 'big', name: 'Big ships', test: it => BIGSHIPS.includes(it.id) },
   { id: 'people', name: 'People', test: it => it.cat === 'People' },
+  { id: 'vehicles', name: 'Vehicles', test: it => it.cat === 'Vehicles' },
+  { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
   { id: 'cargo', name: 'Cargo', test: it => it.cat === 'Cargo' },
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
-  { id: 'hold', name: 'Hold to apply', test: it => it.cat === 'Elements' },
-  { id: 'sites', name: 'Work sites', test: it => it.cat === 'Sites' },
-  { id: 'factions', name: 'Factions', test: it => it.cat === 'Factions' },
-  { id: 'vehicles', name: 'Vehicles', test: it => it.cat === 'Vehicles' },
-  { id: 'water', name: 'Springs and pours', test: it => it.cat === 'Water' && !it.volcano },
-  { id: 'fire', name: 'Lava and volcano', test: it => it.cat === 'Lava' || it.volcano },
+  { id: 'sites', name: 'Sites', test: it => it.cat === 'Sites' },
+  { id: 'hold', name: 'Elements', test: it => it.cat === 'Elements' },
   { id: 'ground', name: 'Sand and earth', test: it => ['sandpile', 'sandfount', 'earthpile', 'earthfount', 'rockdump', 'rockfount', 'scrap', 'scrapfount'].includes(it.id) },
+  { id: 'water', name: 'Water and fire', test: it => (it.cat === 'Water' && !it.volcano) || it.cat === 'Lava' || it.volcano },
   { id: 'devices', name: 'Devices', test: it => it.cat === 'Devices' || it.id === 'furnace' || it.id === 'rod' },
 ];
 let placeCat = 'boats';
@@ -3853,7 +3858,7 @@ function syncCat() { const c = PLACE_CATS.find(q => q.id === placeCat) || PLACE_
   const b = document.createElement('button'); b.type = 'button'; b.dataset.t = t; b.textContent = ['Command', 'Place', 'Land', 'Sky'][i];
   b.addEventListener('click', () => setTool(t)); tabs.appendChild(b);
 });
-let traySig = '';
+let traySig = ''; let skySub = 'weather';
 function renderTray(force = true) {
   const T0 = mode === 'helm' ? 'build' : tool;
   const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + routeMode + routeLoop + multiTap + people.length : Math.random());
@@ -3868,7 +3873,7 @@ function renderTray(force = true) {
     if (sel.length) tray.append(chip('Deselect', sel.length + ' selected', '#d64b2c', false, () => { setSel([]); toast('Deselected'); }, 'chip'));
     tray.append(sep('Select'));
     tray.append(chip('Box', boxMode ? 'on: drag' : 'off', null, boxMode, () => { boxMode = !boxMode; renderTray(); toast(boxMode ? 'Drag to draw a selection box' : 'Box select off'); }, 'chip mini'));
-    tray.append(chip('Fire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
+    tray.append(chip('Gunfire', fireMode ? 'on: tap target' : 'off', null, fireMode, () => { fireMode = !fireMode; renderTray(); toast(fireMode ? 'Fire: tap a ship to engage it, anywhere else to cease fire' : 'Fire mode off'); }, 'chip mini'));
     tray.append(chip('Add', multiTap ? 'on: taps add' : 'off', null, multiTap, () => { multiTap = !multiTap; renderTray(); toast(multiTap ? 'Add is on. Tap boats and people to add or remove them.' : 'Add is off'); }, 'chip mini'));
     tray.append(chip('Route', routeMode ? 'on: tap points' : 'off', null, routeMode, () => { routeMode = !routeMode; if (routeMode) fireMode = false; renderTray(); toast(routeMode ? 'Route: select a boat, then tap open water to add stops' : 'Route off'); }, 'chip mini'));
     tray.append(chip('Loop', routeLoop ? 'on' : 'off', null, routeLoop, () => { routeLoop = !routeLoop; renderTray(); }, 'chip mini'));
@@ -3938,6 +3943,8 @@ function renderTray(force = true) {
     [['Off', 0], ['Weak', 5], ['Strong', 10]].forEach(([n, v]) => tray.append(chip(n, v ? '+' + v + ' C' : 'none', null, clim.nose === v, () => { clim.nose = v; renderTray(true); toast(v ? 'A warm layer sits above the ground. Cold ground under it makes freezing rain.' : 'No warm layer'); }, 'chip mini')));
     tray.append(sep('Try'));
     for (const [n, d] of TOYS) tray.append(chip(n, d[0], null, false, () => applyToy(n), 'chip mini'));
+    { const SUB = { 'Things that happen': 'events', 'Wind': 'weather', 'From': 'weather', 'Time of day': 'weather', 'Rain': 'weather', 'Fog': 'weather' }; let cur = 'weather'; for (const el of [...tray.children]) { if (el.classList && el.classList.contains('sep')) cur = SUB[el.textContent] || 'climate'; if (cur !== skySub) el.remove(); }
+      const hd = [['weather', 'Weather', 'wind, time, rain, fog'], ['climate', 'Climate', 'air, maps, sea, devices, toys'], ['events', 'Events', 'storms, arrivals, raids']].map(([id, n, d]) => chip(n, d, null, skySub === id, () => { skySub = id; renderTray(true); }, 'chip')); tray.prepend(...hd); }
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
