@@ -187,6 +187,7 @@ button:disabled{opacity:.45;cursor:default}
   .chip{padding:5px 9px}
   .toast{top:calc(8px + var(--safe-t))}
 }
+#dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
 #marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:4}
 #bJoin,#bDrop{background:var(--panel)}
 #fp{position:absolute;inset:0;pointer-events:none}
@@ -219,6 +220,7 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 </style>
 
 <div id="marquee" hidden></div>
+<div id="dropTag" hidden></div>
 <div class="help" id="menuSheet" hidden><div class="card" role="dialog" aria-label="Menu">
   <h2 style="margin:0;font:700 24px var(--f-display);letter-spacing:.04em;text-transform:uppercase">Menu</h2>
   <div id="menuMain">
@@ -470,7 +472,7 @@ const Snd = (() => {
   };
   const WIND = [['amb_wind_light', 3.2], ['amb_wind_fresh', 9.5], ['amb_wind_gale', 16], ['amb_wind_hurricane', 38]], SEAS = [['amb_sea_calm', 0.1], ['amb_sea_moderate', 0.28], ['amb_sea_rough', 0.7]];
   const nearest = (arr, x, z, f) => { let d = 1e9; for (const o of arr) d = Math.min(d, Math.hypot(f(o).x - x, f(o).z - z)); return d; };
-  const ENG = { bollard: 'tug', bay: 'lifeboat', hero: 'patrol', hover: 'hover', louis: 'icebreaker', arpatuuq: 'icebreaker', terry: 'icebreaker', radisson: 'icebreaker', molly: 'icebreaker', martha: 'icebreaker', donjek: 'icebreaker', franklin: 'icebreaker' };
+  const ENG = { runner: 'outboard', gunboat: 'outboard', bollard: 'tug', bay: 'lifeboat', hero: 'patrol', hover: 'hover', louis: 'icebreaker', arpatuuq: 'icebreaker', terry: 'icebreaker', radisson: 'icebreaker', molly: 'icebreaker', martha: 'icebreaker', donjek: 'icebreaker', franklin: 'icebreaker' };
   A.tick = () => {                                              // beds, ten times a second
     const L = A.L, U = wind.ms, amp = sea.amp, rain = wx.rainAmt, sky = wx.sky, night = sky === 'night', day = sky === 'day' || sky === 'golden' || sky === 'dawn';
     const camY = typeof camera !== 'undefined' ? camera.position.y : 20, underwater = mode !== 'god' && camY < waveH(L.x, L.z, simT) - 0.15; if (underwater !== A.under) { A.under = underwater; A.mlp.frequency.setTargetAtTime(underwater ? 650 : 20000, A.ctx.currentTime, 0.15); }
@@ -565,7 +567,7 @@ function seaIceAt(x, z) { const fx = Math.min(255.999, Math.max(0, x / CELL + 12
 function lakeDepth(x, z) { const fx = W2G(x), fz = W2G(z), j = Math.floor(fx), i = Math.floor(fz); if (j < 0 || i < 0 || j >= TN - 1 || i >= TN - 1) return 0; const a = fx - j, b = fz - i, k = i * TN + j; return (WD[k] * (1 - a) + WD[k + 1] * a) * (1 - b) + (WD[k + TN] * (1 - a) + WD[k + TN + 1] * a) * b; }
 /* ---- v8.5: ripples. A 256 x 256 damped wave field (1 m cells) that follows the camera. Splashes, falling cargo, boat bows and sterns push on it, the wave equation spreads
    the disturbance, and the result is added to the sea height, so ripples really lift and rock boats as well as showing in the water shader. */
-const RN = 256, rip = { H: new Float32Array(RN * RN), P: new Float32Array(RN * RN), M: new Uint8Array(RN * RN), ox: 0, oz: 0, init: false, act: false, acc: 0 };
+const RN = 256, rip = { H: new Float32Array(RN * RN), P: new Float32Array(RN * RN), M: new Uint8Array(RN * RN), ox: 0, oz: 0, init: false, act: false, acc: 0, cap: 0.6 };
 const ripTex = new THREE.DataTexture(rip.H, RN, RN, THREE.RedFormat, THREE.FloatType); ripTex.minFilter = ripTex.magFilter = THREE.NearestFilter; ripTex.needsUpdate = true;
 function ripH(x, z) {
   if (!rip.act) return 0; const fx = x - rip.ox, fz = z - rip.oz; if (fx < 1 || fz < 1 || fx > RN - 2 || fz > RN - 2) return 0;
@@ -580,7 +582,7 @@ function ripRecentre(x, z) {
 function ripple(x, z, r, h, ring) {                         // a smooth bump (or dip, if h < 0) of radius r metres and height h metres; ring = a rim of water pushed outwards, nothing under the centre
   if (!rip.init) ripRecentre(x, z); let fx = x - rip.ox, fz = z - rip.oz; if (fx < 3 || fz < 3 || fx > RN - 4 || fz > RN - 4) return;
   const rr = ring ? r * 1.7 : r, R_ = Math.ceil(rr), cx = Math.floor(fx), cz = Math.floor(fz);
-  for (let a = -R_; a <= R_; a++) for (let b = -R_; b <= R_; b++) { const d = Math.hypot(cx + b + 0.5 - fx, cz + a + 0.5 - fz); if (d > rr) continue; const k = (cz + a) * RN + cx + b; if (!rip.M[k]) continue; const v = ring ? h * Math.exp(-(((d - r) / (r * 0.4 + 0.3)) ** 2)) : h * 0.5 * (1 + Math.cos(Math.PI * d / r)); rip.H[k] = Math.max(-0.6, Math.min(0.6, rip.H[k] + v)); }
+  for (let a = -R_; a <= R_; a++) for (let b = -R_; b <= R_; b++) { const d = Math.hypot(cx + b + 0.5 - fx, cz + a + 0.5 - fz); if (d > rr) continue; const k = (cz + a) * RN + cx + b; if (!rip.M[k]) continue; const v = ring ? h * Math.exp(-(((d - r) / (r * 0.4 + 0.3)) ** 2)) : h * 0.5 * (1 + Math.cos(Math.PI * d / r)); rip.H[k] = Math.max(-rip.cap, Math.min(rip.cap, rip.H[k] + v)); }
   rip.act = true;
 }
 function stepRipples(dt) {
@@ -589,16 +591,17 @@ function stepRipples(dt) {
   if (!rip.init) return;
   // sources: heavy things entering the water, and the bow and stern of moving boats
   for (const o of objects) { const p = o.body.position, w = waveH(p.x, p.z, simT) + 0.0, wet = p.y < w + 0.2 && heightAt(p.x, p.z) < -0.15; const vy = o.body.velocity.y;
-    if (!wet) o.dryT = (o.dryT || 0) + dt; if (wet && !o.wasWet && vy < -2.2 && (o.dryT || 0) > 0.4 && simT - (o.splT || -9) > 5) { o.splT = simT; o.dryT = 0; const m3 = Math.cbrt(o.body.mass); ripple(p.x, p.z, 1.0 + 0.6 * m3, Math.min(0.3, 0.02 * m3 * -vy), true); splash(p.x, p.z, Math.min(3, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); Snd.fx(m3 > 1.5 ? 'water_object_in_large' : 'water_object_in_small', p.x, p.z, { gain: 0.9, y: p.y }); if (m3 > 1.5) tried('ripple'); }
+    if (!wet) o.dryT = (o.dryT || 0) + dt; if (wet && !o.wasWet && vy < -2.2 && (o.dryT || 0) > 0.4 && simT - (o.splT || -9) > 5) { o.splT = simT; o.dryT = 0; const m3 = Math.cbrt(o.body.mass), En = 0.5 * o.body.mass * vy * vy, amp = Math.min(3, Math.max(Math.min(0.3, 0.02 * m3 * -vy), 0.012 * Math.cbrt(En))); rip.cap = Math.max(rip.cap, Math.min(3.2, amp * 1.15)); ripple(p.x, p.z, Math.min(40, 1.0 + 0.6 * m3), amp, true); splash(p.x, p.z, Math.min(9, 0.25 + 0.25 * m3 * Math.min(2, -vy / 3))); if (amp > 0.8) { noteOnce('bigsplash', 'A huge splash. Watch the waves spread out and reach the shore and any boats.'); } Snd.fx(m3 > 1.5 ? 'water_object_in_large' : 'water_object_in_small', p.x, p.z, { gain: 0.9, y: p.y }); if (m3 > 1.5) tried('ripple'); }
     o.wasWet = wet; }
   for (const bt of boats) { if (bt.sunk) continue; const b = bt.body, v = Math.hypot(b.velocity.x, b.velocity.z); if (v < 0.7) continue;
     const L = bt.sp.L, B = bt.sp.B; const q = b.quaternion, fxv = 1 - 2 * (q.y * q.y + q.z * q.z), fzv = 2 * (q.x * q.z - q.w * q.y);   // local +x (the bow) in world
     const px = b.position.x, pz = b.position.z; if (heightAt(px, pz) > -0.3) continue; const amp = Math.min(0.3, 0.012 * v * Math.sqrt(B));
     ripple(px + fxv * L * 0.42, pz + fzv * L * 0.42, B * 0.55 + 0.6, amp * dt * 14); ripple(px - fxv * L * 0.42, pz - fzv * L * 0.42, B * 0.5 + 0.6, -amp * dt * 10); }
+  rip.cap = Math.max(0.6, rip.cap - dt * 0.35);
   if (!rip.act) return;
   const H = rip.H, P = rip.P, M = rip.M, c2 = 0.075, damp = Math.pow(0.9835, dt * 30); let mx = 0;
   for (let i = 1; i < RN - 1; i++) { const row = i * RN; for (let j = 1; j < RN - 1; j++) { const k = row + j; if (!M[k]) { P[k] = 0; continue; }
-    const lap = H[k - 1] + H[k + 1] + H[k - RN] + H[k + RN] - 4 * H[k], n = (2 * H[k] - P[k] + c2 * lap) * damp; P[k] = n; const a = n < 0 ? -n : n; if (a > mx) mx = a; } }
+    const lap = H[k - 1] + H[k + 1] + H[k - RN] + H[k + RN] - 4 * H[k]; let n = (2 * H[k] - P[k] + c2 * lap) * damp; if (n > rip.cap) n = rip.cap; else if (n < -rip.cap) n = -rip.cap; P[k] = n; const a = n < 0 ? -n : n; if (a > mx) mx = a; } }
   rip.H = P; rip.P = H; ripTex.image.data = rip.H; ripTex.needsUpdate = true; ripU.tRip.value = ripTex;
   if (mx < 0.0015) { rip.H.fill(0); rip.P.fill(0); rip.act = false; ripTex.needsUpdate = true; }
 }
@@ -1393,6 +1396,8 @@ const SPECS = {
   bollard: { name: 'Bollard', note: '9.4 m harbour tug', kind: 'motor', mass: 3200, thrust: 7600, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
   bay: { name: 'Bay class', note: '19 m Coast Guard lifeboat', kind: 'motor', mass: 32000, thrust: 52000, cx: 520, cz: 52000, comd: 0.5, dist: 40, glb: 'ccg', capacity: 6, armor: 0.1, guns: [{ x: 0.22, h: 2.4, k: 'mg' }], zones: [[-0.46, -0.12, -1.8, 1.8, 0]] },
   hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34, capacity: 10, armor: 0.15, guns: [{ x: 0.3, h: 1.6, k: 'gun' }, { x: -0.18, z: 2.4, h: 2.4, k: 'mg' }, { x: -0.18, z: -2.4, h: 2.4, k: 'mg' }], zones: mkZones(42.8, 7.0, { fore: [0.08, 0.28], aft: [0.62, 0.96], side: [0.08, 0.96, 0.8] }) },
+  runner: { name: 'Smuggler runner', note: '9 m fast launch, one machine gun', model: 'bollard', kind: 'motor', mass: 2600, thrust: 44000, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, guns: [{ x: 0.1, h: 1.4, k: 'mg' }], zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
+  gunboat: { name: 'Raider gunboat', note: '9 m fast launch, two machine guns', model: 'bollard', kind: 'motor', mass: 3200, thrust: 56000, cx: 420, cz: 5200, comd: 0.35, dist: 22, capacity: 5, guns: [{ x: 0.18, h: 1.4, k: 'mg' }, { x: -0.2, h: 1.4, k: 'mg' }], zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
   hover: { name: 'Hovercraft', note: '28.5 m Coast Guard ACV', kind: 'motor', mass: 40000, thrust: 46000, cx: 180, cz: 9000, comd: 0.2, dist: 55, glb: 'ccg', hover: true, capacity: 8, zones: [[-0.45, -0.12, -3.4, 3.4, 0]] },
   louis: { name: 'Louis S. St-Laurent', note: '120 m heavy icebreaker', kind: 'motor', mass: 8240000, thrust: 4120000, cx: 73571, cz: 13184000, comd: 2.12, dist: 108, glb: 'ccgfleet', turn: 0.1, crewX: 0.36, capacity: 24, armor: 0.45, guns: [{ x: 0.34, h: 2.4, k: 'gun' }, { x: -0.12, z: 8, h: 4.5, k: 'mg' }, { x: -0.12, z: -8, h: 4.5, k: 'mg' }], zones: mkZones(119.8, 24.4, { fore: [0.07, 0.27], aft: [0.55, 0.69], heli: [0.85, 0.96, 1.4], side: [0.07, 0.97, 0.68] }) },
   arpatuuq: { name: 'Arpatuuq', note: '138 m polar icebreaker', kind: 'motor', mass: 11480000, thrust: 5740000, cx: 102500, cz: 18368000, comd: 2.3, dist: 125, glb: 'ccgfleet', turn: 0.087, crewX: 0.36, capacity: 30, armor: 0.5, guns: [{ x: 0.36, h: 2.4, k: 'gun' }, { x: -0.08, z: 10, h: 4.5, k: 'mg' }, { x: -0.08, z: -10, h: 4.5, k: 'mg' }], zones: mkZones(138.5, 29.4, { fore: [0.07, 0.23], aft: [0.51, 0.61], heli: [0.81, 0.96, 2.0], side: [0.07, 0.96, 0.7] }) },
@@ -1409,16 +1414,16 @@ const F = new CANNON.Vec3(), P = new CANNON.Vec3(), Tw = new CANNON.Vec3();
 function makeBoat(key, glb, meta, x, z, heading) {
   const sp = { ...SPECS[key], ...meta };
   glb = glb || D.glb[sp.glb || 'fleet']; meta = meta || FM[key];
-  Object.assign(sp, FM[key]);
+  Object.assign(sp, FM[key]); const mk = sp.model || key;
   const g = new THREE.Group(); scene.add(g);
   const yc = sp.fb - sp.D / 2, by = yc - sp.comd;            // body origin (centre of mass) in model coordinates
   const model = new THREE.Group(); model.position.y = -by; g.add(model);
-  const hull = nodeByName(glb, key + '_hull').clone(); model.add(shadowAll(hull));
+  const hull = nodeByName(glb, mk + '_hull').clone(); model.add(shadowAll(hull));
   let rig = null, jib = null;
-  const rn = nodeByName(glb, key + '_rig'); if (rn) { rig = rn.clone(); model.add(shadowAll(rig)); }
+  const rn = nodeByName(glb, mk + '_rig'); if (rn) { rig = rn.clone(); model.add(shadowAll(rig)); }
   const parts = [];                                           // animated bits from the Blender model: radar, pennants, propellers
-  glb.scene.traverse(o => { const m = o.name.startsWith(key + '_') && /^(radar|flag|propL|propR)\d+$/.exec(o.name.slice(key.length + 1)); if (m) { const n = o.clone(); model.add(shadowAll(n)); parts.push({ k: m[1], n, ph: Math.random() * 6.28 }); } });
-  const jn = nodeByName(glb, key + '_jib'); if (jn) { jib = jn.clone(); model.add(shadowAll(jib)); }
+  glb.scene.traverse(o => { const m = o.name.startsWith(mk + '_') && /^(radar|flag|propL|propR)\d+$/.exec(o.name.slice(mk.length + 1)); if (m) { const n = o.clone(); model.add(shadowAll(n)); parts.push({ k: m[1], n, ph: Math.random() * 6.28 }); } });
+  const jn = nodeByName(glb, mk + '_jib'); if (jn) { jib = jn.clone(); model.add(shadowAll(jib)); }
   const body = new CANNON.Body({ mass: sp.mass, material: boatMat, angularDamping: 0.25, linearDamping: 0.01, allowSleep: false, collisionFilterGroup: 4 });   // group 4: people on foot (group 2, mask 1) walk through boats instead of shoving them
   const hx = sp.L * 0.31, hz = sp.B * 0.42;
   body.addShape(new CANNON.Box(new CANNON.Vec3(hx, sp.D / 2, hz)), new CANNON.Vec3(-sp.L * 0.06, sp.comd, 0));
@@ -1690,6 +1695,7 @@ prepCargo(D.glb.cargo, D.glb.nature);
 const FM = { petrel: { L: 4.217, B: 1.674, D: 0.62, fb: 0.36, mast_x: 1.009, deck_z: 0.486, boom_z: 1.286, boom_len: 2.53, mast_h: 5.42, keel_z: -1.109 },
   kestrel: { L: 7.875, B: 2.742, D: 1.05, fb: 0.62, mast_x: 0.945, deck_z: 0.684, boom_z: 1.684, boom_len: 3.4, mast_h: 10.07, keel_z: -1.53 },
   bollard: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 },
+  runner: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 }, gunboat: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 },
   bay: { L: 19.0, B: 6.33, D: 3.17, fb: 1.5 }, hero: { L: 42.8, B: 7.0, D: 4.7, fb: 1.9, rise: 1.6 }, hover: { L: 28.5, B: 12.0, D: 2.0, fb: 1.8 },
   louis: { L: 119.8, B: 24.4, D: 12.5, fb: 7.0, rise: 3.4 },
   arpatuuq: { L: 138.5, B: 29.4, D: 13.5, fb: 8.0, rise: 3.8 },
@@ -1795,6 +1801,8 @@ const selRing = new THREE.Mesh(new THREE.RingGeometry(1, 1.12, 64).rotateX(-Math
 selRing.renderOrder = 3; selRing.visible = false; scene.add(selRing);
 const brushRing = new THREE.Mesh(new THREE.RingGeometry(0.94, 1, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xe3a948, transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, fog: false }));
 brushRing.renderOrder = 4; brushRing.visible = false; scene.add(brushRing);
+const dropRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x7cc4e8, transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, fog: false })); dropRing.renderOrder = 5; dropRing.visible = false; scene.add(dropRing);
+const dropPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1, 6).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ color: 0x7cc4e8, transparent: true, opacity: 0.55, depthWrite: false, depthTest: false, fog: false })); dropPole.renderOrder = 5; dropPole.visible = false; scene.add(dropPole);
 
 /* ================================================================ terraforming */
 const land = { finger: isTouch ? 'hold' : 'paint', holding: false, undo: [], op: 'raise', size: 1, R: [5, 10, 18], painting: false, flatH: 0, dirty: false, meshT: 0, physT: 0, x0: 1e9, x1: -1e9, z0: 1e9, z1: -1e9 };
@@ -1942,8 +1950,8 @@ const BUILD = [
   { cat: 'Sides', id: 's-raider5', name: 'Raider band (5)', note: 'five red raiders', person: 5, role: 'Raider', side: 'red', sw: '#c0392b' },
   { cat: 'Sides', id: 's-bboat-s', name: 'Blue patrol boat', note: 'armed, defends the cove', boat: 'bay', side: 'blue', sw: '#2f5d9f' },
   { cat: 'Sides', id: 's-bboat-l', name: 'Blue patrol cutter', note: 'armed, bigger', boat: 'hero', side: 'blue', sw: '#2f5d9f' },
-  { cat: 'Sides', id: 's-rboat-s', name: 'Red raider boat', note: 'armed, hunts boats', boat: 'bay', side: 'red', sw: '#c0392b' },
-  { cat: 'Sides', id: 's-rboat-l', name: 'Red raider cutter', note: 'armed, bigger', boat: 'hero', side: 'red', sw: '#c0392b' },
+  { cat: 'Sides', id: 's-rboat-s', name: 'Red raider runner', note: 'fast, one light gun', boat: 'runner', side: 'red', sw: '#c0392b' },
+  { cat: 'Sides', id: 's-rboat-l', name: 'Red raider gunboat', note: 'fast, two light guns', boat: 'gunboat', side: 'red', sw: '#c0392b' },
   { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
   { cat: 'Vehicles', id: 'v-firetruck', name: 'Fire truck', note: 'puts out fires', veh: 'firetruck', sw: '#c83228' },
   { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
@@ -1988,6 +1996,8 @@ const BUILD = [
   { cat: 'Water', id: 'drain', name: 'Drain', note: 'soaks it up', water: 'drain', sw: '#2a2a2e' },
   { cat: 'Tools', id: 'erase', name: 'Remove', note: 'tap a thing', erase: true, sw: '#d64b2c' },
 ];
+let dropH = 1.3, dropSize = 1;                                   // things dropped from the Place tool: how high above the ground or sea, and how big (scale of the model)
+const isDropItem = (it) => !!it && it.cargo !== undefined;
 let buildSel = 0, buildRot = 0, buildCls = 'Boats'; let routeMode = false, routeLoop = false, multiTap = false, lpTimer = 0, buildGroup = 'things';
 function groundAt(x, z) { return heightAt(x, z); }
 function place(item, p) {
@@ -2008,7 +2018,7 @@ function place(item, p) {
   if (item.veh) return placeVehicle(item, p);
   if (item.fac) return placeFaction(item, p);
   if (item.person) return placePeople(item.person, p, item.role, item.side);
-  if (item.cargo !== undefined) { spawn(CARGO[item.cargo], x, Math.max(h, waveH(x, z, simT)) + 1.3, z); return; }       // it appears right at the ring, just above the ground or the water
+  if (item.cargo !== undefined) { const c0 = CARGO[item.cargo], cc = dropSize === 1 ? c0 : { ...c0, shrink: (c0.shrink ?? 1) * dropSize }; spawn(cc, x, Math.max(h, waveH(x, z, simT)) + dropH + 0.6 * dropSize, z); const o = objects[objects.length - 1]; if (o && dropH > 4) { o.body.velocity.y = 0; Snd.fx('veh_water_drop_whoosh_0' + (1 + Math.floor(Math.random() * 4)), x, z, { gain: 0.5, y: dropH }); } return; }       // it appears right at the ring, just above the ground or the water
   if (item.boat && boats.length >= MAX_BOATS) { toast('That is as many boats as ' + (isTouch ? 'a phone' : 'this device') + ' keeps afloat (' + MAX_BOATS + '). Remove one first.'); return; }
   if (item.boat) {
     if (SPECS[item.boat].glb === 'ccgfleet' && !D.glb.ccgfleet) {      // the eight big ships are a separate download, fetched the first time one is placed
@@ -2178,7 +2188,7 @@ function dressPerson(p) {
 }
 function makePerson(variant, x, z, ride) {
   const obj = cloneSkinned(nodeByName(D.glb.people, 'facetex_' + variant));
-  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
+  const p = { kind: 'person', job: null, hop: null, carry: null, carryMesh: null, sitK: 0, carryK: 0, aim: 0, recoil: 0, swim: false, swimK: 0, swimIdle: 0, fp: false, fpMoving: false, id: ++personSeq, variant, role: PERSON_ROLES[variant % 16], obj, state: 'idle', x, z, y: 0, heading: Math.random() * 6.28, order: null, walkK: 0, wk: 0, ph: Math.random() * 6, nearT: 0, near: false, ride: ride || null, body: null, rag: null, bones: {}, info: {} };
   obj.traverse(o => { if (o.isBone) p.bones[o.userData.name || o.name] = o; });
   const B = (n) => p.bones[bnName(n)];
   obj.updateMatrixWorld(true); p.restW = {}; { const io = obj.matrixWorld.clone().invert(); for (const n of Object.keys(p.bones)) p.restW[n] = io.clone().multiply(p.bones[n].matrixWorld); }
@@ -2756,9 +2766,18 @@ function poseCrewExtras(p, t) {
   if (p.job && p.job.type === 'pickup' && p.job.phase === 'lift') poseBend(p, Math.sin(clamp(p.job.t / 0.95, 0, 1) * Math.PI));
   if (p.aim > 0.02) poseAim(p, clamp(p.aim, 0, 1), p.recoil || 0);
 }
+const WADE = -0.9;                                    // water deeper than this is over the waist: people swim; shallower and they wade
+function nearestLand(p) { for (let r = 2; r <= 60; r += 3) for (let k = 0; k < 16; k++) { const a = k / 16 * 6.283 + r, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (standY(x, z) >= 0.15) return { x, z }; } return null; }
+function poseSwim(p, k) {
+  const R = p.ax.right, S = Math.sin(p.ph * 1.1), C = Math.cos(p.ph * 1.1), mv = clamp(p.walkK + 0.25, 0.25, 1);
+  blendPose(p, 'upper_arm.L', R, -2.6 + 1.5 * S * mv, k); blendPose(p, 'upper_arm.R', R, -2.6 - 1.5 * S * mv, k);
+  blendPose(p, 'forearm.L', R, 0.4 + 0.5 * Math.max(0, C), k); blendPose(p, 'forearm.R', R, 0.4 + 0.5 * Math.max(0, -C), k);
+  blendPose(p, 'thigh.L', R, 0.35 * Math.sin(p.ph * 3.2), k); blendPose(p, 'thigh.R', R, -0.35 * Math.sin(p.ph * 3.2), k);
+  blendPose(p, 'shin.L', R, -0.3 - 0.25 * Math.sin(p.ph * 3.2 + 1), k); blendPose(p, 'shin.R', R, -0.3 + 0.25 * Math.sin(p.ph * 3.2 + 1), k);
+}
 function stepFoot(p, dt, t) {
   let moving = false;
-  const spd = (p.carry ? 1.15 : 1.45) * (1 - 0.3 * (p.cold || 0)) * (1 - 0.25 * (p.heat || 0));
+  const spd = (p.carry ? 1.15 : 1.45) * (1 - 0.3 * (p.cold || 0)) * (1 - 0.25 * (p.heat || 0)) * (p.swim ? 0.7 : standY(p.x, p.z) < -0.3 ? 0.8 : 1);      // wading is a little slower, swimming slower still
   if (!p.order) p.via = null;
   if (p.order && !p.fp) {
     const goal = p.via || p.order, dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz);
@@ -2767,9 +2786,9 @@ function stepFoot(p, dt, t) {
       const want = Math.atan2(dx, dz), err = wrap(want - p.heading); p.heading += clamp(err, -6 * dt, 6 * dt);
       if (Math.abs(err) < 0.8) {
         const step = Math.min(d, spd * dt), nx = p.x + Math.sin(p.heading) * step, nz = p.z + Math.cos(p.heading) * step, gy = standY(nx, nz);
-        if (gy < 0.0) { p.order = null; p.via = null; if (!p.job) toast('Stops at the water'); else cancelJob(p); }
-        else if (Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; p.via = null; if (!p.job) toast('Too steep to walk'); else cancelJob(p); }
-        else { p.x = nx; p.z = nz; moving = true; }
+        if (gy < WADE && (p.carry || p.job) && !p.swim) { p.order = null; p.via = null; cancelJob(p); noteOnce('nodeep', 'Nobody carries cargo into deep water.'); }
+        else if (gy >= WADE && !p.swim && Math.abs(gy - p.y) > step * 1.6 + 0.12) { p.order = null; p.via = null; if (!p.job) noteOnce('steep', 'Too steep to walk'); else cancelJob(p); }
+        else { if (gy < WADE) p.swim = true; p.x = nx; p.z = nz; moving = true; }
       }
     }
   }
@@ -2778,8 +2797,14 @@ function stepFoot(p, dt, t) {
   if (!p.swim) {
     const gy = standY(p.x, p.z);
     if (!p.fp) p.y += (gy - p.y) * Math.min(1, 14 * dt);
-    if (gy < -0.35 && !(p.fp && fp.air)) { topple(p, new CANNON.Vec3(Math.sin(p.heading) * 1.2, 1, Math.cos(p.heading) * 1.2)); return; }   // the ground went out from under them
+    if (gy < WADE && !p.fp) p.swim = true;                                                                                 // the ground went out from under them: they swim
   }
+  if (p.swim && !p.fp) {
+    const wy = waveH(p.x, p.z, t) - 1.15; p.y += (wy - p.y) * Math.min(1, 8 * dt);
+    if (standY(p.x, p.z) > WADE + 0.25) p.swim = false;
+    else if (!p.order && !p.job) { p.swimIdle = (p.swimIdle || 0) + dt; if (p.swimIdle > 2.5 && !(p.ag && p.ag.pause > 100)) { p.swimIdle = 0; const L = nearestLand(p); if (L) setFootOrder(p, L.x, L.z); } }
+  } else p.swimIdle = 0;
+  p.swimK += ((p.swim && !p.fp ? 1 : 0) - p.swimK) * Math.min(1, 4 * dt);
   // a moving hull runs people down
   for (const bt of boats) {
     const v = bt.body.velocity; if (v.x * v.x + v.z * v.z < 1.4 || bt.sunk) continue;
@@ -2790,11 +2815,11 @@ function stepFoot(p, dt, t) {
   p.wk += ((p.near ? 1 : 0) - p.wk) * Math.min(1, 4 * dt);
   p.carryK += ((p.carry ? 1 : 0) - p.carryK) * Math.min(1, 6 * dt);
   animStep(p, dt);
-  if (p.swim) { p.ph += dt * 4; poseGait(p, 0.7); }
+  if (p.swim) { p.ph += dt * (3 + 4 * p.walkK); poseSwim(p, clamp(p.swimK * 1.2, 0, 1)); }
   else if (p.walkK > 0.02) poseGait(p, p.walkK);
   if (p.wk > 0.02 && !p.carry) poseWave(p, p.wk, t);
   poseCrewExtras(p, t);
-  p.obj.position.set(p.x, p.y - p.footOff, p.z); p.obj.rotation.set(0, p.heading - p.yawOff, 0);
+  const swk = p.fp ? 0 : p.swimK; p.obj.position.set(p.x, p.y - p.footOff + 0.6 * swk, p.z); p.obj.rotation.order = 'YXZ'; p.obj.rotation.set(1.22 * swk, p.heading - p.yawOff, 0);
   if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
 }
 const pTmp = new THREE.Vector3();
@@ -2946,7 +2971,7 @@ function updateCombat(dt, t) {
       bt.scanT = (bt.scanT || 0) - dt;
       if (bt.scanT <= 0) {
         bt.scanT = 0.7 + Math.random() * 0.3; const reach = Math.max(...bt.mounts.map(m => m.w.range)) * 0.95, mine = !!(bt.raider || bt.side === 'hostile'); let best = null, bd = reach;
-        for (const o of boats) { if (o === bt || o.sunk) continue; const theirs = !!(o.raider || o.side === 'hostile'); if (theirs === mine) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < bd) { best = o; bd = d; } }
+        for (const o of boats) { if (o === bt || o.sunk) continue; const theirs = !!(o.raider || o.side === 'hostile'); if (theirs === mine) continue; if (mine && !(isCG(o) || o.blue || (o.mounts && o.mounts.length) || o.lastHitBy === bt)) continue;  const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < bd) { best = o; bd = d; } }
         if (best) { bt.target = best; noteOnce('eng' + bt.id, 'The ' + bt.sp.name + ' opens fire on the ' + best.sp.name + '.'); }
       }
     }
@@ -3179,8 +3204,8 @@ function updateFP(dt, t) {
     let [nx, nz] = trip(p.x + dx, p.z + dz);
     if (steep(nx, nz)) { const [ax, az] = trip(p.x + dx, p.z); if (!steep(ax, az)) { nx = ax; nz = az; } else { const [bx, bz] = trip(p.x, p.z + dz); if (!steep(bx, bz)) { nx = bx; nz = bz; } else { nx = p.x; nz = p.z; fp.vx = fp.vz = 0; } } }      // slide along a cliff or wall instead of stopping dead
     const gy = standY(nx, nz);
-    if (!p.swim && gy < -0.3 && !fp.air) { p.swim = true; }
-    else if (p.swim && gy > -0.25) { p.swim = false; }
+    if (!p.swim && gy < WADE && !fp.air) { p.swim = true; }
+    else if (p.swim && gy > WADE + 0.25) { p.swim = false; }
     p.x = nx; p.z = nz; p.heading = fp.yaw;
     if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
@@ -3435,6 +3460,7 @@ canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointerca
 canvas.addEventListener('pointerleave', () => { lastMouse.on = false; if (!land.painting && !ptrs.size) hoverPt = null; });
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault(); if (mode === 'fp') return;
+  if (mode === 'god' && tool === 'build' && isDropItem(BUILD[buildSel]) && !e.shiftKey) { dropH = clamp(dropH * Math.exp(-e.deltaY * 0.0016), 0.4, 160); dropH = Math.round(dropH * 10) / 10; return; }
   if (mode === 'helm') camS.dist = clamp(camS.dist * Math.exp(e.deltaY * 0.0012), 5, 120);
   else { const p0 = pick(e.clientX, e.clientY), d0 = god.dist; god.dist = clamp(god.dist * Math.exp(e.deltaY * 0.0012), god.minD, god.maxD); god.fly = null; if (p0) { const r = god.dist / d0; god.tgt.x = p0.x + (god.tgt.x - p0.x) * r; god.tgt.z = p0.z + (god.tgt.z - p0.z) * r; } }       // zoom toward the pointer
 }, { passive: false });
@@ -4064,13 +4090,14 @@ function updateBuildGhost() {
   placeBtn.hidden = turnBtn.hidden = !(on && isTouch);
   if (on && hoverPt) {
     const R = ghostSize(), y = Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, th = ghostHeading(), it = BUILD[buildSel], dirable = !!(it.boat || it.glb);
-    brushRing.visible = true; brushRing.position.set(hoverPt.x, y, hoverPt.z); brushRing.scale.setScalar(R);
+    brushRing.visible = true; brushRing.position.set(hoverPt.x, y, hoverPt.z); brushRing.scale.setScalar(R * (isDropItem(it) ? Math.max(1, dropSize) : 1));
+    if (isDropItem(it)) { const top = Math.max(groundAt(hoverPt.x, hoverPt.z), waveH(hoverPt.x, hoverPt.z, simT)) + dropH + 0.6 * dropSize; dropRing.visible = dropPole.visible = true; dropRing.position.set(hoverPt.x, top, hoverPt.z); dropRing.scale.setScalar(R * Math.max(1, dropSize)); dropPole.position.set(hoverPt.x, y, hoverPt.z); dropPole.scale.set(1, Math.max(0.01, top - y), 1); const tg = $('dropTag'); tg.hidden = false; tg.textContent = 'Drop from ' + (dropH < 10 ? dropH.toFixed(1) : Math.round(dropH)) + ' m' + (/rock|stone|boulder|granite/i.test(it.name) || it.id === 'c-rock' ? ' · size x' + dropSize : ''); if (lastMouse.on) { tg.style.left = (lastMouse.x + 18) + 'px'; tg.style.top = (lastMouse.y + 14) + 'px'; } else { tg.style.left = '50%'; tg.style.top = '40%'; } } else { dropRing.visible = dropPole.visible = false; $('dropTag').hidden = true; }
     ghostArrow.visible = dirable; ghostArrow.position.set(hoverPt.x + Math.cos(th) * R * 1.1, y + 0.1, hoverPt.z - Math.sin(th) * R * 1.1); ghostArrow.rotation.y = th; ghostArrow.scale.setScalar(Math.max(0.6, R * 0.35));
-  } else ghostArrow.visible = false;
+  } else { ghostArrow.visible = false; dropRing.visible = dropPole.visible = false; $('dropTag').hidden = true; }
 }
 placeBtn.addEventListener('click', () => { if (hoverPt && buildOn()) place(BUILD[buildSel], hoverPt); });
 turnBtn.addEventListener('click', () => { buildRot += Math.PI / 4; toast('Turned to ' + rd(((buildRot * 180 / Math.PI) % 360 + 360) % 360) + ' degrees'); });
-addEventListener('keydown', (e) => { if (mode !== 'god' || tool !== 'build' || !$('help').hidden || e.ctrlKey || e.metaKey) return; if (e.key === ',') buildRot -= Math.PI / 8; else if (e.key === '.') buildRot += Math.PI / 8; });
+addEventListener('keydown', (e) => { if (mode !== 'god' || tool !== 'build' || !$('help').hidden || e.ctrlKey || e.metaKey) return; if (isDropItem(BUILD[buildSel])) { if (e.key === '[') { dropSize = Math.max(0.4, Math.round(dropSize / 1.25 * 100) / 100); return; } if (e.key === ']') { dropSize = Math.min(8, Math.round(dropSize * 1.25 * 100) / 100); return; } if (e.key === 'PageUp') dropH = Math.min(160, dropH + 5); if (e.key === 'PageDown') dropH = Math.max(0.4, dropH - 5); } if (e.key === ',') buildRot -= Math.PI / 8; else if (e.key === '.') buildRot += Math.PI / 8; });
 
 /* ---- camera helpers and reading aloud */
 $('bCenter').addEventListener('click', () => {
@@ -5102,7 +5129,7 @@ function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.
 function sideBoat(side, key, from, to) { const bt = makeBoat(key, null, null, from.x, from.z, Math.atan2(to.z - from.z, to.x - from.x)); sideCrew(bt, side); bt.anchor = null; orderTo(bt, to.x, to.z); return bt; }
 function landingParty(side, n, boats_) {
   const L = landingSpot(), e = edgeSpot(); if (!L || !e) { toast('No shore to land on'); return false; }
-  for (let b = 0; b < boats_; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }; const bt = sideBoat(side, 'bay', from, { x: L.sea.x + b * 9, z: L.sea.z + b * 5 }); bt.landing = true; }
+  for (let b = 0; b < boats_; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }; const bt = sideBoat(side, side === 'red' ? 'runner' : 'bay', from, { x: L.sea.x + b * 9, z: L.sea.z + b * 5 }); bt.landing = true; }
   later(34, () => { squadAt(side, n, L.cp); noteOnce('land' + side + simT, side === 'red' ? 'A landing party has come ashore.' : 'A response team has come ashore.'); for (const bt of boats.slice()) if (bt.landing) { bt.landing = false; const x = bt.body.position.x, z = bt.body.position.z; if (side === 'red') { const q = people.find(w => w.ride && w.ride.boat === bt); if (q) { /* crew stays aboard, raids the coast */ } } const dd = Math.hypot(x, z) || 1; orderTo(bt, x / dd * (EXT + 6), z / dd * (EXT + 6)); } });
   return true;
 }
@@ -5115,7 +5142,7 @@ const ARRIVALS = [
 ];
 const EVENTS = [
   ['Smuggling run', 'A fishing boat comes in and drops drums. Can the Coast Guard tell?', () => { if (!spawnSmuggler()) toast('A run is already under way.'); else toast('A boat is coming in. It looks like any other.'); }],
-  ['Raider attack', 'A red raider boat hunts boats and yards.', () => { const e = edgeSpot(), L = landingSpot(); if (!e || !L) return; sideBoat('red', 'bay', e, L.sea); toast('A red raider boat is closing on the cove.'); }],
+  ['Raider attack', 'A red raider boat hunts boats and yards.', () => { const e = edgeSpot(), L = landingSpot(); if (!e || !L) return; sideBoat('red', Math.random() < 0.5 ? 'runner' : 'gunboat', e, L.sea); toast('A red raider boat is closing on the cove.'); }],
   ['Landing party', 'Red raiders come ashore and go for the yards.', () => landingParty('red', 5, 1)],
   ['Foreign invasion', 'A red flotilla lands troops while the Port defends.', () => { if (landingParty('red', 8, 2)) { later(10, () => landingParty('blue', 4, 1)); toast('A foreign flotilla is on the horizon.'); } }],
   ['SWAT team', 'A blue response team arrives to fight the criminals.', () => landingParty('blue', 5, 1)],
@@ -5885,7 +5912,7 @@ function vehMove(v, dt) {
   const nx = v.x + Math.cos(v.yaw) * v.speed * dt, nz = v.z + Math.sin(v.yaw) * v.speed * dt;
   if (standY(nx, nz) < 0.3 && v.speed > 0.1) { v.speed = 0; v.path = null; v.blocked = (v.blocked || 0) + 1; } else { v.x = nx; v.z = nz; }
   const L = sp.L * 0.4, W = 1.0, hF = standY(v.x + Math.cos(v.yaw) * L, v.z + Math.sin(v.yaw) * L), hB = standY(v.x - Math.cos(v.yaw) * L, v.z - Math.sin(v.yaw) * L), hL = standY(v.x - Math.sin(v.yaw) * W, v.z + Math.cos(v.yaw) * W), hR = standY(v.x + Math.sin(v.yaw) * W, v.z - Math.cos(v.yaw) * W);
-  v.y += (Math.max((hF + hB) / 2, (hL + hR) / 2, hnow) - 0.04 - v.y) * Math.min(1, dt * 10); const pitch = Math.atan2(hF - hB, 2 * L), roll = Math.atan2(hR - hL, 2 * W);
+  v.y += ((hF + hB + hL + hR) / 4 - 0.04 - v.y) * Math.min(1, dt * 10); const pitch = clamp(Math.atan2(hF - hB, 2 * L), -0.45, 0.45), roll = clamp(Math.atan2(hR - hL, 2 * W), -0.45, 0.45);
   if (!v.tipped && Math.abs(roll) > 0.42 && v.speed > 3) { v.tipped = true; v.tipUntil = simT + 20; v.speed = 0; v.path = null; v.hold = false; npcEv('vehTipped'); noteOnce('tipped', 'A vehicle rolled over on a side slope. It will be winched upright in a moment.'); }
   v.tipK = v.tipped ? Math.min(1, (v.tipK || 0) + dt * 2.5) : Math.max(0, (v.tipK || 0) - dt * 1.2);
   v.g.position.set(v.x, v.y + v.tipK * 0.4, v.z); v.g.rotation.order = 'YZX'; v.g.rotation.set(roll * 0.95 + (roll >= 0 ? 1 : -1) * v.tipK * 1.45, -v.yaw, pitch * 0.95);
@@ -5941,7 +5968,7 @@ function updateVehicles(dt) {
   }
 }
 function placeVehicle(item, p) {
-  if (groundAt(p.x, p.z) < 0.5) { toast('Vehicles go on dry land'); return; } if (VEHS.length >= MAXVEH) { toast('That is as many vehicles as ' + (matchMedia('(pointer: coarse)').matches ? 'a phone' : 'this device') + ' keeps (' + MAXVEH + ')'); return; }
+  if (groundAt(p.x, p.z) < 0.5) { toast('Vehicles go on dry land'); return; } { const g0 = groundAt(p.x, p.z), sl = Math.max(Math.abs(groundAt(p.x + 3, p.z) - g0), Math.abs(groundAt(p.x, p.z + 3) - g0)) / 3; if (sl > 0.36) { toast('Vehicles need fairly flat ground'); return; } } if (VEHS.length >= MAXVEH) { toast('That is as many vehicles as ' + (matchMedia('(pointer: coarse)').matches ? 'a phone' : 'this device') + ' keeps (' + MAXVEH + ')'); return; }
   const mk = () => { const v = makeVehicle(item.veh, p.x, p.z, god.yaw, { placed: true }); if (v) { toast(VSPEC[item.veh].name + ' placed: ' + VSPEC[item.veh].desc + '.'); npcEv('vehPlaced'); } }; ensureVehicles().then(mk);
 }
 let vehDT = 0;
@@ -6051,7 +6078,7 @@ const hostiles = () => boats.filter(b => (b.side === 'hostile' || b.raider) && !
 function edgeSpot() { for (let n = 0; n < 60; n++) { const a = Math.random() * 6.28, x = Math.cos(a) * (EXT - 4), z = Math.sin(a) * (EXT - 4); if (heightAt(x, z) < -4) return { x, z, a }; } return null; }
 function spawnThreat() {
   const e = edgeSpot(); if (!e) return; const kind = Math.random() < 0.6 ? 'smuggler' : 'raider'; if (kind === 'smuggler' && spawnSmuggler()) return;
-  const bt = makeBoat('bay', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(bt, 2); bt.side = 'hostile'; bt.threat = kind; bt.anchor = null;
+  const bt = makeBoat(Math.random() < 0.7 ? 'runner' : 'gunboat', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(bt, 2); bt.side = 'hostile'; bt.threat = kind; bt.anchor = null;
   let spot = null; for (let n = 0; n < 200 && !spot; n++) { const a = Math.random() * 6.28, cp = coastPoint(a, -9); if (cp && heightAt(cp.x, cp.z) < -2) spot = cp; }
   if (spot) orderTo(bt, spot.x, spot.z);
   noteOnce('thr' + bt.id, kind === 'smuggler' ? 'A fast boat is running for the shore. Smugglers.' : 'A raider is closing on the cove.');
@@ -6115,7 +6142,17 @@ function updateFleet(dt) {
     const pos = bt.body.position, armed = bt.mounts && bt.mounts.length, range = armed ? Math.max(...bt.mounts.map(m => m.w.range)) : 0;
     if (hostile) {
       if (bt.medic || bt.threat === 'smuggler') { me.mission = bt.medic ? 'Collecting their people' : bt.dropped ? 'Making their escape' : 'Running contraband to the shore'; continue; }
-      let prey = null, bd = 260; for (const o of boats) { if (o.sunk || isHostile(o)) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z) * (o.mounts && o.mounts.length ? 1.3 : 1); if (d < bd) { bd = d; prey = o; } }
+      me.robbed = me.robbed || {}; let mark = null, md = 300; for (const o of boats) { if (o.sunk || isHostile(o) || o.sp.kind !== 'sail' || (me.robbed[o.id] || -999) > simT - 240) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z); if (d < md) { md = d; mark = o; } }
+      if (mark && !bt.fled) {
+        const d = md; me.mission = 'Closing on the ' + mark.sp.name + ' to rob it'; if (d > 9) { me.robT = 0; if (!bt.order || d > 20) aiGo(bt, mark.body.position.x, mark.body.position.z, 7); }
+        else { me.mission = 'Robbing the ' + mark.sp.name; me.robT = (me.robT || 0) + step; if (me.robT >= 7) {
+          me.robT = 0; me.robbed[mark.id] = simT; let n = 0; for (const o of objects.slice()) { if (n >= 2 || o.placed || o.gone || o.body.mass > 400) continue; if (Math.hypot(o.body.position.x - mark.body.position.x, o.body.position.z - mark.body.position.z) < 10) { removeObj(o); n++; } } updateCount();
+          ECON.robbed = (ECON.robbed || 0) + 1; ECON.trust = Math.max(0, ECON.trust - 0.04); npcEv('robbed'); noteOnce('rob' + mark.id, 'Raiders robbed the ' + mark.sp.name + (n ? ' and took ' + n + ' crate' + (n > 1 ? 's' : '') : ' of its valuables') + '. Nobody was hurt.');
+          bt.fled = true; const e = edgeSpot(); if (e) aiGo(bt, e.x * 1.1, e.z * 1.1); } }
+        continue;
+      }
+      if (bt.fled) { me.mission = 'Getting away with the loot'; if (!bt.order) { const e = edgeSpot(); if (e) aiGo(bt, e.x * 1.1, e.z * 1.1); } if (Math.hypot(pos.x, pos.z) > EXT - 10) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); } continue; }
+      let prey = null, bd = 260; for (const o of boats) { if (o.sunk || isHostile(o) || !(isCG(o) || o.blue || (o.mounts && o.mounts.length))) continue; const d = Math.hypot(o.body.position.x - pos.x, o.body.position.z - pos.z) * (o.mounts && o.mounts.length ? 1.3 : 1); if (d < bd) { bd = d; prey = o; } }
       if (prey) { me.mission = 'Raiding the ' + prey.sp.name + ' (' + factionOf(prey) + ')'; const d = Math.hypot(prey.body.position.x - pos.x, prey.body.position.z - pos.z); if (!bt.order || d > range * 0.6) aiGo(bt, prey.body.position.x, prey.body.position.z, Math.max(12, range * 0.5)); }
       else me.mission = 'Hunting for a victim';
       continue;
@@ -6549,7 +6586,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
