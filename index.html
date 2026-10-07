@@ -216,6 +216,7 @@ body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
 .prw{display:grid;grid-template-columns:1fr auto auto;gap:6px;margin:4px 0}
 .prw .wrow{margin:0;grid-template-columns:28px 1fr}
 .prw button.pl{min-width:76px;min-height:56px}
+body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe-t))}
 #fireArm{position:fixed;left:50%;bottom:calc(var(--bh,140px) + 66px + var(--safe-b));transform:translateX(-50%);z-index:8;background:#8e2a1a;color:#fff;padding:8px 16px;border-radius:999px;font:600 15px var(--f-body);pointer-events:none;max-width:94vw;text-align:center}
 #intro{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;overflow:auto}
 #intro .introBg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(10,30,40,.8),rgba(4,10,14,.96))}
@@ -6277,11 +6278,13 @@ function sideFeedAdd(msg) {                                         // during a 
 const noteLog = []; let noteUnread = 0;
 function updateBell() { const el = $('logN'); if (el) el.textContent = noteUnread ? String(Math.min(99, noteUnread)) : ''; }
 var quietToasts = false;
+const BN_OK = /battle|point|ticket|squad|soldier|aircraft|griffon|gunship|cobra|chinook|medevac|jet|strike|artillery|mortar|battery|paratroop|reinforce|raid|counter|supply|crate|medic|captur|held|hold|knocked|jump|deploy|loadout|command|ready|recharg|gun|nest|emplacement|charge|grenade|ammo|landing|shot down|offline|armed|lock|missile|bomb|lightning|smoke|flechette|loading|marked|target|watching|tickets|round|winner|wins/i, BN_NO = /cannot cross|things to try|builders need|huge splash|crushed|laid out|harvest|trucks and dock|first person$|click to fire|picks up|drops\./i;
+function battleNote(msg) { return BN_OK.test(msg) && !BN_NO.test(msg); }
 function toast(msg) {
   if (quietToasts) return; msg = String(msg); { const m = msg.toLowerCase(); Snd.ui(/sink|threat|raider|hurricane|tsunami|quake|falling|disaster|eruption|burning|fire/.test(m) ? 'ui_toast_warn' : /rescu|finished|sprout|unmask|seiz|saved|caught/.test(m) ? 'ui_toast_good' : 'ui_toast_info', 0.8); } const now = Date.now(), last = noteLog[noteLog.length - 1], box = $('notes');
   if (last && last.msg === msg && now - last.t < 8000) { last.n++; last.t = now; if (last.el && last.el.isConnected) last.el.textContent = msg + ' (x' + last.n + ')'; return; }       // the same message again is counted, not repeated
   const e = { msg, t: now, n: 1, el: null }; noteLog.push(e); if (noteLog.length > 200) noteLog.shift(); noteUnread++; updateBell();
-  if (BATTLE.on) { sideFeedAdd(msg); return; }
+  if (BATTLE.on) { if (battleNote(msg)) sideFeedAdd(msg); return; }
   if (!box) return; const el = document.createElement('div'); el.className = 'note'; el.textContent = msg; e.el = el; box.append(el); requestAnimationFrame(() => el.classList.add('on'));
   while (box.children.length > 3) box.firstChild.remove();
   setTimeout(() => { el.classList.remove('on'); setTimeout(() => el.remove(), 300); }, Math.min(9000, 3000 + msg.length * 60));      // longer messages stay longer
@@ -6460,7 +6463,7 @@ setTimeout(() => $('loading').classList.add('done'), 250);
   $('introVer').textContent = 'v9.0 battle command'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
   if (qp.get('battle')) setTimeout(openBattleSetup, 1200);
   try { if (sessionStorage.getItem('sc-setup') === '1') { sessionStorage.removeItem('sc-setup'); setTimeout(openBattleSetup, 1200); } } catch (e) { }
-  if (qp.get('intro') || (!seen && !qp.get('battle') && !qp.get('nointro') && !navigator.webdriver)) intro.hidden = false; }
+  if (qp.get('intro') || (!seen && !qp.get('battle') && !qp.get('nointro') && !navigator.webdriver)) intro.hidden = false;  if (!qp.get('help')) $('help').hidden = true; }
 requestAnimationFrame(frame);
 /* ================================================================ v4.6: menu, saving, build preview, camera helpers, reading aloud */
 const rd = (n) => Math.round(n);

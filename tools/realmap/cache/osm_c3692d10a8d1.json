@@ -1,0 +1,58 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-07T18:12:55Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 1863289796,
+  "lat": 39.8730055,
+  "lon": 25.0608902,
+  "tags": {
+    "natural": "beach",
+    "sport": "swimming"
+  }
+},
+{
+  "type": "node",
+  "id": 1863295850,
+  "lat": 39.8775168,
+  "lon": 25.0552474,
+  "tags": {
+    "archaeological_site": "city",
+    "historic": "archaeological_site",
+    "historic:civilization": "ancient_greek",
+    "name": "Αρχαία Μύρινα",
+    "name:el": "Αρχαία Μύρινα",
+    "name:en": "Ancient Myrina",
+    "wikidata": "Q110687030"
+  }
+},
+{
+  "type": "node",
+  "id": 2334766325,
+  "lat": 39.8732411,
+  "lon": 25.0573675,
+  "tags": {
+    "man_made": "lighthouse"
+  }
+},
+{
+  "type": "node",
+  "id": 2691593094,
+  "lat": 39.8751173,
+  "lon": 25.0617090,
+  "tags": {
+    "amenity": "place_of_worship",
+    "denomination": "greek_orthodox",
+    "name": "Άγιος Νικόλαος",
+    "religion": "christian"
+  }
+}
+
+  ]
+}
