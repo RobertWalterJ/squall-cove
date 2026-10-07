@@ -498,7 +498,7 @@ const Snd = (() => {
   };
   const WIND = [['amb_wind_light', 3.2], ['amb_wind_fresh', 9.5], ['amb_wind_gale', 16], ['amb_wind_hurricane', 38]], SEAS = [['amb_sea_calm', 0.1], ['amb_sea_moderate', 0.28], ['amb_sea_rough', 0.7]];
   const nearest = (arr, x, z, f) => { let d = 1e9; for (const o of arr) d = Math.min(d, Math.hypot(f(o).x - x, f(o).z - z)); return d; };
-  const ENG = { runner: 'outboard', gunboat: 'outboard', bollard: 'tug', bay: 'lifeboat', hero: 'patrol', hover: 'hover', louis: 'icebreaker', arpatuuq: 'icebreaker', terry: 'icebreaker', radisson: 'icebreaker', molly: 'icebreaker', martha: 'icebreaker', donjek: 'icebreaker', franklin: 'icebreaker' };
+  const ENG = { runner: 'outboard', gunboat: 'outboard', swatrib: 'outboard', landing: 'tug', bollard: 'tug', bay: 'lifeboat', hero: 'patrol', hover: 'hover', louis: 'icebreaker', arpatuuq: 'icebreaker', terry: 'icebreaker', radisson: 'icebreaker', molly: 'icebreaker', martha: 'icebreaker', donjek: 'icebreaker', franklin: 'icebreaker' };
   A.tick = () => {                                              // beds, ten times a second
     const L = A.L, U = wind.ms, amp = sea.amp, rain = wx.rainAmt, sky = wx.sky, night = sky === 'night', day = sky === 'day' || sky === 'golden' || sky === 'dawn';
     const camY = typeof camera !== 'undefined' ? camera.position.y : 20, underwater = mode !== 'god' && camY < waveH(L.x, L.z, simT) - 0.15; if (underwater !== A.under) { A.under = underwater; A.mlp.frequency.setTargetAtTime(underwater ? 650 : 20000, A.ctx.currentTime, 0.15); }
@@ -734,12 +734,12 @@ async function loadAll() {
   let done = 0; const total = 8 + LAYERS.length * 3 + 2;
   const tick = (p) => { done++; progress(done / total, 'Loading ' + p); return p; };
   const heightsP = getText('terrain_257.f32.b64.txt').then(t => (tick('terrain'), new Float32Array(b64ToBuf(t))));
-  const glbs = Promise.all(['fleet', 'nature', 'harbour', 'cargo', 'ccg', 'people'].map(n => loadGLB(n).then(g => (tick(n), g))));
+  const glbs = Promise.all(['fleet', 'nature', 'harbour', 'cargo', 'ccg', 'people', 'raiders'].map(n => loadGLB(n).then(g => (tick(n), g))));
   const sky = loadBlob('sky_2k.jpg').then(b => Promise.all([createImageBitmap(b), createImageBitmap(b, { imageOrientation: 'flipY' })])).then(x => (tick('sky'), x));
   const imgs = Promise.all(LAYERS.flatMap(l => ['albedo', 'normal', 'orh'].map(m => loadImg(`t_${l}_${m}.jpg`).then(im => (tick(l), im)))));
   const extra = Promise.all([loadImg('t_water_normal.jpg'), loadImg('t_macro.jpg')]).then(x => (tick('water'), x));
   const [h, g, s, li, ex] = await Promise.all([heightsP, glbs, sky, imgs, extra]);
-  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4], people: g[5] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1] };
+  return { h, glb: { fleet: g[0], nature: g[1], harbour: g[2], cargo: g[3], ccg: g[4], people: g[5], raiders: g[6] }, sky: s, layerImgs: li, water: ex[0], macro: ex[1] };
 }
 
 function arrayTex(images, size) {
@@ -1423,8 +1423,10 @@ const SPECS = {
   bollard: { name: 'Bollard', note: '9.4 m harbour tug', kind: 'motor', mass: 3200, thrust: 7600, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
   bay: { name: 'Bay class', note: '19 m Coast Guard lifeboat', kind: 'motor', mass: 32000, thrust: 52000, cx: 520, cz: 52000, comd: 0.5, dist: 40, glb: 'ccg', capacity: 6, armor: 0.1, guns: [{ x: 0.22, h: 2.4, k: 'mg' }], zones: [[-0.46, -0.12, -1.8, 1.8, 0]] },
   hero: { name: 'Hero class', note: '43 m Coast Guard patrol', kind: 'motor', mass: 160000, thrust: 230000, cx: 1400, cz: 260000, comd: 0.8, dist: 80, glb: 'ccg', turn: 0.3, crewX: -0.34, capacity: 10, armor: 0.15, guns: [{ x: 0.3, h: 1.6, k: 'gun' }, { x: -0.18, z: 2.4, h: 2.4, k: 'mg' }, { x: -0.18, z: -2.4, h: 2.4, k: 'mg' }], zones: mkZones(42.8, 7.0, { fore: [0.08, 0.28], aft: [0.62, 0.96], side: [0.08, 0.96, 0.8] }) },
-  runner: { name: 'Smuggler runner', note: '9 m fast launch, one machine gun', model: 'bollard', kind: 'motor', mass: 2600, thrust: 44000, cx: 360, cz: 5200, comd: 0.35, dist: 22, capacity: 4, guns: [{ x: 0.1, h: 1.4, k: 'mg' }], zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
-  gunboat: { name: 'Raider gunboat', note: '9 m fast launch, two machine guns', model: 'bollard', kind: 'motor', mass: 3200, thrust: 56000, cx: 420, cz: 5200, comd: 0.35, dist: 22, capacity: 5, guns: [{ x: 0.18, h: 1.4, k: 'mg' }, { x: -0.2, h: 1.4, k: 'mg' }], zones: [[-0.45, -0.2, -1.1, 1.1, 0], [0.14, 0.4, -0.9, 0.9, 0]] },
+  runner: { name: 'Smuggler runner', note: '9 m go-fast launch, one machine gun', glb: 'raiders', hp: 95, kind: 'motor', mass: 2200, thrust: 44000, cx: 330, cz: 4800, comd: 0.3, dist: 22, capacity: 4, guns: [{ x: 0.1, h: 1.2, k: 'mg' }], zones: [[-0.4, 0.2, -0.8, 0.8, 0]] },
+  gunboat: { name: 'Raider gunboat', note: '9 m armed launch, two machine guns', glb: 'raiders', hp: 140, armor: 0.1, kind: 'motor', mass: 3000, thrust: 56000, cx: 400, cz: 5200, comd: 0.3, dist: 22, capacity: 5, guns: [{ x: 0.31, h: 0.5, k: 'mg' }, { x: -0.27, h: 0.5, k: 'mg' }], zones: [[-0.35, 0.1, -0.8, 0.8, 0]] },
+  landing: { name: 'Landing craft', note: '16 m beaching craft with a bow ramp', glb: 'raiders', hp: 260, armor: 0.2, kind: 'motor', mass: 14000, thrust: 30000, cx: 900, cz: 18000, comd: 0.4, dist: 40, capacity: 12, turn: 0.5, zones: [[-0.3, 0.38, -1.5, 1.5, 0]] },
+  swatrib: { name: 'Response RIB', note: '8 m response boat, one machine gun', glb: 'raiders', hp: 130, armor: 0.05, kind: 'motor', mass: 1800, thrust: 40000, cx: 300, cz: 4200, comd: 0.25, dist: 20, capacity: 7, guns: [{ x: 0.2, h: 0.6, k: 'mg' }], zones: [[-0.3, 0.3, -0.9, 0.9, 0]] },
   hover: { name: 'Hovercraft', note: '28.5 m Coast Guard ACV', kind: 'motor', mass: 40000, thrust: 46000, cx: 180, cz: 9000, comd: 0.2, dist: 55, glb: 'ccg', hover: true, capacity: 8, zones: [[-0.45, -0.12, -3.4, 3.4, 0]] },
   louis: { name: 'Louis S. St-Laurent', note: '120 m heavy icebreaker', kind: 'motor', mass: 8240000, thrust: 4120000, cx: 73571, cz: 13184000, comd: 2.12, dist: 108, glb: 'ccgfleet', turn: 0.1, crewX: 0.36, capacity: 24, armor: 0.45, guns: [{ x: 0.34, h: 2.4, k: 'gun' }, { x: -0.12, z: 8, h: 4.5, k: 'mg' }, { x: -0.12, z: -8, h: 4.5, k: 'mg' }], zones: mkZones(119.8, 24.4, { fore: [0.07, 0.27], aft: [0.55, 0.69], heli: [0.85, 0.96, 1.4], side: [0.07, 0.97, 0.68] }) },
   arpatuuq: { name: 'Arpatuuq', note: '138 m polar icebreaker', kind: 'motor', mass: 11480000, thrust: 5740000, cx: 102500, cz: 18368000, comd: 2.3, dist: 125, glb: 'ccgfleet', turn: 0.087, crewX: 0.36, capacity: 30, armor: 0.5, guns: [{ x: 0.36, h: 2.4, k: 'gun' }, { x: -0.08, z: 10, h: 4.5, k: 'mg' }, { x: -0.08, z: -10, h: 4.5, k: 'mg' }], zones: mkZones(138.5, 29.4, { fore: [0.07, 0.23], aft: [0.51, 0.61], heli: [0.81, 0.96, 2.0], side: [0.07, 0.96, 0.7] }) },
@@ -1451,6 +1453,7 @@ function makeBoat(key, glb, meta, x, z, heading) {
   const parts = [];                                           // animated bits from the Blender model: radar, pennants, propellers
   glb.scene.traverse(o => { const m = o.name.startsWith(mk + '_') && /^(radar|flag|propL|propR)\d+$/.exec(o.name.slice(mk.length + 1)); if (m) { const n = o.clone(); model.add(shadowAll(n)); parts.push({ k: m[1], n, ph: Math.random() * 6.28 }); } });
   const jn = nodeByName(glb, mk + '_jib'); if (jn) { jib = jn.clone(); model.add(shadowAll(jib)); }
+  let ramp = null; { const rn2 = nodeByName(glb, mk + '_ramp'); if (rn2) { ramp = rn2.clone(); model.add(shadowAll(ramp)); } }
   const body = new CANNON.Body({ mass: sp.mass, material: boatMat, angularDamping: 0.25, linearDamping: 0.01, allowSleep: false, collisionFilterGroup: 4 });   // group 4: people on foot (group 2, mask 1) walk through boats instead of shoving them
   const hx = sp.L * 0.31, hz = sp.B * 0.42;
   body.addShape(new CANNON.Box(new CANNON.Vec3(hx, sp.D / 2, hz)), new CANNON.Vec3(-sp.L * 0.06, sp.comd, 0));
@@ -1463,7 +1466,7 @@ function makeBoat(key, glb, meta, x, z, heading) {
   const ny = sp.kind === 'motor' && !sp.hover ? 6 : 2;       // powered hulls: six layers, so they float at their true draught
   const fl = makeFloater(body, { pts: boxPoints(sp.L * 0.4, sp.D, sp.B * 0.8, sp.comd, 3, 2, ny), slab: sp.D / (ny - 1), volume, kH: 0, kA: 0.6, rad: sp.L * 0.45 });
   const I = sp.mass / 12 * (sp.L * sp.L + sp.B * sp.B);
-  const bt = { kind: 'boat', docked: null, key, sp, group: g, model, rig, jib, parts, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
+  const bt = { kind: 'boat', docked: null, key, sp, group: g, model, rig, jib, rampNode: ramp, parts, body, fl, rudder: 0, sheet: 0.8, auto: true, beta: 0, throttle: 0, anchor: null, capsizedFor: 0, order: null, tack: 0, id: ++boatSeq,
     cyaw: I / 0.9, kr: I / 0.9 * 0.55 / 3 * (sp.turn ?? 1), hCE: sp.kind === 'sail' ? (sp.boom_z + sp.mast_h * 0.3 - (sp.keel_z ?? -0.5) * 0.5) : 0 };
   boats.push(bt); if (typeof combatReady !== 'undefined' && combatReady) setupBoatCombat(bt);
   return bt;
@@ -1722,7 +1725,7 @@ prepCargo(D.glb.cargo, D.glb.nature);
 const FM = { petrel: { L: 4.217, B: 1.674, D: 0.62, fb: 0.36, mast_x: 1.009, deck_z: 0.486, boom_z: 1.286, boom_len: 2.53, mast_h: 5.42, keel_z: -1.109 },
   kestrel: { L: 7.875, B: 2.742, D: 1.05, fb: 0.62, mast_x: 0.945, deck_z: 0.684, boom_z: 1.684, boom_len: 3.4, mast_h: 10.07, keel_z: -1.53 },
   bollard: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 },
-  runner: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 }, gunboat: { L: 9.367, B: 3.375, D: 1.9, fb: 1.15, deck_z: 1.368 },
+  runner: { L: 9.4, B: 2.6, D: 1.05, fb: 0.65, deck_z: 0.62 }, gunboat: { L: 9.4, B: 2.8, D: 1.2, fb: 0.8, deck_z: 0.75 }, landing: { L: 16.0, B: 4.6, D: 2.3, fb: 1.7, deck_z: 0.6 }, swatrib: { L: 8.0, B: 2.7, D: 0.95, fb: 0.65, deck_z: 0.18 },
   bay: { L: 19.0, B: 6.33, D: 3.17, fb: 1.5 }, hero: { L: 42.8, B: 7.0, D: 4.7, fb: 1.9, rise: 1.6 }, hover: { L: 28.5, B: 12.0, D: 2.0, fb: 1.8 },
   louis: { L: 119.8, B: 24.4, D: 12.5, fb: 7.0, rise: 3.4 },
   arpatuuq: { L: 138.5, B: 29.4, D: 13.5, fb: 8.0, rise: 3.8 },
@@ -1977,6 +1980,8 @@ const BUILD = [
   { cat: 'Sides', id: 's-raider5', name: 'Raider band (5)', note: 'five red raiders', person: 5, role: 'Raider', side: 'red', sw: '#c0392b' },
   { cat: 'Sides', id: 's-bboat-s', name: 'Blue patrol boat', note: 'armed, defends the cove', boat: 'bay', side: 'blue', sw: '#2f5d9f' },
   { cat: 'Sides', id: 's-bboat-l', name: 'Blue patrol cutter', note: 'armed, bigger', boat: 'hero', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-swatrib', name: 'Response RIB (blue)', note: 'fast, one light gun', boat: 'swatrib', side: 'blue', sw: '#2f5d9f' },
+  { cat: 'Sides', id: 's-landing', name: 'Foreign landing craft', note: 'beaches and lands troops', boat: 'landing', side: 'red', sw: '#4a5a3a' },
   { cat: 'Sides', id: 's-rboat-s', name: 'Red raider runner', note: 'fast, one light gun', boat: 'runner', side: 'red', sw: '#c0392b' },
   { cat: 'Sides', id: 's-rboat-l', name: 'Red raider gunboat', note: 'fast, two light guns', boat: 'gunboat', side: 'red', sw: '#c0392b' },
   { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
@@ -2182,6 +2187,8 @@ const ROLE_KIT = {
   'Skipper':      { top: '#1d2a44', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1d2a44', '#e3e0d4'], ['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
   'Developer':    { top: '#2f4f8f', bottom: '#2a2f3a', kit: [['hardhat', 'head', HEAD, [0, 0, 0], '#eef0f2'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.1, -0.04]]] },
   'Guard':        { top: '#1f3a6e', bottom: '#1d2a44', kit: [['cap', 'head', HEAD, [0, 0, 0], '#1f3a6e', '#e3e0d4'], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.14]], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
+  'Invader':      { top: '#4a5a3a', bottom: '#3b4630', kit: [['cap', 'head', HEAD, [0, 0, 0], '#4a5a3a', '#2f3a26'], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
+  'SWAT':         { top: '#15181c', bottom: '#15181c', kit: [['cap', 'head', HEAD, [0, 0, 0], '#15181c', '#3a3f45'], ['stripes', 'chest', [0, 1.1, 0.0], [0, 0, 0], 0.345, 0.215, [0.1]], ['belt', 'hips', [0, 0.92, 0], [0, 0, 0]]] },
   'Raider':       { top: '#3a2a2a', bottom: '#2b2b2f', kit: [['beanie', 'head', HEAD, [0, 0, 0], '#1b1b1d'], ['scarf', 'head', [0, 1.43, 0.06], [0, 0, 0], '#b3321f']] },
   'Villager':     { top: '#8a7a5a', bottom: '#5a5040', kit: [] },
   'Survivor':     { top: '#ee7a1c', bottom: '#3a4a5a', kit: [['pfd', 'chest', [0, 1.1, 0.0], [0, 0, 0], '#ee7a1c']] },
@@ -2935,7 +2942,7 @@ function makeGunMesh(kind) {
   g.userData.turret = turret; g.userData.barrel = barrel; g.userData.barrelX = barrel.position.x; g.traverse(m => { if (m.isMesh) { m.castShadow = true; } }); return g;
 }
 function setupBoatCombat(bt) {
-  const sp = bt.sp; bt.hpMax = Math.round(40 + sp.L * 2.6); bt.hp = bt.hpMax; bt.flood = 0; bt.fire = 0; bt.fireT = 0; bt.list = 0; bt.trim = 0; bt.sunk = false; bt.sinkT = 0; bt.subT = 0; bt.target = null; bt.lastHitBy = null; bt.lastHitT = -99; bt.hitFlash = 0;
+  const sp = bt.sp; bt.hpMax = sp.hp || Math.round(40 + sp.L * 2.6); bt.hp = bt.hpMax; bt.flood = 0; bt.fire = 0; bt.fireT = 0; bt.list = 0; bt.trim = 0; bt.sunk = false; bt.sinkT = 0; bt.subT = 0; bt.target = null; bt.lastHitBy = null; bt.lastHitT = -99; bt.hitFlash = 0;
   bt.mounts = (sp.guns || []).map(g => { const w = WEAPONS[g.k], lx = g.x * sp.L, lz = g.z || 0, ly = deckLy(bt, lx, lz) + (g.h || 1.4); const mesh = makeGunMesh(g.k); mesh.position.set(lx, ly - (g.k === 'gun' ? 0.2 : 0.1), lz); bt.group.add(mesh); mesh.rotation.y = Math.PI / 2 * 0; return { ...g, w, lx, lz, ly, cd: Math.random() * 0.8, mesh, burst: 0 }; });
   bt.ssH = sp.mast_h ? sp.mast_h : Math.min(15, sp.L * 0.14);
 }
@@ -4564,7 +4571,7 @@ function impactMeteor(m) {
   if (heightAt(x, z) < 0) splash(x, z, 6);
 }
 function updateDisasters(dt, t) {
-  if (LATER.length) runLater();
+  if (LATER.length) runLater(); if (LANDINGS.length) runLandings(dt);
   // surge: the sea level the water and the physics share
   let target = 0;
   if (dis.tsunami) { const s = dis.tsunami; s.t += dt; target = s.t < 14 ? -3.2 * ease(s.t / 14) : s.t < 24 ? -3.2 + 9.2 * ease((s.t - 14) / 10) : s.t < 46 ? 6 : s.t < 100 ? 6 * (1 - ease((s.t - 46) / 54)) : 0; if (s.t > 100) dis.tsunami = null; }
@@ -5304,11 +5311,29 @@ const LATER = []; const later = (sec, fn) => LATER.push({ at: simT + sec, fn });
 function runLater() { for (let i = LATER.length - 1; i >= 0; i--) if (simT >= LATER[i].at) { const f = LATER[i].fn; LATER.splice(i, 1); try { f(); } catch (e) { } } }
 function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.length < MAX_PEOPLE; i++) { const x = cp.x + (i % 3) * 1.5, z = cp.z + Math.floor(i / 3) * 1.5; const q = makePerson(Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.role = side === 'red' ? 'Raider' : 'Guard'; q.side = side; if (side === 'red') q.fromHostile = true; out.push(q); } return out; }
 function sideBoat(side, key, from, to) { const bt = makeBoat(key, null, null, from.x, from.z, Math.atan2(to.z - from.z, to.x - from.x)); sideCrew(bt, side); bt.anchor = null; orderTo(bt, to.x, to.z); return bt; }
-function landingParty(side, n, boats_) {
+const LANDINGS = [];
+function landingParty(side, n, nboats, kind) {
   const L = landingSpot(), e = edgeSpot(); if (!L || !e) { toast('No shore to land on'); return false; }
-  for (let b = 0; b < boats_; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }; const bt = sideBoat(side, side === 'red' ? 'runner' : 'bay', from, { x: L.sea.x + b * 9, z: L.sea.z + b * 5 }); bt.landing = true; }
-  later(34, () => { squadAt(side, n, L.cp); noteOnce('land' + side + simT, side === 'red' ? 'A landing party has come ashore.' : 'A response team has come ashore.'); for (const bt of boats.slice()) if (bt.landing) { bt.landing = false; const x = bt.body.position.x, z = bt.body.position.z; if (side === 'red') { const q = people.find(w => w.ride && w.ride.boat === bt); if (q) { /* crew stays aboard, raids the coast */ } } const dd = Math.hypot(x, z) || 1; orderTo(bt, x / dd * (EXT + 6), z / dd * (EXT + 6)); } });
+  const invade = kind === 'invasion', role = side === 'blue' ? 'SWAT' : invade ? 'Invader' : 'Raider', keyOf = (i) => side === 'blue' ? 'swatrib' : invade ? (i === 0 ? 'landing' : 'gunboat') : 'runner';
+  const bp = { x: L.cp.x + Math.cos(L.a) * 5, z: L.cp.z + Math.sin(L.a) * 5 }, boatsL = [];
+  for (let b = 0; b < nboats; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }, bt = sideBoat(side, keyOf(b), from, { x: bp.x + b * 7, z: bp.z + b * 4 }); const cap = bt.sp.capacity || 4; for (const q of people) if (q.ride && q.ride.boat === bt) q.role = role; crewOn(bt, Math.min(cap, Math.ceil(n / nboats)) - 2); for (const q of people) if (q.ride && q.ride.boat === bt) { q.side = side; q.role = role; if (side === 'red') q.fromHostile = true; } bt.landing = { state: 'run', L, role, t: 0, k: 0 }; boatsL.push(bt); }
+  LANDINGS.push({ boats: boatsL, side, role }); noteOnce('inv' + simT, invade ? 'Boats are coming in from the horizon. They look foreign and they look serious.' : side === 'red' ? 'A raider boat is heading for the beach.' : 'A response boat is racing for the shore.');
   return true;
+}
+function runLandings(dt) {
+  for (let i = LANDINGS.length - 1; i >= 0; i--) {
+    const Ln = LANDINGS[i]; let live = 0;
+    for (const bt of Ln.boats) {
+      const st = bt.landing; if (!st || bt.sunk || !boats.includes(bt)) continue; live++; st.t += dt; const pos = bt.body.position, crew = people.filter(q => q.ride && q.ride.boat === bt && q.state !== 'rag');
+      if (st.state === 'run') { if (Math.hypot(pos.x - (st.L.cp.x), pos.z - (st.L.cp.z)) < 16 || st.t > 120) { st.state = 'unload'; st.t = 0; st.k = 0; bt.order = null; bt.throttle = 0; bt.anchor = pos.clone(); noteOnce('ramp' + bt.id, 'The ' + bt.sp.name + ' has grounded on the beach. The ramp goes down.'); Snd.fx('veh_water_drop_whoosh_01', pos.x, pos.z, { gain: 0.6 }); } }
+      else if (st.state === 'unload') {
+        if (bt.rampNode) bt.rampNode.rotation.z += (-1.745 - bt.rampNode.rotation.z) * Math.min(1, dt * 2.2);
+        if (st.t > 1.5 && crew.length) { st.k -= dt; if (st.k <= 0) { st.k = 0.7; const p = crew[0]; const stp = fpClimbTarget(p); if (stp && !p.hop) { const from = new THREE.Vector3(p.x, p.y, p.z), dy = Math.abs(stp.y - p.y); p.order = null; startHop(p, from, (o) => o.set(stp.x + rnd(-1.5, 1.5), stp.y, stp.z + rnd(-1.5, 1.5)), clamp(0.8 + 0.08 * dy, 0.8, 2), 0.6, null, 0, 0, () => { p.ride = null; p.hop = null; p.x = stp.x; p.z = stp.z; p.y = stp.y; giveBody(p); p.ag = p.ag || undefined; }); } else if (!stp) { p.ride = null; } } }
+        else if (!crew.length || st.t > 40) { st.state = 'leave'; st.t = 0; bt.anchor = null; const dd = Math.hypot(pos.x, pos.z) || 1; orderTo(bt, pos.x / dd * (EXT + 8), pos.z / dd * (EXT + 8)); noteOnce('ld' + simT, Ln.role === 'SWAT' ? 'The response team is ashore.' : Ln.role === 'Invader' ? 'The invaders are ashore.' : 'The raiders are ashore.'); }
+      } else if (st.state === 'leave') { if (bt.rampNode) bt.rampNode.rotation.z += (0 - bt.rampNode.rotation.z) * Math.min(1, dt * 3); if (Math.hypot(pos.x, pos.z) > EXT - 10 || st.t > 90) { people.filter(q => q.ride && q.ride.boat === bt).forEach(removePerson); removeBoat(bt); } }
+    }
+    if (!live) LANDINGS.splice(i, 1);
+  }
 }
 const ARRIVALS = [
   ['Supply drop', 'Crates fall from the sky at the middle of the view.', () => { const p = aimPt(); for (let i = 0; i < 6; i++) { const c = CARGO[Math.floor(Math.random() * CARGO.length)]; spawn(c, p.x + rnd(-5, 5), 40 + i * 4, p.z + rnd(-5, 5)); } toast('A supply drop falls from the sky.'); }],
@@ -5320,9 +5345,9 @@ const ARRIVALS = [
 const EVENTS = [
   ['Smuggling run', 'A fishing boat comes in and drops drums. Can the Coast Guard tell?', () => { if (!spawnSmuggler()) toast('A run is already under way.'); else toast('A boat is coming in. It looks like any other.'); }],
   ['Raider attack', 'A red raider boat hunts boats and yards.', () => { const e = edgeSpot(), L = landingSpot(); if (!e || !L) return; sideBoat('red', Math.random() < 0.5 ? 'runner' : 'gunboat', e, L.sea); toast('A red raider boat is closing on the cove.'); }],
-  ['Landing party', 'Red raiders come ashore and go for the yards.', () => landingParty('red', 5, 1)],
-  ['Foreign invasion', 'A red flotilla lands troops while the Port defends.', () => { if (landingParty('red', 8, 2)) { later(10, () => landingParty('blue', 4, 1)); toast('A foreign flotilla is on the horizon.'); } }],
-  ['SWAT team', 'A blue response team arrives to fight the criminals.', () => landingParty('blue', 5, 1)],
+  ['Landing party', 'Red raiders come ashore and go for the yards.', () => landingParty('red', 5, 1, 'raid')],
+  ['Foreign invasion', 'Foreign landing craft beach and put troops ashore while the Port responds.', () => { if (landingParty('red', 10, 2, 'invasion')) later(14, () => landingParty('blue', 5, 1, 'swat')); }],
+  ['SWAT team', 'A blue response team arrives to fight the criminals.', () => landingParty('blue', 5, 1, 'swat')],
   ['Gang fight', 'Two bands of guards and raiders meet at the middle of the view.', () => { const p = aimPt(); squadAt('blue', 4, { x: p.x - 9, z: p.z }); squadAt('red', 4, { x: p.x + 9, z: p.z }); toast('Two bands face each other.'); }],
   ['Developer rush', 'Rival developers arrive and compete for building sites.', () => { spawnDevelopers(3) ? toast('A developer crew arrives.') : toast('No room'); }],
   ['Salvage tug', 'A tug comes in for floating cargo.', () => { spawnSalvage() ? 0 : toast('A salvage tug is already here.'); }],
