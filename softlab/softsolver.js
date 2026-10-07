@@ -28,7 +28,8 @@ export function makeMaterial(d) {
   return Object.freeze({
     name: d.name || 'mat', density: d.density, youngs, poisson,
     yield: yieldS, fracture: fracS, damping: d.damping ?? 0.1,
-    scatter: d.scatter ?? 0.05,                    // +/- relative scatter of strength per constraint (seeded)
+    scatter: d.scatter ?? 0.05,
+    snap: !!d.snap,                                // brittle: when one bar of a cut section fails the whole section snaps                    // +/- relative scatter of strength per constraint (seeded)
     shear: youngs / (2 * (1 + poisson)),
     bulk: youngs / (3 * (1 - 2 * poisson)),
     yieldStrain: yieldS / youngs, fracStrain: fracS / youngs,
@@ -38,11 +39,11 @@ export function makeMaterial(d) {
 
 // Reference material descriptors (rough, ranged for game use; bending/tension strengths in Pa)
 export const MATERIALS = {
-  wood:   { name: 'wood',   density: 600,  youngs: 1.0e10, yield: 4.0e7, fracture: 6.0e7, damping: 0.2 },
+  wood:   { name: 'wood',   density: 600,  youngs: 1.0e10, yield: 4.0e7, fracture: 6.0e7, damping: 0.2, snap: true },
   steel:  { name: 'steel',  density: 7800, youngs: 2.0e11, yield: 2.5e8, fracture: 4.0e8, damping: 0.1 },
   rope:   { name: 'rope',   density: 900,  youngs: 5.0e8,  yield: 1.0e12, fracture: 8.0e7, damping: 0.4 },
   cloth:  { name: 'cloth',  density: 400,  youngs: 5.0e7,  yield: 1.0e12, fracture: 5.0e7, damping: 0.5 },
-  stone:  { name: 'stone',  density: 2500, youngs: 3.0e10, yield: 1.0e13, fracture: 5.0e6, damping: 0.2 },
+  stone:  { name: 'stone',  density: 2500, youngs: 3.0e10, yield: 1.0e13, fracture: 5.0e6, damping: 0.2, snap: true },
   mortar: { name: 'mortar', density: 1900, youngs: 1.0e9,  yield: 1.0e13, fracture: 3.0e5, damping: 0.2 },
 };
 
@@ -51,14 +52,18 @@ const SQ = Math.sqrt;
 export class SoftWorld {
   constructor(o = {}) {
     this.gravity = o.gravity ? o.gravity.slice() : [0, -9.81, 0];
-    this.substeps = o.substeps ?? 8;
+    this.substeps = o.substeps ?? 8;               // fixed substeps per frame ...
+    this.substepHz = o.substepHz ?? 0;              // ... or (if > 0) a fixed substep RATE, so h is the same at 30/60/120 Hz
     this.iterations = o.iterations ?? 1;
     this.seed = o.seed ?? 1;
     this.rng = mulberry32(this.seed);
     this.friction = o.friction ?? 0.6;
-    this.pairInterval = o.pairInterval ?? 2;        // particle-particle contact pass every N substeps (0 = off)
+    this.crushRatio = o.crushRatio ?? 4;            // compression breaks at crushRatio x the tension strain
+    this.pairs = o.pairs ?? true;                   // particle-particle contacts between different connected pieces (once per frame)
+    this.checkEvery = o.checkEvery ?? 2;            // plasticity/fracture checks every N substeps (and always on the last)
     this.groundMargin = 0.0;
     this.heightfield = null;                        // (x,z) => height
+    this.heightfieldMax = Infinity;                 // optional upper bound of the heightfield: particles above it skip the callback
     this.colliders = [];                            // {type:'sphere',c,r,v} | {type:'box',c,h,q,v}; impulse in .j/.tq
     this.wind = null;                               // [wx,wy,wz] or (x,y,z)=>[wx,wy,wz]
     this.airDensity = 1.2;
@@ -70,10 +75,10 @@ export class SoftWorld {
     this.nt = 0; this.capT = 0; this._allocT(128);
     this.nw = 0; this.capW = 0; this._allocW(128);
     this.nTri = 0; this.tri = new Int32Array(0); this.triCd = new Float64Array(0);
-    this.nextGroup = 1; this.nBroken = 0;
-    this._compDirty = true; this.comp = new Int32Array(0); this.nComp = 0;
+    this.nextGroup = 1; this.nextBay = 1; this.nBroken = 0;
+    this._compDirty = true; this.comp = new Int32Array(0); this.nComp = 0; this.compV = new Float64Array(0); this.compM = new Float64Array(0); this.compPin = new Uint8Array(0); this.supPrev = new Uint8Array(0); this.supNow = new Uint8Array(0);
     this._hHead = new Int32Array(8192); this._hNext = new Int32Array(0);
-    this._sweep = 0; this._hCache = -1; this.maxRadius = 0.01;
+    this._sweep = 0; this._adjDirty = true; this.stepMax = o.stepMax ?? 0.25; this.omega = o.omega ?? 0.75; this.maxSpeed = o.maxSpeed ?? 80; this.adjStart = null; this.maxRadius = 0.01;
     this.stats = { contacts: 0, pairContacts: 0 };
   }
 
@@ -83,7 +88,7 @@ export class SoftWorld {
     this.pos = g(this.pos, 3, Float64Array); this.prev = g(this.prev, 3, Float64Array); this.vel = g(this.vel, 3, Float64Array);
     this.ext = g(this.ext, 3, Float64Array); this.aeroF = g(this.aeroF, 3, Float64Array);
     this.mass = g(this.mass, 1, Float64Array); this.invM = g(this.invM, 1, Float64Array); this.rad = g(this.rad, 1, Float64Array);
-    this.drag = g(this.drag, 1, Float64Array); this.group = g(this.group, 1, Int32Array); this.pinned = g(this.pinned, 1, Uint8Array);
+    this.drag = g(this.drag, 1, Float64Array); this.xt = g(this.xt, 3, Float64Array); this.group = g(this.group, 1, Int32Array); this.pinned = g(this.pinned, 1, Uint8Array);
     this.cap = c;
   }
   _allocD(c) {
@@ -91,7 +96,7 @@ export class SoftWorld {
     this.da = g(this.da, Int32Array); this.db = g(this.db, Int32Array); this.dRest = g(this.dRest, Float64Array);
     this.dAlpha = g(this.dAlpha, Float64Array); this.dBeta = g(this.dBeta, Float64Array); this.dYield = g(this.dYield, Float64Array);
     this.dFrac = g(this.dFrac, Float64Array); this.dAct = g(this.dAct, Uint8Array); this.dLam = g(this.dLam, Float64Array);
-    this.dK = g(this.dK, Float64Array); this.dTag = g(this.dTag, Int32Array);
+    this.dK = g(this.dK, Float64Array); this.dTag = g(this.dTag, Int32Array); this.dBay = g(this.dBay, Int32Array); this.dSnap = g(this.dSnap, Uint8Array);
     this.capD = c;
   }
   _allocT(c) {
@@ -116,12 +121,13 @@ export class SoftWorld {
     this.prev[k] = x; this.prev[k + 1] = y; this.prev[k + 2] = z;
     this.mass[i] = mass; this.invM[i] = mass > 0 ? 1 / mass : 0; this.rad[i] = radius; this.group[i] = group; this.drag[i] = drag;
     if (radius > this.maxRadius) this.maxRadius = radius;
-    this._compDirty = true;
+    this._compDirty = true; this._adjDirty = true;
     return i;
   }
   addMass(i, m) { this.mass[i] += m; this.invM[i] = this.pinned[i] ? 0 : 1 / this.mass[i]; }
   pin(i, on = true) { this.pinned[i] = on ? 1 : 0; this.invM[i] = on || this.mass[i] <= 0 ? 0 : 1 / this.mass[i]; }
   newGroup() { return this.nextGroup++; }
+  newBay() { return this.nextBay++; }
 
   addDistance(a, b, mat, area, o = {}) {
     if (this.nd >= this.capD) this._allocD(this.capD * 2);
@@ -132,8 +138,8 @@ export class SoftWorld {
     const sc = 1 + mat.scatter * (2 * this.rng() - 1);
     this.da[c] = a; this.db[c] = b; this.dRest[c] = rest; this.dK[c] = k; this.dAlpha[c] = 1 / k;
     this.dBeta[c] = mat.beta; this.dYield[c] = mat.yieldStrain * sc; this.dFrac[c] = (o.fracStrain ?? mat.fracStrain) * sc;
-    this.dAct[c] = 1; this.dLam[c] = 0; this.dTag[c] = o.tag ?? 0;
-    this._compDirty = true;
+    this.dAct[c] = 1; this.dLam[c] = 0; this.dTag[c] = o.tag ?? 0; this.dBay[c] = o.bay ?? 0; this.dSnap[c] = mat.snap && o.bay ? 1 : 0;
+    this._compDirty = true; this._adjDirty = true;
     return c;
   }
   addTetra(a, b, c, d, mat, o = {}) {
@@ -142,7 +148,7 @@ export class SoftWorld {
     const V = this._vol(a, b, c, d);
     this.tv[t * 4] = a; this.tv[t * 4 + 1] = b; this.tv[t * 4 + 2] = c; this.tv[t * 4 + 3] = d;
     this.tV0[t] = V; this.tAlpha[t] = Math.abs(V) / (o.bulk ?? mat.bulk); this.tAct[t] = 1; this.tLam[t] = 0;
-    this._compDirty = true;
+    this._compDirty = true; this._adjDirty = true;
     return t;
   }
   _vol(a, b, c, d) {
@@ -162,7 +168,7 @@ export class SoftWorld {
     this.wK[w] = k; this.wAlpha[w] = 1 / k; this.wBeta[w] = mat.beta;
     this.wMax[w] = (o.maxForce ?? mat.fracture * area) * sc; this.wAct[w] = 1;
     this.wLam[w * 3] = 0; this.wLam[w * 3 + 1] = 0; this.wLam[w * 3 + 2] = 0;
-    this._compDirty = true;
+    this._compDirty = true; this._adjDirty = true;
     return w;
   }
   addAeroTri(a, b, c, cd = 1.2) {
@@ -175,20 +181,21 @@ export class SoftWorld {
   clearImpulses() { for (const c of this.colliders) { c.j[0] = c.j[1] = c.j[2] = 0; c.tq[0] = c.tq[1] = c.tq[2] = 0; } }
 
   // ---------- stepping ----------
+  // One frame = `substeps` implicit-Euler steps. Each is solved by `iterations` Gauss-Seidel sweeps of Vertex Block
+  // Descent: every free particle does a local 3x3 Newton step on (inertia + all incident constraint energies).
   step(dt) {
-    const S = this.substeps, h = dt / S, g = this.gravity, n = this.n;
+    const S = this.substepHz ? Math.max(1, Math.round(dt * this.substepHz)) : this.substeps, h = dt / S;
     if (this._compDirty) this._buildComponents();
+    if (this._adjDirty) this._buildAdj();
     this._aero();
     for (let s = 0; s < S; s++) {
-      this._predict(h, g);
-      this._zeroLam();
+      this._predict(h);
       for (let it = 0; it < this.iterations; it++) {
-        const rev = (this._sweep++ & 1) === 1;
-        this._solveWelds(h, rev); this._solveTets(h, rev); this._solveDistance(h, rev);
+        this._vbd(h, (this._sweep++ & 1) === 1);
+        this._collide(h);
       }
-      this._collide(h);
-      if (this.pairInterval > 0 && ((s + 1) % this.pairInterval === 0 || s === S - 1)) this._pairs(h);
-      this._finish(h);
+      if (this.pairs && s === S - 1) this._pairs(h);       // rubble/chunk contacts: once per frame
+      this._finish(h, s === S - 1 || (s + 1) % this.checkEvery === 0);
     }
     this.time += dt; this.stepCount++;
     if (this._compDirty) this._buildComponents();
@@ -213,104 +220,134 @@ export class SoftWorld {
     }
   }
 
-  _predict(h, g) {
-    const n = this.n, p = this.pos, pr = this.prev, v = this.vel, im = this.invM, ex = this.ext, ae = this.aeroF, dr = this.drag;
-    const gx = g[0], gy = g[1], gz = g[2], useA = this.nTri > 0 && this.wind;
+  // inertial target xt (it is what the energy is anchored to) and the sweep's initial guess.
+  // Initial guess: previous state + velocity (so a resting structure is a fixed point of the sweep: no sag bias).
+  // Exception: a connected piece with NO support (nothing pinned, no contact last substep) is in free flight; stiff
+  // Gauss-Seidel converges slowly on rigid translation, so it starts from the full inertial prediction instead.
+  _predict(h) {
+    const n = this.n, p = this.pos, pr = this.prev, v = this.vel, im = this.invM, ex = this.ext, ae = this.aeroF, dr = this.drag, xt = this.xt, comp = this.comp, sup = this.supPrev, cv = this.compV;
+    const g = this.gravity, gx = g[0], gy = g[1], gz = g[2], useA = this.nTri > 0 && this.wind, h2 = h * h;
     for (let i = 0; i < n; i++) {
       const k = i * 3; pr[k] = p[k]; pr[k + 1] = p[k + 1]; pr[k + 2] = p[k + 2];
-      const w = im[i]; if (w === 0) { v[k] = v[k + 1] = v[k + 2] = 0; continue; }
+      const w = im[i]; if (w === 0) { v[k] = v[k + 1] = v[k + 2] = 0; xt[k] = p[k]; xt[k + 1] = p[k + 1]; xt[k + 2] = p[k + 2]; continue; }
+      const dm = 1 / (1 + dr[i] * h), cc = comp[i];
+      // mass-proportional damping acts on the velocity relative to the piece's own centre-of-mass motion when the piece
+      // is in free flight (so a falling chunk is not slowed like in air) and relative to rest when it is supported
+      let rx = 0, ry = 0, rz = 0; if (!sup[cc]) { rx = cv[cc * 3]; ry = cv[cc * 3 + 1]; rz = cv[cc * 3 + 2]; }
+      const vx = rx + (v[k] - rx) * dm, vy = ry + (v[k + 1] - ry) * dm, vz = rz + (v[k + 2] - rz) * dm;
       let ax = gx + ex[k] * w, ay = gy + ex[k + 1] * w, az = gz + ex[k + 2] * w;
       if (useA) { ax += ae[k] * w; ay += ae[k + 1] * w; az += ae[k + 2] * w; }
-      const dm = 1 / (1 + dr[i] * h);
-      v[k] = (v[k] + h * ax) * dm; v[k + 1] = (v[k + 1] + h * ay) * dm; v[k + 2] = (v[k + 2] + h * az) * dm;
-      p[k] += h * v[k]; p[k + 1] += h * v[k + 1]; p[k + 2] += h * v[k + 2];
-    }
-  }
-  _zeroLam() {
-    this.dLam.fill(0, 0, this.nd); this.tLam.fill(0, 0, this.nt); this.wLam.fill(0, 0, this.nw * 3);
-  }
-
-  _solveDistance(h, rev) {
-    const nd = this.nd, p = this.pos, pr = this.prev, im = this.invM, A = this.da, B = this.db, R = this.dRest, AL = this.dAlpha, BE = this.dBeta, ACT = this.dAct, LAM = this.dLam;
-    const h2 = h * h, ih = 1 / h;
-    for (let q = 0; q < nd; q++) {
-      const c = rev ? nd - 1 - q : q; if (ACT[c] === 0) continue;
-      const a = A[c], b = B[c], wa = im[a], wb = im[b], ws = wa + wb; if (ws === 0) continue;
-      const ka = a * 3, kb = b * 3;
-      const dx = p[ka] - p[kb], dy = p[ka + 1] - p[kb + 1], dz = p[ka + 2] - p[kb + 2];
-      const len = SQ(dx * dx + dy * dy + dz * dz); if (len < 1e-12) continue;
-      const il = 1 / len, nx = dx * il, ny = dy * il, nz = dz * il;
-      const at = AL[c] / h2, gm = AL[c] * BE[c] * ih;        // gamma = alphaTilde * beta / h (Macklin XPBD damping)
-      const rel = ((p[ka] - pr[ka]) - (p[kb] - pr[kb])) * nx + ((p[ka + 1] - pr[ka + 1]) - (p[kb + 1] - pr[kb + 1])) * ny + ((p[ka + 2] - pr[ka + 2]) - (p[kb + 2] - pr[kb + 2])) * nz;
-      const dl = (-(len - R[c]) - at * LAM[c] - gm * rel) / ((1 + gm) * ws + at);
-      LAM[c] += dl;
-      const sa = dl * wa, sb = dl * wb;
-      p[ka] += sa * nx; p[ka + 1] += sa * ny; p[ka + 2] += sa * nz;
-      p[kb] -= sb * nx; p[kb + 1] -= sb * ny; p[kb + 2] -= sb * nz;
+      xt[k] = p[k] + h * vx + h2 * ax; xt[k + 1] = p[k + 1] + h * vy + h2 * ay; xt[k + 2] = p[k + 2] + h * vz + h2 * az;
+      if (sup[comp[i]]) { p[k] += h * vx; p[k + 1] += h * vy; p[k + 2] += h * vz; } else { p[k] = xt[k]; p[k + 1] = xt[k + 1]; p[k + 2] = xt[k + 2]; }
     }
   }
 
-  _solveTets(h, rev) {
-    const nt = this.nt; if (!nt) return;
-    const p = this.pos, im = this.invM, V = this.tv, V0 = this.tV0, AL = this.tAlpha, ACT = this.tAct, LAM = this.tLam, h2 = h * h;
-    for (let q = 0; q < nt; q++) {
-      const t = rev ? nt - 1 - q : q; if (ACT[t] === 0) continue;
-      const a = V[t * 4] * 3, b = V[t * 4 + 1] * 3, c = V[t * 4 + 2] * 3, d = V[t * 4 + 3] * 3;
-      const bx = p[b] - p[a], by = p[b + 1] - p[a + 1], bz = p[b + 2] - p[a + 2];
-      const cx = p[c] - p[a], cy = p[c + 1] - p[a + 1], cz = p[c + 2] - p[a + 2];
-      const dx = p[d] - p[a], dy = p[d + 1] - p[a + 1], dz = p[d + 2] - p[a + 2];
-      // gradients of V wrt b, c, d
-      const gbx = (cy * dz - cz * dy) / 6, gby = (cz * dx - cx * dz) / 6, gbz = (cx * dy - cy * dx) / 6;
-      const gcx = (dy * bz - dz * by) / 6, gcy = (dz * bx - dx * bz) / 6, gcz = (dx * by - dy * bx) / 6;
-      const gdx = (by * cz - bz * cy) / 6, gdy = (bz * cx - bx * cz) / 6, gdz = (bx * cy - by * cx) / 6;
-      const gax = -(gbx + gcx + gdx), gay = -(gby + gcy + gdy), gaz = -(gbz + gcz + gdz);
-      const wa = im[a / 3], wb = im[b / 3], wc = im[c / 3], wd = im[d / 3];
-      const den = wa * (gax * gax + gay * gay + gaz * gaz) + wb * (gbx * gbx + gby * gby + gbz * gbz) + wc * (gcx * gcx + gcy * gcy + gcz * gcz) + wd * (gdx * gdx + gdy * gdy + gdz * gdz);
-      const Cv = (bx * (cy * dz - cz * dy) + by * (cz * dx - cx * dz) + bz * (cx * dy - cy * dx)) / 6 - V0[t];
-      const at = AL[t] / h2, dl = (-Cv - at * LAM[t]) / (den + at); LAM[t] += dl;
-      p[a] += dl * wa * gax; p[a + 1] += dl * wa * gay; p[a + 2] += dl * wa * gaz;
-      p[b] += dl * wb * gbx; p[b + 1] += dl * wb * gby; p[b + 2] += dl * wb * gbz;
-      p[c] += dl * wc * gcx; p[c + 1] += dl * wc * gcy; p[c + 2] += dl * wc * gcz;
-      p[d] += dl * wd * gdx; p[d + 1] += dl * wd * gdy; p[d + 2] += dl * wd * gdz;
-    }
-  }
-
-  _solveWelds(h, rev) {
-    const nw = this.nw; if (!nw) return;
-    const p = this.pos, pr = this.prev, im = this.invM, A = this.wa, B = this.wb, R = this.wR, AL = this.wAlpha, BE = this.wBeta, ACT = this.wAct, LAM = this.wLam, h2 = h * h, ih = 1 / h;
-    for (let q = 0; q < nw; q++) {
-      const w = rev ? nw - 1 - q : q; if (ACT[w] === 0) continue;
-      const a = A[w], b = B[w], wa = im[a], wb = im[b], ws = wa + wb; if (ws === 0) continue;
-      const ka = a * 3, kb = b * 3, at = AL[w] / h2, gm = AL[w] * BE[w] * ih, den = (1 + gm) * ws + at;
-      for (let k = 0; k < 3; k++) {
-        const C = p[ka + k] - p[kb + k] - R[w * 3 + k];
-        const rel = (p[ka + k] - pr[ka + k]) - (p[kb + k] - pr[kb + k]);
-        const dl = (-C - at * LAM[w * 3 + k] - gm * rel) / den; LAM[w * 3 + k] += dl;
-        p[ka + k] += dl * wa; p[kb + k] -= dl * wb;
+  // one Gauss-Seidel sweep over all free particles
+  _vbd(h, rev) {
+    const n = this.n, p = this.pos, pr = this.prev, im = this.invM, ms = this.mass, xt = this.xt;
+    const dS = this.adjDS, dC = this.adjDC, dO = this.adjDO, wS = this.adjWS, wC = this.adjWC, wO = this.adjWO, tS = this.adjTS, tC = this.adjTC;
+    const DR = this.dRest, DK = this.dK, DBe = this.dBeta, DAc = this.dAct;
+    const WA = this.wa, WK = this.wK, WBe = this.wBeta, WR = this.wR, WAc = this.wAct;
+    const TV = this.tv, TAl = this.tAlpha, TV0 = this.tV0, TAc = this.tAct;
+    const h2 = h * h, ih = 1 / h, STEPMAX = this.stepMax, om = this.omega;
+    for (let q = 0; q < n; q++) {
+      const i = rev ? n - 1 - q : q; if (im[i] === 0) continue;
+      const k = i * 3, xi = p[k], yi = p[k + 1], zi = p[k + 2], mh = ms[i] / h2;
+      let fx = -mh * (xi - xt[k]), fy = -mh * (yi - xt[k + 1]), fz = -mh * (zi - xt[k + 2]);
+      let hxx = mh, hyy = mh, hzz = mh, hxy = 0, hxz = 0, hyz = 0;
+      const vix = (xi - pr[k]) * ih, viy = (yi - pr[k + 1]) * ih, viz = (zi - pr[k + 2]) * ih;
+      for (let e = dS[i], e1 = dS[i + 1]; e < e1; e++) {         // distance bars
+        const c = dC[e]; if (DAc[c] === 0) continue;
+        const kj = dO[e] * 3;
+        const dx = xi - p[kj], dy = yi - p[kj + 1], dz = zi - p[kj + 2];
+        const len = SQ(dx * dx + dy * dy + dz * dz); if (len < 1e-12) continue;
+        const il = 1 / len, nx = dx * il, ny = dy * il, nz = dz * il, kk = DK[c], r0 = DR[c], bt = DBe[c];
+        let fs = -kk * (len - r0), ka = kk;
+        if (bt > 0) {                                              // stiffness-proportional (Rayleigh) damping along the bar
+          const kd = kk * bt, vr = (vix - (p[kj] - pr[kj]) * ih) * nx + (viy - (p[kj + 1] - pr[kj + 1]) * ih) * ny + (viz - (p[kj + 2] - pr[kj + 2]) * ih) * nz;
+          fs -= kd * vr; ka += kd * ih;
+        }
+        fx += fs * nx; fy += fs * ny; fz += fs * nz;
+        const tc = len > r0 ? kk * (1 - r0 * il) : 0, dd = ka - tc;   // tc: geometric stiffness (PSD part only)
+        hxx += dd * nx * nx + tc; hyy += dd * ny * ny + tc; hzz += dd * nz * nz + tc;
+        hxy += dd * nx * ny; hxz += dd * nx * nz; hyz += dd * ny * nz;
       }
+      for (let e = wS[i], e1 = wS[i + 1]; e < e1; e++) {          // welds (3-axis point joints)
+        const c = wC[e]; if (WAc[c] === 0) continue;
+        const sgn = WA[c] === i ? 1 : -1, kj = wO[e] * 3, kk = WK[c], kd = kk * WBe[c];
+        const cx = xi - p[kj] - sgn * WR[c * 3], cy = yi - p[kj + 1] - sgn * WR[c * 3 + 1], cz = zi - p[kj + 2] - sgn * WR[c * 3 + 2];
+        const vx = vix - (p[kj] - pr[kj]) * ih, vy = viy - (p[kj + 1] - pr[kj + 1]) * ih, vz = viz - (p[kj + 2] - pr[kj + 2]) * ih;
+        fx -= kk * cx + kd * vx; fy -= kk * cy + kd * vy; fz -= kk * cz + kd * vz;
+        const ka = kk + kd * ih; hxx += ka; hyy += ka; hzz += ka;
+      }
+      for (let e = tS[i], e1 = tS[i + 1]; e < e1; e++) {          // tetra volume constraints
+        const c = tC[e]; if (TAc[c] === 0) continue;
+        const o0 = TV[c * 4], o1 = TV[c * 4 + 1], o2 = TV[c * 4 + 2], o3 = TV[c * 4 + 3];
+        // (i,B,C,D) = even permutation of the stored order, so the signed volume is unchanged
+        let B, C, D; if (o0 === i) { B = o1; C = o2; D = o3; } else if (o1 === i) { B = o0; C = o3; D = o2; } else if (o2 === i) { B = o3; C = o0; D = o1; } else { B = o2; C = o1; D = o0; }
+        const kb = B * 3, kc = C * 3, kdd = D * 3;
+        const bx = p[kb] - xi, by = p[kb + 1] - yi, bz = p[kb + 2] - zi, cx = p[kc] - xi, cy = p[kc + 1] - yi, cz = p[kc + 2] - zi, dx = p[kdd] - xi, dy = p[kdd + 1] - yi, dz = p[kdd + 2] - zi;
+        const Vol = (bx * (cy * dz - cz * dy) + by * (cz * dx - cx * dz) + bz * (cx * dy - cy * dx)) / 6;
+        const gx_ = -(((cy * dz - cz * dy) + (dy * bz - dz * by) + (by * cz - bz * cy)) / 6), gy_ = -(((cz * dx - cx * dz) + (dz * bx - dx * bz) + (bz * cx - bx * cz)) / 6), gz_ = -(((cx * dy - cy * dx) + (dx * by - dy * bx) + (bx * cy - by * cx)) / 6);
+        const kv = 1 / TAl[c], Cv = Vol - TV0[c];
+        fx -= kv * Cv * gx_; fy -= kv * Cv * gy_; fz -= kv * Cv * gz_;
+        hxx += kv * gx_ * gx_; hyy += kv * gy_ * gy_; hzz += kv * gz_ * gz_; hxy += kv * gx_ * gy_; hxz += kv * gx_ * gz_; hyz += kv * gy_ * gz_;
+      }
+      // solve H dx = f (symmetric 3x3, cofactor inverse)
+      const c00 = hyy * hzz - hyz * hyz, c01 = hxz * hyz - hxy * hzz, c02 = hxy * hyz - hxz * hyy;
+      const det = hxx * c00 + hxy * c01 + hxz * c02; if (!(Math.abs(det) > 1e-300)) continue;
+      const id = 1 / det, c11 = hxx * hzz - hxz * hxz, c12 = hxy * hxz - hxx * hyz, c22 = hxx * hyy - hxy * hxy;
+      let dx = (c00 * fx + c01 * fy + c02 * fz) * id, dy = (c01 * fx + c11 * fy + c12 * fz) * id, dz = (c02 * fx + c12 * fy + c22 * fz) * id;
+      const dl = dx * dx + dy * dy + dz * dz;
+      if (dl > STEPMAX * STEPMAX) { const s = STEPMAX / SQ(dl); dx *= s; dy *= s; dz *= s; }
+      p[k] = xi + om * dx; p[k + 1] = yi + om * dy; p[k + 2] = zi + om * dz;
     }
+  }
+
+  // CSR adjacency per constraint family (deterministic order = creation order)
+  _buildAdj() {
+    const n = this.n;
+    const csr = (m, ends) => {
+      const st = new Int32Array(n + 1);
+      for (let c = 0; c < m; c++) for (const q of ends(c)) st[q + 1]++;
+      for (let i = 0; i < n; i++) st[i + 1] += st[i];
+      const fill = st.slice(0, n), tot = st[n], ci = new Int32Array(tot), ot = new Int32Array(tot);
+      for (let c = 0; c < m; c++) { const e = ends(c); for (let a = 0; a < e.length; a++) { const q = fill[e[a]]++; ci[q] = c; ot[q] = e.length === 2 ? e[1 - a] : -1; } }
+      return [st, ci, ot];
+    };
+    [this.adjDS, this.adjDC, this.adjDO] = csr(this.nd, (c) => [this.da[c], this.db[c]]);
+    [this.adjWS, this.adjWC, this.adjWO] = csr(this.nw, (c) => [this.wa[c], this.wb[c]]);
+    [this.adjTS, this.adjTC] = csr(this.nt, (t) => [this.tv[t * 4], this.tv[t * 4 + 1], this.tv[t * 4 + 2], this.tv[t * 4 + 3]]);
+    this._adjDirty = false;
   }
 
   // ---------- contacts ----------
   _collide(h) {
-    const n = this.n, p = this.pos, pr = this.prev, im = this.invM, rad = this.rad, hf = this.heightfield, mu = this.friction;
+    const n = this.n, p = this.pos, im = this.invM, rad = this.rad, hf = this.heightfield, hfMax = this.heightfieldMax, mu = this.friction;
     const cols = this.colliders, nc = cols.length; let contacts = 0;
+    // axis-aligned reach of every collider (inflated by the largest particle radius) for a cheap inline cull
+    if (nc) { if (!this._cull || this._cull.length < nc * 6) this._cull = new Float64Array(nc * 6); const R = this.maxRadius * 1.01, cu = this._cull;
+      for (let c = 0; c < nc; c++) { const o = cols[c], e = o.type === 'sphere' ? o.r : Math.hypot(o.h[0], o.h[1], o.h[2]); for (let a = 0; a < 3; a++) { cu[c * 6 + a] = o.c[a] - e - R; cu[c * 6 + 3 + a] = o.c[a] + e + R; } } }
+    const cu = this._cull;
     for (let i = 0; i < n; i++) {
       if (im[i] === 0) continue;
-      const k = i * 3, r = rad[i];
-      if (hf) {
-        const x = p[k], z = p[k + 2], gh = hf(x, z), pen = gh + r - p[k + 1];
+      const k = i * 3, r = rad[i], px = p[k], py = p[k + 1], pz = p[k + 2];
+      if (hf && py - r < hfMax) {
+        const x = px, z = pz, gh = hf(x, z), pen = gh + r - py;
         if (pen > 0) {
-          contacts++;
+          contacts++; this.supNow[this.comp[i]] = 1;
           // normal from central differences (only on contact)
           const e = 0.05, gx = (hf(x + e, z) - hf(x - e, z)) / (2 * e), gz = (hf(x, z + e) - hf(x, z - e)) / (2 * e);
           const il = 1 / SQ(gx * gx + gz * gz + 1), nx = -gx * il, ny = il, nz = -gz * il;
-          const d = pen * ny; // move along normal so the particle ends at distance r above the surface (vertical pen -> normal pen)
+          const d = pen * ny; // move along the normal so the particle ends at distance r above the surface
           p[k] += nx * d; p[k + 1] += ny * d; p[k + 2] += nz * d;
           this._friction(k, nx, ny, nz, d, mu, 0, 0, 0, h);
         }
       }
-      for (let c = 0; c < nc; c++) this._colliderContact(cols[c], i, k, r, mu, h) && contacts++;
+      for (let c = 0; c < nc; c++) {
+        const o = c * 6; if (px < cu[o] || px > cu[o + 3] || py < cu[o + 1] || py > cu[o + 4] || pz < cu[o + 2] || pz > cu[o + 5]) continue;
+        if (this._colliderContact(cols[c], i, k, r, mu, h)) { contacts++; this.supNow[this.comp[i]] = 1; }
+      }
     }
     this.stats.contacts = contacts;
   }
@@ -367,47 +404,65 @@ export class SoftWorld {
     const n = this.n; if (n < 2 || this.nComp < 2) return;
     const p = this.pos, im = this.invM, rad = this.rad, comp = this.comp, HS = this._hHead.length, head = this._hHead;
     if (this._hNext.length < n) this._hNext = new Int32Array(this.cap);
-    const next = this._hNext, cell = 2 * this.maxRadius, ic = 1 / cell; head.fill(-1);
+    const next = this._hNext, cell = 4 * this.maxRadius, ic = 1 / cell; head.fill(-1);
     const hash = (x, y, z) => ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) & (HS - 1);
     for (let i = 0; i < n; i++) { const k = i * 3, hh = hash(Math.floor(p[k] * ic), Math.floor(p[k + 1] * ic), Math.floor(p[k + 2] * ic)); next[i] = head[hh]; head[hh] = i; }
-    let cnt = 0;
+    let cnt = 0; const R0 = this.maxRadius; /* cell = 4 R0 and query reach = r_i + R0 <= 2 R0 -> at most 2 cells per axis */
     for (let i = 0; i < n; i++) {
-      const k = i * 3, cx = Math.floor(p[k] * ic), cy = Math.floor(p[k + 1] * ic), cz = Math.floor(p[k + 2] * ic), wi = im[i], ci = comp[i];
-      for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) for (let oz = -1; oz <= 1; oz++) {
-        for (let j = head[hash(cx + ox, cy + oy, cz + oz)]; j >= 0; j = next[j]) {
+      const k = i * 3, wi = im[i], ci = comp[i], Q = rad[i] + R0;
+      const x0 = Math.floor((p[k] - Q) * ic), x1 = Math.floor((p[k] + Q) * ic), y0 = Math.floor((p[k + 1] - Q) * ic), y1 = Math.floor((p[k + 1] + Q) * ic), z0 = Math.floor((p[k + 2] - Q) * ic), z1 = Math.floor((p[k + 2] + Q) * ic);
+      for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) for (let cz = z0; cz <= z1; cz++) {
+        for (let j = head[hash(cx, cy, cz)]; j >= 0; j = next[j]) {
           if (j <= i || comp[j] === ci) continue;
           const wj = im[j], ws = wi + wj; if (ws === 0) continue;
           const kj = j * 3, dx = p[k] - p[kj], dy = p[k + 1] - p[kj + 1], dz = p[k + 2] - p[kj + 2], R = rad[i] + rad[j], d2 = dx * dx + dy * dy + dz * dz;
           if (d2 >= R * R || d2 < 1e-14) continue;
           const d = SQ(d2), s = (R - d) / (d * ws);
           p[k] += dx * s * wi; p[k + 1] += dy * s * wi; p[k + 2] += dz * s * wi;
-          p[kj] -= dx * s * wj; p[kj + 1] -= dy * s * wj; p[kj + 2] -= dz * s * wj; cnt++;
+          p[kj] -= dx * s * wj; p[kj + 1] -= dy * s * wj; p[kj + 2] -= dz * s * wj; cnt++; this.supNow[ci] = 1; this.supNow[comp[j]] = 1;
         }
       }
     }
     this.stats.pairContacts = cnt;
   }
 
-  // velocity update, plasticity and fracture
-  _finish(h) {
+  // velocity update, adaptive-initialisation bookkeeping, plasticity and fracture
+  _finish(h, check) {
     const n = this.n, p = this.pos, pr = this.prev, v = this.vel, ih = 1 / h;
-    for (let i = 0; i < n * 3; i++) v[i] = (p[i] - pr[i]) * ih;
+    const cv = this.compV, cm = this.compM, comp = this.comp, ms = this.mass, vm2 = this.maxSpeed * this.maxSpeed; cv.fill(0); cm.fill(0);
+    for (let i = 0; i < n; i++) {
+      const k = i * 3, c = comp[i], m = ms[i];
+      v[k] = (p[k] - pr[k]) * ih; v[k + 1] = (p[k + 1] - pr[k + 1]) * ih; v[k + 2] = (p[k + 2] - pr[k + 2]) * ih;
+      const sp2 = v[k] * v[k] + v[k + 1] * v[k + 1] + v[k + 2] * v[k + 2];
+      if (sp2 > vm2) { const f = this.maxSpeed / SQ(sp2); v[k] *= f; v[k + 1] *= f; v[k + 2] *= f; p[k] = pr[k] + v[k] * h; p[k + 1] = pr[k + 1] + v[k + 1] * h; p[k + 2] = pr[k + 2] + v[k + 2] * h; }   // runaway guard
+      cv[c * 3] += m * v[k]; cv[c * 3 + 1] += m * v[k + 1]; cv[c * 3 + 2] += m * v[k + 2]; cm[c] += m;
+    }
+    for (let c = 0; c < this.nComp; c++) { const m = cm[c] || 1; cv[c * 3] /= m; cv[c * 3 + 1] /= m; cv[c * 3 + 2] /= m; }
+    this.supPrev.set(this.supNow); this.supNow.fill(0);
+    for (let c = 0; c < this.nComp; c++) if (this.compPin[c]) this.supPrev[c] = 1;
+    if (!check) return;
     const nd = this.nd, A = this.da, B = this.db, R = this.dRest, Y = this.dYield, F = this.dFrac, ACT = this.dAct;
     let broke = false;
     for (let c = 0; c < nd; c++) {
       if (ACT[c] === 0) continue;
       const ka = A[c] * 3, kb = B[c] * 3, dx = p[ka] - p[kb], dy = p[ka + 1] - p[kb + 1], dz = p[ka + 2] - p[kb + 2];
-      const len = SQ(dx * dx + dy * dy + dz * dz), r0 = R[c], eps = (len - r0) / r0, ae = eps < 0 ? -eps : eps;
-      if (ae > F[c]) { ACT[c] = 0; this.nBroken++; broke = true; this._broke('distance', A[c], B[c], c); continue; }
+      const len = SQ(dx * dx + dy * dy + dz * dz), r0 = R[c], eps = (len - r0) / r0;
+      if (eps > F[c] || eps < -F[c] * this.crushRatio) {
+        ACT[c] = 0; this.nBroken++; broke = true; this._broke('distance', A[c], B[c], c);
+        if (this.dSnap[c]) { const bay = this.dBay[c]; for (let q = 0; q < nd; q++) if (ACT[q] && this.dBay[q] === bay) { ACT[q] = 0; this.nBroken++; this._broke('distance', A[q], B[q], q); } }   // brittle snap: the whole cut section lets go
+        continue;
+      }
+      const ae = eps < 0 ? -eps : eps;
       if (ae > Y[c]) R[c] = len - (eps < 0 ? -Y[c] : Y[c]) * r0;          // plastic flow: rest length follows, strain clamped to yield
     }
     const nw = this.nw;
     if (nw) {
-      const WL = this.wLam, WM = this.wMax, WA = this.wAct, h2 = h * h;
+      const WM = this.wMax, WA = this.wAct, WK = this.wK, WR = this.wR;
       for (let w = 0; w < nw; w++) {
         if (WA[w] === 0) continue;
-        const fx = WL[w * 3], fy = WL[w * 3 + 1], fz = WL[w * 3 + 2], f = SQ(fx * fx + fy * fy + fz * fz) / h2;
-        if (f > WM[w]) { WA[w] = 0; this.nBroken++; broke = true; this._broke('weld', this.wa[w], this.wb[w], w); }
+        const ka = this.wa[w] * 3, kb = this.wb[w] * 3;
+        const cx = p[ka] - p[kb] - WR[w * 3], cy = p[ka + 1] - p[kb + 1] - WR[w * 3 + 1], cz = p[ka + 2] - p[kb + 2] - WR[w * 3 + 2];
+        if (SQ(cx * cx + cy * cy + cz * cz) * WK[w] > WM[w]) { WA[w] = 0; this.nBroken++; broke = true; this._broke('weld', this.wa[w], this.wb[w], w); }
       }
     }
     if (broke) this._compDirty = true;
@@ -432,10 +487,16 @@ export class SoftWorld {
     let cnt = 0; const roots = new Map();
     for (let i = 0; i < n; i++) { const r = find(i); if (!roots.has(r)) roots.set(r, cnt++); this.comp[i] = roots.get(r); }
     this.nComp = cnt; this._compDirty = false;
+    this.compV = new Float64Array(cnt * 3); this.compM = new Float64Array(cnt); this.compPin = new Uint8Array(cnt); this.supPrev = new Uint8Array(cnt); this.supNow = new Uint8Array(cnt);
+    for (let i = 0; i < n; i++) if (this.pinned[i]) this.compPin[this.comp[i]] = 1;
+    for (let c = 0; c < cnt; c++) this.supPrev[c] = this.compPin[c];
   }
   componentCount() { if (this._compDirty) this._buildComponents(); return this.nComp; }
   // component sizes (particles) in id order; useful for "did a chunk separate"
   componentSizes() { if (this._compDirty) this._buildComponents(); const s = new Array(this.nComp).fill(0); for (let i = 0; i < this.n; i++) s[this.comp[i]]++; return s; }
+
+  // run n sweeps without advancing time (settle a freshly built structure into its static equilibrium)
+  relax(frames = 60, dt = 1 / 60) { const v = this.vel; for (let f = 0; f < frames; f++) this.step(dt); this.vel.fill(0, 0, this.n * 3); }
 
   // ---------- diagnostics ----------
   energy() {
@@ -476,7 +537,7 @@ export function buildBeam(w, o) {
   const a = o.a, b = o.b, ax = sub(b, a), L = SQ(dot(ax, ax)), t = norm(ax);
   let up = o.up || [0, 1, 0]; if (Math.abs(dot(t, up)) > 0.98) up = [1, 0, 0];
   const s = norm(cross(t, up)), u = cross(s, t);                 // s: width direction, u: height direction
-  const seg = o.segments || Math.max(1, Math.round(L / Math.max(W, H, 1e-6)));
+  const seg = o.segments || Math.max(1, Math.round(L / ((o.bayRatio ?? 1.5) * Math.max(W, H, 1e-6))));
   const dx = L / seg, group = o.group ?? w.newGroup(), rad = o.radius ?? Math.min(W, H) * 0.5;
   const sx = [-1, 1, 1, -1], sy = [-1, -1, 1, 1];
   const mk = (i) => {
@@ -489,20 +550,20 @@ export function buildBeam(w, o) {
   const sections = [];
   for (let i = 0; i <= seg; i++) sections.push(i === 0 && o.start ? o.start : mk(i));
   const Ac = W * H / 12, Acentre = A - 4 * Ac, nu = mat.poisson, G = mat.shear, kappa = 5 / 6;
-  const dArea = (span) => { const d = SQ(dx * dx + span * span); return Math.max(A * 0.02, G * kappa * A * d * d * d / (2 * mat.youngs * span * span * dx)); };
-  const secArea = A * 0.5;
+  const dArea = (span) => { const d = SQ(dx * dx + span * span); return (o.diagScale ?? 0.7) * Math.max(A * (o.diagMin ?? 0.02), G * kappa * A * d * d * d / (2 * mat.youngs * span * span * dx)); };
+  const secArea = A * (o.sectionFrac ?? 0.01);
   const sectionBars = (S) => {
     for (let k = 0; k < 4; k++) { w.addDistance(S.k[k], S.k[(k + 1) % 4], mat, secArea, { tag: 1 }); w.addDistance(S.c, S.k[k], mat, secArea, { tag: 1 }); }
     w.addDistance(S.k[0], S.k[2], mat, secArea, { tag: 1 }); w.addDistance(S.k[1], S.k[3], mat, secArea, { tag: 1 });
   };
   if (!o.start) sectionBars(sections[0]);
   for (let i = 0; i < seg; i++) {
-    const S0 = sections[i], S1 = sections[i + 1], par = i & 1;
-    for (let k = 0; k < 4; k++) w.addDistance(S0.k[k], S1.k[k], mat, Ac, { tag: 0 });
-    w.addDistance(S0.c, S1.c, mat, Acentre, { tag: 0 });
+    const S0 = sections[i], S1 = sections[i + 1], par = i & 1, bay = w.newBay();
+    for (let k = 0; k < 4; k++) w.addDistance(S0.k[k], S1.k[k], mat, Ac, { tag: 0, bay });
+    w.addDistance(S0.c, S1.c, mat, Acentre, { tag: 0, bay });
     for (let k = 0; k < 4; k++) {                                  // face diagonals, alternating direction per bay
       const k2 = (k + 1) % 4, span = (k === 0 || k === 2) ? W : H;
-      if (par) w.addDistance(S0.k[k2], S1.k[k], mat, dArea(span), { tag: 2 }); else w.addDistance(S0.k[k], S1.k[k2], mat, dArea(span), { tag: 2 });
+      if (par) w.addDistance(S0.k[k2], S1.k[k], mat, dArea(span), { tag: 2, bay }); else w.addDistance(S0.k[k], S1.k[k2], mat, dArea(span), { tag: 2, bay });
     }
     sectionBars(S1);
   }
@@ -518,15 +579,21 @@ export function buildPlank(w, o) { return buildBeam(w, { ...o, up: o.up || [0, 1
 // Rope / cable: chain of particles joined by distance constraints. slack >= 1 multiplies the straight length.
 export function buildRope(w, o) {
   const mat = o.mat, r = o.radius ?? 0.02, a = o.a, b = o.b, seg = o.segments || 20, A = Math.PI * r * r;
-  const L = SQ(dot(sub(b, a), sub(b, a))), len = L * (o.slack ?? 1), dl = len / seg, group = o.group ?? w.newGroup();
-  const ids = [];
+  const D = SQ(dot(sub(b, a), sub(b, a))), slack = o.slack ?? 1, group = o.group ?? w.newGroup();
+  // slack > 1: start on the parabola whose arc length is D*slack (arc ~ D + 8 s^2 / (3 D)), so initial strains are ~0
+  const sag = slack > 1 ? SQ(3 * D * (D * slack - D) / 8) : 0, ids = [];
   for (let i = 0; i <= seg; i++) {
-    const f = i / seg, p = add(a, mul(sub(b, a), f)); const sag = o.sag ? -4 * o.sag * f * (1 - f) : 0;
-    ids.push(w.addParticle(p[0], p[1] + sag, p[2], 0, r, group, mat.drag));
+    const f = i / seg, p = add(a, mul(sub(b, a), f));
+    ids.push(w.addParticle(p[0], p[1] - 4 * sag * f * (1 - f), p[2], 0, r, group, mat.drag));
   }
-  for (let i = 0; i < seg; i++) { w.addDistance(ids[i], ids[i + 1], mat, A, { rest: dl }); const m = mat.density * A * dl; w.addMass(ids[i], m / 2); w.addMass(ids[i + 1], m / 2); }
-  if (o.pin === 'start' || o.pin === 'both') w.pin(ids[0]); if (o.pin === 'end' || o.pin === 'both') w.pin(ids[seg]);
-  return { ids, length: len, group, segLen: dl };
+  let len = 0;
+  for (let i = 0; i < seg; i++) {
+    const c = w.addDistance(ids[i], ids[i + 1], mat, A), dl = w.dRest[c]; len += dl;
+    const m = mat.density * A * dl; w.addMass(ids[i], m / 2); w.addMass(ids[i + 1], m / 2);
+  }
+  if (o.pin === 'start' || o.pin === 'both') w.pin(ids[0]);
+  if (o.pin === 'end' || o.pin === 'both') w.pin(ids[seg]);
+  return { ids, length: len, group, area: A };
 }
 
 // Cloth / sail: nu x nv grid spanned by du, dv. Structural + shear + skip-one bend bars, aero triangles.
@@ -539,7 +606,7 @@ export function buildCloth(w, o) {
   for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) {
     if (i + 1 < nu) bar(id(i, j), id(i + 1, j), 1); if (j + 1 < nv) bar(id(i, j), id(i, j + 1), 1);
     if (i + 1 < nu && j + 1 < nv) { bar(id(i, j), id(i + 1, j + 1), 0.5); bar(id(i + 1, j), id(i, j + 1), 0.5); }
-    if (i + 2 < nu) bar(id(i, j), id(i + 2, j), 0.05); if (j + 2 < nv) bar(id(i, j), id(i, j + 2), 0.05);
+    if (o.bend) { if (i + 2 < nu) bar(id(i, j), id(i + 2, j), 0.05); if (j + 2 < nv) bar(id(i, j), id(i, j + 2), 0.05); }   // optional skip-one bending bars
   }
   for (let j = 0; j + 1 < nv; j++) for (let i = 0; i + 1 < nu; i++) {
     const q = mat.density * th * sU * sV; for (const k of [id(i, j), id(i + 1, j), id(i, j + 1), id(i + 1, j + 1)]) w.addMass(k, q / 4);
@@ -554,8 +621,8 @@ export function buildCloth(w, o) {
   return { ids, nu, nv, group, id };
 }
 
-// Masonry-like block cluster: nx*ny*nz stacked blocks (stack bond). Each block = 8 corner particles, 18 stone bars and
-// 5 volume tets (so it is a stiff deformable chunk). Facing corners of neighbouring blocks are held by mortar welds that
+// Masonry-like block cluster: nx*ny*nz stacked blocks (stack bond). Each block = 8 corner particles and 18 stone bars
+// (12 edges + 6 face diagonals = rigid cube; add 5 volume tets with volume:true). Facing corners of neighbouring blocks are held by mortar welds that
 // break by force (tension strength * share of the face area) and then the blocks separate and collide (pair contacts).
 export function buildBlockCluster(w, o) {
   const stone = o.mat, mortar = o.mortar, [bx, by, bz] = o.size, [nx, ny, nz] = o.counts, O = o.origin, gap = o.joint ?? 0.01;
@@ -567,7 +634,7 @@ export function buildBlockCluster(w, o) {
     const vol = bx * by * bz, m = stone.density * vol; for (const q of c) w.addMass(q, m / 8);
     const A = Math.min(bx * by, by * bz, bx * bz) * 0.25;
     for (let q = 0; q < 8; q++) for (let r = q + 1; r < 8; r++) { const d = (q ^ r); if (d === 1 || d === 2 || d === 4 || d === 3 || d === 5 || d === 6) w.addDistance(c[q], c[r], stone, A); }
-    for (const [p0, p1, p2, p3] of [[0, 1, 2, 4], [3, 1, 2, 7], [5, 1, 4, 7], [6, 2, 4, 7], [1, 2, 4, 7]]) w.addTetra(c[p0], c[p1], c[p2], c[p3], stone);
+    if (o.volume) for (const [p0, p1, p2, p3] of [[0, 1, 2, 4], [3, 1, 2, 7], [5, 1, 4, 7], [6, 2, 4, 7], [1, 2, 4, 7]]) w.addTetra(c[p0], c[p1], c[p2], c[p3], stone);   // optional volume preservation
     blocks.push({ i, j, k, c, grp }); key.set(i + ',' + j + ',' + k, blocks[blocks.length - 1]);
   }
   const weld = (A, B, qa, qb, area) => { w.addWeld(A.c[qa], B.c[qb], mortar, area, gap); };
@@ -579,4 +646,23 @@ export function buildBlockCluster(w, o) {
   }
   if (o.pinBase) for (const B of blocks) if (B.j === 0) for (let q = 0; q < 8; q++) if (!(q & 2)) w.pin(B.c[q]);
   return { blocks, key };
+}
+
+// Soft solid ("jelly" / foam / clay): nx*ny*nz cells, 6 Kuhn tets per cell with volume constraints plus edge bars.
+export function buildJelly(w, o) {
+  const mat = o.mat, [sx, sy, sz] = o.size, [nx, ny, nz] = o.counts, O = o.origin, group = o.group ?? w.newGroup(), rad = o.radius ?? Math.min(sx, sy, sz) / Math.max(nx, ny, nz) * 0.3;
+  const ix = (i, j, k) => (k * (ny + 1) + j) * (nx + 1) + i, ids = [];
+  for (let k = 0; k <= nz; k++) for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) ids.push(w.addParticle(O[0] + sx * i / nx, O[1] + sy * j / ny, O[2] + sz * k / nz, 0, rad, group, mat.drag));
+  const edges = new Set(), cellV = sx * sy * sz / (nx * ny * nz), tets = [[0, 1, 3, 7], [0, 1, 5, 7], [0, 2, 3, 7], [0, 2, 6, 7], [0, 4, 5, 7], [0, 4, 6, 7]];
+  const hx = sx / nx, hy = sy / ny, hz = sz / nz, aE = Math.min(hx * hy, hy * hz, hx * hz) * 0.25;
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const c = []; for (let q = 0; q < 8; q++) c.push(ids[ix(i + (q & 1), j + ((q >> 1) & 1), k + ((q >> 2) & 1))]);
+    for (const t of tets) {
+      w.addTetra(c[t[0]], c[t[1]], c[t[2]], c[t[3]], mat);
+      for (let a = 0; a < 4; a++) for (let b = a + 1; b < 4; b++) { const A = Math.min(c[t[a]], c[t[b]]), B = Math.max(c[t[a]], c[t[b]]), key = A * 1e7 + B; if (!edges.has(key)) { edges.add(key); w.addDistance(A, B, mat, aE); } }
+    }
+    for (const q of c) w.addMass(q, mat.density * cellV / 8);
+  }
+  if (o.pin === 'top') for (let k = 0; k <= nz; k++) for (let i = 0; i <= nx; i++) w.pin(ids[ix(i, ny, k)]);
+  return { ids, ix, volume: () => { let V = 0; for (let t = 0; t < w.nt; t++) if (w.tAct[t]) V += Math.abs(w._vol(w.tv[t * 4], w.tv[t * 4 + 1], w.tv[t * 4 + 2], w.tv[t * 4 + 3])); return V; }, volume0: sx * sy * sz };
 }

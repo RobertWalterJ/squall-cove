@@ -3395,11 +3395,15 @@ const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'
 function setSide(o) { sideOpen = o; sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
-  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['live', 'Live'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
+  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
     const q = document.createElement('input'); q.type = 'search'; q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
     q.addEventListener('input', () => { sideQ = q.value.toLowerCase(); fillPlace(list); }); fillPlace(list);
+  } else if (sideTab === 'events') {
+    const grp = (title, list, gate) => { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = title; sBody.append(h); for (const [n, d, fn] of list) { const b = mkB('', 'sItem', () => { if (gate && !gateDisaster()) return; if (gate) pushWorldUndo(); fn(); if (matchMedia('(max-width: 800px)').matches) setSide(false); }); const t = document.createElement('span'); t.textContent = n; const sm = document.createElement('small'); sm.textContent = d; t.append(sm); b.append(t); sBody.append(b); } };
+    grp('Destructive', DISASTERS, true); grp('Arrivals', ARRIVALS, false); grp('Events', EVENTS, false);
+    const c = mkB('Calm all', 'sItem', () => { calm(); }); sBody.append(c);
   } else if (sideTab === 'live') {
     const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
     const head = document.createElement('div'); head.className = 'sNote'; head.id = 'sCount'; sBody.append(head); const list = document.createElement('div'); list.id = 'sLive'; sBody.append(list); liveSig = ''; fillLive();
@@ -3926,7 +3930,9 @@ function renderTray(force = true) {
     tray.append(sep('Try'));
     for (const [n, d] of TOYS) tray.append(chip(n, d[0], null, false, () => applyToy(n), 'chip mini'));
     tray.append(sep('Disasters'));
-    tray.append(chip('Disasters', prefs.gentle ? 'off in gentle mode' : 'pick one', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
+    tray.append(chip('Destructive', prefs.gentle ? 'off in gentle mode' : 'storms, quakes, meteors', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
+    tray.append(chip('Arrivals', 'drops, wrecks, fleets', '#3f8f6a', false, () => openMenu([menuHead('Arrivals. New things come in or are left behind.'), ...ARRIVALS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
+    tray.append(chip('Events', 'raids, invasions, SWAT', '#3c5a8f', false, () => openMenu([menuHead('Events. People turn up and behave.'), ...EVENTS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
     tray.append(chip('Calm all', 'clear it all', null, false, () => { calm(); renderTray(); }, 'chip'));
   }
 }

@@ -1,0 +1,130 @@
+[
+ {
+  "name": "(1) cantilever tip deflection vs Euler-Bernoulli",
+  "pass": true,
+  "lines": [
+   "beam 1.2 m x 0.1 x 0.1 m wood (E=1.00e+10 Pa, rho=600), 8 bays, 45 particles, 162 bars, root pinned",
+   "analytical (EB, self weight) tip = 0.183 mm   (Timoshenko with shear = 0.184 mm)",
+   "simulated tip after 12 s = 0.188 mm   error vs EB = 2.64 %   (vs Timoshenko 1.90 %)",
+   "trace (s:mm) 3:0.191  6:0.190  9:0.188  12:0.188",
+   "time to within 5% of the final value: 3.0 s"
+  ],
+  "data": {
+   "eb": 0.00018307814399999992,
+   "tip": 0.00018791129112738503,
+   "err": 0.02639936707783702
+  }
+ },
+ {
+  "name": "(1a) same cantilever, soft material (E=2e7 Pa, large deflection)",
+  "pass": false,
+  "lines": [
+   "EB tip = 91.539 mm (7.63 % of span), simulated 1227.882 mm, error 1241.37 %"
+  ],
+  "data": {}
+ },
+ {
+  "name": "(1b) informational: L/h=16 cantilever, same solver settings",
+  "pass": true,
+  "lines": [
+   "EB tip = 0.579 mm, simulated after 12 s = 0.587 mm, ratio 1.014",
+   "trace ratio (s:ratio) 4:1.04  8:1.01  12:1.01",
+   "This is the known Gauss-Seidel limit: a long stiff chain needs ~N^2 * stiffness-ratio sweeps to reach static equilibrium; see NOTES.md."
+  ],
+  "data": {}
+ },
+ {
+  "name": "(2) hanging chain vs catenary",
+  "pass": true,
+  "lines": [
+   "rope span 6 m, length 6.805 m, 24 links, 25 particles (E=5.00e+8, r=20 mm)",
+   "analytical catenary: a=3.409 m, mid sag 1407.5 mm; simulated mid sag 1409.0 mm (0.11 %)",
+   "max node deviation from the analytical curve = 1.58 mm = 0.11 % of the sag (mean 1.05 mm); horizontal-tension strain ~6.0e-5",
+   "residual kinetic energy 1.45e-11 J after 15 s"
+  ],
+  "data": {
+   "maxDevPct": 0.1125223554400228
+  }
+ },
+ {
+  "name": "(3) free fall, no collisions: energy never grows",
+  "pass": true,
+  "lines": [
+   "60 Hz, 8 substeps, pre-bent 1 mm: E0 total 1008.741 J (elastic 66.952), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -67.908 J vs E0, COM fall 19.6412 m vs 19.6200 m (g t^2/2)  [ok]",
+   "60 Hz, 4 substeps (phone tier), pre-bent 8 mm (0.6 % fibre strain = wood fracture strain): E0 total 5231.678 J (elastic 4289.686), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -4289.639 J vs E0, COM fall 19.6632 m vs 19.6200 m (g t^2/2)  [ok]",
+   "60 Hz, 8 substeps, violent pre-bend 20 mm (1.5 % fibre strain, 2.5x past fracture): E0 total 2.79e+4 J (elastic 2.70e+4), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -2.69e+4 J vs E0, COM fall 19.6318 m vs 19.6200 m (g t^2/2)  [ok]"
+  ],
+  "data": {}
+ },
+ {
+  "name": "(4a) beam loaded past yield stays bent",
+  "pass": false,
+  "lines": [
+   "analytical first-yield tip load P_y = sigma_y*S/L = 5555.6 N, elastic deflection at first yield = 38.4 mm; loaded until tip drops 115.2 mm, then released and settled",
+   "elastic control (no yield): peak 115.27 mm -> residual 1225.786 mm (1063.38 % of peak)",
+   "plastic beam (sigma_y=4.00e+7 Pa): peak 115.42 mm at load 1.92 P_y -> residual 88.36 mm (76.6 % of peak, permanent bend)",
+   "elastic-perfectly-plastic hinge theory: residual ~ peak - elastic recovery (<= 46.1 mm) = 69.3 mm"
+  ],
+  "data": {
+   "residualPlastic": 0.08836369215225393,
+   "residualElastic": 1.225785939846837
+  }
+ },
+ {
+  "name": "(4b) beam loaded past fracture breaks and chunks separate",
+  "pass": true,
+  "lines": [
+   "analytical breaking tip load = (sigma_f*S - M_selfweight)/L = 8298.0 N; first break at 8464.0 N (2.00 %)",
+   "bars broken 143, separate connected pieces 32 (sizes 5,2,1,3,2,3,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,1,1,1,1,1), tip chunk fell to y=-259.38 m from 5 m"
+  ],
+  "data": {
+   "breakLoad": 8463.977680000002,
+   "PfNet": 8298.017333333335
+  }
+ },
+ {
+  "name": "(5) time-step independence (cantilever, 30/60/120 Hz)",
+  "pass": true,
+  "lines": [
+   "A) fixed substep rate 480 Hz (8 substeps @60, 16 @30, 4 @120): tip after 12 s = 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 0.000 %",
+   "   transient value at t=2 s: 30 Hz: 0.2302 mm | 60 Hz: 0.2302 mm | 120 Hz: 0.2302 mm  spread 0.00 %",
+   "B) fixed 8 substeps per frame (h varies 4x): 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 0.008 %  [informational]",
+   "   all within 2.64 % of Euler-Bernoulli (0.183 mm)"
+  ],
+  "data": {
+   "spread": 0,
+   "spread2": 0.00007668776426041406
+  }
+ },
+ {
+  "name": "(7) tetra volume constraints: jelly cube resting on ground",
+  "pass": true,
+  "lines": [
+   "volume 125.00 L -> 124.67 L (-0.27 %), centre height 0.279 m (nu=0.45, E=0.5 MPa, 125 particles, 384 tets, 604 bars)"
+  ],
+  "data": {}
+ },
+ {
+  "name": "(extra) determinism: identical seed gives bit-identical state",
+  "pass": true,
+  "lines": [
+   "checksum run A 66fda73c  run B 66fda73c  (240 frames, 136 particles, 496 breaks)"
+  ],
+  "data": {}
+ },
+ {
+  "name": "(6) frame cost, ~3000 particles",
+  "pass": false,
+  "lines": [
+   "phone tier   (4 substeps x 1 sweep): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 5.95 ms, p95 7.17 ms, max 8.11 ms per 60 Hz frame (1792 ground/collider contacts)",
+   "default tier (8 substeps x 1 sweep): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 10.57 ms, p95 12.84 ms, max 14.52 ms per 60 Hz frame (1654 ground/collider contacts)",
+   "quality tier (8 substeps x 2 sweeps): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 18.19 ms, p95 21.41 ms, max 23.28 ms per 60 Hz frame (1662 ground/collider contacts)",
+   "budget: phone tier mean <= 5.5 ms on this PC (node v24.18.0); estimated phone cost = 17.8-29.7 ms (3-5x slower core, NOT measured on a phone)"
+  ],
+  "data": {
+   "ms": 5.947414166666666,
+   "p95": 7.165399999999863,
+   "particles": 3174
+  }
+ }
+]
