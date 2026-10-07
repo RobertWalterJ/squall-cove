@@ -2294,7 +2294,7 @@ function erase(p) {
    Standing people are kinematic boxes (cargo can knock them over), crew ride a boat deck, and a toppled person becomes eleven
    jointed bodies that float. */
 const people = []; let personSeq = 0, selPerson = null;
-const MAX_PEOPLE = isTouch ? 30 : 60, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
+const MAX_PEOPLE = isTouch ? 36 : 170, ROLES = ['Visitor', 'Walker', 'Hiker', 'Deckhand'];
 const PERSON_ROLES = ['Tourist', 'Dock worker', 'Hiker', 'Photographer', 'Fisher', 'Medic', 'Forester', 'Dock worker', 'Firefighter', 'Builder', 'Hiker', 'Fisher', 'Dock worker', 'Lifeguard', 'Tourist', 'Builder'];
 const GR_PERSON = 2, GR_RAG = 16;
 /* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
@@ -3652,10 +3652,11 @@ function renderSide() {
   } else if (sideTab === 'battle') {
     const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'A battle for the capture points: knock out the other side, hold more points, and their tickets run down. Nobody is hurt; the fallen are carried off. Works best on the Port and mountains map.'; sBody.append(n);
     const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); };
-    rg('Bots per side', 3, isTouch ? 8 : 14, 1, BATTLE.size, v => { BATTLE.size = v; }, v => v);
+    rg('Bots per side', 3, isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; }, v => v);
     sBody.append(mkB('Enemy: ' + BATTLE.redKind + ' (tap to change)', 'sItem', () => { BATTLE.redKind = BATTLE.redKind === 'Raiders' ? 'Invaders' : 'Raiders'; renderSide(); }));
     if (!BATTLE.on) { sBody.append(mkB('Start the battle and watch', 'sItem', () => { battleStart(); renderSide(); })); sBody.append(mkB('Fight for the Port (first person)', 'sItem', () => { playBattle('blue'); setSide(false); })); sBody.append(mkB('Fight for the ' + BATTLE.redKind + ' (first person)', 'sItem', () => { playBattle('red'); setSide(false); })); }
     else {
+      { const hs = document.createElement('div'); hs.className = 'sCat'; hs.textContent = 'Call support for your side'; sBody.append(hs); const me = BATTLE.team; sBody.append(mkB('Griffon with a door gunner', 'sItem', () => { callAir(me, 'griffon'); })); sBody.append(mkB('Gunship (minigun and howitzer)', 'sItem', () => { callAir(me, 'gunship'); })); sBody.append(mkB('Paratroop reinforcements', 'sItem', () => { paraWave(me, 6); })); sBody.append(mkB('Boat landing party', 'sItem', () => { boatWave(me); })); }
       sBody.append(mkB('Stop the battle', 'sItem', () => { battleStop(); renderSide(); })); sBody.append(mkB('Drop in as a Port soldier', 'sItem', () => { if (!fp.on) { playBattle('blue'); setSide(false); } }));
       const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Tickets: Port ' + BATTLE.tickets.blue + ', ' + BATTLE.redKind + ' ' + BATTLE.tickets.red + ' · knock-outs ' + BATTLE.kills.blue + ' to ' + BATTLE.kills.red; sBody.append(h);
       const hp = document.createElement('div'); hp.className = 'sCat'; hp.textContent = 'Battle plan (Port side)'; sBody.append(hp);
@@ -3905,7 +3906,7 @@ const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue:
 const BPT_DEFS = [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -40, -245, null], ['Landing beach', 250, 90, 'red'], ['Raider camp', 258, -288, 'red']];
 const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red' : null), otherTeam = (t) => t === 'blue' ? 'red' : 'blue';
 const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
-const tracers = (() => { const N = 48, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
+const tracers = (() => { const N = 160, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
 function addTracer(x0, y0, z0, x1, y1, z1) { const T = tracers, i = T.i = (T.i + 1) % T.N; T.pos.set([x0, y0, z0, x1, y1, z1], i * 6); T.life[i] = 0.06; T.g.attributes.position.needsUpdate = true; }
 function updateTracers(dt) { const T = tracers; let ch = false; for (let i = 0; i < T.N; i++) if (T.life[i] > 0) { T.life[i] -= dt; if (T.life[i] <= 0) { T.pos.fill(0, i * 6, i * 6 + 6); ch = true; } } if (ch) T.g.attributes.position.needsUpdate = true; }
 function makeFlag(def) {
@@ -3932,13 +3933,13 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { removeCover();
+function battleStop(quiet) { removeCover(); for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
 const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle', 'shotgun', 'rifle'];
 function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === team); const base = own.length ? own[Math.floor(Math.random() * own.length)] : BATTLE.points.find(p => p.base && (p.owner === team || true)) || BATTLE.points[0]; return base; }
-function spawnBot(team, first) {
-  if (people.length >= MAX_PEOPLE) return null; const pt = spawnPointOf(team); if (!pt) return null; let x = pt.x, z = pt.z;
+function spawnBot(team, first, at) {
+  if (people.length >= MAX_PEOPLE) return null; const pt = at || spawnPointOf(team); if (!pt) return null; let x = pt.x, z = pt.z;
   for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 4 + Math.random() * 9, xx = pt.x + Math.cos(a) * d, zz = pt.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
   const q = makePerson(troopSkin(team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider', true) || Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.side = team; q.role = team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider'; if (team === 'red') q.fromHostile = true;
   const cls = BCLS[Math.floor(Math.random() * BCLS.length)], w = cls === 'medic' ? 'pistol' : cls; q.hp = 100;
@@ -4013,7 +4014,7 @@ function botThink(q, dt) {
   q.aim = (q.aim || 0) + ((b.tgt ? 1 : 0) - (q.aim || 0)) * Math.min(1, 6 * dt); q.recoil = Math.max(0, (q.recoil || 0) - dt * 4);
   if (q.order && q.order !== b.myOrder) { b.cmdUntil = simT + 25; b.myOrder = q.order; b.cmd = true; }
   if (b.cmd && !q.order) b.cmd = false;
-  if (b.scan <= 0) { b.scan = 0.25 + Math.random() * 0.15; b.tgt = senseEnemy(q, b); if (b.tgt && !b.seen) { b.seen = true; } }
+  if (b.scan <= 0) { b.scan = 0.25 + Math.random() * 0.15 + Math.min(0.5, people.length * 0.003); b.tgt = senseEnemy(q, b); if (b.tgt && !b.seen) { b.seen = true; } }
   const e = b.tgt;
   if (e && e.state !== 'rag' && e.hp > 0) {
     const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; q.heading = Math.atan2(dx, dz);
@@ -4044,6 +4045,76 @@ function botThink(q, dt) {
   let tx, tz; if (b.follow && fp.on && fp.p) { tx = fp.p.x + rnd(-6, 6); tz = fp.p.z + rnd(-6, 6); } else if (b.obj) { const a = Math.random() * 6.283, r = Math.random() * 10; tx = b.obj.x + Math.cos(a) * r; tz = b.obj.z + Math.sin(a) * r; }
   if (tx === undefined) return; if (!q.order) { b.idle -= dt; if (b.idle <= 0) { b.idle = rnd(1.5, 4); if (standY(tx, tz) > 0.5) { setFootOrder(q, tx, tz); b.myOrder = q.order; } } }
 }
+
+/* ---- reinforcements and air support: paratroop waves, boat landings, a Griffon with a door gunner, and a gunship with a minigun and a howitzer */
+const AIR = { list: [], chutes: [], shells: [], cd: { blue: { gr: 0, gs: 0, pa: 0, bt: 0 }, red: { gr: 0, gs: 0, pa: 0, bt: 0 } }, autoT: 10 };
+let airGP = null; const ensureAir = () => airGP || (airGP = loadGLB('air').then(g => { D.glb.air = g; }).catch(e => { airGP = null; }));
+function airNode(name, fb) { if (D.glb.air) { const n = nodeByName(D.glb.air, name); if (n) return shadowAll(n.clone()); } return fb(); }
+const mat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, metalness: 0.1 });
+function box3(w, h, d, c, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.position.set(x, y, z); m.castShadow = true; return m; }
+function stubGriffon() { const g = new THREE.Group(); g.add(box3(2.2, 2, 6, 0x5b6350, 0, 0, 0), box3(0.6, 0.7, 5, 0x5b6350, 0, 0.5, -5), box3(1, 0.1, 0.1, 0x222222, 0, 1.5, 0)); const r = box3(11, 0.05, 0.4, 0x222222, 0, 1.6, 0); r.name = 'griffon_mainrotor'; g.add(r); return g; }
+function stubGunship() { const g = new THREE.Group(); g.add(box3(3.4, 3.6, 28, 0x7d838a, 0, 0, 0), box3(40, 0.5, 4.5, 0x7d838a, 0, 0.6, 1), box3(0.5, 5, 4, 0x7d838a, 0, 3.5, -12), box3(12, 0.4, 3, 0x7d838a, 0, 5.2, -12)); return g; }
+function stubChute() { const g = new THREE.Group(); const c = new THREE.Mesh(new THREE.SphereGeometry(3, 12, 6, 0, 6.283, 0, 1.2), new THREE.MeshStandardMaterial({ color: 0xcc2229, side: THREE.DoubleSide })); c.position.y = 6; g.add(c); return g; }
+function enemyOf(team, x, z, R) { let best = null, bd = R; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; }
+function hotSpot(team) {
+  let best = null, bs = 0; for (const p of BATTLE.points) { const c = people.filter(q => teamOf(q) === otherTeam(team) && q.state !== 'rag' && Math.hypot(q.x - p.x, q.z - p.z) < 40).length + (p.owner === otherTeam(team) ? 1 : 0); if (c > bs) { bs = c; best = p; } }
+  return best || BATTLE.points[0];
+}
+function airSpawn(team, kind) {
+  const hs = hotSpot(team); if (!hs) return null; const a = Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship';
+  const mesh = gun ? airNode('gunship', stubGunship) : airNode('griffon', stubGriffon); g.add(mesh); scene.add(g);
+  const u = { kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? 130 : 45, hd: 0, tgt: hs, life: gun ? 85 : 70, orbit: gun ? 95 : 42, spd: gun ? 42 : 24, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false };
+  u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nodeByName({ scene: g }, 'griffon_mainrotor'); u.tr = nodeByName({ scene: g }, 'griffon_tailrotor'); u.props = [0, 1, 2, 3].map(i => nodeByName({ scene: g }, 'gunship_prop_' + i)).filter(Boolean);
+  AIR.list.push(u); return u;
+}
+function callAir(team, kind) {
+  const k = kind === 'griffon' ? 'gr' : 'gs', c = AIR.cd[team]; if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c[k] > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c[k]) + ' more seconds'); return false; }
+  ensureAir(); const u = airSpawn(team, kind); if (!u) return false; c[k] = kind === 'griffon' ? 70 : 140; if (team === BATTLE.team) toast(kind === 'griffon' ? 'A Griffon is on its way. The door gunner will cover your people.' : 'The gunship is inbound. Keep your people clear of the shell impacts.'); else noteOnce('air' + kind + Math.floor(simT / 30), 'The ' + BATTLE.redKind + ' have air support coming in.'); return true;
+}
+function airFire(u, dt) {
+  const gun = u.kind === 'gunship', R = gun ? 150 : 95; u.fireT -= dt; const e = enemyOf(u.team, u.x, u.z, R); if (!e) return;
+  if (u.fireT <= 0) { u.fireT = gun ? 0.07 : 0.11; const hit = Math.random() < (gun ? 0.5 : 0.38) * (e.order || e.fpMoving ? 0.7 : 1), ex = e.x + (hit ? 0 : rnd(-3, 3)), ez = e.z + (hit ? 0 : rnd(-3, 3)), sx = u.x + Math.cos(u.hd) * 2.2, sz = u.z - Math.sin(u.hd) * 2.2;
+    addTracer(sx, u.y - 1, sz, ex, e.y + 1, ez); if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
+    if (hit) { hurt(e, gun ? 9 : 8, null, false); impactFx('person', e, { x: ex, y: e.y + 1, z: ez }, 60); } else impactFx('land', null, { x: ex, y: heightAt(ex, ez), z: ez }, 60); }
+  if (gun) { u.shellT -= dt; if (u.shellT <= 0) { u.shellT = 4.5; const c = people.filter(q => teamOf(q) === otherTeam(u.team) && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - u.x, a.z - u.z) - Math.hypot(b.x - u.x, b.z - u.z))[0]; if (c) { AIR.shells.push({ x: c.x + rnd(-4, 4), z: c.z + rnd(-4, 4), t: 1.6, team: u.team, y0: u.y, ox: u.x, oz: u.z }); Snd.fx('veh_gun_fire', u.x, u.z, { gain: 1.2, far: 2, y: u.y }); } } }
+}
+function updateShellsAir(dt) {
+  for (let i = AIR.shells.length - 1; i >= 0; i--) { const s = AIR.shells[i]; s.t -= dt; const k = 1 - Math.max(0, s.t) / 1.6, k2 = Math.min(1, k + 0.03), gy = heightAt(s.x, s.z); addTracer(s.ox + (s.x - s.ox) * k, s.y0 * (1 - k) + gy * k, s.oz + (s.z - s.oz) * k, s.ox + (s.x - s.ox) * k2, s.y0 * (1 - k2) + gy * k2, s.oz + (s.z - s.oz) * k2);
+    if (s.t > 0) continue; AIR.shells.splice(i, 1); fxG.emit(s.x, gy + 1, s.z, 0, 2, 0, 0.3, 9, 1.5, [1, 0.75, 0.35, 1]); puffSmoke(s.x, gy + 1, s.z, 10, true, 1.4); impactFx('land', null, { x: s.x, y: gy, z: s.z }, 30); Snd.fx('veh_gun_fire', s.x, s.z, { gain: 1.4, far: 2 });
+    for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; const d = Math.hypot(q.x - s.x, q.z - s.z); if (d < 11) { hurt(q, 120 * (1 - d / 11) + 30, null, false); if (q.state !== 'rag' && d < 6) stagger(q, new CANNON.Vec3((q.x - s.x) * 2, 0, (q.z - s.z) * 2)); } }
+    for (const o of objects) { if (o.gone || !o.body || !(o.body.mass > 0)) continue; const dx = o.body.position.x - s.x, dz = o.body.position.z - s.z, d = Math.hypot(dx, dz); if (d < 12) o.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * 40 * o.body.mass, 30 * o.body.mass, dz / (d + 1) * 40 * o.body.mass), o.body.position); } }
+}
+function updateAir(dt) {
+  for (const t of ['blue', 'red']) for (const k in AIR.cd[t]) AIR.cd[t][k] = Math.max(0, AIR.cd[t][k] - dt);
+  updateShellsAir(dt);
+  for (let i = AIR.list.length - 1; i >= 0; i--) { const u = AIR.list[i]; u.life -= dt; if (u.life <= 0) u.leaving = true;
+    let tx, tz; if (u.leaving) { tx = Math.cos(u.a) * EXT * 1.3; tz = Math.sin(u.a) * EXT * 1.3; } else { u.tgt = hotSpot(u.team) || u.tgt; u.oa = (u.oa || 0) + dt * u.spd / u.orbit * (u.kind === 'gunship' ? 1 : -1); tx = u.tgt.x + Math.cos(u.oa) * u.orbit; tz = u.tgt.z + Math.sin(u.oa) * u.orbit; }
+    const want = Math.atan2(tx - u.x, tz - u.z), da = wrap(want - u.hd); u.hd += clamp(da, -dt * 0.9, dt * 0.9); const bank = clamp(da, -0.6, 0.6); u.x += Math.sin(u.hd) * u.spd * dt; u.z += Math.cos(u.hd) * u.spd * dt; u.y += ((u.kind === 'gunship' ? 130 : Math.max(38, heightAt(u.x, u.z) + 34)) - u.y) * Math.min(1, dt);
+    u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(u.kind === 'griffon' ? 0.1 : 0, u.hd, -bank * 0.5, 'YXZ');
+    if (u.mr) u.mr.rotation.y += 35 * dt; if (u.tr) u.tr.rotation.x += 40 * dt; for (const p of u.props) p.rotation.z += 30 * dt;
+    if (!u.leaving) airFire(u, dt);
+    if (u.leaving && Math.hypot(u.x, u.z) > EXT * 1.05) { scene.remove(u.g); AIR.list.splice(i, 1); } }
+  for (let i = AIR.chutes.length - 1; i >= 0; i--) { const c = AIR.chutes[i], q = c.q; if (!people.includes(q)) { scene.remove(c.mesh); AIR.chutes.splice(i, 1); continue; }
+    c.vy = Math.min(c.vy + 6 * dt, 5.5); c.y -= c.vy * dt; const gy = standY(q.x, q.z); q.x += wind.v.x * 0.8 * dt; q.z += wind.v.z * 0.8 * dt; q.y = Math.max(c.y, gy);
+    q.obj.position.set(q.x, q.y - q.footOff, q.z); if (q.body) q.body.position.set(q.x, q.y + q.height / 2, q.z); c.mesh.position.set(q.x, q.y + 0.5, q.z); c.mesh.rotation.y += dt * 0.2; c.mesh.rotation.z = Math.sin(simT * 1.3 + i) * 0.1;
+    if (q.y <= gy + 0.02) { q.hoist = null; scene.remove(c.mesh); AIR.chutes.splice(i, 1); Snd.fx('foley_land_soft', q.x, q.z, { gain: 0.6 }); } }
+}
+function paraWave(team, n) {
+  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.pa > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c.pa) + ' more seconds'); return false; } c.pa = 90;
+  const hs = BATTLE.points.filter(p => p.owner === team), zone = hs.length ? hs[Math.floor(Math.random() * hs.length)] : spawnPointOf(team), a = Math.random() * 6.283; let made = 0;
+  for (let i = 0; i < n && people.length < MAX_PEOPLE && BATTLE.tickets[team] > 6; i++) { const q = spawnBot(team, false, { x: zone.x + Math.cos(a) * 30 + rnd(-14, 14), z: zone.z + Math.sin(a) * 30 + rnd(-14, 14) }); if (!q) break; BATTLE.tickets[team] -= 1; made++;
+    q.hoist = { chute: true }; const m = airNode('parachute', stubChute); scene.add(m); q.y = 90 + rnd(0, 40); AIR.chutes.push({ q, mesh: m, y: q.y, vy: 0 }); }
+  if (made) { if (team === BATTLE.team) toast(made + ' paratroopers are dropping in.'); else noteOnce('para' + Math.floor(simT / 30), 'Parachutes over the ridge: ' + BATTLE.redKind + ' reinforcements.'); } ensureAir(); return made > 0;
+}
+function boatWave(team) {
+  if (!BATTLE.on) { toast('Start a battle first.'); return false; } const c = AIR.cd[team]; if (c.bt > 0) { if (team === BATTLE.team) toast('Not ready for ' + Math.ceil(c.bt) + ' more seconds'); return false; } c.bt = 120;
+  return landingParty(team, 8, 2, team === 'red' && BATTLE.redKind === 'Invaders' ? 'invasion' : 'raid');
+}
+function airAuto(dt) {
+  AIR.autoT -= dt; if (AIR.autoT > 0) return; AIR.autoT = 14 + Math.random() * 10;
+  for (const team of ['blue', 'red']) { if (team === BATTLE.team) continue; const ahead = BATTLE.tickets[team] - BATTLE.tickets[otherTeam(team)], c = AIR.cd[team]; if (Math.random() > (ahead < 0 ? 0.55 : 0.25)) continue; const pick = Math.random();
+    if (pick < 0.3 && c.gr <= 0) callAir(team, 'griffon'); else if (pick < 0.45 && c.gs <= 0 && BATTLE.t > 90) callAir(team, 'gunship'); else if (pick < 0.8 && c.pa <= 0) paraWave(team, 5 + Math.floor(Math.random() * 3)); else if (c.bt <= 0 && BATTLE.t > 60) boatWave(team); }
+}
 function planBattle() {
   for (const team of ['blue', 'red']) {
     const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag'), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : 0, cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : 0;
@@ -4059,7 +4130,7 @@ function planBattle() {
   }
 }
 function updateBattle(dt) {
-  specUpdate(dt); if (!BATTLE.on) return; updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
+  specUpdate(dt); updateAir(dt); if (!BATTLE.on) return; airAuto(dt); updateTracers(dt); BATTLE.t += dt; BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
   if (BATTLE.over) return;
   for (const q of people) if (q.bot) botThink(q, dt);
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
@@ -7547,7 +7618,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
