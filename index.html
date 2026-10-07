@@ -3412,7 +3412,7 @@ function renderSide() {
     sBody.append(mkB(fp.on ? 'Leave first person' : 'Drop in (V)', 'sItem', dropIn));
     const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); };
     const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Dropping things'; sBody.append(h);
-    rg('Drop height', 0.4, 120, 0.1, dropH, v => { dropH = v; }, v => (+v).toFixed(1) + ' m'); rg('Size', 0.4, 8, 0.1, dropSize, v => { dropSize = v; }, v => 'x' + (+v).toFixed(1));
+    rg('Drop height', 0, 100, 1, Math.round(100 * Math.log(dropH / 0.4) / Math.log(300)), v => { dropH = Math.round(0.4 * Math.pow(300, v / 100) * 10) / 10; }, v => (Math.round(0.4 * Math.pow(300, v / 100) * 10) / 10).toFixed(1) + ' m'); rg('Size', 0.4, 8, 0.1, dropSize, v => { dropSize = v; }, v => 'x' + (+v).toFixed(1));
     sBody.append(mkB('Pick the boulder', 'sItem', () => { const i = BUILD.findIndex(it => it.id === 'c-rock'); if (i >= 0) { buildSel = i; placeCat = 'cargo'; setTool('build'); toast('Boulder ready. Mouse wheel changes the drop height, [ and ] the size.'); if (matchMedia('(max-width: 800px)').matches) setSide(false); } }));
     const hc = document.createElement('div'); hc.className = 'sCat'; hc.textContent = 'Your catch: ' + fp.fish.n + ' fish, ' + fp.fish.kg.toFixed(1) + ' kg'; sBody.append(hc);
     for (const l of fp.fish.log) { const d = document.createElement('div'); d.className = 'sNote'; d.textContent = l; sBody.append(d); }
@@ -3432,7 +3432,7 @@ function fillPlace(list) {
 }
 function collectLive() {
   const rows = [], want = (k) => liveF === 'all' || liveF === k;
-  if (want('people')) for (const p of people) rows.push({ k: 'person', ref: p, label: (p.role || 'Person') + (p.side ? ' (' + p.side + ')' : ''), sub: personStatus1(p) + (p.ag && p.ag.intent ? ' · ' + p.ag.intent : ''), x: p.x, z: p.z });
+  if (want('people')) for (const p of people) rows.push({ k: 'person', ref: p, label: (p.role || 'Person') + (p.side ? ' (' + p.side + ')' : ''), sub: (() => { const a = personStatus1(p), b = p.ag && p.ag.intent ? p.ag.intent : ''; return b && !a.includes(b) ? a + ' · ' + b : a; })(), x: p.x, z: p.z });
   if (want('boats')) for (const b of boats) rows.push({ k: 'boat', ref: b, label: b.sp.name + (isHostile(b) ? ' (hostile)' : b.blue ? ' (blue)' : ''), sub: (b.status || '') + (b.hpMax ? ' · hull ' + hullPct(b) + '%' : ''), x: b.body.position.x, z: b.body.position.z });
   if (want('vehicles')) for (const v of VEHS) rows.push({ k: 'veh', ref: v, label: v.sp.name, sub: v.task || 'idle', x: v.x, z: v.z });
   if (want('things')) { const g = new Map(); for (const o of objects) { if (o.gone) continue; const a = g.get(o.c.name) || g.set(o.c.name, []).get(o.c.name); a.push(o); } for (const [n, a] of g) rows.push({ k: 'things', ref: a, label: n + (a.length > 1 ? ' x' + a.length : ''), sub: Math.round(a[0].body.mass) + ' kg each', x: a[0].body.position.x, z: a[0].body.position.z }); }
@@ -3903,6 +3903,11 @@ function renderTray(force = true) {
     tray.append(chip('Undo', land.undo.length ? land.undo.length + ' steps' : 'nothing yet', null, false, landUndo, 'chip mini'));
     tray.append(chip('Reset', 'back to start', null, false, landReset, 'chip mini'));
   } else {
+    tray.append(sep('Things that happen'));
+    tray.append(chip('Destructive', prefs.gentle ? 'off in gentle mode' : 'storms, quakes, meteors', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
+    tray.append(chip('Arrivals', 'drops, wrecks, fleets', '#3f8f6a', false, () => openMenu([menuHead('Arrivals. New things come in or are left behind.'), ...ARRIVALS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
+    tray.append(chip('Events', 'raids, invasions, SWAT', '#3c5a8f', false, () => openMenu([menuHead('Events. People turn up and behave.'), ...EVENTS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
+    tray.append(chip('Calm all', 'clear it all', null, false, () => { calm(); renderTray(); }, 'chip'));
     tray.append(sep('Wind'));
     WIND_LEVELS.forEach((L, i) => tray.append(chip(L.name, Math.round(L.ms * KN) + ' kn', null, wind.level === i, () => { wind.level = i; renderTray(); }, 'chip mini')));
     tray.append(sep('From'));
@@ -3929,11 +3934,6 @@ function renderTray(force = true) {
     [['Off', 0], ['Weak', 5], ['Strong', 10]].forEach(([n, v]) => tray.append(chip(n, v ? '+' + v + ' C' : 'none', null, clim.nose === v, () => { clim.nose = v; renderTray(true); toast(v ? 'A warm layer sits above the ground. Cold ground under it makes freezing rain.' : 'No warm layer'); }, 'chip mini')));
     tray.append(sep('Try'));
     for (const [n, d] of TOYS) tray.append(chip(n, d[0], null, false, () => applyToy(n), 'chip mini'));
-    tray.append(sep('Disasters'));
-    tray.append(chip('Destructive', prefs.gentle ? 'off in gentle mode' : 'storms, quakes, meteors', prefs.gentle ? null : '#b8402a', false, disastersSheet, 'chip'));
-    tray.append(chip('Arrivals', 'drops, wrecks, fleets', '#3f8f6a', false, () => openMenu([menuHead('Arrivals. New things come in or are left behind.'), ...ARRIVALS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
-    tray.append(chip('Events', 'raids, invasions, SWAT', '#3c5a8f', false, () => openMenu([menuHead('Events. People turn up and behave.'), ...EVENTS.map(([n, d, fn]) => menuBtn(n, d, () => { closeMenu(); fn(); }))]), 'chip'));
-    tray.append(chip('Calm all', 'clear it all', null, false, () => { calm(); renderTray(); }, 'chip'));
   }
 }
 function updateCount() { if (countEl) countEl.textContent = objects.length + ' / ' + MAX_OBJ + ' afloat or sunk · ' + people.length + ' / ' + MAX_PEOPLE + ' people'; }
@@ -6235,9 +6235,9 @@ function sideCrew(nb, side) {
   if (side === 'red') { nb.side = 'hostile'; nb.raider = true; nb.threat = 'raider'; nb.anchor = null; } else nb.blue = true;
 }
 function skirmishThink(p, ag) {
-  let best = null, bd = 80; for (const q of people) { if (q.side !== SIDE_OPP[p.side] || q.ride || q.state === 'rag' || q.fp) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; best = q; } }
+  let best = null, bd = p.side === 'blue' ? 700 : 160; for (const q of people) { if (q.side !== SIDE_OPP[p.side] || q.ride || q.state === 'rag' || q.fp) continue; const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; best = q; } }
   if (best) { ag.goal = { kind: 'fight', who: best, t: 0, hit: rnd(0.4, 1.2) }; ag.intent = p.side === 'red' ? 'Attacking a guard' : 'Going after a raider'; walkAgent(p, best.x, best.z); return true; }
-  if (p.side === 'red') { const y = sites.find(q => q.kind === 'yard' && (q.owner || 'Port') === 'Port') || sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === 'Port'); if (y) { ag.goal = { kind: 'raid', site: y, t: 0 }; ag.intent = 'Heading for the yard'; walkAgent(p, y.x + rnd(-4, 4), y.z + rnd(-4, 4)); return true; } return false; }
+  if (p.side === 'red') { const y = sites.find(q => q.kind === 'yard' && (q.owner || 'Port') === 'Port') || sites.find(q => q.kind === 'build' && !q.done && (q.owner || 'Port') === 'Port'); if (y) { ag.goal = { kind: 'raid', site: y, t: 0 }; ag.intent = 'Heading for the yard'; walkAgent(p, y.x + rnd(-4, 4), y.z + rnd(-4, 4)); return true; } for (let n = 0; n < 14; n++) { const x = rnd(-70, 70), z = rnd(-70, 70); if (standY(x, z) > 0.8) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Pushing inland'; walkAgent(p, x, z); return true; } } return false; }
   const g = sites.find(q => (q.kind === 'yard' || q.kind === 'build') && (q.owner || 'Port') === 'Port'); if (g) { if (Math.hypot(p.x - g.x, p.z - g.z) > 14) { ag.goal = { kind: 'wander', t: 0 }; ag.intent = 'Returning to the post'; walkAgent(p, g.x + rnd(-6, 6), g.z + rnd(-6, 6)); return true; } ag.cool = 2.5; ag.intent = 'On guard'; return true; }
   return false;
 }

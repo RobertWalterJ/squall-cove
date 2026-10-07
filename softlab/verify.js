@@ -16,7 +16,7 @@ function report(name, pass, lines, data = {}) { results.push({ name, pass, lines
 
 // ---------------------------------------------------------------- shared cantilever scenario
 const BEAM = { L: 1.2, W: 0.1, H: 0.1 };               // slenderness L/h = 12
-const woodElastic = (extra = {}) => makeMaterial({ ...MATERIALS.wood, yield: 1e12, fracture: 1e12, damping: 1.0, scatter: 0, ...extra });
+const woodElastic = (extra = {}) => makeMaterial({ ...MATERIALS.wood, yield: 1e12, fracture: 1e12, crush: 1e12, snap: false, damping: 1.0, scatter: 0, ...extra });
 const I_BEAM = BEAM.W * BEAM.H ** 3 / 12;
 function ebTip(mat, L = BEAM.L) { const q = mat.density * BEAM.W * BEAM.H * G; return q * L ** 4 / (8 * mat.youngs * I_BEAM); }
 
@@ -88,7 +88,7 @@ function runCantilever({ hz, substepHz = 480, seconds, mat, L = BEAM.L, iteratio
 
 // ---------------------------------------------------------------- (3) energy, free fall, no collisions
 {
-  const mat = makeMaterial({ ...MATERIALS.wood, yield: 1e12, fracture: 1e12, damping: 0, scatter: 0 });
+  const mat = makeMaterial({ ...MATERIALS.wood, yield: 1e12, fracture: 1e12, crush: 1e12, snap: false, damping: 0, scatter: 0 });
   const rows = [];
   let allPass = true;
   for (const [label, sub, it, bend] of [['60 Hz, 8 substeps, pre-bent 1 mm', 8, 1, 0.001], ['60 Hz, 4 substeps (phone tier), pre-bent 8 mm (0.6 % fibre strain = wood fracture strain)', 4, 1, 0.008], ['60 Hz, 8 substeps, violent pre-bend 20 mm (1.5 % fibre strain, 2.5x past fracture)', 8, 1, 0.02]]) {
@@ -136,7 +136,7 @@ function runCantilever({ hz, substepHz = 480, seconds, mat, L = BEAM.L, iteratio
   const dy = Py * L ** 3 / (3 * woodElastic().youngs * I_BEAM);       // elastic tip deflection at first yield
   const target = 3 * dy;
   const elastic = trial(woodElastic(), target, 'elastic', 4.0);
-  const plastic = trial(makeMaterial({ ...MATERIALS.wood, yield: sy, fracture: 1e13, damping: 1.0, scatter: 0 }), target, 'plastic', 4.0);
+  const plastic = trial(makeMaterial({ ...MATERIALS.wood, yield: sy, fracture: 1e13, crush: 1e13, snap: false, damping: 1.0, scatter: 0 }), target, 'plastic', 4.0);
   const springback = plastic.loadAtRelease * L ** 3 / (3 * woodElastic().youngs * I_BEAM);
   const expectResidual = plastic.peak - Math.min(springback, dy * 1.2);
   report('(4a) beam loaded past yield stays bent', plastic.residual > 0.4 * plastic.peak && elastic.residual < 0.05 * elastic.peak, [
@@ -218,7 +218,7 @@ function runCantilever({ hz, substepHz = 480, seconds, mat, L = BEAM.L, iteratio
 // ---------------------------------------------------------------- (6) frame cost
 function buildBench(opts) {
   const w = new SoftWorld({ seed: 3, ...opts });
-  w.heightfield = (x, z) => 0.15 * Math.sin(x * 0.7) * Math.cos(z * 0.5); w.heightfieldMax = 0.15;
+  w.heightfield = (x, z) => 0.15 * Math.sin(x * 0.7) * Math.cos(z * 0.5) * Math.min(1, Math.max(0, (2.5 - x) / 1.5)); w.heightfieldMax = 0.15;   // bumpy for x<1, flat under the masonry
   w.addCollider({ type: 'sphere', c: [4, 1.2, 4], r: 0.6 });
   w.addCollider({ type: 'box', c: [8, 0.5, 2], h: [1, 0.5, 1], q: [0, 0.38, 0, 0.92] });
   const wood = makeMaterial(MATERIALS.wood), rope = makeMaterial(MATERIALS.rope), cloth = makeMaterial(MATERIALS.cloth), stone = makeMaterial(MATERIALS.stone), mortar = makeMaterial(MATERIALS.mortar);
@@ -226,7 +226,7 @@ function buildBench(opts) {
   for (let k = 0; k < 10; k++) buildRope(w, { a: [-4, 4, -6 + k * 1.2], b: [-1, 4, -6 + k * 1.2], slack: 1.1, segments: 24, mat: rope, pin: 'both' });
   buildCloth(w, { origin: [0, 6, -6], du: [6, 0, 0], dv: [0, -4, 0], nu: 32, nv: 28, mat: cloth, pin: ['top'] });
   w.wind = [2, 0, 1.5];
-  buildBlockCluster(w, { mat: stone, mortar, size: [0.5, 0.25, 0.25], counts: [6, 12, 3], origin: [3, 0.2, -3] });
+  buildBlockCluster(w, { mat: stone, mortar, size: [0.5, 0.25, 0.25], counts: [6, 10, 3], origin: [3, 0.0301, -3] });
   return w;
 }
 {
@@ -241,11 +241,73 @@ function buildBench(opts) {
     rows.push(`${label}: ${w.n} particles, ${w.nd} bars, ${w.nw} welds, ${w.nt} tets | mean ${fmt(mean, 2)} ms, p95 ${fmt(p95, 2)} ms, max ${fmt(max, 2)} ms per 60 Hz frame (${w.stats.contacts} ground/collider contacts)`);
     if (label.startsWith('phone')) primary = { mean, p95, n: w.n };
   }
+  {
+    const w = buildBench({ substeps: 4, iterations: 1, sleep: true }); w.wind = null;
+    for (let i = 0; i < 60 * (QUICK ? 25 : 40); i++) w.step(1 / 60);
+    const N = 120, times = []; for (let i = 0; i < N; i++) { const t0 = performance.now(); w.step(1 / 60); times.push(performance.now() - t0); }
+    rows.push(`phone tier, sleeping on, scene at rest (no wind): ${w.nAsleep}/${w.nComp} pieces asleep, ${w.nAct}/${w.n} particles awake | mean ${fmt(times.reduce((a, b) => a + b, 0) / N, 2)} ms per frame`);
+  }
   const BUDGET_MS = 5.5;       // one third of a 16.7 ms frame on THIS PC (node) for the phone tier; a phone core is typically 3-5x slower (estimate, not measured)
   report('(6) frame cost, ~3000 particles', primary.mean <= BUDGET_MS, [
     ...rows,
     `budget: phone tier mean <= ${BUDGET_MS} ms on this PC (node ${process.version}); estimated phone cost = ${fmt(primary.mean * 3, 1)}-${fmt(primary.mean * 5, 1)} ms (3-5x slower core, NOT measured on a phone)`,
   ], { ms: primary.mean, p95: primary.p95, particles: primary.n });
+}
+
+// ---------------------------------------------------------------- (9a) rigid <-> soft impulse exchange on a plank
+{
+  const rows = []; let ok = true;
+  for (const [label, sub, damp, v0] of [['8 substeps, damping 0.2, 3 m/s', 8, 0.2, 3], ['8 substeps, damping 0.2, 6 m/s', 8, 0.2, 6], ['4 substeps, damping 1, 10 m/s', 4, 1, 10]]) {
+    const w = new SoftWorld({ substeps: sub, seed: 11, gravity: [0, 0, 0] });
+    buildBeam(w, { a: [-1, 0, 0.3], b: [1, 0, 0.3], width: 0.3, height: 0.1, mat: makeMaterial({ ...MATERIALS.wood, damping: damp }), up: [0, 0, 1] });
+    const ball = w.addCollider({ type: 'sphere', c: [0, 0, -1.5], r: 0.25, v: [0, 0, v0] }); ball.mass = 80;
+    const ke0 = 0.5 * 80 * v0 * v0, p0 = 80 * v0; let keMax = 0, pErr = 0, bounced = false;
+    for (let i = 0; i < 240; i++) {
+      for (let a = 0; a < 3; a++) ball.c[a] += ball.v[a] / 60; w.clearImpulses(); w.step(1 / 60); for (let a = 0; a < 3; a++) ball.v[a] += ball.j[a] / ball.mass;
+      const e = w.energy(); let pz = 0; for (let q = 0; q < w.n; q++) pz += w.mass[q] * w.vel[q * 3 + 2];
+      keMax = Math.max(keMax, e.kinetic + 0.5 * 80 * (ball.v[0] ** 2 + ball.v[1] ** 2 + ball.v[2] ** 2)); pErr = Math.max(pErr, Math.abs(pz + 80 * ball.v[2] - p0) / p0);
+    }
+    const good = keMax <= ke0 * 1.05 && pErr <= 0.15; ok = ok && good;
+    rows.push(`${label}: max total KE / initial ball KE = ${fmt(keMax / ke0, 3)}, max |momentum error| = ${fmt(pErr * 100, 1)} % (free plank, no gravity)  [${good ? 'ok' : 'BAD'}]`);
+  }
+  report('(9a) rigid ball hits a free plank: energy does not grow, momentum is exchanged', ok, rows);
+}
+
+// ---------------------------------------------------------------- (9) masonry: stands, then is hit by a ball (rigid <-> soft exchange)
+{
+  const stone = makeMaterial(MATERIALS.stone), mortar = makeMaterial(MATERIALS.mortar);
+  const w = new SoftWorld({ substepHz: 480, seed: 11 }); w.heightfield = () => 0; w.heightfieldMax = 0.1;
+  buildBlockCluster(w, { mat: stone, mortar, size: [0.5, 0.25, 0.5], counts: [2, 10, 2], origin: [-0.5, 0.0305, -0.5] });
+  for (let i = 0; i < 60 * 6; i++) w.step(1 / 60);
+  const stands = w.nBroken === 0 && w.componentCount() === 1, top0 = Math.max(...Array.from({ length: w.n }, (_, i) => w.pos[i * 3 + 1]));
+  const ball = w.addCollider({ type: 'sphere', c: [0, 1.2, -4], r: 0.25, v: [0, 0, 6] }); ball.mass = 80;
+  const ke0 = 0.5 * ball.mass * 36, p0 = ball.mass * 6; let keMax = 0, pMax = 0;
+  for (let i = 0; i < 60 * 4; i++) {
+    for (let a = 0; a < 3; a++) ball.c[a] += ball.v[a] / 60; w.clearImpulses(); w.step(1 / 60); for (let a = 0; a < 3; a++) ball.v[a] += ball.j[a] / ball.mass;
+    const e = w.energy(); let pz = 0; for (let q = 0; q < w.n; q++) pz += w.mass[q] * w.vel[q * 3 + 2];
+    keMax = Math.max(keMax, e.kinetic + 0.5 * ball.mass * (ball.v[0] ** 2 + ball.v[1] ** 2 + ball.v[2] ** 2)); pMax = Math.max(pMax, pz + ball.mass * ball.v[2]);
+  }
+  report('(9) masonry tower: stands, then 80 kg ball at 6 m/s (rigid<->soft impulse exchange)', stands && keMax <= ke0 * 1.10 && pMax <= p0 * 1.5, [
+    `standing 6 s: breaks ${stands ? 0 : 'some'}, pieces ${stands ? 1 : w.componentCount()}, height ${fmt(top0, 3)} m (2.53 m nominal)`,
+    `after the hit: max total kinetic energy (soft + ball) ${fmt(keMax)} J vs ball energy ${fmt(ke0)} J (ratio ${fmt(keMax / ke0, 2)}); max z-momentum ${fmt(pMax)} vs ${fmt(p0)} kg m/s (ratio ${fmt(pMax / p0, 2)}); breaks ${w.nBroken}, pieces ${w.componentCount()}`,
+    'KNOWN LIMITATION when this fails: stiff stone blocks + one Gauss-Seidel sweep do not conserve momentum/energy in violent impacts (see NOTES.md).',
+  ]);
+}
+
+// ---------------------------------------------------------------- (8) sleeping (optional feature)
+{
+  const mat = woodElastic(), eb = ebTip(mat);
+  const w = new SoftWorld({ substepHz: 480, sleep: true });
+  const b = buildBeam(w, { a: [0, 5, 0], b: [BEAM.L, 5, 0], width: BEAM.W, height: BEAM.H, mat, pin: 'start' });
+  let sleepT = null;
+  for (let i = 0; i < 60 * 60; i++) { w.step(1 / 60); if (sleepT === null && w.nAsleep) sleepT = w.time; }
+  const tip = 5 - w.pos[b.tip.c * 3 + 1], asleep = w.nAsleep, tAsleep = sleepT;
+  const t0 = performance.now(); for (let i = 0; i < 300; i++) w.step(1 / 60); const cost = (performance.now() - t0) / 300;
+  w.addCollider({ type: 'sphere', c: [BEAM.L * 0.9, 5 - 0.12, 0], r: 0.1, v: [0, 0, 0] });   // a ball arrives under the tip
+  w.step(1 / 60); const woke = w.nAsleep === 0;
+  report('(8) sleeping: settles, sleeps, wakes on contact (opt-in)', Math.abs(tip - eb) / eb <= 0.10 && asleep === 1 && woke, [
+    `tip ${fmt(tip * 1000)} mm vs EB ${fmt(eb * 1000)} mm (${fmt((tip - eb) / eb * 100, 2)} %), fell asleep at t=${tAsleep ? tAsleep.toFixed(1) : 'never'} s, asleep cost ${fmt(cost, 4)} ms/frame, woke when a collider arrived: ${woke}`,
+  ]);
 }
 
 // ---------------------------------------------------------------- summary

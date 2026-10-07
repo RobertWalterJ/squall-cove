@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Soft Lab</title>
+<style>
+  :root { color-scheme: dark; --bg:#10151c; --panel:#18202acc; --ink:#e6edf3; --dim:#8b98a8; --accent:#e3a948; --line:#2b3644; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink); font:14px/1.35 system-ui,sans-serif; overflow:hidden; }
+  canvas { display:block; width:100vw; height:100vh; touch-action:none; }
+  #ui { position:fixed; left:0; right:0; top:0; padding:8px 12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:linear-gradient(#10151cee,#10151c00); }
+  button, select { background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 11px; font:inherit; min-height:34px; }
+  button:hover { border-color:var(--accent); } button.on { border-color:var(--accent); color:var(--accent); }
+  #hud { position:fixed; left:12px; bottom:10px; right:12px; color:var(--dim); font:12px/1.4 ui-monospace,monospace; text-shadow:0 1px 2px #000; pointer-events:none; white-space:pre-wrap; }
+  .sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<div id="hud"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SoftWorld, makeMaterial, MATERIALS, buildBeam, buildPlank, buildRope, buildCloth, buildBlockCluster, buildJelly } from './softsolver.js';
+
+const M = {}; for (const k in MATERIALS) M[k] = makeMaterial(MATERIALS[k]);
+const TIERS = { phone: { substeps: 4, iterations: 1 }, default: { substeps: 8, iterations: 1 }, quality: { substeps: 8, iterations: 2 } };
+let tier = 'default', world = null, scenario = 'cantilever', paused = false, ball = null, tipLoad = 0, tipIds = null, fixedAcc = 0, msAvg = 0, wind = true;
+
+// ---------- three ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x10151c); scene.fog = new THREE.Fog(0x10151c, 18, 60);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x3a3228, 1.0));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(5, 9, 4); scene.add(sun);
+
+const groundFn = (x, z) => 0.12 * Math.sin(x * 0.45) * Math.cos(z * 0.4) * Math.min(1, Math.max(0, (Math.hypot(x, z) - 4.5) / 2));   // flat in the middle, gentle bumps outside
+{
+  const g = new THREE.PlaneGeometry(40, 40, 160, 160); g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, groundFn(p.getX(i), p.getZ(i)));
+  g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x2c3a2c, roughness: 1, flatShading: true })));
+  scene.add(new THREE.GridHelper(40, 40, 0x44546a, 0x26303c).translateY(0.003));
+}
+let dyn = new THREE.Group(); scene.add(dyn);
+let pointsMesh, lineMesh, clothMesh, ballMesh, colMeshes = [], lineIdx = [], linePos, lineCol, ptPos;
+
+function disposeDyn() { scene.remove(dyn); dyn.traverse(o => { o.geometry?.dispose(); o.material?.dispose?.(); }); dyn = new THREE.Group(); scene.add(dyn); colMeshes = []; clothMesh = null; ballMesh = null; }
+
+function buildVisuals() {
+  disposeDyn();
+  const n = world.n;
+  ptPos = new Float32Array(n * 3);
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(ptPos, 3));
+  pointsMesh = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xe3a948, size: 0.05, sizeAttenuation: true })); pointsMesh.frustumCulled = false; dyn.add(pointsMesh);
+  lineIdx = []; for (let c = 0; c < world.nd; c++) if (world.dTag[c] !== 1) lineIdx.push(c);        // hide the stiff section bars of beams
+  linePos = new Float32Array(lineIdx.length * 6); lineCol = new Float32Array(lineIdx.length * 6);
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(linePos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(lineCol, 3));
+  lineMesh = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true })); lineMesh.frustumCulled = false; dyn.add(lineMesh);
+  if (world.nTri) {
+    const idx = Array.from(world.tri.subarray(0, world.nTri * 3));
+    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.BufferAttribute(ptPos, 3)); cg.setIndex(idx);
+    clothMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ color: 0xd9d2c0, side: THREE.DoubleSide, roughness: 0.9 })); clothMesh.frustumCulled = false;
+    cg.computeVertexNormals(); dyn.add(clothMesh);
+  }
+  for (const c of world.colliders) {
+    if (c.type === 'sphere') { const m = new THREE.Mesh(new THREE.SphereGeometry(c.r, 24, 16), new THREE.MeshStandardMaterial({ color: c === ball ? 0xc0392b : 0x6b7a8c, roughness: 0.6 })); colMeshes.push([c, m]); dyn.add(m); }
+    else { const m = new THREE.Mesh(new THREE.BoxGeometry(c.h[0] * 2, c.h[1] * 2, c.h[2] * 2), new THREE.MeshStandardMaterial({ color: 0x6b7a8c, roughness: 0.7 })); colMeshes.push([c, m]); dyn.add(m); }
+  }
+}
+
+function syncVisuals() {
+  const p = world.pos, n = world.n;
+  for (let i = 0; i < n * 3; i++) ptPos[i] = p[i];
+  pointsMesh.geometry.attributes.position.needsUpdate = true;
+  const da = world.da, db = world.db, rest = world.dRest, act = world.dAct, fr = world.dFrac;
+  let o = 0;
+  for (let q = 0; q < lineIdx.length; q++, o += 6) {
+    const c = lineIdx[q];
+    if (!act[c]) { for (let k = 0; k < 6; k++) linePos[o + k] = 0; continue; }
+    const a = da[c] * 3, b = db[c] * 3;
+    linePos[o] = p[a]; linePos[o + 1] = p[a + 1]; linePos[o + 2] = p[a + 2]; linePos[o + 3] = p[b]; linePos[o + 4] = p[b + 1]; linePos[o + 5] = p[b + 2];
+    const L = Math.hypot(p[a] - p[b], p[a + 1] - p[b + 1], p[a + 2] - p[b + 2]), e = (L - rest[c]) / rest[c], s = Math.min(1, Math.abs(e) / Math.min(fr[c], 0.02));
+    // grey -> red in tension, grey -> blue in compression
+    const r = e > 0 ? 0.55 + 0.45 * s : 0.55 - 0.3 * s, g = 0.6 - 0.45 * s, bl = e > 0 ? 0.62 - 0.45 * s : 0.62 + 0.38 * s;
+    lineCol[o] = lineCol[o + 3] = r; lineCol[o + 1] = lineCol[o + 4] = g; lineCol[o + 2] = lineCol[o + 5] = bl;
+  }
+  lineMesh.geometry.attributes.position.needsUpdate = true; lineMesh.geometry.attributes.color.needsUpdate = true;
+  if (clothMesh) { clothMesh.geometry.attributes.position.needsUpdate = true; clothMesh.geometry.computeVertexNormals(); }
+  for (const [c, m] of colMeshes) { m.position.set(c.c[0], c.c[1], c.c[2]); if (c.q) m.quaternion.set(c.q[0], c.q[1], c.q[2], c.q[3]); }
+}
+
+// ---------- scenarios ----------
+function fresh(opts = {}) {
+  const w = new SoftWorld({ ...TIERS[tier], seed: 11, sleep: false, ...opts });
+  w.heightfield = groundFn; w.heightfieldMax = 0.13; return w;
+}
+const SC = {
+  cantilever() {
+    const w = fresh(); camera.position.set(2.2, 1.6, 4.2); controls.target.set(1.2, 0.9, 0);
+    const b = buildPlank(w, { a: [0, 1, 0], b: [3, 1, 0], width: 0.3, thickness: 0.06, mat: M.wood, pin: 'start' });
+    tipIds = b.tip.all; w.beam = b; return w;
+  },
+  bridge() {
+    const w = fresh(); camera.position.set(0, 2.6, 6); controls.target.set(0, 0.5, 0);
+    for (let k = -1; k <= 1; k++) buildPlank(w, { a: [-2.2, 0.9, k * 0.45], b: [2.2, 0.9, k * 0.45], width: 0.4, thickness: 0.07, mat: M.wood, pin: 'both' });
+    w.addCollider({ type: 'box', c: [-2.45, 0.45, 0], h: [0.25, 0.45, 0.9] }); w.addCollider({ type: 'box', c: [2.45, 0.45, 0], h: [0.25, 0.45, 0.9] }); return w;
+  },
+  cable() {
+    const w = fresh(); camera.position.set(0, 2.2, 7); controls.target.set(0, 1.3, 0);
+    const r = buildRope(w, { a: [-3, 3, 0], b: [3, 3, 0], slack: 1.08, segments: 30, radius: 0.025, mat: M.rope, pin: 'both' });
+    for (const f of [0.25, 0.5, 0.75]) w.addMass(r.ids[Math.round(f * 30)], 12);
+    return w;
+  },
+  sail() {
+    const w = fresh(); camera.position.set(2.5, 2.4, 5.5); controls.target.set(0, 2, 0);
+    buildCloth(w, { origin: [-1.5, 3.5, 0], du: [3, 0, 0], dv: [0, -2.4, 0], nu: 26, nv: 20, mat: M.cloth, pin: ['top'], thickness: 0.003 });
+    w.wind = [4, 0, 3]; return w;
+  },
+  wall() {
+    const w = fresh(); camera.position.set(4, 2.2, 8); controls.target.set(0, 1, 0);
+    buildBlockCluster(w, { mat: M.stone, mortar: M.mortar, size: [0.5, 0.25, 0.25], counts: [8, 6, 1], origin: [-2, 0.031, 0] }); return w;
+  },
+  tower() {
+    const w = fresh(); camera.position.set(4, 2.4, 7); controls.target.set(0, 1.4, 0);
+    buildBlockCluster(w, { mat: M.stone, mortar: M.mortar, size: [0.5, 0.25, 0.5], counts: [2, 10, 2], origin: [-0.5, 0.031, -0.5] }); return w;
+  },
+  jelly() {
+    const w = fresh(); camera.position.set(2, 1.6, 3.2); controls.target.set(0, 0.4, 0);
+    const mat = makeMaterial({ density: 1100, youngs: 4e5, poisson: 0.45, damping: 0.5, yield: 1e12, fracture: 1e12, scatter: 0 });
+    buildJelly(w, { mat, size: [0.6, 0.6, 0.6], counts: [5, 5, 5], origin: [-0.3, 1.2, -0.3] }); return w;
+  },
+};
+
+const STRUCT_DESC = {
+  cantilever: 'Wood plank 3 m x 0.3 x 0.06, root pinned. "Load tip" hangs weight on it: it bends (colour = strain), yields past 4e7 Pa, snaps past 6e7 Pa.',
+  bridge: 'Three 4.4 m planks resting on blocks. Throw the ball at the middle: bends, may snap; the ball receives the reaction impulse.',
+  cable: 'Rope span with three 12 kg weights; catenary-like shape. Throw the ball at it.',
+  sail: 'Cloth sail pinned along the top edge in 5 m/s wind (aero triangles). Toggle wind.',
+  wall: 'Masonry wall: stone blocks held by mortar welds. Throw the ball: mortar breaks, blocks separate and collide.',
+  tower: 'A 10-course tower. Throw the ball at it.',
+  jelly: 'Soft solid with tetra volume constraints: drops and squashes, volume ~ conserved.',
+};
+
+function load(name) {
+  scenario = name; world = SC[name](); ball = null; tipLoad = 0;
+  if (name !== 'sail') world.wind = null; else wind = true;
+  world.clearImpulses(); buildVisuals(); syncVisuals(); updateUI();
+}
+
+function throwBall() {
+  if (ball) world.colliders.splice(world.colliders.indexOf(ball), 1);
+  const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+  const t = controls.target; const speed = 9;
+  ball = world.addCollider({ type: 'sphere', c: [camera.position.x + dir.x * 1.5, Math.max(0.6, camera.position.y + dir.y * 1.5), camera.position.z + dir.z * 1.5], r: 0.22, v: [dir.x * speed, Math.max(dir.y * speed, 1.2), dir.z * speed] });
+  ball.mass = 40; world.wakeAll(); buildVisuals();
+}
+
+// ---------- loop ----------
+const hud = document.getElementById('hud');
+function simulate(dt) {
+  if (tipIds) for (const q of tipIds) world.setForce(q, 0, -tipLoad * 9.81 / 5, 0);
+  if (ball) {
+    ball.v[1] -= 9.81 * dt; for (let a = 0; a < 3; a++) ball.c[a] += ball.v[a] * dt;
+    const gh = groundFn(ball.c[0], ball.c[2]) + ball.r; if (ball.c[1] < gh) { ball.c[1] = gh; if (ball.v[1] < 0) ball.v[1] *= -0.25; ball.v[0] *= 0.98; ball.v[2] *= 0.98; }
+  }
+  world.clearImpulses();
+  const t0 = performance.now(); world.step(dt); const ms = performance.now() - t0; msAvg = msAvg ? msAvg * 0.95 + ms * 0.05 : ms;
+  if (ball) for (let a = 0; a < 3; a++) ball.v[a] += ball.j[a] / ball.mass;        // reaction impulse from the soft body onto the "rigid" ball
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (!world) return;
+  const dt = 1 / 60;
+  if (!paused) {
+    fixedAcc += Math.min(0.05, (now - (frame.last || now)) / 1000);
+    let steps = 0;
+    while (fixedAcc >= dt && steps < 2) { fixedAcc -= dt; steps++; simulate(dt); }
+  }
+  frame.last = now;
+  syncVisuals(); controls.update(); renderer.render(scene, camera);
+  const e = world.energy();
+  hud.textContent = `${scenario} | ${world.n} particles, ${world.nd - world.nBroken} bars live, ${world.nBroken} broken, ${world.componentCount()} pieces | tier ${tier} (${world.substeps} substeps x ${world.iterations})\nsolver ${msAvg.toFixed(2)} ms/frame | KE ${e.kinetic.toFixed(1)} J, elastic ${e.elastic.toFixed(1)} J${ball ? ` | ball v ${Math.hypot(...ball.v).toFixed(1)} m/s` : ''}${scenario === 'cantilever' ? ` | tip load ${tipLoad} kg, tip drop ${((1 - world.pos[world.beam.tip.c * 3 + 1]) * 1000).toFixed(0)} mm` : ''}\n${STRUCT_DESC[scenario]}`;
+}
+
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+// ---------- UI ----------
+const ui = document.getElementById('ui');
+function updateUI() {
+  ui.innerHTML = '';
+  const add = (label, fn, cls) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; ui.appendChild(b); return b; };
+  for (const k of Object.keys(SC)) add(k, () => load(k), k === scenario ? 'on' : '');
+  const sep = document.createElement('div'); sep.className = 'sep'; ui.appendChild(sep);
+  if (scenario === 'cantilever') { add('+10 kg tip', () => tipLoad += 10); add('clear load', () => tipLoad = 0); }
+  if (scenario === 'sail') add(wind ? 'wind off' : 'wind on', () => { wind = !wind; world.wind = wind ? [4, 0, 3] : null; updateUI(); });
+  add('throw ball', throwBall); add('reset', () => load(scenario)); add(paused ? 'play' : 'pause', () => { paused = !paused; updateUI(); });
+  const sel = document.createElement('select'); for (const t of Object.keys(TIERS)) { const o = document.createElement('option'); o.value = t; o.textContent = 'tier: ' + t; if (t === tier) o.selected = true; sel.appendChild(o); }
+  sel.onchange = () => { tier = sel.value; world.substeps = TIERS[tier].substeps; world.iterations = TIERS[tier].iterations; }; ui.appendChild(sel);
+}
+
+load('cantilever'); requestAnimationFrame(frame);
+function shoot(c, v, mass = 40, r = 0.22) {          // scripted ball (used by the headless checks)
+  if (ball) world.colliders.splice(world.colliders.indexOf(ball), 1);
+  ball = world.addCollider({ type: 'sphere', c: c.slice(), r, v: v.slice() }); ball.mass = mass; world.wakeAll(); buildVisuals();
+}
+window.__soft = { advance: (sec) => { for (let i = 0; i < Math.round(sec * 60); i++) simulate(1 / 60); syncVisuals(); }, get world() { return world; }, get ball() { return ball; }, load, throwBall, shoot, setTipLoad: (v) => tipLoad = v };
+</script>
+</body>
+</html>

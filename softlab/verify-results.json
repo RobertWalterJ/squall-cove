@@ -5,21 +5,21 @@
   "lines": [
    "beam 1.2 m x 0.1 x 0.1 m wood (E=1.00e+10 Pa, rho=600), 8 bays, 45 particles, 162 bars, root pinned",
    "analytical (EB, self weight) tip = 0.183 mm   (Timoshenko with shear = 0.184 mm)",
-   "simulated tip after 12 s = 0.188 mm   error vs EB = 2.64 %   (vs Timoshenko 1.90 %)",
-   "trace (s:mm) 3:0.191  6:0.190  9:0.188  12:0.188",
-   "time to within 5% of the final value: 3.0 s"
+   "simulated tip after 30 s = 0.188 mm   error vs EB = 2.65 %   (vs Timoshenko 1.91 %)",
+   "trace (s:mm) 3:0.204  6:0.189  9:0.188  12:0.188  15:0.188  18:0.188  21:0.188  24:0.188  27:0.188  30:0.188",
+   "time to within 5% of the final value: 1.5 s"
   ],
   "data": {
    "eb": 0.00018307814399999992,
-   "tip": 0.00018791129112738503,
-   "err": 0.02639936707783702
+   "tip": 0.00018792507798792712,
+   "err": 0.026474672956741375
   }
  },
  {
   "name": "(1a) same cantilever, soft material (E=2e7 Pa, large deflection)",
-  "pass": false,
+  "pass": true,
   "lines": [
-   "EB tip = 91.539 mm (7.63 % of span), simulated 1227.882 mm, error 1241.37 %"
+   "EB tip = 91.539 mm (7.63 % of span), simulated 93.800 mm, error 2.47 %"
   ],
   "data": {}
  },
@@ -27,8 +27,8 @@
   "name": "(1b) informational: L/h=16 cantilever, same solver settings",
   "pass": true,
   "lines": [
-   "EB tip = 0.579 mm, simulated after 12 s = 0.587 mm, ratio 1.014",
-   "trace ratio (s:ratio) 4:1.04  8:1.01  12:1.01",
+   "EB tip = 0.579 mm, simulated after 40 s = 0.587 mm, ratio 1.014",
+   "trace ratio (s:ratio) 4:0.97  8:1.02  12:1.01  16:1.01  20:1.01  24:1.01  28:1.01  32:1.01  36:1.01  40:1.01",
    "This is the known Gauss-Seidel limit: a long stiff chain needs ~N^2 * stiffness-ratio sweeps to reach static equilibrium; see NOTES.md."
   ],
   "data": {}
@@ -40,34 +40,34 @@
    "rope span 6 m, length 6.805 m, 24 links, 25 particles (E=5.00e+8, r=20 mm)",
    "analytical catenary: a=3.409 m, mid sag 1407.5 mm; simulated mid sag 1409.0 mm (0.11 %)",
    "max node deviation from the analytical curve = 1.58 mm = 0.11 % of the sag (mean 1.05 mm); horizontal-tension strain ~6.0e-5",
-   "residual kinetic energy 1.45e-11 J after 15 s"
+   "residual kinetic energy 1.72e-14 J after 40 s"
   ],
   "data": {
-   "maxDevPct": 0.1125223554400228
+   "maxDevPct": 0.11253622893268253
   }
  },
  {
   "name": "(3) free fall, no collisions: energy never grows",
   "pass": true,
   "lines": [
-   "60 Hz, 8 substeps, pre-bent 1 mm: E0 total 1008.741 J (elastic 66.952), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -67.908 J vs E0, COM fall 19.6412 m vs 19.6200 m (g t^2/2)  [ok]",
-   "60 Hz, 4 substeps (phone tier), pre-bent 8 mm (0.6 % fibre strain = wood fracture strain): E0 total 5231.678 J (elastic 4289.686), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -4289.639 J vs E0, COM fall 19.6632 m vs 19.6200 m (g t^2/2)  [ok]",
-   "60 Hz, 8 substeps, violent pre-bend 20 mm (1.5 % fibre strain, 2.5x past fracture): E0 total 2.79e+4 J (elastic 2.70e+4), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -2.69e+4 J vs E0, COM fall 19.6318 m vs 19.6200 m (g t^2/2)  [ok]"
+   "60 Hz, 8 substeps, pre-bent 1 mm: E0 total 1008.741 J (elastic 66.952), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -67.915 J vs E0, COM fall 19.6407 m vs 19.6200 m (g t^2/2)  [ok]",
+   "60 Hz, 4 substeps (phone tier), pre-bent 8 mm (0.6 % fibre strain = wood fracture strain): E0 total 5231.678 J (elastic 4289.686), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -4291.415 J vs E0, COM fall 19.6624 m vs 19.6200 m (g t^2/2)  [ok]",
+   "60 Hz, 8 substeps, violent pre-bend 20 mm (1.5 % fibre strain, 2.5x past fracture): E0 total 2.79e+4 J (elastic 2.70e+4), max E over 2 s = E0 +0.000 J (0.000 % of elastic), final E -2.70e+4 J vs E0, COM fall 19.6513 m vs 19.6200 m (g t^2/2)  [ok]"
   ],
   "data": {}
  },
  {
   "name": "(4a) beam loaded past yield stays bent",
-  "pass": false,
+  "pass": true,
   "lines": [
    "analytical first-yield tip load P_y = sigma_y*S/L = 5555.6 N, elastic deflection at first yield = 38.4 mm; loaded until tip drops 115.2 mm, then released and settled",
-   "elastic control (no yield): peak 115.27 mm -> residual 1225.786 mm (1063.38 % of peak)",
-   "plastic beam (sigma_y=4.00e+7 Pa): peak 115.42 mm at load 1.92 P_y -> residual 88.36 mm (76.6 % of peak, permanent bend)",
-   "elastic-perfectly-plastic hinge theory: residual ~ peak - elastic recovery (<= 46.1 mm) = 69.3 mm"
+   "elastic control (no yield): peak 115.21 mm -> residual -0.005 mm (-0.00 % of peak)",
+   "plastic beam (sigma_y=4.00e+7 Pa): peak 115.67 mm at load 2.01 P_y -> residual 88.73 mm (76.7 % of peak, permanent bend)",
+   "elastic-perfectly-plastic hinge theory: residual ~ peak - elastic recovery (<= 46.1 mm) = 69.6 mm"
   ],
   "data": {
-   "residualPlastic": 0.08836369215225393,
-   "residualElastic": 1.225785939846837
+   "residualPlastic": 0.08872789603832754,
+   "residualElastic": -0.0000053509482489388915
   }
  },
  {
@@ -75,7 +75,7 @@
   "pass": true,
   "lines": [
    "analytical breaking tip load = (sigma_f*S - M_selfweight)/L = 8298.0 N; first break at 8464.0 N (2.00 %)",
-   "bars broken 143, separate connected pieces 32 (sizes 5,2,1,3,2,3,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,1,1,1,1,1), tip chunk fell to y=-259.38 m from 5 m"
+   "bars broken 9, separate connected pieces 2 (sizes 5,40), tip chunk fell to y=-309.06 m from 5 m"
   ],
   "data": {
    "breakLoad": 8463.977680000002,
@@ -86,21 +86,21 @@
   "name": "(5) time-step independence (cantilever, 30/60/120 Hz)",
   "pass": true,
   "lines": [
-   "A) fixed substep rate 480 Hz (8 substeps @60, 16 @30, 4 @120): tip after 12 s = 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 0.000 %",
-   "   transient value at t=2 s: 30 Hz: 0.2302 mm | 60 Hz: 0.2302 mm | 120 Hz: 0.2302 mm  spread 0.00 %",
-   "B) fixed 8 substeps per frame (h varies 4x): 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 0.008 %  [informational]",
-   "   all within 2.64 % of Euler-Bernoulli (0.183 mm)"
+   "A) fixed substep rate 480 Hz (8 substeps @60, 16 @30, 4 @120): tip after 30 s = 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 0.000 %",
+   "   transient value at t=2 s: 30 Hz: 0.2214 mm | 60 Hz: 0.2214 mm | 120 Hz: 0.2214 mm  spread 0.00 %",
+   "B) fixed 8 substeps per frame (h varies 4x): 30 Hz: 0.1879 mm | 60 Hz: 0.1879 mm | 120 Hz: 0.1879 mm  max spread 4.12e-5 %  [informational]",
+   "   all within 2.65 % of Euler-Bernoulli (0.183 mm)"
   ],
   "data": {
    "spread": 0,
-   "spread2": 0.00007668776426041406
+   "spread2": 4.1233107736092596e-7
   }
  },
  {
   "name": "(7) tetra volume constraints: jelly cube resting on ground",
   "pass": true,
   "lines": [
-   "volume 125.00 L -> 124.67 L (-0.27 %), centre height 0.279 m (nu=0.45, E=0.5 MPa, 125 particles, 384 tets, 604 bars)"
+   "volume 125.00 L -> 124.90 L (-0.08 %), centre height 0.285 m (nu=0.45, E=0.5 MPa, 125 particles, 384 tets, 604 bars)"
   ],
   "data": {}
  },
@@ -108,23 +108,52 @@
   "name": "(extra) determinism: identical seed gives bit-identical state",
   "pass": true,
   "lines": [
-   "checksum run A 66fda73c  run B 66fda73c  (240 frames, 136 particles, 496 breaks)"
+   "checksum run A 5aba4e6f  run B 5aba4e6f  (240 frames, 136 particles, 211 breaks)"
   ],
   "data": {}
  },
  {
   "name": "(6) frame cost, ~3000 particles",
-  "pass": false,
+  "pass": true,
   "lines": [
-   "phone tier   (4 substeps x 1 sweep): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 5.95 ms, p95 7.17 ms, max 8.11 ms per 60 Hz frame (1792 ground/collider contacts)",
-   "default tier (8 substeps x 1 sweep): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 10.57 ms, p95 12.84 ms, max 14.52 ms per 60 Hz frame (1654 ground/collider contacts)",
-   "quality tier (8 substeps x 2 sweeps): 3174 particles, 9880 bars, 2088 welds, 0 tets | mean 18.19 ms, p95 21.41 ms, max 23.28 ms per 60 Hz frame (1662 ground/collider contacts)",
-   "budget: phone tier mean <= 5.5 ms on this PC (node v24.18.0); estimated phone cost = 17.8-29.7 ms (3-5x slower core, NOT measured on a phone)"
+   "phone tier   (4 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 3.97 ms, p95 5.36 ms, max 6.12 ms per 60 Hz frame (72 ground/collider contacts)",
+   "default tier (8 substeps x 1 sweep): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 7.53 ms, p95 9.28 ms, max 10.92 ms per 60 Hz frame (72 ground/collider contacts)",
+   "quality tier (8 substeps x 2 sweeps): 2886 particles, 9016 bars, 1728 welds, 0 tets | mean 12.31 ms, p95 14.37 ms, max 17.81 ms per 60 Hz frame (72 ground/collider contacts)",
+   "phone tier, sleeping on, scene at rest (no wind): 21/22 pieces asleep, 1440/2886 particles awake | mean 2.53 ms per frame",
+   "budget: phone tier mean <= 5.5 ms on this PC (node v24.18.0); estimated phone cost = 11.9-19.8 ms (3-5x slower core, NOT measured on a phone)"
   ],
   "data": {
-   "ms": 5.947414166666666,
-   "p95": 7.165399999999863,
-   "particles": 3174
+   "ms": 3.969226333333336,
+   "p95": 5.359300000000076,
+   "particles": 2886
   }
+ },
+ {
+  "name": "(9a) rigid ball hits a free plank: energy does not grow, momentum is exchanged",
+  "pass": true,
+  "lines": [
+   "8 substeps, damping 0.2, 3 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 7.6 % (free plank, no gravity)  [ok]",
+   "8 substeps, damping 0.2, 6 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 5.1 % (free plank, no gravity)  [ok]",
+   "4 substeps, damping 1, 10 m/s: max total KE / initial ball KE = 1.000, max |momentum error| = 9.4 % (free plank, no gravity)  [ok]"
+  ],
+  "data": {}
+ },
+ {
+  "name": "(9) masonry tower: stands, then 80 kg ball at 6 m/s (rigid<->soft impulse exchange)",
+  "pass": false,
+  "lines": [
+   "standing 6 s: breaks 0, pieces 1, height 2.529 m (2.53 m nominal)",
+   "after the hit: max total kinetic energy (soft + ball) 3.13e+4 J vs ball energy 1440.000 J (ratio 21.72); max z-momentum 1191.629 vs 480.000 kg m/s (ratio 2.48); breaks 304, pieces 40",
+   "KNOWN LIMITATION when this fails: stiff stone blocks + one Gauss-Seidel sweep do not conserve momentum/energy in violent impacts (see NOTES.md)."
+  ],
+  "data": {}
+ },
+ {
+  "name": "(8) sleeping: settles, sleeps, wakes on contact (opt-in)",
+  "pass": true,
+  "lines": [
+   "tip 0.182 mm vs EB 0.183 mm (-0.67 %), fell asleep at t=4.6 s, asleep cost 0.0058 ms/frame, woke when a collider arrived: true"
+  ],
+  "data": {}
  }
 ]

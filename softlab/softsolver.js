@@ -27,24 +27,24 @@ export function makeMaterial(d) {
   const fracS = d.fracture == null ? Infinity : d.fracture;
   return Object.freeze({
     name: d.name || 'mat', density: d.density, youngs, poisson,
-    yield: yieldS, fracture: fracS, damping: d.damping ?? 0.1,
+    yield: yieldS, fracture: fracS, crush: d.crush ?? fracS * 4, damping: d.damping ?? 0.1,   // crush: compressive strength (Pa)
     scatter: d.scatter ?? 0.05,
     snap: !!d.snap,                                // brittle: when one bar of a cut section fails the whole section snaps                    // +/- relative scatter of strength per constraint (seeded)
     shear: youngs / (2 * (1 + poisson)),
     bulk: youngs / (3 * (1 - 2 * poisson)),
-    yieldStrain: yieldS / youngs, fracStrain: fracS / youngs,
+    yieldStrain: yieldS / youngs, fracStrain: fracS / youngs, crushStrain: (d.crush ?? fracS * 4) / youngs,
     beta: (d.damping ?? 0.1) * BETA_PER_DAMP, drag: (d.damping ?? 0.1) * DRAG_PER_DAMP,
   });
 }
 
 // Reference material descriptors (rough, ranged for game use; bending/tension strengths in Pa)
 export const MATERIALS = {
-  wood:   { name: 'wood',   density: 600,  youngs: 1.0e10, yield: 4.0e7, fracture: 6.0e7, damping: 0.2, snap: true },
+  wood:   { name: 'wood',   density: 600,  youngs: 1.0e10, yield: 4.0e7, fracture: 6.0e7, crush: 1.2e8, damping: 0.2, snap: true },
   steel:  { name: 'steel',  density: 7800, youngs: 2.0e11, yield: 2.5e8, fracture: 4.0e8, damping: 0.1 },
   rope:   { name: 'rope',   density: 900,  youngs: 5.0e8,  yield: 1.0e12, fracture: 8.0e7, damping: 0.4 },
   cloth:  { name: 'cloth',  density: 400,  youngs: 5.0e7,  yield: 1.0e12, fracture: 5.0e7, damping: 0.5 },
-  stone:  { name: 'stone',  density: 2500, youngs: 3.0e10, yield: 1.0e13, fracture: 5.0e6, damping: 0.2, snap: true },
-  mortar: { name: 'mortar', density: 1900, youngs: 1.0e9,  yield: 1.0e13, fracture: 3.0e5, damping: 0.2 },
+  stone:  { name: 'stone',  density: 2500, youngs: 3.0e9, yield: 6.0e7, fracture: 5.0e6, crush: 6.0e7, damping: 1.0, snap: true },
+  mortar: { name: 'mortar', density: 1900, youngs: 1.0e9,  yield: 1.0e13, fracture: 3.0e5, crush: 1.0e7, damping: 1.0 },
 };
 
 const SQ = Math.sqrt;
@@ -58,8 +58,11 @@ export class SoftWorld {
     this.seed = o.seed ?? 1;
     this.rng = mulberry32(this.seed);
     this.friction = o.friction ?? 0.6;
-    this.crushRatio = o.crushRatio ?? 4;            // compression breaks at crushRatio x the tension strain
+    this.sleepOn = o.sleep ?? false; this.sleepSpeed = o.sleepSpeed ?? 2e-5; this.sleepTime = o.sleepTime ?? 1.0; this.nAsleep = 0;
+    this.maxColliderStrain = o.maxColliderStrain ?? 0.05; this.maxSubstepBoost = o.maxSubstepBoost ?? 4; this.minBar = 0.1;
     this.pairs = o.pairs ?? true;                   // particle-particle contacts between different connected pieces (once per frame)
+    this.persist = o.persist ?? 3;                  // an over-limit bar/weld must stay over the limit for this many checks before it breaks ...
+    this.hardFactor = o.hardFactor ?? 3;            // ... unless it is over by this factor (then it breaks at once). Filters solver noise.
     this.checkEvery = o.checkEvery ?? 2;            // plasticity/fracture checks every N substeps (and always on the last)
     this.groundMargin = 0.0;
     this.heightfield = null;                        // (x,z) => height
@@ -76,9 +79,9 @@ export class SoftWorld {
     this.nw = 0; this.capW = 0; this._allocW(128);
     this.nTri = 0; this.tri = new Int32Array(0); this.triCd = new Float64Array(0);
     this.nextGroup = 1; this.nextBay = 1; this.nBroken = 0;
-    this._compDirty = true; this.comp = new Int32Array(0); this.nComp = 0; this.compV = new Float64Array(0); this.compM = new Float64Array(0); this.compPin = new Uint8Array(0); this.supPrev = new Uint8Array(0); this.supNow = new Uint8Array(0);
+    this._compDirty = true; this.comp = new Int32Array(0); this.nComp = 0; this.compSp = new Float64Array(0); this.compAsleep = new Uint8Array(0); this.compSleepT = new Float64Array(0); this.actList = new Int32Array(0); this.nAct = 0; this.compV = new Float64Array(0); this.compM = new Float64Array(0); this.compPin = new Uint8Array(0); this.supPrev = new Uint8Array(0); this.supNow = new Uint8Array(0);
     this._hHead = new Int32Array(8192); this._hNext = new Int32Array(0);
-    this._sweep = 0; this._adjDirty = true; this.stepMax = o.stepMax ?? 0.25; this.omega = o.omega ?? 0.75; this.maxSpeed = o.maxSpeed ?? 80; this.adjStart = null; this.maxRadius = 0.01;
+    this._sweep = 0; this._adjDirty = true; this.stepMax = o.stepMax ?? 0.25; this.omega = o.omega ?? 0.6; this.maxSpeed = o.maxSpeed ?? 80; this.adjStart = null; this.maxRadius = 0.01;
     this.stats = { contacts: 0, pairContacts: 0 };
   }
 
@@ -95,8 +98,8 @@ export class SoftWorld {
     const g = (old, T) => { const a = new T(c); if (old) a.set(old.subarray(0, Math.min(old.length, a.length))); return a; };
     this.da = g(this.da, Int32Array); this.db = g(this.db, Int32Array); this.dRest = g(this.dRest, Float64Array);
     this.dAlpha = g(this.dAlpha, Float64Array); this.dBeta = g(this.dBeta, Float64Array); this.dYield = g(this.dYield, Float64Array);
-    this.dFrac = g(this.dFrac, Float64Array); this.dAct = g(this.dAct, Uint8Array); this.dLam = g(this.dLam, Float64Array);
-    this.dK = g(this.dK, Float64Array); this.dTag = g(this.dTag, Int32Array); this.dBay = g(this.dBay, Int32Array); this.dSnap = g(this.dSnap, Uint8Array);
+    this.dFrac = g(this.dFrac, Float64Array); this.dCrush = g(this.dCrush, Float64Array); this.dAct = g(this.dAct, Uint8Array); this.dLam = g(this.dLam, Float64Array);
+    this.dK = g(this.dK, Float64Array); this.dTag = g(this.dTag, Int32Array); this.dBay = g(this.dBay, Int32Array); this.dOver = g(this.dOver, Uint8Array); this.dSnap = g(this.dSnap, Uint8Array);
     this.capD = c;
   }
   _allocT(c) {
@@ -109,7 +112,7 @@ export class SoftWorld {
     const g = (old, T, k = 1) => { const a = new T(c * k); if (old) a.set(old.subarray(0, Math.min(old.length, a.length))); return a; };
     this.wa = g(this.wa, Int32Array); this.wb = g(this.wb, Int32Array); this.wR = g(this.wR, Float64Array, 3);
     this.wAlpha = g(this.wAlpha, Float64Array); this.wBeta = g(this.wBeta, Float64Array); this.wMax = g(this.wMax, Float64Array);
-    this.wAct = g(this.wAct, Uint8Array); this.wLam = g(this.wLam, Float64Array, 3); this.wK = g(this.wK, Float64Array);
+    this.wN = g(this.wN, Float64Array, 3); this.wSh = g(this.wSh, Float64Array); this.wAct = g(this.wAct, Uint8Array); this.wOver = g(this.wOver, Uint8Array); this.wLam = g(this.wLam, Float64Array, 3); this.wK = g(this.wK, Float64Array);
     this.capW = c;
   }
 
@@ -136,8 +139,9 @@ export class SoftWorld {
     const L = SQ(dx * dx + dy * dy + dz * dz), rest = o.rest ?? L;
     const k = mat.youngs * area / Math.max(rest, 1e-9);
     const sc = 1 + mat.scatter * (2 * this.rng() - 1);
+    if (o.tag !== 1 && rest > 0.02) { this._barSum = (this._barSum || 0) + rest; this._barN = (this._barN || 0) + 1; this.minBar = this._barSum / this._barN; }   // mean bar length (ignores very short section bars)
     this.da[c] = a; this.db[c] = b; this.dRest[c] = rest; this.dK[c] = k; this.dAlpha[c] = 1 / k;
-    this.dBeta[c] = mat.beta; this.dYield[c] = mat.yieldStrain * sc; this.dFrac[c] = (o.fracStrain ?? mat.fracStrain) * sc;
+    this.dBeta[c] = mat.beta; this.dYield[c] = mat.yieldStrain * sc; this.dFrac[c] = (o.fracStrain ?? mat.fracStrain) * sc; this.dCrush[c] = mat.crushStrain * sc;
     this.dAct[c] = 1; this.dLam[c] = 0; this.dTag[c] = o.tag ?? 0; this.dBay[c] = o.bay ?? 0; this.dSnap[c] = mat.snap && o.bay ? 1 : 0;
     this._compDirty = true; this._adjDirty = true;
     return c;
@@ -164,9 +168,11 @@ export class SoftWorld {
     const w = this.nw++, p = this.pos;
     this.wa[w] = a; this.wb[w] = b;
     this.wR[w * 3] = p[a * 3] - p[b * 3]; this.wR[w * 3 + 1] = p[a * 3 + 1] - p[b * 3 + 1]; this.wR[w * 3 + 2] = p[a * 3 + 2] - p[b * 3 + 2];
-    const k = mat.youngs * area / gap, sc = 1 + mat.scatter * (2 * this.rng() - 1);
+    const k = o.k ?? mat.youngs * area / gap, sc = 1 + mat.scatter * (2 * this.rng() - 1);
     this.wK[w] = k; this.wAlpha[w] = 1 / k; this.wBeta[w] = mat.beta;
     this.wMax[w] = (o.maxForce ?? mat.fracture * area) * sc; this.wAct[w] = 1;
+    // optional joint normal (unit, pointing from a to b): tension and compression are then treated differently
+    const nn = o.normal || [0, 0, 0]; this.wN[w * 3] = nn[0]; this.wN[w * 3 + 1] = nn[1]; this.wN[w * 3 + 2] = nn[2]; this.wSh[w] = o.shearRatio ?? 1.5;
     this.wLam[w * 3] = 0; this.wLam[w * 3 + 1] = 0; this.wLam[w * 3 + 2] = 0;
     this._compDirty = true; this._adjDirty = true;
     return w;
@@ -184,9 +190,17 @@ export class SoftWorld {
   // One frame = `substeps` implicit-Euler steps. Each is solved by `iterations` Gauss-Seidel sweeps of Vertex Block
   // Descent: every free particle does a local 3x3 Newton step on (inertia + all incident constraint energies).
   step(dt) {
-    const S = this.substepHz ? Math.max(1, Math.round(dt * this.substepHz)) : this.substeps, h = dt / S;
+    let S = this.substepHz ? Math.max(1, Math.round(dt * this.substepHz)) : this.substeps;
+    // a fast collider must not push a particle further than a fraction of a bar length in one substep (the neighbours
+    // cannot follow in a single sweep): add substeps while it is fast. Costs nothing when no collider moves.
+    if (this.colliders.length && this.maxColliderStrain > 0) {
+      let vmax = 0; for (const c of this.colliders) { const v = c.v; vmax = Math.max(vmax, Math.hypot(v[0], v[1], v[2])); }
+      const need = Math.ceil(dt * vmax / (this.maxColliderStrain * this.minBar)); if (need > S) S = Math.min(need, S * this.maxSubstepBoost);
+    }
+    const h = dt / S;
     if (this._compDirty) this._buildComponents();
     if (this._adjDirty) this._buildAdj();
+    if (this.sleepOn && this.nAsleep) this._wakeScan();
     this._aero();
     for (let s = 0; s < S; s++) {
       this._predict(h);
@@ -199,6 +213,7 @@ export class SoftWorld {
     }
     this.time += dt; this.stepCount++;
     if (this._compDirty) this._buildComponents();
+    else if (this.sleepOn) this._sleepUpdate(dt);
   }
 
   _aero() {
@@ -226,9 +241,9 @@ export class SoftWorld {
   // Gauss-Seidel converges slowly on rigid translation, so it starts from the full inertial prediction instead.
   _predict(h) {
     const n = this.n, p = this.pos, pr = this.prev, v = this.vel, im = this.invM, ex = this.ext, ae = this.aeroF, dr = this.drag, xt = this.xt, comp = this.comp, sup = this.supPrev, cv = this.compV;
-    const g = this.gravity, gx = g[0], gy = g[1], gz = g[2], useA = this.nTri > 0 && this.wind, h2 = h * h;
-    for (let i = 0; i < n; i++) {
-      const k = i * 3; pr[k] = p[k]; pr[k + 1] = p[k + 1]; pr[k + 2] = p[k + 2];
+    const g = this.gravity, gx = g[0], gy = g[1], gz = g[2], useA = this.nTri > 0 && this.wind, h2 = h * h, al = this.actList, na = this.nAct;
+    for (let q = 0; q < na; q++) {
+      const i = al[q], k = i * 3; pr[k] = p[k]; pr[k + 1] = p[k + 1]; pr[k + 2] = p[k + 2];
       const w = im[i]; if (w === 0) { v[k] = v[k + 1] = v[k + 2] = 0; xt[k] = p[k]; xt[k + 1] = p[k + 1]; xt[k + 2] = p[k + 2]; continue; }
       const dm = 1 / (1 + dr[i] * h), cc = comp[i];
       // mass-proportional damping acts on the velocity relative to the piece's own centre-of-mass motion when the piece
@@ -250,8 +265,9 @@ export class SoftWorld {
     const WA = this.wa, WK = this.wK, WBe = this.wBeta, WR = this.wR, WAc = this.wAct;
     const TV = this.tv, TAl = this.tAlpha, TV0 = this.tV0, TAc = this.tAct;
     const h2 = h * h, ih = 1 / h, STEPMAX = this.stepMax, om = this.omega;
-    for (let q = 0; q < n; q++) {
-      const i = rev ? n - 1 - q : q; if (im[i] === 0) continue;
+    const al = this.actList, na = this.nAct;
+    for (let q = 0; q < na; q++) {
+      const i = rev ? al[na - 1 - q] : al[q]; if (im[i] === 0) continue;
       const k = i * 3, xi = p[k], yi = p[k + 1], zi = p[k + 2], mh = ms[i] / h2;
       let fx = -mh * (xi - xt[k]), fy = -mh * (yi - xt[k + 1]), fz = -mh * (zi - xt[k + 2]);
       let hxx = mh, hyy = mh, hzz = mh, hxy = 0, hxz = 0, hyz = 0;
@@ -328,19 +344,19 @@ export class SoftWorld {
     // axis-aligned reach of every collider (inflated by the largest particle radius) for a cheap inline cull
     if (nc) { if (!this._cull || this._cull.length < nc * 6) this._cull = new Float64Array(nc * 6); const R = this.maxRadius * 1.01, cu = this._cull;
       for (let c = 0; c < nc; c++) { const o = cols[c], e = o.type === 'sphere' ? o.r : Math.hypot(o.h[0], o.h[1], o.h[2]); for (let a = 0; a < 3; a++) { cu[c * 6 + a] = o.c[a] - e - R; cu[c * 6 + 3 + a] = o.c[a] + e + R; } } }
-    const cu = this._cull;
-    for (let i = 0; i < n; i++) {
-      if (im[i] === 0) continue;
+    const cu = this._cull, al = this.actList, na = this.nAct;
+    for (let q = 0; q < na; q++) {
+      const i = al[q]; if (im[i] === 0) continue;
       const k = i * 3, r = rad[i], px = p[k], py = p[k + 1], pz = p[k + 2];
       if (hf && py - r < hfMax) {
         const x = px, z = pz, gh = hf(x, z), pen = gh + r - py;
         if (pen > 0) {
           contacts++; this.supNow[this.comp[i]] = 1;
           // normal from central differences (only on contact)
-          const e = 0.05, gx = (hf(x + e, z) - hf(x - e, z)) / (2 * e), gz = (hf(x, z + e) - hf(x, z - e)) / (2 * e);
+          const e = 0.05, gx = (hf(x + e, z) - gh) / e, gz = (hf(x, z + e) - gh) / e;
           const il = 1 / SQ(gx * gx + gz * gz + 1), nx = -gx * il, ny = il, nz = -gz * il;
           const d = pen * ny; // move along the normal so the particle ends at distance r above the surface
-          p[k] += nx * d; p[k + 1] += ny * d; p[k + 2] += nz * d;
+          this._resolve(k, nx, ny, nz, d, 0, 0, 0, h);
           this._friction(k, nx, ny, nz, d, mu, 0, 0, 0, h);
         }
       }
@@ -350,6 +366,17 @@ export class SoftWorld {
       }
     }
     this.stats.contacts = contacts;
+  }
+
+  // Push a penetrating particle out along the unit normal n by pen WITHOUT turning the push into velocity (the previous
+  // position moves with it), and make the contact inelastic: the particle's normal velocity relative to the surface
+  // (surface velocity cv) is raised to the surface's. Returns the normal velocity change (>= 0) given to the particle.
+  _resolve(k, nx, ny, nz, pen, cvx, cvy, cvz, h) {
+    const p = this.pos, pr = this.prev, ih = 1 / h;
+    const vn = ((p[k] - pr[k]) * nx + (p[k + 1] - pr[k + 1]) * ny + (p[k + 2] - pr[k + 2]) * nz) * ih, cvn = cvx * nx + cvy * ny + cvz * nz;
+    p[k] += nx * pen; p[k + 1] += ny * pen; p[k + 2] += nz * pen; pr[k] += nx * pen; pr[k + 1] += ny * pen; pr[k + 2] += nz * pen;
+    if (vn < cvn) { const dv = (cvn - vn) * h; pr[k] -= nx * dv; pr[k + 1] -= ny * dv; pr[k + 2] -= nz * dv; return cvn - vn; }
+    return 0;
   }
 
   _friction(k, nx, ny, nz, pen, mu, cvx, cvy, cvz, h) {
@@ -384,10 +411,10 @@ export class SoftWorld {
       }
       nx = this._rot(qx, qy, qz, qw, lnx, lny, lnz, 0); ny = this._rot(qx, qy, qz, qw, lnx, lny, lnz, 1); nz = this._rot(qx, qy, qz, qw, lnx, lny, lnz, 2);
     }
-    p[k] += nx * pen; p[k + 1] += ny * pen; p[k + 2] += nz * pen;
-    const v = c.v; if (v[0] !== 0 || v[1] !== 0 || v[2] !== 0 || mu > 0) this._friction(k, nx, ny, nz, pen, mu, v[0], v[1], v[2], h);
-    // reaction impulse on the collider (momentum given to the particle by the contact), torque about collider centre
-    const m = this.mass[i], s = m / h, jx = -nx * pen * s, jy = -ny * pen * s, jz = -nz * pen * s;
+    const v = c.v, dvn = this._resolve(k, nx, ny, nz, pen, v[0], v[1], v[2], h);
+    if (v[0] !== 0 || v[1] !== 0 || v[2] !== 0 || mu > 0) this._friction(k, nx, ny, nz, pen, mu, v[0], v[1], v[2], h);
+    // reaction impulse on the collider = minus the momentum the contact gave the particle along the normal; torque about its centre
+    const m = this.mass[i], s = m * dvn, jx = -nx * s, jy = -ny * s, jz = -nz * s;
     c.j[0] += jx; c.j[1] += jy; c.j[2] += jz;
     const rx = p[k] - c.c[0], ry = p[k + 1] - c.c[1], rz = p[k + 2] - c.c[2];
     c.tq[0] += ry * jz - rz * jy; c.tq[1] += rz * jx - rx * jz; c.tq[2] += rx * jy - ry * jx;
@@ -402,7 +429,7 @@ export class SoftWorld {
 
   _pairs(h) {
     const n = this.n; if (n < 2 || this.nComp < 2) return;
-    const p = this.pos, im = this.invM, rad = this.rad, comp = this.comp, HS = this._hHead.length, head = this._hHead;
+    const p = this.pos, pr = this.prev, im = this.invM, rad = this.rad, comp = this.comp, HS = this._hHead.length, head = this._hHead;
     if (this._hNext.length < n) this._hNext = new Int32Array(this.cap);
     const next = this._hNext, cell = 4 * this.maxRadius, ic = 1 / cell; head.fill(-1);
     const hash = (x, y, z) => ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) & (HS - 1);
@@ -419,7 +446,19 @@ export class SoftWorld {
           if (d2 >= R * R || d2 < 1e-14) continue;
           const d = SQ(d2), s = (R - d) / (d * ws);
           p[k] += dx * s * wi; p[k + 1] += dy * s * wi; p[k + 2] += dz * s * wi;
-          p[kj] -= dx * s * wj; p[kj + 1] -= dy * s * wj; p[kj + 2] -= dz * s * wj; cnt++; this.supNow[ci] = 1; this.supNow[comp[j]] = 1;
+          p[kj] -= dx * s * wj; p[kj + 1] -= dy * s * wj; p[kj + 2] -= dz * s * wj; cnt++;
+          { // the push must not become velocity; contact is inelastic along the normal
+            pr[k] += dx * s * wi; pr[k + 1] += dy * s * wi; pr[k + 2] += dz * s * wi; pr[kj] -= dx * s * wj; pr[kj + 1] -= dy * s * wj; pr[kj + 2] -= dz * s * wj;
+            const nx = dx / d, ny = dy / d, nz = dz / d, vrn = (((p[k] - pr[k]) - (p[kj] - pr[kj])) * nx + ((p[k + 1] - pr[k + 1]) - (p[kj + 1] - pr[kj + 1])) * ny + ((p[k + 2] - pr[k + 2]) - (p[kj + 2] - pr[kj + 2])) * nz) / h;
+            if (vrn < 0) { const dl = -vrn * h / ws; pr[k] -= nx * dl * wi; pr[k + 1] -= ny * dl * wi; pr[k + 2] -= nz * dl * wi; pr[kj] += nx * dl * wj; pr[kj + 1] += ny * dl * wj; pr[kj + 2] += nz * dl * wj; }
+          }
+          { // Coulomb friction on the relative tangential motion over the last substep
+            const nx = dx / d, ny = dy / d, nz = dz / d, pen = R - d;
+            let tx = (p[k] - pr[k]) - (p[kj] - pr[kj]), ty = (p[k + 1] - pr[k + 1]) - (p[kj + 1] - pr[kj + 1]), tz = (p[k + 2] - pr[k + 2]) - (p[kj + 2] - pr[kj + 2]);
+            const dn = tx * nx + ty * ny + tz * nz; tx -= dn * nx; ty -= dn * ny; tz -= dn * nz;
+            const tm = SQ(tx * tx + ty * ty + tz * tz);
+            if (tm > 1e-12) { const lim = this.friction * pen, f = (tm < lim ? 1 : lim / tm) / ws; p[k] -= tx * f * wi; p[k + 1] -= ty * f * wi; p[k + 2] -= tz * f * wi; p[kj] += tx * f * wj; p[kj + 1] += ty * f * wj; p[kj + 2] += tz * f * wj; }
+          } this.supNow[ci] = 1; this.supNow[comp[j]] = 1; if (this.nAsleep) { if (this.compAsleep[ci] || this.compAsleep[comp[j]]) this._wakeComp(ci), this._wakeComp(comp[j]); }
         }
       }
     }
@@ -430,24 +469,30 @@ export class SoftWorld {
   _finish(h, check) {
     const n = this.n, p = this.pos, pr = this.prev, v = this.vel, ih = 1 / h;
     const cv = this.compV, cm = this.compM, comp = this.comp, ms = this.mass, vm2 = this.maxSpeed * this.maxSpeed; cv.fill(0); cm.fill(0);
-    for (let i = 0; i < n; i++) {
-      const k = i * 3, c = comp[i], m = ms[i];
+    const al = this.actList, na = this.nAct, cs = this.compSp; cs.fill(0);
+    for (let q = 0; q < na; q++) {
+      const i = al[q], k = i * 3, c = comp[i], m = ms[i];
       v[k] = (p[k] - pr[k]) * ih; v[k + 1] = (p[k + 1] - pr[k + 1]) * ih; v[k + 2] = (p[k + 2] - pr[k + 2]) * ih;
       const sp2 = v[k] * v[k] + v[k + 1] * v[k + 1] + v[k + 2] * v[k + 2];
       if (sp2 > vm2) { const f = this.maxSpeed / SQ(sp2); v[k] *= f; v[k + 1] *= f; v[k + 2] *= f; p[k] = pr[k] + v[k] * h; p[k + 1] = pr[k + 1] + v[k + 1] * h; p[k + 2] = pr[k + 2] + v[k + 2] * h; }   // runaway guard
+      const s2 = sp2; if (s2 > cs[c]) cs[c] = s2;
       cv[c * 3] += m * v[k]; cv[c * 3 + 1] += m * v[k + 1]; cv[c * 3 + 2] += m * v[k + 2]; cm[c] += m;
     }
     for (let c = 0; c < this.nComp; c++) { const m = cm[c] || 1; cv[c * 3] /= m; cv[c * 3 + 1] /= m; cv[c * 3 + 2] /= m; }
     this.supPrev.set(this.supNow); this.supNow.fill(0);
     for (let c = 0; c < this.nComp; c++) if (this.compPin[c]) this.supPrev[c] = 1;
     if (!check) return;
-    const nd = this.nd, A = this.da, B = this.db, R = this.dRest, Y = this.dYield, F = this.dFrac, ACT = this.dAct;
+    const nd = this.nd, A = this.da, B = this.db, R = this.dRest, Y = this.dYield, F = this.dFrac, CR = this.dCrush, ACT = this.dAct, OV = this.dOver;
     let broke = false;
+    const asl = this.compAsleep, cmp = this.comp, anyAsleep = this.nAsleep > 0;
     for (let c = 0; c < nd; c++) {
       if (ACT[c] === 0) continue;
+      if (anyAsleep && asl[cmp[A[c]]]) continue;
       const ka = A[c] * 3, kb = B[c] * 3, dx = p[ka] - p[kb], dy = p[ka + 1] - p[kb + 1], dz = p[ka + 2] - p[kb + 2];
       const len = SQ(dx * dx + dy * dy + dz * dz), r0 = R[c], eps = (len - r0) / r0;
-      if (eps > F[c] || eps < -F[c] * this.crushRatio) {
+      const lim = eps > 0 ? F[c] : CR[c], ex_ = (eps > 0 ? eps : -eps) / lim;
+      if (ex_ > 1) { OV[c]++; if (ex_ < this.hardFactor && OV[c] < this.persist) continue; } else { OV[c] = 0; }
+      if (ex_ > 1) {
         ACT[c] = 0; this.nBroken++; broke = true; this._broke('distance', A[c], B[c], c);
         if (this.dSnap[c]) { const bay = this.dBay[c]; for (let q = 0; q < nd; q++) if (ACT[q] && this.dBay[q] === bay) { ACT[q] = 0; this.nBroken++; this._broke('distance', A[q], B[q], q); } }   // brittle snap: the whole cut section lets go
         continue;
@@ -457,12 +502,21 @@ export class SoftWorld {
     }
     const nw = this.nw;
     if (nw) {
-      const WM = this.wMax, WA = this.wAct, WK = this.wK, WR = this.wR;
+      const WM = this.wMax, WA = this.wAct, WK = this.wK, WR = this.wR, WN = this.wN;
       for (let w = 0; w < nw; w++) {
         if (WA[w] === 0) continue;
+        if (anyAsleep && asl[cmp[this.wa[w]]]) continue;
         const ka = this.wa[w] * 3, kb = this.wb[w] * 3;
-        const cx = p[ka] - p[kb] - WR[w * 3], cy = p[ka + 1] - p[kb + 1] - WR[w * 3 + 1], cz = p[ka + 2] - p[kb + 2] - WR[w * 3 + 2];
-        if (SQ(cx * cx + cy * cy + cz * cz) * WK[w] > WM[w]) { WA[w] = 0; this.nBroken++; broke = true; this._broke('weld', this.wa[w], this.wb[w], w); }
+        const cx = p[ka] - p[kb] - WR[w * 3], cy = p[ka + 1] - p[kb + 1] - WR[w * 3 + 1], cz = p[ka + 2] - p[kb + 2] - WR[w * 3 + 2], nx = WN[w * 3], ny = WN[w * 3 + 1], nz = WN[w * 3 + 2];
+        let fail;
+        if (nx === 0 && ny === 0 && nz === 0) fail = SQ(cx * cx + cy * cy + cz * cz) * WK[w] > WM[w];
+        else {            // joint with a normal: tension and shear break it, compression does not (friction adds shear capacity)
+          const cn = cx * nx + cy * ny + cz * nz, ten = cn < 0 ? -cn * WK[w] : 0, comp = cn > 0 ? cn * WK[w] : 0;
+          const tx = cx - cn * nx, ty = cy - cn * ny, tz = cz - cn * nz, sh = SQ(tx * tx + ty * ty + tz * tz) * WK[w];
+          fail = ten > WM[w] || sh > WM[w] * this.wSh[w] + this.friction * comp;
+        }
+        if (!fail) this.wOver[w] = 0;
+        if (fail) { if (++this.wOver[w] < this.persist) continue; WA[w] = 0; this.nBroken++; broke = true; this._broke('weld', this.wa[w], this.wb[w], w); }
       }
     }
     if (broke) this._compDirty = true;
@@ -487,13 +541,45 @@ export class SoftWorld {
     let cnt = 0; const roots = new Map();
     for (let i = 0; i < n; i++) { const r = find(i); if (!roots.has(r)) roots.set(r, cnt++); this.comp[i] = roots.get(r); }
     this.nComp = cnt; this._compDirty = false;
-    this.compV = new Float64Array(cnt * 3); this.compM = new Float64Array(cnt); this.compPin = new Uint8Array(cnt); this.supPrev = new Uint8Array(cnt); this.supNow = new Uint8Array(cnt);
+    this.compSp = new Float64Array(cnt); this.compAsleep = new Uint8Array(cnt); this.compSleepT = new Float64Array(cnt); this.nAsleep = 0; this.compV = new Float64Array(cnt * 3); this.compM = new Float64Array(cnt); this.compPin = new Uint8Array(cnt); this.supPrev = new Uint8Array(cnt); this.supNow = new Uint8Array(cnt);
     for (let i = 0; i < n; i++) if (this.pinned[i]) this.compPin[this.comp[i]] = 1;
     for (let c = 0; c < cnt; c++) this.supPrev[c] = this.compPin[c];
+    this._buildAct();
   }
   componentCount() { if (this._compDirty) this._buildComponents(); return this.nComp; }
   // component sizes (particles) in id order; useful for "did a chunk separate"
   componentSizes() { if (this._compDirty) this._buildComponents(); const s = new Array(this.nComp).fill(0); for (let i = 0; i < this.n; i++) s[this.comp[i]]++; return s; }
+
+  // ---------- sleeping (optional) ----------
+  _buildAct() {
+    const n = this.n; if (this.actList.length < n) this.actList = new Int32Array(this.cap);
+    let m = 0; const asl = this.compAsleep, comp = this.comp, al = this.actList;
+    for (let i = 0; i < n; i++) if (!asl[comp[i]]) al[m++] = i;
+    this.nAct = m;
+  }
+  _wakeComp(c) { if (this.compAsleep[c]) { this.compAsleep[c] = 0; this.nAsleep--; this._actDirty = true; } this.compSleepT[c] = 0; }
+  wakeAll() { this.compAsleep.fill(0); this.compSleepT.fill(0); this.nAsleep = 0; this._buildAct(); }
+  wakeParticle(i) { this._wakeComp(this.comp[i]); this._buildAct(); this._actDirty = false; }
+  _wakeScan() {   // a collider reaching a sleeping piece wakes it
+    const cols = this.colliders; if (!cols.length) { if (this._actDirty) { this._buildAct(); this._actDirty = false; } return; }
+    const p = this.pos, n = this.n, comp = this.comp, asl = this.compAsleep, R = this.maxRadius * 1.5;
+    for (let c = 0; c < cols.length; c++) {
+      const o = cols[c], e = (o.type === 'sphere' ? o.r : Math.hypot(o.h[0], o.h[1], o.h[2])) + R, cx = o.c[0], cy = o.c[1], cz = o.c[2];
+      for (let i = 0; i < n; i++) { if (!asl[comp[i]]) continue; const k = i * 3; if (Math.abs(p[k] - cx) < e && Math.abs(p[k + 1] - cy) < e && Math.abs(p[k + 2] - cz) < e) this._wakeComp(comp[i]); }
+    }
+    if (this._actDirty) { this._buildAct(); this._actDirty = false; }
+  }
+  _sleepUpdate(dt) {
+    const nC = this.nComp, cs = this.compSp, st = this.compSleepT, asl = this.compAsleep, sup = this.supPrev, lim = this.sleepSpeed * this.sleepSpeed, ex = this.ext, comp = this.comp;
+    if (!this._forced || this._forced.length < nC) this._forced = new Uint8Array(nC); this._forced.fill(0);
+    for (let i = 0; i < this.n; i++) { const k = i * 3; if (ex[k] !== 0 || ex[k + 1] !== 0 || ex[k + 2] !== 0) this._forced[comp[i]] = 1; }
+    let changed = false;
+    for (let c = 0; c < nC; c++) {
+      if (asl[c]) continue;
+      if (sup[c] && cs[c] < lim && !this._forced[c] && !(this.nTri && this.wind)) { st[c] += dt; if (st[c] >= this.sleepTime) { asl[c] = 1; this.nAsleep++; changed = true; } } else st[c] = 0;
+    }
+    if (changed) { const v = this.vel, n = this.n; for (let i = 0; i < n; i++) if (asl[comp[i]]) { v[i * 3] = v[i * 3 + 1] = v[i * 3 + 2] = 0; } this._buildAct(); }
+  }
 
   // run n sweeps without advancing time (settle a freshly built structure into its static equilibrium)
   relax(frames = 60, dt = 1 / 60) { const v = this.vel; for (let f = 0; f < frames; f++) this.step(dt); this.vel.fill(0, 0, this.n * 3); }
@@ -629,20 +715,21 @@ export function buildBlockCluster(w, o) {
   const blocks = [], key = new Map();
   const rad = o.radius ?? Math.min(bx, by, bz) * 0.12;
   for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const grp = w.newGroup(), base = [O[0] + i * bx, O[1] + j * by, O[2] + k * bz], c = [];
+    const grp = w.newGroup(), base = [O[0] + i * bx, O[1] + j * by, O[2] + k * bz], c = [], nb0 = w.nd;
     for (let q = 0; q < 8; q++) { const px = q & 1, py = (q >> 1) & 1, pz = (q >> 2) & 1; c.push(w.addParticle(base[0] + px * bx, base[1] + py * by, base[2] + pz * bz, 0, rad, grp, stone.drag)); }
     const vol = bx * by * bz, m = stone.density * vol; for (const q of c) w.addMass(q, m / 8);
     const A = Math.min(bx * by, by * bz, bx * bz) * 0.25;
     for (let q = 0; q < 8; q++) for (let r = q + 1; r < 8; r++) { const d = (q ^ r); if (d === 1 || d === 2 || d === 4 || d === 3 || d === 5 || d === 6) w.addDistance(c[q], c[r], stone, A); }
     if (o.volume) for (const [p0, p1, p2, p3] of [[0, 1, 2, 4], [3, 1, 2, 7], [5, 1, 4, 7], [6, 2, 4, 7], [1, 2, 4, 7]]) w.addTetra(c[p0], c[p1], c[p2], c[p3], stone);   // optional volume preservation
+    if (!o.breakBlocks) for (let q = nb0; q < w.nd; q++) { w.dFrac[q] = Infinity; w.dCrush[q] = Infinity; }   // by default the stone itself does not fracture: the mortar joints do
     blocks.push({ i, j, k, c, grp }); key.set(i + ',' + j + ',' + k, blocks[blocks.length - 1]);
   }
-  const weld = (A, B, qa, qb, area) => { w.addWeld(A.c[qa], B.c[qb], mortar, area, gap); };
+  const weld = (A, B, qa, qb, area, nrm) => { w.addWeld(A.c[qa], B.c[qb], mortar, area, gap, { normal: nrm, k: Math.min(mortar.youngs * area / gap, o.weldK ?? 3.2e8 * area) }); };   // joint stiffness capped at 3.2e8 N/m per m2 of bond (about 1e7 N/m per 0.03 m2): position noise x stiffness must stay below the break force
   for (const B of blocks) {
     const R = key.get((B.i + 1) + ',' + B.j + ',' + B.k), U = key.get(B.i + ',' + (B.j + 1) + ',' + B.k), F = key.get(B.i + ',' + B.j + ',' + (B.k + 1));
-    if (R) for (let q = 0; q < 8; q++) if (q & 1) weld(B, R, q, q & ~1, by * bz / 4);
-    if (U) for (let q = 0; q < 8; q++) if (q & 2) weld(B, U, q, q & ~2, bx * bz / 4);
-    if (F) for (let q = 0; q < 8; q++) if (q & 4) weld(B, F, q, q & ~4, bx * by / 4);
+    if (R) for (let q = 0; q < 8; q++) if (q & 1) weld(B, R, q, q & ~1, by * bz / 4, [1, 0, 0]);
+    if (U) for (let q = 0; q < 8; q++) if (q & 2) weld(B, U, q, q & ~2, bx * bz / 4, [0, 1, 0]);
+    if (F) for (let q = 0; q < 8; q++) if (q & 4) weld(B, F, q, q & ~4, bx * by / 4, [0, 0, 1]);
   }
   if (o.pinBase) for (const B of blocks) if (B.j === 0) for (let q = 0; q < 8; q++) if (!(q & 2)) w.pin(B.c[q]);
   return { blocks, key };
