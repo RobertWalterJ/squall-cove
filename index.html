@@ -202,6 +202,7 @@ body.sideopen #burger{display:none}
 .sItem i{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.25)}
 .sItem small{display:block;font:500 12px var(--f-body);color:var(--muted)}
 .sRow{display:flex;gap:4px;margin-bottom:4px}.sRow .sMain{flex:1;text-align:left;text-transform:none;letter-spacing:.01em;font:600 14px var(--f-body);padding:7px 9px}
+.sMain b,.sMain small{display:block}
 .sRow .sMain small{display:block;font:500 12px var(--f-body);color:var(--muted)}
 .sRow button.sMini{padding:6px 9px;font-size:13px}
 .sChips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.sChips button{padding:6px 9px;font-size:13px}
@@ -767,11 +768,20 @@ function imgTex(im, srgb) {
 const D = await loadAll().catch((e) => { $('loadMsg').textContent = 'Could not load the cove assets: ' + e; throw e; });
 
 /* ---------------- maps: the baked Cove, or a generated island from a template and a seed. The choice is kept in localStorage and applied at start. */
-const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland']];
+const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland'], ['port', 'Port and mountains', 'a flat quay with slips, a plain with build sites, mountains behind']];
 let MAP = { t: 'cove', seed: 'cove' };
 try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); if (m && m.t && MAPS.some(q => q[0] === m.t)) MAP = m; } catch (e) { }
+{ const qp = new URLSearchParams(location.search), qm = qp.get('map'); if (qm && MAPS.some(q => q[0] === qm)) MAP = { t: qm, seed: qm === 'cove' ? 'cove' : (qp.get('seed') || qm) }; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
+const PORT_BOX = (u, v, u0, u1, v0, v1, m) => { const du = Math.max(u0 - u, 0, u - u1), dv = Math.max(v0 - v, 0, v - v1), d = Math.hypot(du, dv); return d <= 0 ? 1 : Math.max(0, 1 - d / m); };
+function portStamp(u, v, h) {                               // the quay, its slips, the building pads and the breakwater: flat, level and exactly where the scenario expects them
+  let w = PORT_BOX(u, v, -0.58, 0.46, 0.12, 0.33, 0.035); h = h * (1 - w) + 1.6 * w;                                  // the quay apron
+  for (const [a, b] of [[-0.31, -0.22], [0.05, 0.14]]) { const sw = PORT_BOX(u, v, a, b, 0.2, 0.55, 0.012); h = h * (1 - sw) + -3.2 * sw; }       // two slips cut into the quay
+  const mole = PORT_BOX(u, v, 0.5, 0.56, 0.2, 0.62, 0.012); h = Math.max(h, 1.3 * mole + h * (1 - mole));                                         // a breakwater
+  for (const [u0, u1, v0, v1] of [[-0.66, -0.34, -0.16, 0.04], [0.0, 0.3, -0.2, 0.0], [0.5, 0.8, -0.12, 0.08], [-0.2, 0.1, -0.42, -0.3]]) { const pw = PORT_BOX(u, v, u0, u1, v0, v1, 0.04); h = h * (1 - pw) + 3.1 * pw; }
+  return h;
+}
 function genTerrain(H, tpl, seedStr) {
   const rnd = mulberry(seedNum(tpl + ':' + seedStr)), N = 257, C = 128, G = 64, lat = new Float32Array(G * G); for (let i = 0; i < G * G; i++) lat[i] = rnd();
   const sm = (t) => t * t * (3 - 2 * t), ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -798,14 +808,20 @@ function genTerrain(H, tpl, seedStr) {
       const main = (1 - ss(-0.9, -0.5, V)) * (8 + 6 * fbm(U * 3, V * 3)) - 1.2, bc = 0.15 + 0.07 * Math.sin(U * 4 + ph), bar = (1 - Math.abs(V - bc) / 0.065) * (2.8 + 1.4 * fbm(U * 6, V * 6)) * ss(-0.95, -0.7, U) * (1 - ss(0.7, 0.95, U)) - 1.3;
       const lagoon = V > -0.5 && V < bc - 0.03 ? -1.7 : -9; h = Math.max(main, bar, V < bc + 0.04 ? lagoon : Math.max(-9.2, -2.5 - (V - bc) * 14));
     }
+    else if (tpl === 'port') {
+      const nw = 1 - ss(-0.78, -0.22, v), plain = 3.0 + 1.5 * fbm(u * 2.5 + 4, v * 2.5), mt = 25 * nw * (0.45 + fbm(U * 3.2 + 2, V * 3.2)), lmk = 1 - ss(0.28, 0.44, v + 0.05 * Math.sin(u * 7 + ph));
+      let m = plain + mt; const dr = Math.abs(u - (-0.4 + 0.07 * Math.sin(v * 5 + ph))); m -= 2.6 * (1 - ss(0.0, 0.05, dr)) * ss(-0.55, -0.15, v) * (1 - ss(0.2, 0.3, v));
+      h = m * lmk + Math.max(-9.2, -3 - (v - 0.4) * 16) * (1 - lmk); h = portStamp(u, v, h);
+    }
     else h = Math.max(-9.2, 14 * (1 - r / 0.7) - 1);
-    if (h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
+    if (tpl !== 'port' && h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
     const e = ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); h = h * (1 - e) + (-9.2) * e; H[i * N + j] = Math.max(-9.2, Math.min(30, h));
   }
   // age the land: let steep faces relax and soften the grain so coasts look worn, not noisy
   for (let pass = 0; pass < 36; pass++) for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) {
     const k = i * N + j; if (H[k] <= 0) continue; for (const q of [1, N]) for (const sg of [1, -1]) { const n = k + sg * q, dh = H[k] - H[n]; if (dh > 1.55 && H[n] > -8) { const m = (dh - 1.55) * 0.2; H[k] -= m; H[n] += m; } }
   }
+  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) H[i * N + j] = portStamp((j - C) / C, (i - C) / C, H[i * N + j]);
   for (let pass = 0; pass < 2; pass++) { const c = H.slice(); for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) { const k = i * N + j; if (c[k] > 0.1) H[k] = (c[k] * 4 + c[k - 1] + c[k + 1] + c[k - N] + c[k + N]) / 8; } }
 }
 const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
@@ -3405,7 +3421,7 @@ const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'
 function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
-  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
+  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
     const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
@@ -3414,6 +3430,16 @@ function renderSide() {
     const grp = (title, list, gate) => { const h = document.createElement('div'); h.className = 'sCat'; h.textContent = title; sBody.append(h); for (const [n, d, fn] of list) { const b = mkB('', 'sItem', () => { if (gate && !gateDisaster()) return; if (gate) pushWorldUndo(); fn(); if (matchMedia('(max-width: 800px)').matches) setSide(false); }); const t = document.createElement('span'); t.textContent = n; const sm = document.createElement('small'); sm.textContent = d; t.append(sm); b.append(t); sBody.append(b); } };
     grp('Destructive', DISASTERS, true); grp('Arrivals', ARRIVALS, false); grp('Events', EVENTS, false);
     const c = mkB('Calm all', 'sItem', () => { calm(); }); sBody.append(c);
+  } else if (sideTab === 'map') {
+    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = MAP.t === 'port' ? 'Every yard, build site and objective on this map. Click one to fly there.' : 'This map has no laid-out objectives. The Port and mountains map has them all, labelled.'; sBody.append(n);
+    if (MAP.t !== 'port') sBody.append(mkB('Switch to Port and mountains (the world restarts)', 'sItem', () => startMap('port', 'port')));
+    else {
+      if (!sites.length) sBody.append(mkB('Lay out the port', 'sItem', () => { portLaid = false; layPortScenario(); renderSide(); }));
+      sBody.append(mkB(labelsOn ? 'Hide the labels' : 'Show the labels', 'sItem', () => { setLabels(!labelsOn); renderSide(); }));
+      sBody.append(mkB('Run the day (scripted events)', 'sItem', portDay));
+      const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Objectives'; sBody.append(h);
+      for (const st of sites) { const owner = st.owner || (st.kind === 'build' || st.kind === 'yard' ? 'Port' : ''); const stock = objects.filter(o => !o.gone && Math.hypot(o.body.position.x - st.x, o.body.position.z - st.z) < 12).length; const b = mkB('', 'sMain sRowBtn', () => camFlyTo(st.x, st.z, 45 * CELL)); b.style.width = '100%'; b.style.marginBottom = '4px'; const t = document.createElement('b'); t.textContent = SITE_INFO[st.kind][0] + (owner ? ' (' + owner + ')' : ''); const sm = document.createElement('small'); sm.textContent = st.kind === 'build' ? (st.done ? 'finished' : 'stage ' + st.stage + ' of 8') : st.kind === 'yard' ? stock + ' items stocked' : st.kind === 'plant' ? st.planted + ' trees planted' : SITE_INFO[st.kind][1]; b.append(t, sm); sBody.append(b); }
+    }
   } else if (sideTab === 'live') {
     const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
     const head = document.createElement('div'); head.className = 'sNote'; head.id = 'sCount'; sBody.append(head); const list = document.createElement('div'); list.id = 'sLive'; sBody.append(list); liveSig = ''; fillLive();
@@ -3460,9 +3486,53 @@ function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode ==
 function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person') removePerson(r.ref); else if (r.k === 'boat') removeBoat(r.ref); else if (r.k === 'veh') removeVehicle(r.ref); else if (r.k === 'things') { const o = r.ref.find(q => !q.gone); if (o) { removeObj(o); updateCount(); } } liveSig = ''; fillLive(); }
 $('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
-setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); }, 900);
+setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
 setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
 addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
+
+/* ================================================================ the Port and mountains scenario: every yard, site and objective laid out and labelled so the mechanics can be watched */
+const LABELS = []; let labelsOn = true, portLaid = false;
+function addLabel(x, y, z, title, sub, col) {
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const c = cv.getContext('2d');
+  c.fillStyle = 'rgba(10,22,28,0.86)'; c.fillRect(0, 0, 512, 128); c.strokeStyle = col || '#e3a948'; c.lineWidth = 6; c.strokeRect(3, 3, 506, 122);
+  c.fillStyle = col || '#e3a948'; c.font = 'bold 44px sans-serif'; c.fillText(title, 18, 52); c.fillStyle = '#f1ece2'; c.font = '28px sans-serif';
+  const words = sub.split(' '); let line = '', yy = 90; for (const w of words) { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > 480 && line) { c.fillText(line, 18, yy); yy += 30; line = w; } else line = t; } c.fillText(line, 18, yy);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false }));
+  sp.position.set(x, y, z); sp.renderOrder = 7; sp.visible = labelsOn; scene.add(sp); LABELS.push(sp); return sp;
+}
+setInterval(() => { const k = clamp(god.dist * 0.045, 2.2, 12); for (const l of LABELS) { l.visible = labelsOn && mode === 'god'; l.scale.set(k * 4, k, 1); } }, 120);
+function setLabels(o) { labelsOn = o; for (const l of LABELS) l.visible = o && mode === 'god'; }
+function layPortScenario() {
+  if (portLaid) return; portLaid = true; const X = (u) => u * EXT, Z = (v) => v * EXT, Y = (x, z) => Math.max(heightAt(x, z), 0);
+  const lab = (u, v, t, sub, col, up) => addLabel(X(u), Y(X(u), Z(v)) + (up || 9), Z(v), t, sub, col);
+  const yA = addSite('yard', X(-0.12), Z(0.22)), yB = addSite('yard', X(0.28), Z(0.22));
+  const bA = addSite('build', X(-0.5), Z(-0.06)), bB = addSite('build', X(0.15), Z(-0.1)), bC = addSite('build', X(0.65), Z(-0.02), { owner: 'Developers' }); if (bC) bC.flag.material.color.setHex(0x3c5a8f);
+  addSite('plant', X(-0.05), Z(-0.36)); addSite('view', X(-0.1), Z(-0.56));
+  lab(-0.12, 0.22, 'CARGO YARD', 'Dock workers stack cargo here. Guards defend it, raiders raid it.', '#a8794a');
+  lab(0.28, 0.22, 'CARGO YARD', 'Second yard. Stone and crates wait for builders and trucks.', '#a8794a');
+  lab(-0.5, -0.06, 'BUILD SITE (Port)', 'Builders carry stone from the yard and raise a circle. A crane truck helps.', '#e0883a');
+  lab(0.15, -0.1, 'BUILD SITE (Port)', 'Second Port site. If nobody guards it, rivals can take it over.', '#e0883a');
+  lab(0.65, -0.02, 'RIVAL SITE', 'Developers build here and compete for the same stone. Outnumber them for 20 seconds to take it.', '#3c5a8f');
+  lab(-0.05, -0.36, 'PLANT SITE', 'Foresters plant trees here on the foothills.', '#5fbf4a');
+  lab(-0.1, -0.56, 'VIEWPOINT', 'Visitors climb here to look at the harbour. A lookout for watching the coast.', '#a98be0', 6);
+  lab(-0.265, 0.34, 'SLIP', 'A tug works from the slip. Boats can tie up along the quay.', '#7cc4e8', 5); lab(0.095, 0.34, 'SLIP', 'Second slip.', '#7cc4e8', 5);
+  const stoneC = CARGO.find(c => c.id === 'stone'), crateC = CARGO.find(c => c.id === 'crate') || CARGO[0];
+  if (yA) for (let i = 0; i < 9; i++) { const x = yA.x + rnd(-4, 4), z = yA.z + rnd(-3, 3); spawn(stoneC, x, standY(x, z) + 1.2 + i * 0.6, z); }
+  if (yB) for (let i = 0; i < 6; i++) { const x = yB.x + rnd(-4, 4), z = yB.z + rnd(-3, 3); spawn(crateC, x, standY(x, z) + 1.2 + i * 0.5, z); }
+  if (yA) placePeople(3, { x: yA.x + 6, z: yA.z - 4 }, 'Guard', 'blue'); placePeople(3, { x: X(-0.5) + 5, z: Z(-0.06) + 5 }, 'Builder'); placePeople(2, { x: X(0.0), z: Z(0.18) }, 'Dock worker'); if (bC) spawnDevelopers(3, { x: bC.x + 4, z: bC.z + 4 });
+  updateCount();
+  ensureVehicles().then(() => { if (yA) makeVehicle('cargotruck', yA.x - 8, yA.z + 3, 0, {}); if (yB) makeVehicle('forklift', yB.x + 7, yB.z - 3, 3.14, {}); if (bB) makeVehicle('cranetruck', bB.x - 8, bB.z + 6, 1.5, {}); makeVehicle('patrolcar', X(0.0), Z(0.16), 0, {}); });
+  const tug = makeBoat('bollard', null, null, X(-0.265), Z(0.34), Math.PI / 2); tug.anchor = tug.body.position.clone(); tug.status = 'Anchored'; ensureSkipper(tug);
+  const yacht = makeBoat('kestrel', null, null, X(0.1), Z(0.5), 0.6); yacht.anchor = yacht.body.position.clone(); yacht.status = 'Anchored'; ensureSkipper(yacht);
+  camFlyTo(X(0.0), Z(0.05), 190 * CELL); god.yaw = Math.PI * 1.0;
+  noteOnce('portlaid', 'The Port is laid out. Open the side pane, Map tab, to see every objective and to run the day.');
+}
+function portDay() {                                               // a scripted day so each mechanic can be watched in turn
+  const ev = (n) => EVENTS.find(e => e[0] === n)[2];
+  ev('Smuggling run')(); later(60, ev('Raider attack')); later(130, ev('Landing party')); later(230, ev('Developer rush')); later(330, ev('Foreign invasion'));
+  toast('The day is running: a smuggler now, raiders at 1 min, a landing at 2 min, developers at 4 min, an invasion at 5 min.');
+}
+setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); }, 3000);
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
