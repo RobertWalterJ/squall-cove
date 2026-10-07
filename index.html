@@ -428,7 +428,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
 <div id="fpScope" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 31vmin,#000 32vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.75)"></div></div>
 <div id="tablet" hidden role="dialog" aria-label="Command"><div class="tbHead"><b>Command</b><button type="button" class="rd" id="tbRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="tbClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div id="tbTabs" role="tablist" aria-label="Command sections"></div><div id="tbBody"></div></div>
 <div id="fireArm" hidden></div>
-<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bSideBtn" title="Pick which side you play">Side</button><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <div id="feedCol"><div id="killFeed"></div><div id="sideFeed"></div><div id="notes" role="status" aria-live="polite"></div></div>
 <button id="cmdBtn" type="button" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button>
 <div id="bTip" hidden role="note"><span id="bTipTxt"></span><button type="button" id="bTipX">Got it</button></div>
@@ -600,7 +600,7 @@ const $ = (id) => document.getElementById(id);
 var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
 const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
 const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot' };
-const CLS_IC = { assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa' };
+const CLS_IC = { tankhunter: 'aa', assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa' };
 const A = 'assets/';
 const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = matchMedia('(pointer: coarse)').matches ? 90 : 220, MAX_BOATS = matchMedia('(pointer: coarse)').matches ? 14 : 26;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -3949,7 +3949,7 @@ onKey((e) => {
 });
 
 /* ================================================================ first-person tools: hands (pick up, carry, throw), fishing rod, rifle (cartoon knock-outs) */
-const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['pistol', 'Pistol', '3'], ['smg', 'SMG', '4'], ['rifle', 'Rifle', '5'], ['shotgun', 'Shotgun', '6'], ['sniper', 'Sniper', '7'], ['carbine', 'Carbine', '8'], ['aa', 'AA launcher', '9'], ['grenade', 'Grenades', '0'], ['c4', 'Charges', '-'], ['lmg', 'LMG', ''], ['marksman', 'Marksman rifle', ''], ['revolver', 'Revolver', ''], ['rpg', 'Rocket launcher', ''], ['binoculars', 'Binoculars', ''], ['smoke', 'Smoke grenade', ''], ['satchel', 'Satchel charge', ''], ['radio', 'Radio', ''], ['medkit', 'Medical kit', '']];
+const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['pistol', 'Pistol', '3'], ['smg', 'SMG', '4'], ['rifle', 'Rifle', '5'], ['shotgun', 'Shotgun', '6'], ['sniper', 'Sniper', '7'], ['carbine', 'Carbine', '8'], ['aa', 'AA launcher', '9'], ['grenade', 'Grenades', '0'], ['c4', 'Charges', '-'], ['lmg', 'LMG', ''], ['marksman', 'Marksman rifle', ''], ['revolver', 'Revolver', ''], ['rpg', 'Rocket launcher', ''], ['binoculars', 'Binoculars', ''], ['smoke', 'Smoke grenade', ''], ['satchel', 'Satchel charge', ''], ['radio', 'Radio', ''], ['medkit', 'Medical kit', ''], ['atmine', 'Anti-armour mine', '']];
 fp.tool = 'hands'; fp.rod = null; fp.cool = 0; fp.kick = 0; fp.fish = { n: 0, kg: 0, log: [] }; fp.ko = 0;
 const fpToolMesh = {}; { const gm = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3b4a30, roughness: 0.6 })); gm.position.set(0.26, -0.24, -0.5); gm.visible = false; gm.renderOrder = 8; gm.material.depthTest = false; camera.add(gm); fpToolMesh.grenade = gm; }
 (() => {
@@ -4021,7 +4021,7 @@ function fpFireGun() {
     }
   if (fp.ammo[id] <= 0) fpReload();
 }
-function fpPrimary() { if (!fp.on || mode !== 'fp' || fp.veh) return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
+function fpPrimary() { if (!fp.on || mode !== 'fp' || fp.veh) return; if (fp.man) fpManFire(); else if (fp.tool === 'aa') fpFireAA(); else if (fp.tool === 'rpg') fpFireRPG(); else if (NEWT.has(fp.tool) && !WPN[fp.tool]) fpHeldUse(); else if (fp.tool === 'grenade') fpThrowNade(); else if (fp.tool === 'c4') fpPlaceC4(); else if (fp.tool === 'atmine') fpPlaceMine(); else if (WPN[fp.tool]) fpFireGun(); else if (fp.tool === 'rod') fpRodPrimary(); else fpHandsPrimary(); }
 function fpToolsUpdate(dt, t) {
   const p = fp.p; fp.cool = Math.max(0, fp.cool - dt); fp.kick = Math.max(0, fp.kick - dt * 6); { const rp = fpToolMesh.rpg, rk = rp && rp.userData.rocket; if (rk) rk.visible = !fp.ammo || fp.ammo.rpg == null || fp.ammo.rpg > 0; }
   for (const k in WPN) { const m = fpToolMesh[k]; if (m) { m.position.z = (m.userData.bz !== undefined ? m.userData.bz : k === 'rifle' ? -0.55 : -0.5) + fp.kick * 0.07; const f = m.getObjectByName('flash'); if (f) f.visible = fp.flash > 0 && fp.tool === k; } } fp.flash = Math.max(0, (fp.flash || 0) - dt);
@@ -4555,7 +4555,7 @@ const WPN = {
   revolver: { name: 'Revolver', dmg: 34, rate: 0.5, mag: 6, spread: 0.01, range: 110, auto: false, bot: 1.2, zoom: 50, reloadT: 2.4 },
   rpg: { name: 'Rocket launcher', dmg: 0, rate: 1.0, mag: 1, spread: 0, range: 400, auto: false, zoom: 40, bot: 9, reloadT: 4.2 },
 };
-const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] } };
+const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, tankhunter: { name: 'Tank hunter', note: 'rocket launcher, anti-armour mines, pistol and a grenade. Rockets hit vehicles hard', w: ['rpg', 'atmine', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] } };
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
 function kitButtons(host, after, cols) {                              // the loadout cards: an icon, a name and one plain line each
   const g = document.createElement('div'); g.className = cols === 2 ? 'cards two' : 'cards';
@@ -5022,7 +5022,8 @@ function blast(x, y, z, o) {                                        // one explo
   if (wet) splash(x, z, Math.min(6, R * 0.3)); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40); }
   Snd.fx(R < 8 ? 'imp_blast_small' : R < 14 ? 'imp_blast_medium' : 'imp_blast_large', x, z, { gain: Math.min(1.5, 0.7 + R * 0.05), far: 4, y: gy }); if (!wet && R >= 6) Snd.fx('imp_crater_thud', x, z, { gain: 0.7, far: 3, y: gy });
   const cx = camera.position.x, cz = camera.position.z, k = clamp(1 - Math.hypot(cx - x, cz - z) / (R * 12), 0, 1); dis.quake = Math.max(dis.quake, k * Math.min(2.5, R * 0.16));
-  if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2); if (!wet && R >= 5) scorchAt(x, z, R * 0.7);
+  if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2);
+  if (!wet) { debrisBurst(x, gy + 0.5, z, Math.min(44, Math.round(R * 3.2)), R * 0.9, surfaceAt(x, z)); if (R >= 5) debrisBurst(x, gy + 1, z, Math.min(30, Math.round(R * 2)), R * 1.4, 'metal', true); } if (!wet && R >= 5) scorchAt(x, z, R * 0.7);
   for (const bt of boats) { if (bt === o.owner || bt.sunk) continue; const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < R * 1.3 && !insideHull(bt, x, z, 0)) damageBoat(bt, dmg * 0.6 * (1 - d / (R * 1.3)), x, gy, z, o.owner || null, 'heavy'); }
   if (BVL.length) bvBlast(x, y, z, o);
   for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist || q.ride) continue; const d = Math.hypot(q.x - x, q.z - z); if (d >= R) continue; const f = 1 - d / R;
@@ -5117,12 +5118,38 @@ function fpThrowNade() {
   const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag' || (BATTLE.on && BATTLE.down)) return; if (fp.nades == null) fp.nades = 3; if (fp.nades <= 0) { toast('No grenades left.'); return; }
   fp.nades--; fp.cool = 0.9; camera.getWorldDirection(_d); const o = camera.getWorldPosition(new THREE.Vector3()).addScaledVector(_d, 0.6); nadeAt(o.x, o.y, o.z, _d.x * 17 + fp.vx, _d.y * 17 + 3.5, _d.z * 17 + fp.vz, 3.2, BATTLE.team); Snd.fx('wpn_draw', p.x, p.z, { gain: 0.6 }); toast(fp.nades + ' grenade' + (fp.nades === 1 ? '' : 's') + ' left.');
 }
+const MINES = [];
+function fpPlaceMine() {
+  const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag') return; if (fp.mines == null) fp.mines = 4; if (fp.mines <= 0) { toast('No mines left.'); return; } const h = fpAim(5, 0); if (!h.pt) { toast('Aim at flat ground within a few metres.'); return; }
+  fp.mines--; fp.cool = 0.8; const g = new THREE.Group(), body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.07, 10), new THREE.MeshStandardMaterial({ color: 0x4a4f3a, roughness: 0.8 })), dot = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 8), new THREE.MeshBasicMaterial({ color: 0xcc2229 })); dot.position.y = 0.045; g.add(body, dot); g.position.set(h.pt.x, h.pt.y + 0.04, h.pt.z); scene.add(g);
+  MINES.push({ x: h.pt.x, y: h.pt.y, z: h.pt.z, team: BATTLE.team, g }); toast('Mine laid. ' + fp.mines + ' left.');
+}
+const DEB = { p: [], m: null, N: 0 };
+function debInit() {
+  if (DEB.m) return; DEB.N = isTouch ? 90 : 220; DEB.m = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), DEB.N); DEB.m.frustumCulled = false; DEB.m.count = 0; DEB.o = new THREE.Object3D(); DEB.c = new THREE.Color(); DEB.m.setColorAt(0, DEB.c.set(0xffffff)); scene.add(DEB.m);
+}
+function debrisBurst(x, y, z, n, power, mat, frag) {                    // chunks of the surface thrown out of an impact (frag = hot thin splinters of metal)
+  if (Math.hypot(x - camera.position.x, z - camera.position.z) > 160) return; debInit(); const c = (SURF[mat] || SURF.dirt)[1];
+  for (let i = 0; i < n; i++) { if (DEB.p.length >= DEB.N) DEB.p.shift(); const a = Math.random() * 6.283, e = 0.3 + Math.random() * 1.1, sp = power * (0.4 + Math.random() * 0.9);
+    DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
+}
+function updateDebris(dt) {
+  const L = DEB.p; if (!L.length || !DEB.m) { if (DEB.m && DEB.m.count) DEB.m.count = 0; return; } let k = 0;
+  for (let i = L.length - 1; i >= 0; i--) { const d = L[i]; d.age += dt; if (d.age > d.life) { L.splice(i, 1); continue; } d.vy -= 9.8 * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt; const gy = Math.max(heightAt(d.x, d.z), 0) + d.s * 0.4; if (d.y < gy) { d.y = gy; if (d.vy < -1.2) { d.vy *= -0.3; d.vx *= 0.55; d.vz *= 0.55; } else { d.vy = 0; d.vx *= 0.8; d.vz *= 0.8; d.vr *= 0.6; } } d.rx += d.vr * dt; d.ry += d.vr * 0.6 * dt; }
+  for (const d of L) { if (k >= DEB.N) break; const f = d.age > d.life * 0.6 ? Math.max(0.02, 1 - (d.age - d.life * 0.6) / (d.life * 0.4)) : 1, o = DEB.o; o.position.set(d.x, d.y, d.z); o.rotation.set(d.rx, d.ry, 0); if (d.frag) o.scale.set(d.s * f, d.s * 0.35 * f, d.s * 3 * f); else o.scale.set(d.s * f, d.s * 0.7 * f, d.s * 0.9 * f); o.updateMatrix(); DEB.m.setMatrixAt(k, o.matrix);
+    if (d.frag) DEB.c.setRGB(d.age < 0.35 ? 1 : 0.28, d.age < 0.35 ? 0.55 : 0.26, d.age < 0.35 ? 0.15 : 0.25); else DEB.c.setRGB(d.r, d.g, d.b); DEB.m.setColorAt(k, DEB.c); k++; }
+  DEB.m.count = k; DEB.m.instanceMatrix.needsUpdate = true; if (DEB.m.instanceColor) DEB.m.instanceColor.needsUpdate = true;
+}
+function updateMines() {
+  for (let i = MINES.length - 1; i >= 0; i--) { const m = MINES[i]; for (const v of (typeof BV !== 'undefined' && BV.list) || []) { if (v.dead || v.team === m.team || (v.speed || 0) < 0.4) continue; if (Math.hypot(v.x - m.x, v.z - m.z) < (v.rad || 2) * 0.55 + 0.6) { scene.remove(m.g); MINES.splice(i, 1); blast(m.x, m.y, m.z, { R: 5, dmg: 40, crater: 1.8, depth: 0.5, owner: null }); try { damageVehicle(v, 260, m.team, 'Anti-armour mine'); } catch (e) { } break; } } }
+}
 function fpPlaceC4() {
   const p = fp.p; if (!p || fp.cool > 0 || p.state === 'rag') return; if (fp.c4 == null) fp.c4 = 3; if (fp.c4 <= 0) { toast('No charges left.'); return; } const h = fpAim(7, 0); if (!h.pt) { toast('Aim at the ground or a wall within a few metres.'); return; }
   fp.c4--; fp.cool = 0.7; const m = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.1, 0.18), new THREE.MeshStandardMaterial({ color: 0x5a5f4a, emissive: 0x330000 })); m.position.set(h.pt.x, h.pt.y + 0.06, h.pt.z); scene.add(m); CHARGES.push({ x: h.pt.x, y: h.pt.y, z: h.pt.z, mesh: m }); toast('Charge placed. ' + fp.c4 + ' left. Press B to detonate.');
 }
 function detonateC4() { if (!CHARGES.length) { toast('No charges placed.'); return; } for (const c of CHARGES.splice(0)) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); blast(c.x, c.y, c.z, { R: 11, dmg: 230, crater: 4, depth: 1.1, owner: null }); } }
 function updateBombs(dt) {
+  updateMines(); updateDebris(dt);
   for (let i = LOOSE.length - 1; i >= 0; i--) { const l = LOOSE[i]; l.t -= dt; l.vy -= 9.8 * dt; const m = l.m, gy = heightAt(m.position.x, m.position.z) + 0.05; if (m.position.y > gy) { m.position.x += l.vx * dt; m.position.z += l.vz * dt; m.position.y = Math.max(gy, m.position.y + l.vy * dt); m.rotation.x += dt * 4; } else if (l.vy < 0) { l.vx *= 0.8; l.vz *= 0.8; m.position.y = gy; } if (l.t <= 0) { scene.remove(m); LOOSE.splice(i, 1); } }
   for (let i = BOMBS.length - 1; i >= 0; i--) { const b = BOMBS[i]; b.vy -= b.g * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; if (b.trail || Math.random() < 0.3) { puffSmoke(b.x, b.y, b.z, 1, false, 0.6); fxG.emit(b.x, b.y, b.z, 0, 0, 0, 0.1, 1.4, -0.5, [1, 0.7, 0.3, 0.9]); }
     if (b.flech && b.y - heightAt(b.x, b.z) < 26) { BOMBS.splice(i, 1); fxG.emit(b.x, b.y, b.z, 0, 0, 0, 0.25, 5, 1.2, [1, 0.95, 0.8, 1]); Snd.fx('imp_ko', b.x, b.z, { gain: 0.6, far: 2, y: b.y }); const px = [], pz = [];
@@ -5264,19 +5291,31 @@ function objectiveHint() {                                          // one plain
   return best ? (best.owner ? 'Take ' + best.name + ' back' : 'Capture ' + best.name) : 'Your side holds every point. Hold on.';
 }
 function battleHud(force) {
-  const h = $('bHud'); if (!h || h.hidden) return;
+  const h = $('bHud'); if (!h || h.hidden) return; { const sb = $('bSideBtn'), sl = 'Side: ' + (BATTLE.team === 'blue' ? 'Port' : BATTLE.team === 'red' ? BATTLE.redKind : 'watching'); if (sb && sb.textContent !== sl) sb.textContent = sl; }
   const tickH = '<span class="bB">Port ' + BATTLE.tickets.blue + '</span><span class="bPts">' + BATTLE.points.map(p => '<i style="background:' + (p.owner ? (p.owner === 'blue' ? '#2f5d9f' : '#c0392b') : '#999') + (p.nb || p.nr ? ';outline:2px solid #fff' : '') + '" title="' + p.name + ' (' + POINT_TYPES[p.type].name + ')"></i>').join('') + '</span><span class="bR">' + BATTLE.redKind + ' ' + BATTLE.tickets.red + '</span>';
   if (tickH !== bHudSig.t) { bHudSig.t = tickH; $('bTick').innerHTML = tickH; }
   const st = $('bStat'), pp = fp.on && fp.p; if (st.hidden === !!pp) st.hidden = !pp;
   if (pp) { const w = WPN[fp.tool], hp = Math.round(clamp(pp.hp === undefined ? 100 : pp.hp, 0, 100)); const stH = '<div class="hp"><b style="transform:scaleX(' + (hp / 100) + ')"></b></div><div class="hpn">Health ' + hp + '</div>' + (w ? '<div>' + w.name + ' ' + ((fp.ammo && fp.ammo[fp.tool] != null) ? fp.ammo[fp.tool] : w.mag) + ' / ' + w.mag + (fp.reload > 0 ? ' reloading' : '') + '</div>' : ''); if (stH !== bHudSig.s) { bHudSig.s = stH; st.innerHTML = stH; } } else bHudSig.s = '';
   if (!fp.on) { const spec = !!(BATTLE.spec && people.includes(BATTLE.spec)); if (bHudSig.o !== spec) { bHudSig.o = spec; $('bOver').hidden = !spec; } const hint = objectiveHint(); if (hint !== bHudSig.h) { bHudSig.h = hint; $('bHint').textContent = hint; } }
-  const ex = BATTLE.on ? 'Overview' : 'Leave first person'; if (bHudSig.x !== ex) { bHudSig.x = ex; $('fpExit').textContent = ex; }
+  const ex = BATTLE.on ? 'Overview (V)' : 'Leave first person (V)'; if (bHudSig.x !== ex) { bHudSig.x = ex; $('fpExit').textContent = ex; }
+}
+function switchSide(team) {                                           // change which side you play, any time you are down or watching
+  if (!BATTLE.on || team === BATTLE.team) return; BATTLE.team = team; const me = fp.on && fp.p; if (me) { me.side = team; me.fromHostile = team === 'red'; if (me.bot) me.bot.team = team; } dpSel = null; bHudSig.t = ''; battleHud(true);
+  toast(team === 'blue' ? 'You are on the Port side.' : team === 'red' ? 'You are with the ' + BATTLE.redKind + '.' : 'You are only watching.');
+}
+function sidePicker(after) {                                          // two big buttons: which side do you fight for?
+  if (document.pointerLockElement) document.exitPointerLock(); const so = $('bSpawn'); so.hidden = false; so.textContent = '';
+  const h = document.createElement('h3'); h.textContent = 'Which side do you fight for?'; const p = document.createElement('p'); p.textContent = 'You can change this later from the deploy window or the Side button.'; so.append(h, p);
+  const row = document.createElement('div'); row.className = 'endRow';
+  for (const [t, n] of [['blue', 'Port'], ['red', BATTLE.redKind]]) { const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Fight for ' + (t === 'blue' ? 'the Port' : 'the ' + n); b.addEventListener('click', () => { so.hidden = true; BATTLE.team = t; if (after) after(t); }); row.append(b); }
+  const w = document.createElement('button'); w.type = 'button'; w.textContent = 'Only watch'; w.addEventListener('click', () => { so.hidden = true; BATTLE.team = null; bHudSig.t = ''; battleHud(true); }); row.append(w); so.append(row);
 }
 function deployMenu() {                                             // knocked out: pick a class card, pick a place to start, press Deploy. Nothing is timed.
   if (BATTLE.over) return; if (document.pointerLockElement) document.exitPointerLock(); fp.fireHeld = false; const so = $('bSpawn'); so.hidden = false; so.textContent = '';
   const mine = BATTLE.points.filter(p => p.owner === BATTLE.team); const list = mine.length ? mine : [BATTLE.points.find(p => p.base) || BATTLE.points[0]]; if (!dpSel || !list.includes(dpSel)) dpSel = list[0];
   const h = document.createElement('h3'); h.textContent = 'You were knocked out'; const p = document.createElement('p'); p.textContent = 'Pick a class and a place to start.'; so.append(h, p);
   const sg = (t) => { const g = document.createElement('section'); g.className = 'sg'; const x = document.createElement('h3'); x.textContent = t; g.append(x); so.append(g); return g; };
+  { const sgi = sg('Side'), row = document.createElement('div'); row.className = 'endRow'; for (const t of ['blue', 'red']) { const b = document.createElement('button'); b.type = 'button'; b.textContent = t === 'blue' ? 'Port' : BATTLE.redKind; b.setAttribute('aria-pressed', String(BATTLE.team === t)); b.addEventListener('click', () => { switchSide(t); deployMenu(); }); row.append(b); } sgi.append(row); }
   kitButtons(sg('Class'), deployMenu, 2);
   const g2 = sg('Where to start'), pl = document.createElement('div'); pl.className = 'plist'; g2.append(pl);
   for (const pt of list) {
@@ -5313,16 +5352,16 @@ const ensureBattleKit = () => bkP || (bkP = loadGLB('battle').then(g => { D.glb.
 const ensureTroops2 = () => t2P || (t2P = loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
 const SNDW = { lmg: 'rifle', marksman: 'sniper', revolver: 'pistol', carbine: 'rifle', medic: 'pistol', rpg: 'shotgun' };
 const wsnd = (w) => SNDW[w] || w;                                      // which recorded gun sound stands in for each weapon
-const NEWT = new Set(['lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
+const NEWT = new Set(['atmine', 'lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
 const kitGated = (t) => !!WPN[t] || NEWT.has(t) || t === 'grenade' || t === 'c4';
 const SCOPEDT = new Set(['sniper']), SCOPEL = new Set(['marksman', 'carbine']), HIDEZ = new Set(['sniper', 'marksman', 'carbine', 'binoculars']), ZOOMT = { binoculars: 7.5 };
 const zoomFov = (t) => (WPN[t] && WPN[t].zoom) || ZOOMT[t] || 0;
-const TOOLN = { hands: 'Hands', rod: 'Rod', grenade: 'Grenades', c4: 'Charges', satchel: 'Satchel charge', binoculars: 'Binoculars', smoke: 'Smoke grenade', radio: 'Radio', medkit: 'Medical kit' };
+const TOOLN = { atmine: 'Anti-armour mine', hands: 'Hands', rod: 'Rod', grenade: 'Grenades', c4: 'Charges', satchel: 'Satchel charge', binoculars: 'Binoculars', smoke: 'Smoke grenade', radio: 'Radio', medkit: 'Medical kit' };
 function toolHelp(t) {
   if (t === 'hands') return 'Hands: click or E picks up, click again throws, G drops';
   if (t === 'rod') return 'Rod: click to cast onto water, click when the float dips';
   if (WPN[t]) return WPN[t].name + ': click to fire' + (WPN[t].zoom ? ', right click to zoom' : '') + ', R reloads. Knock-outs only, never gore.';
-  return ({ grenade: 'Grenades: click to throw', c4: 'Charges: click to place, B to detonate', satchel: 'Satchel charge: click to place, B to detonate', binoculars: 'Binoculars: hold right click to zoom, click marks the spot you are looking at for the tablet', smoke: 'Smoke grenade: click to throw a smoke screen', radio: 'Radio: click opens the command tablet', medkit: 'Medical kit: stand near a fallen friend and press E or click' })[t] || (TOOLN[t] || t);
+  return ({ grenade: 'Grenades: click to throw', c4: 'Charges: click to place, B to detonate', satchel: 'Satchel charge: click to place, B to detonate', atmine: 'Anti-armour mine: click to lay it on the ground. It blows when an enemy vehicle drives over it. Foot soldiers are safe', binoculars: 'Binoculars: hold right click to zoom, click marks the spot you are looking at for the tablet', smoke: 'Smoke grenade: click to throw a smoke screen', radio: 'Radio: click opens the command tablet', medkit: 'Medical kit: stand near a fallen friend and press E or click' })[t] || (TOOLN[t] || t);
 }
 
 /* ---- what holding a point gives */
@@ -6544,6 +6583,7 @@ function impactFx(kind, ref, pt, d) {
   for (let i = 0; i < 7; i++) fxS.emit(pt.x, pt.y + 0.05, pt.z, rnd(-2.2, 2.2), rnd(1, 4), rnd(-2.2, 2.2), rnd(0.35, 0.7), 0.06, 0.15, [c2[0], c2[1], c2[2], 0.9], 9, 0.5);
   fxS.emit(pt.x, pt.y + 0.1, pt.z, 0, 0.7, 0, 0.7, 0.45, 3, c, 0, 1);
   if (sparks) for (let i = 0; i < 5; i++) fxG.emit(pt.x, pt.y + 0.05, pt.z, rnd(-3, 3), rnd(1, 3.5), rnd(-3, 3), 0.25, 0.07, 0.2, [1, 0.8, 0.4, 1], 9, 0.5);
+  debrisBurst(pt.x, pt.y + 0.05, pt.z, sparks ? 3 : 4, sparks ? 3.5 : 2.6, mat, sparks);
   Snd.fx(snd + '_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7, y: pt.y }); if (Math.random() < 0.3) Snd.fx('wpn_ricochet_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.4 });
 }
 
@@ -6558,7 +6598,7 @@ function releasePerson(q) {
 }
 function nearestFriend(x, z, notMe) { let best = null, bd = 1e9; for (const q of people) { if (q === notMe || q.state === 'rag' || q.ride || q.vin || q.hp <= 0 || !(q.bot || q.gun || q.botSaved) || (BATTLE.on && BATTLE.team && teamOf(q) !== BATTLE.team)) continue; const d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; best = q; } } return best; }
 function jumpIn() {
-  if (fp.on) return; const sp = BATTLE.spec; const src = sp && people.includes(sp) ? sp : null; const q = nearestFriend(src ? src.x : god.tgt.x, src ? src.z : god.tgt.z); if (!q) { toast('Nobody to take over. Place some soldiers or start a battle.'); return; }
+  if (fp.on) return; if (BATTLE.on && BATTLE.team == null) { sidePicker((t) => { const q0 = nearestFriend(god.tgt.x, god.tgt.z); if (q0) possess(q0); else playBattle(t); }); return; } const sp = BATTLE.spec; const src = sp && people.includes(sp) ? sp : null; const q = nearestFriend(src ? src.x : god.tgt.x, src ? src.z : god.tgt.z); if (!q) { toast('Nobody to take over. Place some soldiers or start a battle.'); return; }
   if (!possess(q)) toast('Could not take over that soldier.'); else if (BVL.length) bvJumpOffer(q);
 }
 function specNext(dir) {
@@ -10105,7 +10145,7 @@ $('tbRead').addEventListener('click', () => say($('tbBody').innerText));
 onKey((e) => { if (e.key === 'Escape' && !$('bSetup').hidden) { closeSetup(); e.preventDefault(); } });
 /* the persistent Command button and the other entrances: one panel, one name */
 $('cmdBtn').addEventListener('click', () => { if ($('tablet').hidden) openCommand('fire'); else toggleTablet(false); });
-$('bTab').addEventListener('click', () => openCommand('fire')); $('fpTab').addEventListener('click', () => openCommand('fire'));
+$('bSideBtn').addEventListener('click', () => sidePicker((t) => { battleHud(true); })); $('bTab').addEventListener('click', () => openCommand('fire')); $('fpTab').addEventListener('click', () => openCommand('fire'));
 $('mFire').addEventListener('click', () => { closeMenu(); openCommand('fire'); });
 $('mBattle').addEventListener('click', () => { closeMenu(); openBattleSetup(); });
 $('bJump').addEventListener('click', () => { jumpIn(); battleHud(); }); $('bSpec').addEventListener('click', () => { specNext(1); battleHud(); }); $('bOver').addEventListener('click', () => battleHud());

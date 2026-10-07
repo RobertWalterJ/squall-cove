@@ -101,7 +101,7 @@ Draw each road polyline as an asphalt ribbon of width `w`, draped on the heightf
 
 ## Ground materials from `landcover`
 
-Rasterise polygons into the 257 x 257 material masks (point-in-polygon on cell centres; later polygons win; draw order in the file is already `water`, then the rest, so draw `site/urban/industrial/apron/runway_area` last): forest -> forest floor + dense trees (nature.glb), scrub/orchard/vineyard -> sparse trees/shrubs, farmland/grass -> meadow, beach -> sand_beach, rock -> rock_granite (also anywhere slope > 35 deg), bare -> gravel, urban/industrial/harbour/apron/parking -> concrete/asphalt. Everything not covered: Mediterranean default = dry meadow plus rock by slope.
+Rasterise polygons into the 257 x 257 material masks (point-in-polygon on cell centres; later polygons win; sort so `forest/farmland/grass/scrub` go first and `water`, then `urban/industrial/apron/runway_area/site` last): forest -> forest floor + dense trees (nature.glb), scrub/orchard/vineyard -> sparse trees/shrubs, farmland/grass -> meadow, beach -> sand_beach, rock -> rock_granite (also anywhere slope > 35 deg), bare -> gravel, urban/industrial/harbour/apron/parking -> concrete/asphalt. Everything not covered: Mediterranean default = dry meadow plus rock by slope.
 
 ## Re-generating / extending
 
