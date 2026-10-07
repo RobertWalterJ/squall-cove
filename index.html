@@ -2137,6 +2137,32 @@ const BUILD = [
   { cat: 'Roads and ground', id: 'g-asphalt', name: 'Asphalt road', note: '8 m by 48 m with markings', pave: { kind: 'asphalt', w: 8, d: 48, marks: true }, sw: '#3a3d40' },
   { cat: 'Roads and ground', id: 'g-asphalt-pad', name: 'Asphalt hardstanding', note: '24 m by 24 m', pave: { kind: 'asphalt', w: 24, d: 24 }, sw: '#3a3d40' },
   { cat: 'Roads and ground', id: 'g-gravel', name: 'Gravel yard', note: '20 m by 16 m', pave: { kind: 'gravel', w: 20, d: 16 }, sw: '#a39580' },
+  { cat: 'Scenery', grp: 'Cover', id: 'x-sandbag_wall', name: 'Sandbag wall', note: 'cover, 3 m', glb: 'props2', node: 'sandbag_wall', land: true, fixed: true, box: [1.5, 0.55, 0.3], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Cover', id: 'x-jersey_barrier', name: 'Concrete barrier', note: 'cover, 3 m', glb: 'props2', node: 'jersey_barrier', land: true, fixed: true, box: [1.5, 0.4, 0.3], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Cover', id: 'x-ammo_crate', name: 'Ammo crate', note: 'olive crate', glb: 'props2', node: 'ammo_crate', land: true, fixed: true, box: [0.43, 0.18, 0.22], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Cover', id: 'x-medkit_box', name: 'Medkit', note: 'white box', glb: 'props2', node: 'medkit_box', land: true, fixed: true, box: [0.25, 0.19, 0.1], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-market_stall', name: 'Market stall', note: '3 m with an awning', glb: 'props2', node: 'market_stall', land: true, fixed: true, box: [1.5, 1.3, 0.95], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-bench', name: 'Bench', note: 'wooden', glb: 'props2', node: 'bench', land: true, fixed: true, box: [0.9, 0.45, 0.28], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-picnic_table', name: 'Picnic table', note: '', glb: 'props2', node: 'picnic_table', land: true, fixed: true, box: [0.9, 0.38, 0.75], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-bus_stop', name: 'Bus stop', note: 'shelter', glb: 'props2', node: 'bus_stop', land: true, fixed: true, box: [1.6, 1.6, 0.75], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-phone_box', name: 'Phone box', note: '', glb: 'props2', node: 'phone_box', land: true, fixed: true, box: [0.5, 1.2, 0.52], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-fuel_pump', name: 'Fuel pump', note: '', glb: 'props2', node: 'fuel_pump', land: true, fixed: true, box: [0.7, 1.1, 0.45], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-signboard', name: 'Signboard', note: '1.5 m sign on a post', glb: 'props2', node: 'signboard', land: true, fixed: true, box: [0.75, 1.1, 0.08], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-water_tower', name: 'Water tower', note: '14 m', glb: 'props2', node: 'water_tower', land: true, fixed: true, box: [2.6, 2.0, 2.6], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Town and country', id: 'x-radio_mast', name: 'Radio mast', note: '20 m lattice', glb: 'props2', node: 'radio_mast', land: true, fixed: true, box: [0.5, 10, 0.5], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-barn', name: 'Barn', note: 'red, 14 m', glb: 'props2', node: 'barn', land: true, fixed: true, box: [7, 4, 4.4], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-windmill', name: 'Windmill', note: 'the blades turn', glb: 'props2', node: 'windmill', land: true, fixed: true, box: [1.6, 6, 1.6], extra: 'windmill_blades', sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-hay_bale', name: 'Hay bale', note: 'round bale', glb: 'props2', node: 'hay_bale', land: true, fixed: true, box: [0.75, 0.75, 0.6], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-hay_rack', name: 'Hay rack', note: '', glb: 'props2', node: 'hay_rack', land: true, fixed: true, box: [1.5, 0.6, 0.65], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-log_pile', name: 'Log pile', note: '', glb: 'props2', node: 'log_pile', land: true, fixed: true, box: [1.0, 0.55, 0.6], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-tyre_stack', name: 'Tyre stack', note: '', glb: 'props2', node: 'tyre_stack', land: true, fixed: true, box: [0.36, 0.33, 0.36], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-rowboat_beached', name: 'Rowboat', note: 'beached', glb: 'props2', node: 'rowboat_beached', land: true, fixed: true, box: [1.75, 0.33, 0.7], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-fishing_hut', name: 'Fishing hut', note: 'on stilts', glb: 'props2', node: 'fishing_hut', land: true, fixed: true, box: [2.2, 2.1, 1.9], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-life_ring_post', name: 'Life ring', note: '', glb: 'props2', node: 'life_ring_post', land: true, fixed: true, box: [0.25, 0.8, 0.15], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-tent_large', name: 'Command tent', note: '8 m', glb: 'props2', node: 'tent_large', land: true, fixed: true, box: [4, 2, 2.5], sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-camo_net', name: 'Camouflage net', note: '', glb: 'props2', node: 'camo_net', land: true, fixed: true, sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-sand_dune_grass', name: 'Dune grass', note: '', glb: 'props2', node: 'sand_dune_grass', land: true, fixed: true, sw: '#9aa3a8' },
+  { cat: 'Scenery', grp: 'Farm and shore', id: 'x-flagpole', name: 'Flagpole', note: '8 m', glb: 'props2', node: 'flagpole', land: true, fixed: true, sw: '#9aa3a8' },
   { cat: 'Vehicles', id: 'v-ambulance', name: 'Ambulance', note: 'treats the injured', veh: 'ambulance', sw: '#f1f1ec' },
   { cat: 'Vehicles', id: 'v-firetruck', name: 'Fire truck', note: 'puts out fires', veh: 'firetruck', sw: '#c83228' },
   { cat: 'Vehicles', id: 'v-forklift', name: 'Forklift', note: 'lifts what hands cannot', veh: 'forklift', sw: '#e8b824' },
@@ -2213,9 +2239,11 @@ function place(item, p) {
   if (item.land && h < 0.2) { toast(item.name + ' needs dry land'); return; }
   if (item.pave) { ensurePort().then(() => { paveRectRot(item.pave.kind, x, z, item.pave.w, item.pave.d, -buildRot, item.pave.marks); toast(item.name + ' laid'); }); return; }
   if (item.glb === 'port' && !D.glb.port) { toast('Loading the buildings'); ensurePort().then(() => place(item, p)).catch(() => toast('Could not load the buildings')); return; }
+  if (item.glb === 'props2' && !D.glb.props2) { toast('Loading the scenery'); ensureProps2().then(() => place(item, p)).catch(() => toast('Could not load the scenery')); return; }
   const node = nodeByName(D.glb[item.glb], item.node); if (!node) return;
   const m = shadowAll(node.clone()); m.position.set(0, 0, 0);
   const g = new THREE.Group(); g.add(m);
+  if (item.extra) { const en = nodeByName(D.glb[item.glb], item.extra); if (en) { const bl = shadowAll(en.clone()); g.add(bl); SPINNERS.push({ mesh: bl, rate: 0.5 + Math.random() * 0.3, g }); } }
   const sc = item.id === 'light' || item.fixed ? 1 : 0.8 + Math.random() * 0.5; g.scale.setScalar(sc); g.rotation.y = item.fixed ? buildRot : buildRot ? buildRot : Math.random() * 6.28;
   const dy = item.fixed ? -0.02 : item.id === 'light' ? -1.0 : item.id === 'rockb' ? -0.3 * sc : -0.15;
   g.position.set(x, h + dy, z); scene.add(g);
@@ -3719,7 +3747,7 @@ function layPortBuildings() {
   // the camp, the lighthouse headland, the farms' outbuildings are placed with their features
   put('light', 40, 292, 0);
   put('b-tent', 235, -300, 0); put('b-tent', 255, -292, 0); put('b-tent', 275, -300, 90); put('b-bunker', 262, -270, 0); put('p-barrier', 222, -262, 0);
-  layFarms(put);
+  layFarms(put); ensureProps2().then(() => layScenery(put)).catch(() => { });
 }
 function portSupply() {                                           // a delivery lands at the first yard whenever the yards are running low on stone, so builders always have work
   if (!sites.length || MAP.t !== 'port' || objects.length > MAX_OBJ - 40) return; const stoneC = CARGO.find(c => c.id === 'stone'); let stone = 0; for (const o of objects) if (!o.gone && !o.placed && o.c.id === 'stone') stone++; if (stone >= 6) return;
@@ -3730,6 +3758,16 @@ setInterval(() => { if (typeof simT === 'number' && !document.hidden) portSupply
 /* ---- farms: ploughed fields that grow through the day, a farmhouse and barn, farmers who walk the rows, and a harvest of produce and grain that the trucks and dock workers carry to the yards */
 const FARMS = []; let fieldMat = null;
 function fieldTexture() { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const c = cv.getContext('2d'); c.fillStyle = '#6b4a2e'; c.fillRect(0, 0, 256, 256); for (let i = 0; i < 16; i++) { c.fillStyle = i % 2 ? '#5a3d25' : '#7a5636'; c.fillRect(0, i * 16, 256, 9); } for (let i = 0; i < 1400; i++) { c.fillStyle = 'rgba(' + (60 + Math.random() * 50) + ',' + (40 + Math.random() * 30) + ',24,0.35)'; c.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
+function layScenery(put) {                                         // the things that make the island lived in
+  put('x-water_tower', 40, -68, 0); put('x-radio_mast', -300, -230, 0); put('x-fuel_pump', 28, 36, 0); put('x-bus_stop', -80, -30, 0); put('x-bus_stop', 120, -30, 180); put('x-phone_box', 8, -32, 0);
+  for (const [x, z] of [[-10, -62], [0, -64], [10, -62], [20, -64]]) put('x-market_stall', x, z, 0); for (const [x, z] of [[-30, -62], [-34, -56], [30, -58]]) put('x-bench', x, z, rnd(0, 180));
+  put('x-picnic_table', -60, -60, 0); put('x-picnic_table', 60, -58, 0);
+  for (const [x, z, r] of [[-120, 94, 0], [-60, 96, 0], [60, 96, 0], [120, 94, 0]]) put('x-life_ring_post', x, z, r);
+  put('x-fishing_hut', -210, 140, 0); put('x-signboard', -176, 40, 0); put('x-signboard', 196, 40, 0); put('x-rowboat_beached', 250, 100, 25); put('x-rowboat_beached', 262, 116, -20); put('x-fishing_hut', 285, 120, 90);
+  for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, d = rnd(0, 22); put('x-hay_bale', -235 + Math.cos(a) * d - 20, -160 + Math.sin(a) * d * 0.7, rnd(0, 360)); }
+  put('x-barn', -150, -112, 0); put('x-windmill', -150, -190, 0); put('x-barn', 275, -112, 0); put('x-windmill', 290, -226, 0); put('x-hay_rack', -128, -150, 0); put('x-log_pile', -300, -150, 0); put('x-tyre_stack', 30, 98, 0);
+  put('x-tent_large', 232, -318, 0); put('x-camo_net', 262, -310, 0); put('x-tent_large', 288, -300, 90); for (const x of [-325, -330, -340]) put('x-sand_dune_grass', x, 80 + rnd(-10, 10), 0); for (let i = 0; i < 18; i++) put('x-sand_dune_grass', 215 + rnd(0, 80), 70 + rnd(0, 60), rnd(0, 360));
+}
 function layFarms(put) {
   if (!fieldMat) fieldMat = new THREE.MeshStandardMaterial({ map: fieldTexture(), roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   for (const f of [{ cx: -235, cz: -160, w: 150, d: 70, house: [-150, -165], barn: [-150, -130] }, { cx: 205, cz: -185, w: 150, d: 70, house: [275, -180], barn: [275, -145] }]) {
@@ -3784,6 +3822,8 @@ const stainMat = new THREE.MeshBasicMaterial({ map: stainTex, transparent: true,
 function scatterStains(cx, cz, w, d, n) {                                    // oil, tyre marks and wear so the concrete is not one clean slab
   for (let q = 0; q < n; q++) { const x = cx + rnd(-w / 2, w / 2), z = cz + rnd(-d / 2, d / 2), sz = rnd(1.5, 6), m = new THREE.Mesh(new THREE.PlaneGeometry(sz, sz * rnd(0.5, 1)).rotateX(-Math.PI / 2), stainMat); m.position.set(x, Math.max(heightAt(x, z), 0) + 0.075, z); m.rotation.y = rnd(0, 6.28); m.renderOrder = 3; scene.add(m); pavedMeshes.push(m); }
 }
+let p2P = null; const SPINNERS = [];
+const ensureProps2 = () => p2P || (p2P = loadGLB('props2').then(g => { D.glb.props2 = g; }).catch(e => { p2P = null; throw e; }));
 function paveRectRot(kind, cx, cz, w, d, rot, marks) {
   if (kind === 'gravel') { layGravel(cx, cz, w, d, rot); return; }
   pavedGrid(kind, cx, cz, w, d, rot, 0.06, 8); if (marks) pavedGrid('marks', cx, cz, w, d, rot, 0.085, 0, PAVE.marks);
@@ -3838,12 +3878,18 @@ function battleStart() {
   ensureWeapons(); battleStop(true); BATTLE.on = true; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   for (const bt of boats.slice()) if (boatCrew(bt).length === 0) { }
-  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag);
+  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag); ensureProps2().then(() => { if (BATTLE.on) layCover(); }).catch(() => { });
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
   document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle: Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
   if (BATTLE.team === 'red') for (const q of people) if (q.bot) { /* teams are fixed; the player joins the red side below */ }
 }
-function battleStop(quiet) {
+function layCover() {
+  const itm = (id) => BUILD.find(b => b.id === id); BATTLE.coverStart = props.length;
+  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
+  for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
+}
+function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
+function battleStop(quiet) { removeCover();
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
 const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle', 'shotgun', 'rifle'];
@@ -4391,6 +4437,7 @@ const PLACE_CATS = [
   { id: 'cargo', name: 'Cargo', test: it => it.cat === 'Cargo' },
   { id: 'nature', name: 'Trees and rocks', test: it => it.cat === 'Island' },
   { id: 'buildings', name: 'Buildings', test: it => it.cat === 'Buildings' },
+  { id: 'scenery', name: 'Scenery', test: it => it.cat === 'Scenery' },
   { id: 'portprops', name: 'Port props', test: it => it.cat === 'Port props' },
   { id: 'paving', name: 'Roads and ground', test: it => it.cat === 'Roads and ground' },
   { id: 'sites', name: 'Sites', test: it => it.cat === 'Sites' },
@@ -4436,7 +4483,7 @@ function renderTray(force = true) {
       if (mode === 'helm' && it.cargo === undefined) return;
       if (mode !== 'helm' && (it.erase || !curCat.test(it))) return;
       if (mode !== 'helm' && curCat.id === 'boats' && it.cat !== cat) { cat = it.cat; tray.append(sep(cat === 'Coast Guard' ? 'Coast Guard' : 'Yachts and tugs')); }
-      if (mode !== 'helm' && curCat.id === 'factions' && it.grp !== cat) { cat = it.grp; tray.append(sep(cat)); }
+      if (mode !== 'helm' && (curCat.id === 'factions' || curCat.id === 'scenery') && it.grp !== cat) { cat = it.grp; tray.append(sep(cat)); }
       tray.append(chip(it.name, (it.boat && SPECS[it.boat] && SPECS[it.boat].note) || it.note, it.sw, i === buildSel, () => { buildSel = i; renderTray(); if (it.hold) noteOnce('holdtip', 'Press and hold on the map to apply ' + it.name.toLowerCase() + '. Drag while holding to move it. A quick tap gives one puff.'); }));
     });
     if (mode !== 'helm') { const ei = BUILD.findIndex(it => it.erase); tray.append(sep('')); tray.append(chip('Remove', 'tap a thing', '#d64b2c', buildSel === ei, () => { buildSel = ei; renderTray(); }, 'chip mini')); }
@@ -4629,7 +4676,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }

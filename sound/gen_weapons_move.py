@@ -166,7 +166,7 @@ def breath_hurt(r, i):
 def heal(r=None):
     r = rng(601); notes = [76, 79, 83, 88]
     parts = [(pingn(C.hz(m), 0.35, 1.2, ((1, 1, 1), (2.0, .25, .5), (3.0, .1, .3))), 0.09 * k, 0.8 - 0.06 * k) for k, m in enumerate(notes)]
-    parts.append((pingn(C.hz(100), 0.5, 1.2, ((1, .2, 1))), 0.3, 0.4))
+    parts.append((pingn(C.hz(100), 0.5, 1.2, ((1, .2, 1),)), 0.3, 0.4))
     return fade_out(mix(1.3, parts), 0.15)
 
 
