@@ -1,0 +1,297 @@
+{
+ "lmg": {
+  "size_x": 0.196,
+  "size_y_height": 0.304,
+  "size_z_depth": 1.38,
+  "tris": 520,
+  "min": [
+   -0.098,
+   -0.53,
+   -0.076
+  ],
+  "max": [
+   0.098,
+   0.85,
+   0.228
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "rpg": {
+  "size_x": 0.137,
+  "size_y_height": 0.29,
+  "size_z_depth": 0.925,
+  "tris": 412,
+  "min": [
+   -0.066,
+   -0.425,
+   -0.085
+  ],
+  "max": [
+   0.071,
+   0.5,
+   0.205
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "rocket": {
+  "size_x": 0.108,
+  "size_y_height": 0.108,
+  "size_z_depth": 0.48,
+  "tris": 168,
+  "min": [
+   -0.054,
+   0.3,
+   0.066
+  ],
+  "max": [
+   0.054,
+   0.78,
+   0.174
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.45,
+   0.12
+  ]
+ },
+ "grenade": {
+  "size_x": 0.072,
+  "size_y_height": 0.121,
+  "size_z_depth": 0.073,
+  "tris": 392,
+  "min": [
+   -0.036,
+   -0.036,
+   -0.046
+  ],
+  "max": [
+   0.036,
+   0.036,
+   0.075
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "smoke_grenade": {
+  "size_x": 0.056,
+  "size_y_height": 0.161,
+  "size_z_depth": 0.059,
+  "tris": 272,
+  "min": [
+   -0.028,
+   -0.03,
+   -0.07
+  ],
+  "max": [
+   0.028,
+   0.03,
+   0.091
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "binoculars": {
+  "size_x": 0.15,
+  "size_y_height": 0.073,
+  "size_z_depth": 0.207,
+  "tris": 288,
+  "min": [
+   -0.075,
+   -0.09,
+   -0.034
+  ],
+  "max": [
+   0.075,
+   0.117,
+   0.039
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "flare_gun": {
+  "size_x": 0.042,
+  "size_y_height": 0.205,
+  "size_z_depth": 0.265,
+  "tris": 192,
+  "min": [
+   -0.021,
+   -0.045,
+   -0.09
+  ],
+  "max": [
+   0.021,
+   0.22,
+   0.115
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "marksman": {
+  "size_x": 0.065,
+  "size_y_height": 0.339,
+  "size_z_depth": 1.315,
+  "tris": 500,
+  "min": [
+   -0.031,
+   -0.47,
+   -0.099
+  ],
+  "max": [
+   0.034,
+   0.845,
+   0.24
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "carbine_scoped": {
+  "size_x": 0.052,
+  "size_y_height": 0.347,
+  "size_z_depth": 0.87,
+  "tris": 284,
+  "min": [
+   -0.026,
+   -0.335,
+   -0.147
+  ],
+  "max": [
+   0.026,
+   0.535,
+   0.2
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "revolver": {
+  "size_x": 0.054,
+  "size_y_height": 0.214,
+  "size_z_depth": 0.255,
+  "tris": 224,
+  "min": [
+   -0.027,
+   -0.045,
+   -0.091
+  ],
+  "max": [
+   0.027,
+   0.21,
+   0.123
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "satchel_charge": {
+  "size_x": 0.27,
+  "size_y_height": 0.259,
+  "size_z_depth": 0.133,
+  "tris": 232,
+  "min": [
+   -0.135,
+   -0.055,
+   -0.25
+  ],
+  "max": [
+   0.135,
+   0.078,
+   0.009
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "radio_handset": {
+  "size_x": 0.071,
+  "size_y_height": 0.36,
+  "size_z_depth": 0.05,
+  "tris": 152,
+  "min": [
+   -0.034,
+   -0.024,
+   -0.09
+  ],
+  "max": [
+   0.037,
+   0.026,
+   0.27
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "medkit_bag": {
+  "size_x": 0.304,
+  "size_y_height": 0.256,
+  "size_z_depth": 0.137,
+  "tris": 244,
+  "min": [
+   -0.152,
+   -0.068,
+   -0.25
+  ],
+  "max": [
+   0.152,
+   0.068,
+   0.006
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "tablet_device": {
+  "size_x": 0.26,
+  "size_y_height": 0.186,
+  "size_z_depth": 0.032,
+  "tris": 116,
+  "min": [
+   -0.13,
+   -0.014,
+   -0.09
+  ],
+  "max": [
+   0.13,
+   0.018,
+   0.096
+  ],
+  "node_pos_blender": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "_total_tris": 3996
+}

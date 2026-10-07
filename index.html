@@ -406,7 +406,9 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
   <div id="intro" hidden><div class="introBg"></div><div class="introCard"><div class="introMark">Squall Cove</div><p class="introTag">A harbour sandbox of boats, weather, people and the odd war.</p><div class="introGrid">
 <button type="button" data-go="sail"><b>Sail the cove</b><span>The original island. Place boats, change the weather, take the helm.</span></button>
 <button type="button" data-go="port"><b>Port and mountains</b><span>A working harbour, a town, farms and hills. Build, watch, or step in.</span></button>
-<button type="button" data-go="battle"><b>Battle for the port</b><span>Capture points, air support and artillery. Fight on either side.</span></button>
+<button type="button" data-go="urban"><b>Urban port</b><span>A street grid, close alleys, a stadium and a working quay. Build, watch, or fight.</span></button>
+<button type="button" data-go="desert"><b>Desert and far port</b><span>Open dunes, wadis and an oasis, with a port at the end of one long road. Watch or fight.</span></button>
+<button type="button" data-go="battle"><b>Battle on this map</b><span>Capture points, air support and artillery. Fight on either side.</span></button>
 <button type="button" data-go="large"><b>The large cove</b><span>A wide sea with room for fleets.</span></button></div>
 <div class="introFoot"><button type="button" id="introCtl">Controls</button><span id="introVer"></span></div></div></div>
 <div class="loading" id="loading"><div class="lcard"><div class="brand">Squall Cove</div><div id="loadMsg">Loading the cove</div><div class="bar"><span id="loadBar"></span></div></div></div>
@@ -622,7 +624,7 @@ const Snd = (() => {
     const L = A.L; for (const p of people) {
       if (p.state === 'rag' || p.fp && false) continue; const dx = p.x - (p._sx ?? p.x), dz = p.z - (p._sz ?? p.z); p._sx = p.x; p._sz = p.z; const mv = Math.hypot(dx, dz); if (mv > 3 || mv < 0.002) continue; p._sacc = (p._sacc || 0) + mv; if (p._sacc < 0.78) continue; p._sacc = 0;
       if (Math.hypot(p.x - L.x, p.z - L.z) > 32) continue; const h = standY(p.x, p.z); let k = 'grass'; if (p.ride) k = 'deck'; else if (h < 0.25) k = 'water'; else if (pierInfo && Math.hypot(p.x - pierInfo.c.x, p.z - pierInfo.c.z) < 14 && pierY(p.x, p.z) > -90) k = 'wood'; else if (h < 1.7) k = 'sand'; else if (h > 14) k = 'rock'; else { const gi = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); if (snowData[gi * 4] > 60) k = 'snow'; else if (matData[gi * 4 + 1]) k = 'sand'; else if (MET[gi] > 200) k = 'metal'; else if (MET[gi] > 0) k = 'gravel'; }
-      let kk = k; if (MAP.t === 'port' && !p.ride && (k === 'grass' || k === 'sand' || k === 'gravel')) { const sf = surfaceAt(p.x, p.z); if (sf === 'concrete' || sf === 'asphalt' || sf === 'gravel') kk = sf; }
+      let kk = k; if (isBattleMap() && !p.ride && (k === 'grass' || k === 'sand' || k === 'gravel')) { const sf = surfaceAt(p.x, p.z); if (sf === 'concrete' || sf === 'asphalt' || sf === 'gravel') kk = sf; }
       const NS = { concrete: 'step_concrete', asphalt: 'step_asphalt', grass: 'step_grass', gravel: 'step_gravel', sand: 'step_sand', wood: 'step_wood', metal: 'step_metal', water: 'step_water' }, run = (p.bot && p.run) || (p.fp && fp.spd > 4.2), hard = kk === 'concrete' || kk === 'asphalt' || kk === 'metal' || kk === 'wood';
       const stem = run && NS[kk] && kk !== 'water' ? (hard ? 'step_run_hard' : 'step_run_soft') : (NS[kk] || STEP[k]); A.fx(stem, p.x, p.z, { gain: p.fp ? 0.45 : 0.5, gap: 0.01, far: 0.3, y: p.y });
     }
@@ -744,7 +746,8 @@ float ripH(vec2 p){ vec2 f = p - uRipO; if (f.x < 1.0 || f.y < 1.0 || f.x > ${RN
 vec2 ripG(vec2 p){ return vec2(ripH(p + vec2(0.8, 0.0)) - ripH(p - vec2(0.8, 0.0)), ripH(p + vec2(0.0, 0.8)) - ripH(p - vec2(0.0, 0.8))) / 1.6; }`;
 
 /* ================================================================ terrain data */
-const CELL = (() => { try { const qp = new URLSearchParams(location.search), q = qp.get('size'); if (q) return q === 'large' ? 2 : 1; let mt = qp.get('map'); if (!mt) { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); mt = m && m.t; } if (mt === 'port') return 3; const sz = localStorage.getItem('squall-cove-size'); if (sz === 'large') return 2; if (sz === 'standard') return 1; return mt === 'port' ? 3 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
+const BATTLE_KEYS = ['port', 'urban', 'desert'];      // the maps that support the Battle mode (their data is in BATTLE_MAPS below)
+const CELL = (() => { try { const qp = new URLSearchParams(location.search), q = qp.get('size'); if (q) return q === 'large' ? 2 : 1; let mt = qp.get('map'); if (!mt) { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); mt = m && m.t; } if (BATTLE_KEYS.includes(mt)) return 3; const sz = localStorage.getItem('squall-cove-size'); if (sz === 'large') return 2; if (sz === 'standard') return 1; return BATTLE_KEYS.includes(mt) ? 3 : 1; } catch (e) { return 1; } })();      // metres per grid cell: 1 for the standard map, 2 for the large one
 const TN = 257, TH = 128, EXT = TH * CELL;      // 257 x 257 heights, centred on the origin; EXT is the half width of the world in metres
 const W2G = (x) => x / CELL + TH, G2W = (j) => (j - TH) * CELL;     // world metres to grid cell, and back
 let HGT;                             // Float32Array, row i = z index, column j = x index
@@ -835,13 +838,13 @@ function imgTex(im, srgb) {
 const D = await loadAll().catch((e) => { $('loadMsg').textContent = 'Could not load the cove assets: ' + e; throw e; });
 
 /* ---------------- maps: the baked Cove, or a generated island from a template and a seed. The choice is kept in localStorage and applied at start. */
-const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland'], ['port', 'Port and mountains', 'a flat quay with slips, a plain with build sites, mountains behind']];
+const MAPS = [['cove', 'The Cove', 'the original island'], ['archipelago', 'Archipelago', 'many small islands and shoals'], ['atoll', 'Atoll', 'a reef ring round a lagoon'], ['fjord', 'Fjord', 'steep walls and a deep channel'], ['volcanic', 'Volcano island', 'a cone with a crater'], ['valley', 'River valley', 'a mountain, a valley and an inland lake'], ['barrier', 'Barrier coast', 'a sand bar, a lagoon and a mainland'], ['port', 'Port and mountains', 'a flat quay with slips, a plain with build sites, mountains behind. Battle ready'], ['urban', 'Urban port', 'a street grid with close alleys, squares, a stadium and a working quay with cranes. Battle ready'], ['desert', 'Desert and far port', 'open dunes, wadis, rock and an oasis, with a port at the far end of one long road. Battle ready']];
 let MAP = { t: 'cove', seed: 'cove' };
 try { const m = JSON.parse(localStorage.getItem('squall-cove-map') || 'null'); if (m && m.t && MAPS.some(q => q[0] === m.t)) MAP = m; } catch (e) { }
 { const qp = new URLSearchParams(location.search), qm = qp.get('map'); if (qm && MAPS.some(q => q[0] === qm)) MAP = { t: qm, seed: qm === 'cove' ? 'cove' : (qp.get('seed') || qm) }; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seedNum(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^ h >>> 16) >>> 0; }
-const ROADS = [                                                          // control points in metres from the centre of the world, with the road height; the ground is graded to these
+const ROADS_PORT = [                                                          // control points in metres from the centre of the world, with the road height; the ground is graded to these
   { name: 'Main Street', w: 9, marks: true, pts: [[-232, -40, 4.4], [0, -40, 4.4], [232, -40, 4.4]] },
   { name: 'Cross -150', w: 7, marks: true, pts: [[-150, -40, 4.4], [-150, 0, 4.4], [-150, 46, 1.6]] },
   { name: 'Cross -50', w: 7, marks: true, pts: [[-50, -40, 4.4], [-50, 0, 4.4], [-50, 46, 1.6]] },
@@ -854,7 +857,103 @@ const ROADS = [                                                          // cont
   { name: 'West farm lane', w: 5, marks: false, pts: [[-195, -40, 4.4], [-190, -100, 4.5], [-180, -150, 4.6]] },
   { name: 'East farm lane', w: 5, marks: false, pts: [[110, -40, 4.4], [140, -110, 4.5], [165, -175, 4.6]] },
 ];
-const ROAD_JUNCTIONS = [[-150, -40], [-50, -40], [70, -40], [150, -40], [-100, -40], [10, -40], [210, -40], [-195, -40], [110, -40], [-150, 46], [-50, 46], [70, 46], [150, 46]];
+const JUNC_PORT = [[-150, -40], [-50, -40], [70, -40], [150, -40], [-100, -40], [10, -40], [210, -40], [-195, -40], [110, -40], [-150, 46], [-50, 46], [70, 46], [150, 46]];
+/*UD-DATA-START*/
+/* ================================================================ battle maps: one table per map that supports the Battle mode (see MAP-URBAN-DESERT.md).
+   points: [name, x, z, owner]; owner is 'blue' (the Port side), 'red' (the raiders) or null (neutral). Angles are radians from the centre of the world: 0 is east, pi/2 is south, -pi/2 is north.
+   seaAng: where each side's boat landings and boats come from; airAng: where each side's aircraft enter; amb: which ambience beds to play. */
+const BATTLE_MAPS = {
+  port: {
+    name: 'Port and mountains',
+    points: [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -68, -228, null], ['Landing beach', 228, 84, 'red'], ['Raider camp', 305, -32, 'red']],
+    seaAng: null, airAng: null, amb: 'port', concrete: (x, z) => x > -200 && x < 160 && z > 40 && z < 100 && heightAt(x, z) < 2.2,
+  },
+  urban: {
+    name: 'Urban port',
+    points: [['Quay West', -190, 224, 'blue'], ['Quay East', 190, 224, 'blue'], ['Container terminal', 0, 228, null], ['Town square', 0, 20, null], ['Market quarter', -100, 115, null], ['Old town', 0, -85, null], ['The stadium', 200, -80, null], ['Rail yard', -200, -80, null], ['Hill park', -100, -180, null], ['North barracks', -200, -280, 'red'], ['North depot', 200, -280, 'red']],
+    seaAng: { blue: [1.0, 2.1], red: [-0.85, 0.4] }, airAng: { blue: [0.4, 2.7], red: [-2.7, -0.4] }, amb: 'urban', concrete: (x, z) => inPaved(x, z),
+  },
+  desert: {
+    name: 'Desert and far port',
+    points: [['Port quay', -115, 268, 'blue'], ['Customs yard', 115, 268, 'blue'], ['Dune ridge', 45, 140, null], ['Oil pump station', -200, 75, null], ['Fuel depot', 160, 30, null], ['Ruined village', -20, -60, null], ['Oasis', -212, -150, null], ['Radio outpost', 200, -190, null], ['Northern camp', -100, -285, 'red'], ['Wadi fort', 120, -292, 'red']],
+    seaAng: { blue: [1.0, 2.1], red: [-2.3, -0.85] }, airAng: { blue: [0.4, 2.7], red: [-2.7, -0.4] }, amb: 'desert', concrete: (x, z) => inPaved(x, z),
+  },
+};
+const FOOT = [];                                                     // footprints of what has been placed on a battle map: {x, z, hx, hz, t} (t is the turn about the vertical axis, as the game turns it)
+const PUTS = { n: 0, tiny: 0, capN: isTouch ? 220 : 320, capTiny: isTouch ? 110 : 170, rej: {} };    // counts, and the limits that keep the prop count near the Port map's
+const PAVED = [];                                                    // paved rectangles laid on the Urban port and the Desert: [x0, x1, z0, z1], for the surface under foot
+const inPaved = (x, z) => { for (const r of PAVED) if (x >= r[0] && x <= r[1] && z >= r[2] && z <= r[3]) return true; return false; };
+function isBattleMap(t) { return !!BATTLE_MAPS[t || MAP.t]; }
+function BM() { return BATTLE_MAPS[MAP.t] || BATTLE_MAPS.port; }
+function angIn(rg) { return rg[0] + Math.random() * (rg[1] - rg[0]); }            // a random angle in [a0, a1]
+
+/* ---- the Urban port: a street grid of 100 m blocks, a quay along the south coast with two piers. All in metres from the centre. */
+const URB = {
+  H: 4.0, Q: 1.6,                                                    // street level, quay level
+  X: [-250, -150, -50, 50, 150, 250], Z: [-230, -130, -30, 70, 160],  // the north-south streets and the east-west avenues
+  QZ: 196, COAST: 262, XE: 314, ZN: -318, RAMP: [164, 190],           // the quay road, the south coast, the east and west and north edge of the city, the ramp from street level down to the quay
+  piers: [[-200, -168, 326], [100, 132, 326]],                        // x0, x1, z of the tip
+  mound: [-100, -180, 36, 2.6],                                       // Hill park: x, z, radius, height
+};
+function urbanRoads() {
+  const U = URB, R = [], J = [], seen = new Set(), H = U.H, Q = U.Q, jn = (x, z) => { const k = x + ',' + z; if (!seen.has(k)) { seen.add(k); J.push([x, z]); } };
+  U.Z.forEach((z, k) => R.push({ name: 'Avenue ' + (k + 1), w: 9, marks: true, pts: [[-U.XE, z, H], [0, z, H], [U.XE, z, H]] }));
+  R.push({ name: 'Quay road', w: 9, marks: true, pts: [[-U.XE, U.QZ, Q], [0, U.QZ, Q], [U.XE, U.QZ, Q]] });
+  U.X.forEach((x, c) => {
+    for (let k = 0; k < 4; k++) { const a = U.Z[k], b = U.Z[k + 1]; R.push({ name: 'Street ' + (c + 1) + '.' + (k + 1), w: 8, marks: true, pts: [[x, a, H], [x, (a + b) / 2, H], [x, b, H]] }); jn(x, a); jn(x, b); }
+    R.push({ name: 'Dock street ' + (c + 1), w: 8, marks: true, pts: [[x, U.Z[4], H], [x, U.RAMP[0], H], [x, U.RAMP[1], Q], [x, U.QZ, Q]] }); jn(x, U.Z[4]); jn(x, U.QZ);
+  });
+  for (const x of [-150, 150]) { R.push({ name: 'North lane', w: 7, marks: false, pts: [[x, U.Z[0], H], [x, -275, H], [x, -310, H]] }); jn(x, U.Z[0]); }
+  return { roads: R, junctions: J };
+}
+function urbanStamp(x, z, h) {
+  const U = URB;
+  { const w = boxW(x, z, -U.XE - 4, U.XE + 4, U.ZN, 165, 20); if (w > 0 && h > 0.3) h = h * (1 - w) + U.H * w; }                                                  // the whole city stands on one flat plateau at street level
+  { const m = U.mound, d = Math.hypot(x - m[0], z - m[1]); if (d < m[2] && h > 3) h += m[3] * Math.pow(1 - d * d / (m[2] * m[2]), 1.6); }                         // Hill park is a low mound
+  { const w = boxW(x, z, -U.XE - 8, U.XE + 8, U.RAMP[0], U.COAST, 12); if (w > 0 && h > 0.3) { const hh = U.H + (U.Q - U.H) * sstepP(U.RAMP[0], U.RAMP[1], z); h = h * (1 - w) + hh * w; } }   // down the ramp to the quay level
+  { const w = boxW(x, z, -U.XE - 12, U.XE + 12, U.COAST + 4, 345, 16); if (w > 0) { const hh = -7 - 2 * sstepP(U.COAST + 4, 345, z); h = h * (1 - w) + Math.min(h, hh) * w; } }  // the harbour basin: deep enough for ships alongside
+  { const w = boxW(x, z, -U.XE - 8, U.XE + 8, U.RAMP[1], U.COAST, 1.5); if (w > 0) h = h * (1 - w) + U.Q * w; }                                                // the quay apron
+  for (const [a, b, z1] of U.piers) { const w = boxW(x, z, a, b, U.COAST - 4, z1, 4); if (w > 0) h = h * (1 - w) + Math.max(h, 1.8) * w; }                       // the two piers
+  return h;
+}
+
+/* ---- the Desert and far port: sand and dunes with long sight lines, wadis and rock outcrops for cover, a ruined village, an oil pump station, a fuel depot, an oasis, a radio outpost, and a port at the far south end joined by one long road. */
+const DES = {
+  H: 4.0, Q: 1.6, COAST: 292, RAMP: [200, 226],
+  oasis: { x: -250, z: -150, r: 22 },
+  wadis: [[[-150, -335], [-190, -230], [-160, -130], [-110, -40], [-130, 40], [-90, 130], [-120, 200]], [[60, -335], [150, -250], [120, -150], [170, -80], [100, -20], [80, 60], [130, 150], [110, 225]]],
+  rocks: [[-60, -170, 28, 6.5], [70, -110, 24, 5.5], [-175, 15, 26, 6], [235, 70, 30, 7], [-300, -60, 24, 5], [270, -90, 26, 6], [10, 95, 22, 4.5], [-40, -250, 20, 5], [160, -140, 22, 5]],     // x, z, radius, height
+  hills: [[200, -190, 58, 8], [45, 140, 56, 7.5]],                                                                                                                                         // the radio hill and the dune ridge
+  pads: [[-240, -160, 40, 110, 4.0, 18], [120, 200, -5, 65, 4.0, 18], [-70, 30, -110, -10, 4.0, 16], [-140, -60, -310, -250, 4.0, 14], [90, 150, -320, -270, 4.0, 12], [178, 222, -212, -168, 11.5, 18], [25, 65, 120, 160, 11.0, 18]],   // flat ground for each site: x0, x1, z0, z1, height, margin
+};
+function desertRoads() {
+  const H = DES.H, Q = DES.Q, R = [], J = [[0, 246]];
+  R.push({ name: 'Quay road', w: 8, marks: true, pts: [[-170, 246, Q], [0, 246, Q], [170, 246, Q]] });
+  R.push({ name: 'Desert highway', w: 7, marks: true, pts: [[0, 246, Q], [0, 226, Q], [0, 200, H], [-25, 150, H], [-45, 80, H], [-35, 10, H], [-20, -60, H], [0, -130, H], [40, -200, H], [90, -260, H], [115, -305, H]] });
+  R.push({ name: 'Pump track', w: 5, marks: false, mat: 'gravel', pts: [[-45, 80, H], [-110, 76, H], [-170, 70, H], [-205, 68, H]] });
+  R.push({ name: 'Depot track', w: 5, marks: false, mat: 'gravel', pts: [[-35, 10, H], [40, 18, H], [110, 28, H], [150, 32, H]] });
+  R.push({ name: 'Camp track', w: 5, marks: false, mat: 'gravel', pts: [[0, -130, H], [-40, -190, H], [-80, -250, H], [-100, -282, H]] });
+  R.push({ name: 'Radio track', w: 5, marks: false, mat: 'gravel', pts: [[70, -240, H], [125, -218, H], [155, -206, 7.5], [180, -197, 11.5]] });
+  R.push({ name: 'Oasis track', w: 5, marks: false, mat: 'gravel', pts: [[-20, -60, H], [-100, -100, H], [-190, -135, H], [-210, -148, H]] });
+  return { roads: R, junctions: J };
+}
+function desertStamp(x, z, h) {
+  const D = DES;
+  for (const [a, b, c, d, hh, m] of D.pads) { const w = boxW(x, z, a, b, c, d, m); if (w > 0 && h > 0.35) h = h * (1 - w) + hh * w; }                                       // flat ground for every site, only on land
+  { const w = boxW(x, z, -182, 182, D.RAMP[0], D.COAST, 12); if (w > 0 && h > 0.3) { const hh = D.H + (D.Q - D.H) * sstepP(D.RAMP[0], D.RAMP[1], z); h = h * (1 - w) + hh * w; } }       // down the ramp to the port
+  { const w = boxW(x, z, -190, 190, D.COAST + 4, 345, 16); if (w > 0) { const hh = -7 - 2 * sstepP(D.COAST + 4, 345, z); h = h * (1 - w) + Math.min(h, hh) * w; } }                  // the harbour basin
+  { const w = boxW(x, z, -182, 182, D.RAMP[1], D.COAST, 1.5); if (w > 0) h = h * (1 - w) + D.Q * w; }                                                                               // the quay apron
+  return h;
+}
+const MAPGEN = (() => {                                              // the active map's roads and stamp, chosen once
+  if (MAP.t === 'urban') return { ...urbanRoads(), stamp: urbanStamp };
+  if (MAP.t === 'desert') return { ...desertRoads(), stamp: desertStamp };
+  return null;
+})();
+/*UD-DATA-END*/
+
+const ROADS = MAPGEN ? MAPGEN.roads : ROADS_PORT;                    // the active map's roads: the Port, the Urban port or the Desert
+const ROAD_JUNCTIONS = MAPGEN ? MAPGEN.junctions : JUNC_PORT;
 let ROAD_DENSE = null;                                                       // each road resampled as a smooth curve, every 2 m: [{r, pts: [{x, z, h}]}] in metres
 function roadDense() {
   if (ROAD_DENSE) return ROAD_DENSE; const out = []; ROAD_DENSE = out;
@@ -864,14 +963,17 @@ function roadDense() {
       const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(n - 1, i + 2)], len = Math.hypot(p2.x - p1.x, p2.z - p1.z), steps = Math.max(2, Math.ceil(len / 2));
       for (let k = 0; k < steps; k++) { const t = k / steps, t2 = t * t, t3 = t2 * t, f = (a, b, c, d) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3); pts.push({ x: f(p0.x, p1.x, p2.x, p3.x), z: f(p0.z, p1.z, p2.z, p3.z), h: p1.h + (p2.h - p1.h) * (t * t * (3 - 2 * t)) }); }
     }
-    pts.push({ ...P[n - 1] }); out.push({ r, pts });
+    pts.push({ ...P[n - 1] }); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); } out.push({ r, pts, bb: [x0, x1, z0, z1] });
   }
   return out;
 }
+function roadProbe(x, z, lim) {                                              // the nearest road point within lim metres (default 11, enough for grading): roads whose bounding box is further away are skipped, so a street grid stays quick
+  let bd = 1e9, bh = 0, bw = 0, L = lim || 11;
+  for (const e of roadDense()) { const b = e.bb; if (x < b[0] - L || x > b[1] + L || z < b[2] - L || z > b[3] + L) continue; const pts = e.pts; for (let i = 0; i < pts.length; i++) { const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; bh = p.h; bw = e.r.w / 2; } } }
+  return { d: Math.sqrt(bd), h: bh, hw: bw };
+}
 function roadGrade(x, z, h) {                                                // level the ground to the road: flat across, smooth along, a short shoulder either side
-  let bd = 1e9, bh = 0, bw = 0;
-  for (const { r, pts } of roadDense()) for (let i = 0; i < pts.length; i++) { const p = pts[i], dx = p.x - x, dz = p.z - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; bh = p.h; bw = r.w / 2; } }
-  const dist = Math.sqrt(bd); if (dist > bw + 6) return h; const k = dist <= bw + 0.8 ? 1 : 1 - (dist - bw - 0.8) / 5.2; const w = k * k * (3 - 2 * k); return h * (1 - w) + bh * w;
+  const pr = roadProbe(x, z), dist = pr.d, bw = pr.hw, bh = pr.h; if (dist > bw + 6) return h; const k = dist <= bw + 0.8 ? 1 : 1 - (dist - bw - 0.8) / 5.2; const w = k * k * (3 - 2 * k); return h * (1 - w) + bh * w;
 }
 /* ---- the Port and mountains plan, all in metres. See MAP-PLAN.md */
 const PORT = {
@@ -933,15 +1035,40 @@ function genTerrain(H, tpl, seedStr) {
       const sea = Math.max(-16, -2.2 + sd * 0.075); h = sd < 0 ? sea * (1 - sstepP(-7, 0, sd)) + 0.4 * sstepP(-7, 0, sd) : hl;
       h = roadGrade(x, z, portStamp(x, z, h));
     }
+    else if (tpl === 'urban') {                                                                                                          // the Urban port: one flat plateau of streets, a quay with two piers along the south coast
+      const E = 128 * CELL, x = u * E, z = v * E, wob = 5 * (fbm(x / 110 + 6, z / 110 + 2) - 0.5) * 2 * (1 - sstepP(170, 230, z));
+      let sd = Math.min(335 - Math.abs(x), z + 335, URB.COAST - z) + wob;
+      for (const [a, b, z1] of URB.piers) sd = Math.max(sd, Math.min((b - a) / 2 - Math.abs(x - (a + b) / 2), z1 - z));
+      const hl = 0.4 + 3.6 * sstepP(0, 22, sd), sea = Math.max(-16, -2.2 + sd * 0.075);
+      h = sd < 0 ? sea * (1 - sstepP(-7, 0, sd)) + 0.4 * sstepP(-7, 0, sd) : hl;
+      h = roadGrade(x, z, urbanStamp(x, z, h));
+    }
+    else if (tpl === 'desert') {                                                                                                         // the Desert: dunes, wadis, rock outcrops, an oasis pond and a port far to the south
+      const E = 128 * CELL, x = u * E, z = v * E, O = DES.oasis, bump = (cx, cz, R) => { const q = ((x - cx) * (x - cx) + (z - cz) * (z - cz)) / (R * R); return q >= 1 ? 0 : Math.pow(1 - q, 1.6); };
+      const wob = 6 * (fbm(x / 120 + 6, z / 120 + 2) - 0.5) * 2 * (1 - sstepP(200, 260, z));
+      const sd = Math.min(336 - Math.abs(x), z + 336, DES.COAST - z) + wob, rd = roadProbe(x, z, 60).d, oasD = Math.hypot(x - O.x, z - O.z), flat = sstepP(6, 45, rd) * sstepP(26, 64, oasD);
+      const dn = (fbm(x / 170 + 5, z / 230 + 2) - 0.5) * 2, ridge = 1 - Math.abs(2 * fbm(x / 110 + 9, z / 62 + 4) - 1);
+      let hd = DES.H + flat * (2.8 * dn + 3.0 * ridge * ridge - 0.5);                                                                    // long low dunes with crests, flat beside the roads
+      const rm = sstepP(10, 34, rd), nz = 0.75 + 0.5 * fbm(x / 30 + 4, z / 30 + 8);
+      for (const [cx, cz, R, hh] of DES.rocks) hd += rm * hh * bump(cx, cz, R) * nz;                                                       // low rock outcrops
+      for (const [cx, cz, R, hh] of DES.hills) hd += rm * hh * bump(cx, cz, R) * nz;                                                       // the radio hill and the dune ridge
+      { let wd = 1e9; for (const pl of DES.wadis) for (let q = 0; q < pl.length - 1; q++) { const ax = pl[q][0], az = pl[q][1], bx = pl[q + 1][0], bz = pl[q + 1][1], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); wd = Math.min(wd, Math.hypot(x - ax - dx * t, z - az - dz * t)); }
+        const w = (1 - sstepP(7, 17, wd)) * sstepP(8, 24, rd), fl = 1.5 + 0.8 * (fbm(x / 40 + 1, z / 40) - 0.5); if (w > 0) hd = hd * (1 - w) + Math.min(hd, fl) * w; }      // the wadis: dry beds a few metres below the dunes, cut off where a road crosses
+      { const w = 1 - sstepP(O.r * 0.4, O.r * 1.6, oasD); if (w > 0) hd = hd * (1 - w) + (-1.7) * w; }                                    // the oasis pond
+      const hl = 0.4 + (hd - 0.4) * sstepP(0, 26, sd), sea = Math.max(-16, -2.2 + sd * 0.075);
+      h = sd < 0 ? sea * (1 - sstepP(-7, 0, sd)) + 0.4 * sstepP(-7, 0, sd) : hl;
+      h = roadGrade(x, z, desertStamp(x, z, h));
+    }
     else h = Math.max(-9.2, 14 * (1 - r / 0.7) - 1);
-    if (tpl !== 'port' && h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
-    const e = tpl === 'port' ? ss(0.93, 0.995, Math.max(Math.abs(u), Math.abs(v))) : ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); { const fl = tpl === 'port' ? -16 : -9.2; h = h * (1 - e) + fl * e; H[i * N + j] = Math.max(fl, Math.min(30, h)); }
+    const BT = BATTLE_KEYS.includes(tpl);
+    if (!BT && h > 0.2) h += (fbm(u * 7 + 11, v * 7) - 0.5) * 1.4;
+    const e = BT ? ss(0.93, 0.995, Math.max(Math.abs(u), Math.abs(v))) : ss(0.78, 0.97, Math.max(Math.abs(u), Math.abs(v))); { const fl = BT ? -16 : -9.2; h = h * (1 - e) + fl * e; H[i * N + j] = Math.max(fl, Math.min(30, h)); }
   }
   // age the land: let steep faces relax and soften the grain so coasts look worn, not noisy
   for (let pass = 0; pass < 36; pass++) for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) {
     const k = i * N + j; if (H[k] <= 0) continue; for (const q of [1, N]) for (const sg of [1, -1]) { const n = k + sg * q, dh = H[k] - H[n]; if (dh > 1.55 && H[n] > -8) { const m = (dh - 1.55) * 0.2; H[k] -= m; H[n] += m; } }
   }
-  if (tpl === 'port') for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const E = 128 * CELL, xx = (j - C) / C * E, zz = (i - C) / C * E; H[i * N + j] = roadGrade(xx, zz, portStamp(xx, zz, H[i * N + j])); }
+  { const ST = tpl === 'port' ? portStamp : tpl === 'urban' ? urbanStamp : tpl === 'desert' ? desertStamp : null; if (ST) for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const E = 128 * CELL, xx = (j - C) / C * E, zz = (i - C) / C * E; H[i * N + j] = roadGrade(xx, zz, ST(xx, zz, H[i * N + j])); } }
   for (let pass = 0; pass < 2; pass++) { const c = H.slice(); for (let i = 1; i < N - 1; i++) for (let j = 1; j < N - 1; j++) { const k = i * N + j; if (c[k] > 0.1) H[k] = (c[k] * 4 + c[k - 1] + c[k + 1] + c[k - N] + c[k + N]) / 8; } }
 }
 const MAPOFF = MAP.t === 'cove' ? 0 : seedNum(MAP.seed) % 997;
@@ -1068,6 +1195,8 @@ terrainMat.onBeforeCompile = (sh) => {
       float rock = smoothstep(0.30, 0.46, slope + (macro2.b - 0.5) * 0.12);
       float wR = rock * (1.0 - smoothstep(0.5, 0.65, slope)) * (1.0 - wW);
       float wC = rock * smoothstep(0.5, 0.65, slope) * (1.0 - wW);
+      ${MAP.t === 'desert' ? `float oas = 1.0 - smoothstep(${(DES.oasis.r * 0.9).toFixed(1)}, ${(DES.oasis.r * 1.9).toFixed(1)}, distance(vWPos.xz, vec2(${DES.oasis.x.toFixed(1)}, ${DES.oasis.z.toFixed(1)})));
+      wS = (1.0 - wW) * (1.0 - oas) * (1.0 - 0.75 * rock);                                // the whole desert is sand and gravel, with rock on the steep ground; only the oasis keeps its grass` : ''}
       float land = clamp(1.0 - wW - wS - wR - wC, 0.0, 1.0);
       float forest = clamp(canopy * 1.6 + (macro.b - 0.62) * 1.5, 0.0, 1.0);
       float wG = land * (1.0 - forest), wF = land * forest;
@@ -1215,6 +1344,7 @@ function swayMaterial(src, height, stiff) {
 const trees = [];   // {x, z, r, kind}
 function scatterVegetation() {
   const kinds = { pine: [], broadleaf: [], palm: [], shrub: [] };
+  if (MAP.t === 'urban') { urbanTrees(); return trees; } if (MAP.t === 'desert') { desertTrees(); return trees; }                                      // street trees and parks in the city, palms at the oasis only
   for (let k = 0; k < 14000 * CELL && trees.length < (quality === 'high' ? 520 : 340) * (CELL > 2 ? 7 : CELL > 1 ? 1.7 : 1); k++) {
     const x = (hash2(k, 11) - 0.5) * 240 * CELL, z = (hash2(k, 23) - 0.5) * 240 * CELL;
     const h = heightAt(x, z); if (h < 1.6) continue;
@@ -1286,7 +1416,7 @@ function buildRocks(glb) {
   const spots = [];
   for (let k = 0; k < 9000 * CELL && spots.length < 140 * CELL; k++) {
     const x = (hash2(k, 41) - 0.5) * 250 * CELL, z = (hash2(k, 43) - 0.5) * 250 * CELL, h = heightAt(x, z);
-    const shore = h > -2.2 && h < 1.4, hill = h > 6 && slopeAt(x, z) > 0.22 && hash2(k, 44) < 0.25;
+    const shore = h > -2.2 && h < 1.4, hill = MAP.t === 'desert' ? (h > 1.8 && slopeAt(x, z) > 0.2 && hash2(k, 44) < 0.5) : (h > 6 && slopeAt(x, z) > 0.22 && hash2(k, 44) < 0.25);
     if (!(shore || hill)) continue;
     spots.push({ x, z, h, s: 0.4 + hash2(k, 47) * (shore ? 1.1 : 0.8), r: hash2(k, 48) * 6.28, v: k % names.length });
   }
@@ -1352,6 +1482,7 @@ function buildGrass() {
         float sandLine = 2.4 + mac.r * 1.6;
         float dens = smoothstep(sandLine, sandLine + 0.8, h) * (1.0 - smoothstep(0.25, 0.36, slope)) * (1.0 - smoothstep(0.15, 0.55, canopy));
         dens *= smoothstep(0.25, 0.55, mac.g + 0.3 * mac.b);                // meadow patches, not a carpet
+        ${MAP.t === 'desert' ? `dens *= 1.0 - smoothstep(${(DES.oasis.r * 0.9).toFixed(1)}, ${(DES.oasis.r * 1.6).toFixed(1)}, length(w - vec2(${DES.oasis.x.toFixed(1)}, ${DES.oasis.z.toFixed(1)})));          // grass only at the oasis` : ''}
         dens *= 1.0 - smoothstep(0.04, 0.35, texture2D(tAsh, (w / ${CELL}.0 + 128.5) / 257.0).r);
         dens *= 1.0 - smoothstep(0.1, 0.5, texture2D(tNoGrass, (w / ${CELL}.0 + 128.5) / 257.0).r);     // fire, ash and lava burn the grass away
         float dist = length(w - uCam);
@@ -1423,7 +1554,7 @@ const waterMat = new THREE.ShaderMaterial({
     float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
     ${quality === 'high' ? 'float cellular(vec2 p){ vec2 i = floor(p), f = fract(p); float d = 1.0; for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 g = vec2(float(x), float(y)); vec2 o = vec2(h21(i + g), h21(i + g + 17.3)); o = 0.5 + 0.5 * sin(uTime * 0.7 + 6.283 * o); d = min(d, length(g + o - f)); } return d; }' : 'float cellular(vec2 p){ return 1.0 - vnoise(p * 2.0); }'}
-    float H(vec2 p){ if (abs(p.x) > ${EXT}.0 || abs(p.y) > ${EXT}.0) return ${MAP.t === 'port' ? '-16.0' : '-9.3'}; vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
+    float H(vec2 p){ if (abs(p.x) > ${EXT}.0 || abs(p.y) > ${EXT}.0) return ${isBattleMap() ? '-16.0' : '-9.3'}; vec2 f = clamp(p / ${CELL}.0 + 128.0, vec2(0.0), vec2(255.999)); ivec2 i = ivec2(floor(f)); vec2 a = fract(f);
       return mix(mix(texelFetch(tH, i, 0).r, texelFetch(tH, i + ivec2(1, 0), 0).r, a.x), mix(texelFetch(tH, i + ivec2(0, 1), 0).r, texelFetch(tH, i + ivec2(1, 1), 0).r, a.x), a.y); }
     void main(){
       vec3 V = normalize(cameraPosition - vW);
@@ -3721,7 +3852,8 @@ const mkB = (txt, cls, fn, attrs) => { const b = document.createElement('button'
 function setSide(o) { sideOpen = o; sideEl.inert = !o; sideEl.setAttribute('aria-hidden', String(!o)); sideEl.classList.toggle('open', o); document.body.classList.toggle('sideopen', o); try { localStorage.setItem('squall-cove-side', o ? '1' : '0'); } catch (e) { } if (o) renderSide(); }
 function dropIn() { if (fp.on) { exitFP(); return; } if (mode !== 'god') return; if ((BATTLE.on || people.some(q => q.gun)) && !selPerson) { jumpIn(); return; } const pe = selPerson && people.includes(selPerson) ? selPerson : null; enterFP(pe); }
 function renderSide() {
-  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['battle', 'Battle'], ['play', 'Play']]) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
+  if (sideTab === 'battle' && !isBattleMap()) sideTab = 'map';
+  const tabs = $('sTabs'); tabs.innerHTML = ''; for (const [id, n] of [['place', 'Place'], ['events', 'Events'], ['live', 'Live'], ['map', 'Map'], ['battle', 'Battle'], ['play', 'Play']].filter(q => q[0] !== 'battle' || isBattleMap())) tabs.append(mkB(n, '', () => { sideTab = id; renderSide(); }, { 'aria-pressed': String(sideTab === id) }));
   sBody.innerHTML = '';
   if (sideTab === 'place') {
     const q = document.createElement('input'); q.type = 'search'; q.setAttribute('aria-label', 'Search what you can place'); q.placeholder = 'Search what you can place'; q.value = sideQ; sBody.append(q); const list = document.createElement('div'); list.id = 'sList'; sBody.append(list);
@@ -3731,8 +3863,13 @@ function renderSide() {
     grp('Destructive', DISASTERS, true); grp('Arrivals', ARRIVALS, false); grp('Events', EVENTS, false);
     const c = mkB('Calm all', 'sItem', () => { calm(); }); sBody.append(c);
   } else if (sideTab === 'map') {
-    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = MAP.t === 'port' ? 'Every yard, build site and objective on this map. Click one to fly there.' : 'This map has no laid-out objectives. The Port and mountains map has them all, labelled.'; sBody.append(n);
-    if (MAP.t !== 'port') sBody.append(mkB('Switch to Port and mountains (the world restarts)', 'sItem', () => startMap('port', 'port')));
+    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = MAP.t === 'port' ? 'Every yard, build site and objective on this map. Click one to fly there.' : isBattleMap() ? 'Every capture point on this map. Click one to fly there. The Battle tab runs the fight.' : 'This map has no laid-out objectives and no battle. The Port and mountains, Urban port and Desert maps have them, labelled.'; sBody.append(n);
+    if (!isBattleMap()) for (const k of BATTLE_KEYS) sBody.append(mkB('Switch to ' + BATTLE_MAPS[k].name + ' (the world restarts)', 'sItem', () => startMap(k, k)));
+    else if (MAP.t !== 'port') {
+      sBody.append(mkB(labelsOn ? 'Hide the labels' : 'Show the labels', 'sItem', () => { setLabels(!labelsOn); renderSide(); }));
+      const h = document.createElement('div'); h.className = 'sCat'; h.textContent = 'Capture points'; sBody.append(h);
+      for (const [name, x, z, ow] of BM().points) { const b = mkB('', 'sMain sRowBtn', () => camFlyTo(x, z, 55 * CELL)); b.style.width = '100%'; b.style.marginBottom = '4px'; const t = document.createElement('b'); t.textContent = name; const sm = document.createElement('small'); sm.textContent = ow === 'blue' ? 'Port base' : ow === 'red' ? 'Raider base' : 'Neutral'; b.append(t, sm); sBody.append(b); }
+    }
     else {
       if (!sites.length) sBody.append(mkB('Lay out the port', 'sItem', () => { portLaid = false; layPortScenario(); renderSide(); }));
       sBody.append(mkB(labelsOn ? 'Hide the labels' : 'Show the labels', 'sItem', () => { setLabels(!labelsOn); renderSide(); }));
@@ -3741,7 +3878,7 @@ function renderSide() {
       for (const st of sites) { const owner = st.owner || (st.kind === 'build' || st.kind === 'yard' ? 'Port' : ''); const stock = objects.filter(o => !o.gone && Math.hypot(o.body.position.x - st.x, o.body.position.z - st.z) < 14).length; const b = mkB('', 'sMain sRowBtn', () => camFlyTo(st.x, st.z, 45 * CELL)); b.style.width = '100%'; b.style.marginBottom = '4px'; const t = document.createElement('b'); t.textContent = SITE_INFO[st.kind][0] + (owner ? ' (' + owner + ')' : ''); const sm = document.createElement('small'); sm.textContent = st.kind === 'build' ? (st.done ? 'finished' : 'stage ' + st.stage + ' of 8') : st.kind === 'yard' ? stock + ' items stocked' : st.kind === 'plant' ? st.planted + ' trees planted' : SITE_INFO[st.kind][1]; b.append(t, sm); sBody.append(b); }
     }
   } else if (sideTab === 'battle') {
-    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'A battle for the capture points: knock out the other side, hold more points, and their tickets run down. Nobody is hurt; the fallen are carried off. Choose your loadout, the enemy and how many fight, then begin. Nothing starts until you do. Works best on the Port and mountains map.'; sBody.append(n);
+    const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'A battle for the capture points: knock out the other side, hold more points, and their tickets run down. Nobody is hurt; the fallen are carried off. Choose your loadout, the enemy and how many fight, then begin. Nothing starts until you do. Works on the Port and mountains, Urban port and Desert maps.'; sBody.append(n);
     const rg = (label, min, max, step, val, fn, fmt) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; l.textContent = label + ': ' + fmt(val); i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + fmt(+i.value); }); w.append(l, i); sBody.append(w); };
     rg('Bots per side', 3, isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; }, v => v);
     sBody.append(mkB('Enemy: ' + BATTLE.redKind + ' (tap to change)', 'sItem', () => { BATTLE.redKind = BATTLE.redKind === 'Raiders' ? 'Invaders' : 'Raiders'; renderSide(); }));
@@ -3809,7 +3946,7 @@ const LABELS = []; let labelsOn = false, portLaid = false;
 function addLabel(x, y, z, title, sub, col) {
   const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const c = cv.getContext('2d');
   c.fillStyle = 'rgba(10,22,28,0.7)'; c.fillRect(0, 0, 512, 128); c.strokeStyle = col || '#e3a948'; c.lineWidth = 6; c.strokeRect(3, 3, 506, 122);
-  c.fillStyle = col || '#e3a948'; c.font = 'bold 56px sans-serif'; c.fillText(title, 18, 78);
+  c.fillStyle = col || '#e3a948'; c.font = 'bold 56px sans-serif'; { const wd = c.measureText(title).width; if (wd > 476) c.font = 'bold ' + Math.floor(56 * 476 / wd) + 'px sans-serif'; } c.fillText(title, 18, 78);
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false }));
   sp.position.set(x, y, z); sp.renderOrder = 7; sp.visible = labelsOn; scene.add(sp); LABELS.push(sp); return sp;
 }
@@ -3882,9 +4019,197 @@ function layPortBuildings() {
   put('b-tent', 282, -44, 0); put('b-tent', 302, -36, 0); put('b-tent', 322, -44, 90); put('b-bunker', 309, -14, 0); put('p-barrier', 268, -28, 90);        // the raider camp on the east peninsula (the old spot, north-east at 258,-288, is open sea on this coastline)
   layFarms(put); ensureProps2().then(() => layScenery(put)).catch(() => { });
 }
+/*UD-LAYOUT-START*/
+/* ================================================================ the Urban port and the Desert: laying out buildings and props with checks (see MAP-URBAN-DESERT.md)
+   Every building goes through mapPut, which refuses a spot that is in the water, on a slope, on a road, inside another building or inside a capture point's open ground. Nothing is ever forced. */
+function obbOverlap(a, b, pad) {                                     // do two turned rectangles overlap (with a margin)? separating-axis test
+  const ac = Math.cos(a.t), as = Math.sin(a.t), bc = Math.cos(b.t), bs = Math.sin(b.t), dx = b.x - a.x, dz = b.z - a.z, A = [[ac, -as], [as, ac]], B = [[bc, -bs], [bs, bc]];
+  for (const ax of [A[0], A[1], B[0], B[1]]) {
+    const ra = a.hx * Math.abs(ax[0] * A[0][0] + ax[1] * A[0][1]) + a.hz * Math.abs(ax[0] * A[1][0] + ax[1] * A[1][1]), rb = b.hx * Math.abs(ax[0] * B[0][0] + ax[1] * B[0][1]) + b.hz * Math.abs(ax[0] * B[1][0] + ax[1] * B[1][1]);
+    if (Math.abs(dx * ax[0] + dz * ax[1]) > ra + rb + pad) return false;
+  }
+  return true;
+}
+function pointBoxDist(px, pz, f) { const dx = px - f.x, dz = pz - f.z, c = Math.cos(f.t), s = Math.sin(f.t), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.hypot(Math.max(Math.abs(lx) - f.hx, 0), Math.max(Math.abs(lz) - f.hz, 0)); }
+function footBlocked(x, z, pad) { for (const f of FOOT) { if (Math.abs(f.x - x) > f.hx + f.hz + pad + 1 || Math.abs(f.z - z) > f.hx + f.hz + pad + 1) continue; if (pointBoxDist(x, z, f) <= pad) return true; } return false; }     // is this spot inside (or within pad metres of) a placed building?
+function mapFits(itm, x, z, rotDeg, o) {                             // null if the thing fits here, otherwise the reason it does not
+  o = o || {}; const bx = o.box || (itm.box ? [itm.box[0], itm.box[2]] : [0.6, 0.6]), t = (rotDeg || 0) * Math.PI / 180, me = { x, z, hx: bx[0], hz: bx[1], t }, ms = o.m === undefined ? 1.0 : o.m;
+  if (Math.abs(x) > EXT - 14 || Math.abs(z) > EXT - 14) return 'edge';
+  const c = Math.cos(t), s = Math.sin(t); let lo = 1e9, hi = -1e9;
+  for (const [ax, az] of [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const lx = ax * me.hx, lz = az * me.hz, hh = heightAt(x + lx * c + lz * s, z - lx * s + lz * c); lo = Math.min(lo, hh); hi = Math.max(hi, hh); }
+  if (lo < (o.minH === undefined ? 0.9 : o.minH)) return 'water';
+  if (hi - lo > (o.slope === undefined ? 0.7 : o.slope)) return 'slope';
+  if (!o.free) for (const p of BM().points) if (pointBoxDist(p[1], p[2], me) < (o.clear === undefined ? 12 : o.clear)) return 'point';
+  const R = Math.hypot(me.hx, me.hz) + 8;
+  for (const e of roadDense()) { const bb = e.bb; if (x < bb[0] - R || x > bb[1] + R || z < bb[2] - R || z > bb[3] + R) continue; const lim = e.r.w / 2 + ms; for (const p of e.pts) { if (Math.abs(p.x - x) > R || Math.abs(p.z - z) > R) continue; if (pointBoxDist(p.x, p.z, me) < lim) return 'road'; } }
+  if (!o.over) for (const f of FOOT) { if (Math.abs(f.x - x) > f.hx + f.hz + me.hx + me.hz + 3 || Math.abs(f.z - z) > f.hx + f.hz + me.hx + me.hz + 3) continue; if (obbOverlap(me, f, o.pad === undefined ? 0.8 : o.pad)) return 'overlap'; }
+  return null;
+}
+function clearTreesRect(x0, x1, z0, z1) { for (const t of trees) if (!t.dead && t.x > x0 && t.x < x1 && t.z > z0 && t.z < z1) hideTree(t, false); }
+function mapPut(id, x, z, rotDeg, o) {                               // place one building or prop if it fits. Returns true if it was placed
+  const itm = BUILD.find(b => b.id === id); if (!itm) { PUTS.rej.noitem = (PUTS.rej.noitem || 0) + 1; return false; } o = o || {};
+  const tiny = !itm.box || itm.box[0] * itm.box[2] < 1.5; if (tiny ? PUTS.tiny >= PUTS.capTiny : PUTS.n >= PUTS.capN) { PUTS.rej.cap = (PUTS.rej.cap || 0) + 1; return false; }
+  const why = mapFits(itm, x, z, rotDeg, o); if (why) { PUTS.rej[why] = (PUTS.rej[why] || 0) + 1; return false; }
+  const bx = o.box || (itm.box ? [itm.box[0], itm.box[2]] : [0.6, 0.6]);
+  if (!tiny) { const r = Math.hypot(bx[0], bx[1]) + 1.5; clearTreesRect(x - r, x + r, z - r, z + r); }
+  const sv = buildRot; buildRot = (rotDeg || 0) * Math.PI / 180; place(itm, { x, z }); buildRot = sv;
+  if (bx[0] > 0.8 || bx[1] > 0.8) FOOT.push({ x, z, hx: bx[0], hz: bx[1], t: (rotDeg || 0) * Math.PI / 180 }); tiny ? PUTS.tiny++ : PUTS.n++; return true;
+}
+
+/* ---- sizes of the buildings (half width, half depth), as in BUILD, for the planners */
+const SZ = { 'b-house-a': [4.1, 3.6], 'b-house-b': [4.2, 3.6], 'b-house-c': [4.1, 3.6], 'b-workshop': [6.2, 4], 'b-office': [7, 5.6], 'b-warehouse': [15, 7], 'b-hangar': [12, 10], 'b-tank': [5.2, 5.1], 'b-silo': [3.1, 2.8], 'b-guard': [2, 2], 'b-tower': [1.5, 1.5], 'b-bunker': [4, 3], 'b-tent': [3.1, 2.1], 'p-cont-red': [3, 1.2], 'p-cont-blue': [3, 1.2], 'p-cont-green': [3, 1.2], 'p-cont-orange': [3, 1.2] };
+const sz = (id) => SZ[id] || [1, 1];
+const CONT = ['p-cont-red', 'p-cont-blue', 'p-cont-green', 'p-cont-orange'];
+
+function layoutUrban(put, R) {
+  const U = URB, hs = ['b-house-a', 'b-house-b', 'b-house-c'], DS = isTouch ? 0.36 : 0.85; let DENS = 1;         // DENS scales how many of the planned buildings are built: full in the dense blocks, thinner elsewhere, so the city stays near the Port map's prop count
+  const colE = [-U.XE, ...U.X, U.XE], rowE = [U.ZN, ...U.Z];
+  const rowX = (x0, x1, zEdge, side, types, gap, skip) => {          // a row of buildings along x, backs to the edge z, fronts to the street (side +1: the row hangs south of the edge and faces north)
+    let x = x0, k = 0; for (let n = 0; n < 40; n++) { const id = typeof types === 'function' ? types(k++) : types[k++ % types.length], [hx, hz] = sz(id); if (x + 2 * hx > x1) break; if (skip === 0 || R() >= 1 - (1 - skip) * DENS) put(id, x + hx + (R() - 0.5) * 0.6, zEdge + side * hz, side > 0 ? 180 : 0); x += 2 * hx + gap + R() * 2.2; }
+  };
+  const colZ = (z0, z1, xEdge, side, types, gap, skip) => {          // the same along z (side +1: the column hangs east of the edge and faces west)
+    let z = z0, k = 0; for (let n = 0; n < 40; n++) { const id = typeof types === 'function' ? types(k++) : types[k++ % types.length], [hx, hz] = sz(id); if (z + 2 * hx > z1) break; if (skip === 0 || R() >= 1 - (1 - skip) * DENS) put(id, xEdge + side * hz, z + hx + (R() - 0.5) * 0.6, side > 0 ? -90 : 90); z += 2 * hx + gap + R() * 2.2; }
+  };
+  const conts = (x0, z0, nx, nz, rot) => { for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) put(CONT[(i + j * 2 + Math.floor(R() * 3)) % 4], x0 + (rot ? j * 2.9 : i * 6.3), z0 + (rot ? i * 6.3 : j * 2.9), rot, { pad: -0.3 }); };
+  const mix = (k) => k % 3 === 0 ? 'b-office' : k % 3 === 1 ? 'b-workshop' : hs[k % 2];
+  const T = [
+    ['lot', 'barracks', 'lot', 'depot', 'lot', 'barracks', 'lot'],
+    ['houses', 'mixed', 'park', 'office', 'houses', 'mixed', 'lot'],
+    ['lot', 'rail', 'houses', 'oldtown', 'houses', 'stadium', 'lot'],
+    ['mixed', 'office', 'lot', 'square', 'office', 'houses', 'lot'],
+    ['lot', 'ware', 'market', 'office', 'lot', 'ware', 'houses'],
+  ];
+  const blocks = [], paved = [];
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 7; c++) {
+    const xa = colE[c], xb = colE[c + 1], za = rowE[r], zb = rowE[r + 1], b = { c, r, kind: T[r][c], x0: xa + (c === 0 ? 10 : 6.4), x1: xb - (c === 6 ? 10 : 6.4), z0: za + (r === 0 ? 10 : 6.9), z1: zb - 6.9 };
+    b.cx = (b.x0 + b.x1) / 2; b.cz = (b.z0 + b.z1) / 2; b.px = [c === 0 ? -306 : xa + 2.8, c === 6 ? 306 : xb - 2.8, r === 0 ? -310 : za + 3.3, zb - 3.3]; blocks.push(b);
+  }
+  // the quay: the dock yard, the apron, two piers, cranes, containers, warehouses, lamps and bollards
+  for (const x of [-265, -105, 65, 250]) put('b-crane', x, 248, -90, { box: [7, 6], clear: 0 });
+  for (const x of [-290, -125, -62, 62, 125, 290]) put('b-warehouse', x, 214, 0);
+  conts(-292, 236, 3, 2, 0); conts(256, 236, 3, 2, 0); conts(-118, 238, 3, 2, 0); conts(70, 238, 3, 2, 0);
+  put('p-pallets', -20, 214, 20); put('p-pallets', 24, 216, 40); put('p-pallets', -150, 244, 0); put('p-pallets', 150, 244, 0);
+  put('light', 116, 316, 0, { free: true, box: [2, 2] }); put('b-guard', -3, 205, 0); put('b-guard', 3, 205, 0); put('p-sign', 10, 205, 0);
+  for (let x = -300; x <= 300; x += 80) if (!U.X.some(sx => Math.abs(x - sx) < 8)) { put('p-lamp', x, U.QZ + 5.6, 0, { m: 0.3 }); put('p-lamp', x + 33, U.QZ - 5.6, 180, { m: 0.3 }); }
+  for (let x = -300; x <= 300; x += 56) put('p-bollard', x, 254.5, 0, { m: 0.3 });
+  for (const z of [U.Z[1], U.Z[2], U.Z[3]]) for (let x = -290; x <= 290; x += 70) if (!U.X.some(sx => Math.abs(x - sx) < 8)) put('p-lamp', x, z + (x % 100 ? 5.4 : -5.4), 0, { m: 0.3 });
+  for (const [x, z] of [[-60, 150], [60, 150], [-180, 150], [180, 150]]) put('p-barrier', x, z, 90);
+  const order = blocks.map((b, i) => [R(), i]).sort((a, b) => a[0] - b[0]).map(q => blocks[q[1]]);          // blocks are built in a shuffled order, so if the prop limit is reached it thins the city evenly rather than leaving one end bare
+  for (const b of order) {
+    const k = b.kind; DENS = (k === 'houses' || k === 'mixed' || k === 'oldtown' || k === 'office' ? 1 : 0.6) * DS;
+    if (k === 'houses') { rowX(b.x0, b.x1, b.z0, 1, hs, 3.2, 0.06); rowX(b.x0, b.x1, b.z1, -1, hs, 3.2, 0.06); rowX(b.x0 + 4, b.x1 - 4, b.cz - 3.6, 1, hs, 4.5, 0.45); colZ(b.z0 + 17, b.z1 - 17, b.x0, 1, hs, 3.5, 0.55); colZ(b.z0 + 17, b.z1 - 17, b.x1, -1, hs, 3.5, 0.55); }
+    else if (k === 'mixed') { rowX(b.x0, b.x1, b.z0, 1, mix, 3.4, 0.08); rowX(b.x0, b.x1, b.z1, -1, mix, 3.4, 0.08); rowX(b.x0 + 4, b.x1 - 4, b.cz - 3.6, 1, mix, 5, 0.55); colZ(b.z0 + 18, b.z1 - 18, b.x0, 1, mix, 4, 0.6); colZ(b.z0 + 18, b.z1 - 18, b.x1, -1, mix, 4, 0.6); }
+    else if (k === 'office') { rowX(b.x0, b.x1, b.z0, 1, ['b-office'], 5, 0.05); rowX(b.x0, b.x1, b.z1, -1, ['b-office'], 5, 0.05); rowX(b.x0 + 8, b.x1 - 8, b.cz - 5.6, 1, ['b-office'], 6, 0.35); }
+    else if (k === 'oldtown') { rowX(b.x0, b.x1, b.z0, 1, hs, 2.8, 0.05); rowX(b.x0, b.x1, b.z1, -1, hs, 2.8, 0.05); rowX(b.x0 + 3, b.x1 - 3, b.z0 + 17, 1, hs, 3.4, 0.2); rowX(b.x0 + 3, b.x1 - 3, b.z1 - 17, -1, hs, 3.4, 0.2); colZ(b.z0 + 24, b.z1 - 24, b.x0, 1, hs, 3, 0.25); colZ(b.z0 + 24, b.z1 - 24, b.x1, -1, hs, 3, 0.25); }
+    else if (k === 'ware') { rowX(b.x0, b.x1, b.z0, 1, ['b-warehouse'], 7, 0); rowX(b.x0, b.x1, b.z1, -1, ['b-warehouse'], 7, 0); put('b-tank', b.cx - 24, b.cz, 0); put('b-tank', b.cx + 24, b.cz, 0); put('b-silo', b.cx, b.cz - 4, 0); put('b-silo', b.cx + 8, b.cz + 4, 0); put('b-guard', b.x0 + 4, b.cz, 0); }
+    else if (k === 'rail') { rowX(b.x0, b.x1, b.z0, 1, ['b-warehouse'], 9, 0); rowX(b.x0 + 4, b.x1 - 4, b.z1, -1, ['b-hangar'], 6, 0); conts(b.x0 + 2, b.cz - 6, 3, 1, 0); conts(b.x1 - 22, b.cz - 6, 3, 1, 0); for (const [x, z] of [[b.x0 + 2, b.z0 + 20], [b.x1 - 2, b.z0 + 20], [b.x0 + 2, b.z1 - 24], [b.x1 - 2, b.z1 - 24]]) put('b-tower', x, z, 0); for (const x of [b.cx - 20, b.cx + 20]) put('p-barrier', x, b.cz + 14, 90); }
+    else if (k === 'stadium') { const px = b.cx, pz = b.cz;
+      put('b-warehouse', px, pz - 34, 0); put('b-warehouse', px, pz + 34, 0); for (const [dx, dz] of [[-34, -26], [34, -26], [-34, 26], [34, 26]]) put('b-tower', px + dx, pz + dz, 0);
+      for (let i = -7; i <= 7; i += 2) { put('p-fence', px + i * 4.1, pz - 22, 0); put('p-fence', px + i * 4.1, pz + 22, 0); } for (let i = -4; i <= 4; i += 2) { put('p-fence', px - 32, pz + i * 4.1, 90); put('p-fence', px + 32, pz + i * 4.1, 90); }
+      for (const dx of [-20, -8, 8, 20]) { put('x-bench', px + dx, pz - 26, 0); put('x-bench', px + dx, pz + 26, 180); } put('b-guard', px - 36, pz - 14, 0); put('b-guard', px + 36, pz + 14, 0); }
+    else if (k === 'square') { for (const [dx, dz] of [[-21, -3], [21, 3], [-12, -21], [12, -21], [-12, 21], [12, 21]]) put('x-market_stall', b.cx + dx, b.cz + dz, dz === 0 || Math.abs(dz) < 5 ? 90 : 0); for (let a = 0; a < 8; a++) put('x-bench', b.cx + Math.cos(a * 0.785 + 0.4) * 16, b.cz + Math.sin(a * 0.785 + 0.4) * 16, (a * 45 + 90) % 360, { clear: 0 });
+      rowX(b.x0 + 6, b.x1 - 6, b.z0, 1, ['b-office'], 10, 0); rowX(b.x0 + 6, b.x1 - 6, b.z1, -1, ['b-office'], 10, 0); put('x-bus_stop', b.x0 + 3, b.cz - 14, 90); put('x-bus_stop', b.x1 - 3, b.cz + 14, -90); put('x-phone_box', b.cx + 26, b.cz - 10, 0); put('x-flagpole', b.cx - 14, b.cz - 14, 0); put('x-flagpole', b.cx + 14, b.cz + 14, 0); }
+    else if (k === 'market') { for (let i = 0; i < 6; i++) put('x-market_stall', b.cx - 26 + (i % 3) * 26, b.cz - 20 + Math.floor(i / 3) * 40, 0); for (let i = 0; i < 4; i++) put('x-picnic_table', b.cx - 30 + i * 20, b.cz + 4 * (i % 2 ? 1 : -1), 0); for (let a = 0; a < 6; a++) put('x-bench', b.cx + Math.cos(a * 1.05) * 36, b.cz + Math.sin(a * 1.05) * 30, a * 60); }
+    else if (k === 'park') { for (let a = 0; a < 7; a++) put('x-bench', b.cx + Math.cos(a * 0.9) * 22, b.cz + Math.sin(a * 0.9) * 22, a * 52 + 90); put('x-picnic_table', b.cx + 30, b.cz + 30, 0); put('x-picnic_table', b.cx - 30, b.cz - 30, 0); put('x-flagpole', b.cx + 24, b.cz - 24, 0); }
+    else if (k === 'barracks') { const cx = b.cx, cz = b.cz + 6;
+      for (let i = 0; i < 4; i++) put('b-tent', cx - 34 + (i % 2) * 24, cz - 22 + Math.floor(i / 2) * 40, i % 2 ? 90 : 0); put('x-tent_large', cx - 14, cz - 4, 0); put('x-tent_large', cx + 18, cz - 8, 90); put('x-camo_net', cx - 36, cz + 4, 0); put('x-camo_net', cx + 36, cz - 4, 0);
+      put('b-bunker', b.x0 + 10, b.z0 + 6, 0); put('b-bunker', b.x1 - 10, b.z0 + 6, 0); put('b-guard', b.cx - 4, b.z1 - 2, 0); put('b-guard', b.cx + 4, b.z1 - 2, 0); put('b-workshop', b.cx, b.z0 + 8, 0); for (const [dx, dz] of [[-12, 16], [12, 16], [-26, 8], [26, 8]]) put('p-barrier', cx + dx, cz + dz, 90); put('x-flagpole', cx + 22, cz + 18, 0);
+      for (let i = -5; i <= 5; i++) put('p-fence', b.cx + i * 8.2, b.z0 - 1, 0); }
+    else if (k === 'lot') { rowX(b.x0, b.x1, b.z1, -1, ['b-workshop'], 14, 0.3); conts(b.x0 + 4, b.z0 + 6, 2, 1, 0); if (b.c === 0) put('x-water_tower', b.cx + 10, b.z0 + 14, 0); }
+    else if (k === 'depot') { rowX(b.x0, b.x1, b.z1, -1, ['b-warehouse'], 10, 0); rowX(b.x0, b.x1, b.z0, 1, ['b-hangar'], 12, 0); conts(b.cx - 26, b.cz - 4, 3, 1, 0); }
+    if (k !== 'park' && k !== 'market' && k !== 'stadium') paved.push(b.px);
+  }
+  // the paved ground: every block but the parks and the stadium pitch, the dock yard, the apron and the piers
+  paved.push([-306, 306, 162, 198], [-310, 310, 198, 261]); for (const [a, b, z1] of U.piers) paved.push([a + 1, b - 1, 258, z1 - 3]);
+  return { blocks, paved };
+}
+
+function layoutDesert(put, R) {
+  const hs = ['b-house-a', 'b-house-b', 'b-house-c'];
+  const conts = (x0, z0, nx, nz, rot) => { for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) put(CONT[(i + j * 2 + Math.floor(R() * 3)) % 4], x0 + (rot ? j * 2.9 : i * 6.3), z0 + (rot ? i * 6.3 : j * 2.9), rot, { pad: -0.3 }); };
+  const fence = (x0, z0, x1, z1) => { const n = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / 4.1)), rot = Math.abs(x1 - x0) > Math.abs(z1 - z0) ? 0 : 90; for (let i = 0; i <= n; i++) put('p-fence', x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n, rot, { pad: -0.3 }); };
+  // the port at the south end: warehouses, hangars, cranes, containers, lamps, bollards, a lighthouse
+  for (const x of [-120, -30, 30, 120]) put('b-crane', x, 282, -90, { box: [7, 6], clear: 0 });
+  for (const x of [-50, 0, 50]) put('b-warehouse', x, 259, 0); put('b-hangar', -168, 262, 0); put('b-hangar', 168, 262, 0);
+  conts(-92, 269.8, 4, 2, 0); conts(44, 269.8, 4, 2, 0); conts(-176, 285, 3, 1, 0); conts(160, 285, 3, 1, 0);
+  put('b-guard', -8, 236, 0); put('b-guard', 8, 236, 0); put('p-sign', 14, 232, 0); put('b-workshop', -100, 232, 0); put('b-workshop', 100, 232, 0);
+  for (let x = -160; x <= 160; x += 40) put('p-lamp', x, 250.6, 0, { m: 0.3 }); for (let x = -170; x <= 170; x += 60) put('p-bollard', x, 285.5, 0, { m: 0.3 });
+  put('light', 0, 285, 0, { free: true, box: [2, 2] }); put('p-pallets', -20, 268, 20); put('p-pallets', 20, 266, 40);
+  // the oil pump station
+  for (const x of [-224, -200, -176]) put('b-tank', x, 50, 0); put('b-workshop', -230, 100, 0); put('b-workshop', -170, 100, 0); put('b-silo', -204, 102, 0); put('b-silo', -196, 106, 0); put('x-water_tower', -166, 58, 0);
+  fence(-238, 38, -162, 38); put('x-signboard', -190, 112, 0); put('p-barrier', -240, 76, 90); put('p-barrier', -160, 76, 90); put('x-tyre_stack', -215, 88, 0); put('x-tyre_stack', -212, 90, 0);
+  // the fuel depot
+  for (const x of [130, 146, 162, 178]) put('b-tank', x, -4, 0); put('b-warehouse', 172, 56, 0); put('x-fuel_pump', 140, 48, 0); put('x-fuel_pump', 146, 48, 0); put('b-tower', 124, 60, 0); put('b-tower', 196, 12, 0);
+  for (const x of [128, 136, 144]) put('p-barrier', x, 24, 90); put('x-tyre_stack', 192, 30, 0); put('x-signboard', 150, 62, 0); fence(126, 14, 196, 14);
+  // the ruined village, round the highway: houses turned this way and that, sandbag walls for rubble
+  const vil = [[-45, -42, 100], [-52, -95, 20], [-30, -102, -15], [8, -60, -90], [14, -84, 180], [12, -36, -70], [24, -110, 190], [30, -62, 95], [-62, -25, 110], [-8, -24, 5], [40, -38, 170], [-72, -48, 60]];
+  vil.forEach(([x, z, r], i) => put(i % 4 === 3 ? 'b-workshop' : hs[i % 3], x, z, r)); put('x-water_tower', -74, -28, 0);
+  for (const [x, z, r] of [[4, -78, 20], [-8, -46, 80], [2, -66, 100], [-14, -50, 10], [-36, -60, 5], [8, -48, 70], [-4, -92, 0], [-40, -22, 90]]) put(Math.abs(r) % 20 < 10 ? 'x-sandbag_wall' : 'x-jersey_barrier', x, z, r, { clear: 5 }); put('x-market_stall', -18, -34, 0, { clear: 6 }); put('x-market_stall', -6, -34, 0, { clear: 6 }); put('x-log_pile', 6, -76, 30, { clear: 5 }); put('x-signboard', -30, -48, 0, { clear: 6 });
+  // the oasis: a camp, benches, hay, tents
+  put('x-tent_large', -250, -116, 0); put('b-tent', -224, -118, 0); put('b-tent', -276, -120, 90); put('x-bench', -262, -178, 0); put('x-bench', -238, -180, 0); put('x-picnic_table', -250, -184, 0); put('x-hay_bale', -222, -176, 20); put('x-hay_bale', -216, -172, 70); put('x-signboard', -214, -124, 0);
+  // the radio outpost on its hill: masts, a tower, guards, tents at the corners of the flat top
+  put('x-radio_mast', 212, -204, 0); put('x-radio_mast', 188, -176, 0); put('b-tower', 214, -178, 0); put('b-guard', 188, -204, 0); put('b-tent', 216, -192, 90); put('b-tent', 184, -190, 0); put('b-bunker', 200, -207, 0); put('p-barrier', 200, -173, 0); put('x-camo_net', 212, -166, 0);
+  // the northern camp
+  for (let i = 0; i < 6; i++) put('b-tent', -134 + (i % 3) * 18, -304 + Math.floor(i / 3) * 14, i % 2 ? 90 : 0); put('x-tent_large', -66, -300, 0); put('x-tent_large', -66, -270, 90); put('x-camo_net', -130, -262, 0); put('x-camo_net', -76, -256, 0);
+  put('b-bunker', -140, -276, 0); put('b-bunker', -62, -282, 0); put('b-workshop', -100, -312, 0); put('b-guard', -104, -258, 0); put('b-guard', -96, -258, 0); put('x-flagpole', -118, -304, 0); for (const x of [-120, -80]) put('p-barrier', x, -266, 0);
+  // the wadi fort
+  put('b-bunker', 100, -300, 0); put('b-bunker', 140, -296, 0); put('b-bunker', 120, -272, 90); put('b-tower', 142, -278, 0); put('b-workshop', 120, -318, 0); put('b-guard', 108, -266, 0); put('b-guard', 132, -266, 0); put('x-flagpole', 136, -312, 0);
+  // the dune ridge look-out on its flat top
+  put('b-tower', 45, 156, 0); put('b-tent', 62, 134, 0); put('x-sandbag_wall', 30, 138, 90); put('x-signboard', 45, 125, 0); put('b-bunker', 28, 152, 0);
+  return { paved: [[-176, 176, 228, 291]], gravel: [[-240, -160, 40, 110], [120, 200, -5, 65], [-140, -60, -310, -250], [90, 150, -320, -270], [178, 222, -212, -168], [25, 65, 120, 160]] };
+}
+
+/* ---- laying out the Urban port or the Desert once the buildings are loaded: roads, paving, buildings, boats at the quays, a few civilians (they clear off when a battle begins) */
+let mapLaid = false;
+function layMapScenario() {
+  if (mapLaid || !isBattleMap() || MAP.t === 'port') return; mapLaid = true;
+  const urban = MAP.t === 'urban', B = BM(), mk = mulberry(seedNum('layout:' + MAP.seed));
+  for (const [name, x, z, ow] of B.points) addLabel(x, Math.max(heightAt(x, z), 0) + 9, z, name.toUpperCase(), '', ow === 'blue' ? '#6f9be6' : ow === 'red' ? '#e0584a' : '#d9c277');
+  camFlyTo(0, urban ? 60 : 150, urban ? 380 : 430); god.yaw = Math.PI * 0.95;
+  ensurePort().then(() => ensureProps2()).then(() => {
+    buildRoadMesh();
+    const res = urban ? layoutUrban(mapPut, mk) : layoutDesert(mapPut, mk);
+    const fm = PAVE.concrete.clone(), gm = PAVE.gravel.clone(); fm.depthWrite = false; gm.depthWrite = false;                 // floors are drawn after the ground and before the road ribbons, and write no depth, so a road crossing a floor always shows on top of it
+    for (const r of res.paved || []) { const m = pavedGrid('concrete', (r[0] + r[1]) / 2, (r[2] + r[3]) / 2, r[1] - r[0], r[3] - r[2], 0, 0.03, 8, fm, true); m.renderOrder = 0.5; PAVED.push(r); }
+    for (const r of res.gravel || []) { const m = pavedGrid('gravel', (r[0] + r[1]) / 2, (r[2] + r[3]) / 2, r[1] - r[0], r[3] - r[2], 0, 0.03, 6, gm, true); m.renderOrder = 0.5; }
+    window.__layout = { n: PUTS.n, tiny: PUTS.tiny, rejected: PUTS.rej, foot: FOOT.length };
+    if (BATTLE.on) return;
+    const moor = (key, x, z, hd) => { try { const b = makeBoat(key, null, null, x, z, hd); b.anchor = b.body.position.clone(); b.status = 'Anchored'; ensureSkipper(b); } catch (e) { } };
+    if (urban) {
+      moor('bollard', -120, 296, Math.PI / 2); moor('kestrel', -40, 304, 0.3); moor('bay', 40, 296, 2.4); moor('petrel', 62, 312, 0.6);
+      placePeople(3, { x: 0, z: 30 }, 'Tourist'); placePeople(2, { x: 12, z: 28 }, 'Photographer'); placePeople(3, { x: 20, z: 232 }, 'Dock worker'); placePeople(2, { x: -100, z: 125 }, 'Hiker'); placePeople(2, { x: -70, z: 232 }, 'Dock worker');
+      ensureVehicles().then(() => { makeVehicle('patrolcar', 0, 70, 0, {}); makeVehicle('cargotruck', -30, 226, 0, {}); }).catch(() => { });
+    } else {
+      moor('bollard', -60, 312, Math.PI / 2); moor('kestrel', 40, 320, 0.5); moor('bay', 100, 306, 1.9);
+      placePeople(3, { x: 20, z: 252 }, 'Dock worker'); placePeople(2, { x: -230, z: -120 }, 'Hiker'); placePeople(2, { x: -20, z: -50 }, 'Photographer'); placePeople(2, { x: 150, z: 20 }, 'Builder');
+      ensureVehicles().then(() => { makeVehicle('patrolcar', 0, 214, 0, {}); makeVehicle('cargotruck', 20, 238, 0, {}); }).catch(() => { });
+    }
+    updateCount(); noteOnce('maplaid', 'The ' + B.name + ' is laid out. Open the side pane, Map tab, to see every objective.');
+  }).catch((e) => { mapLaid = false; window.__layerr = String(e && e.stack || e); toast('The buildings could not be loaded'); });
+}
+function offerBattleMaps() {                                          // a battle was asked for on a map that cannot hold one: open the Map tab with the three maps that can
+  toast('Battles are played on the Port and mountains, Urban port or Desert maps. Pick one in the Map tab.');
+  try { sideTab = 'map'; setSide(true); renderSide(); } catch (e) { }
+}
+
+/* ---- trees: street trees and parks in the city, the oasis palms in the desert */
+function mapTreeAdd(x, z, kind, sc) { const h = heightAt(x, z); if (h < 1.3 || trees.length > 4600 || roadProbe(x, z, 9).d < 3.2) return; if (footBlocked(x, z, 0)) return; trees.push({ x, z, h, kind, sc: sc || 0.8 + Math.random() * 0.4, rot: Math.random() * 6.28, v: Math.floor(Math.random() * 4) }); }
+function urbanTrees() {
+  const U = URB, rr = (a, b) => a + Math.random() * (b - a);
+  for (const z of [U.Z[1], U.Z[2], U.Z[3], U.QZ]) for (let x = -300; x <= 300; x += 22) { if (U.X.some(sx => Math.abs(x - sx) < 10)) continue; for (const sg of [-1, 1]) mapTreeAdd(x + rr(-1, 1), z + sg * 6.0, 'broadleaf', 0.85); }
+  for (const [cx, cz, n, R] of [[-100, -180, 30, 40], [-100, 115, 16, 38], [0, 20, 8, 30]]) for (let i = 0; i < n; i++) { const a = rr(0, 6.28), d = Math.sqrt(Math.random()) * R; if (d < 11) continue; mapTreeAdd(cx + Math.cos(a) * d, cz + Math.sin(a) * d * 0.9, i % 4 === 0 ? 'shrub' : 'broadleaf'); }
+}
+function desertTrees() {
+  const O = DES.oasis, rr = (a, b) => a + Math.random() * (b - a);
+  for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283 + rr(-0.2, 0.2), d = rr(21, 34); mapTreeAdd(O.x + Math.cos(a) * d, O.z + Math.sin(a) * d, 'palm', rr(0.9, 1.25)); }
+  for (let i = 0; i < 18; i++) { const a = rr(0, 6.283), d = rr(19, 42); mapTreeAdd(O.x + Math.cos(a) * d, O.z + Math.sin(a) * d, 'shrub', rr(0.8, 1.2)); }
+}
+/*UD-LAYOUT-END*/
 let ambT = 0;
 function portAmbience(dt) {
-  if (MAP.t !== 'port' || !Snd.ready) return; ambT -= dt; if (ambT > 0) return; ambT = 1; const L = Snd.L || { x: god.tgt.x, z: god.tgt.z }, near = (x, z, R) => Math.max(0, 1 - Math.hypot(L.x - x, L.z - z) / R);
+  if (!isBattleMap() || !Snd.ready) return; ambT -= dt; if (ambT > 0) return; ambT = 1; const L = Snd.L || { x: god.tgt.x, z: god.tgt.z }, near = (x, z, R) => Math.max(0, 1 - Math.hypot(L.x - x, L.z - z) / R);
+  if (MAP.t === 'urban') { Snd.set('bed:amb_town', 'amb_town', Math.max(near(0, 20, 330), 0.2) * 0.5, { tc: 1.5 }); Snd.set('bed:amb_quay', 'amb_quay', near(0, 228, 150) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 }); return; }
+  if (MAP.t === 'desert') { Snd.set('bed:amb_quay', 'amb_quay', near(0, 268, 140) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 }); return; }
   Snd.set('bed:amb_farm', 'amb_farm', Math.max(near(-235, -160, 130), near(205, -185, 130)) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_town', 'amb_town', near(0, -40, 160) * 0.5, { tc: 1.5 }); Snd.set('bed:amb_quay', 'amb_quay', near(-30, 70, 120) * 0.55, { tc: 1.5 });
   Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 });
 }
@@ -3933,7 +4258,7 @@ function portDay() {                                               // a scripted
   ev('Smuggling run')(); later(60, ev('Raider attack')); later(130, ev('Landing party')); later(230, ev('Developer rush')); later(330, ev('Foreign invasion'));
   toast('The day is running: a smuggler now, then raiders, a landing party, developers and an invasion in turn.');
 }
-setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); }, 3000);
+setTimeout(() => { if (MAP.t === 'port' && !sites.length) layPortScenario(); else if (MAP.t === 'urban' || MAP.t === 'desert') layMapScenario(); }, 3000);
 
 /* ================================================================ paving (concrete, asphalt, gravel, road markings) and the port buildings, loaded the first time they are needed */
 let portP = null; const PAVE = {}, pavedMeshes = [];
@@ -3984,19 +4309,21 @@ function buildRoadMesh() {
     }
     for (let i = 0; i < n - 1; i++) { const a = i * 2, b = a + 1, c = a + 2, d = a + 3; idx.push(a, b, c, b, d, c); }
     const mk = (uv, mat, ro, lift) => { const p2 = pos.slice(); if (lift) for (let q = 1; q < p2.length; q += 3) p2[q] += lift; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p2, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); const m = new THREE.Mesh(g, mat); m.receiveShadow = true; m.renderOrder = ro; scene.add(m); pavedMeshes.push(m); };
-    mk(uvA, PAVE.asphalt, 1, 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03); for (let q = 0; q < pts.length; q += 2) maskGrass(pts[q].x, pts[q].z, r.w + 2, r.w + 2, 0);       // a square, so an east-west road (Main Street is 9 m wide) is covered across its full width, not just the middle 4.5 m
+    mk(uvA, r.mat ? PAVE[r.mat] : PAVE.asphalt, 1, r.mat ? -0.03 : 0); if (r.marks) mk(uvM, PAVE.marks, 2, 0.03); for (let q = 0; q < pts.length; q += 2) maskGrass(pts[q].x, pts[q].z, r.w + 2, r.w + 2, 0);       // a square, so an east-west road (Main Street is 9 m wide) is covered across its full width, not just the middle 4.5 m
     for (const p of pts) { const j = Math.floor((W2G(p.x) - 2) / 4 + 0.5), i2 = Math.floor((W2G(p.z) - 2) / 4 + 0.5); if (i2 >= 0 && j >= 0 && i2 < 64 && j < 64) ROADCELL[i2 * 64 + j] = 1; }
   }
   // each junction gets one clean asphalt patch where the side road meets the through road. It sits above the road markings, so the side road's centre and edge lines stop at the kerb instead of striping across the through road, and the through road's edge line does not run across the mouth of the side road. (The old 11 m diamond poked its corners out onto the grass.)
   const jm = PAVE.asphalt.clone(); jm.polygonOffsetFactor = -9; jm.polygonOffsetUnits = -9; const dense = roadDense();
   for (const [jx, jz] of ROAD_JUNCTIONS) {
-    let side = null, hwT = 0;
-    for (const r of ROADS) { const a = r.pts[0], b = r.pts[r.pts.length - 1]; if (Math.hypot(a[0] - jx, a[1] - jz) < 1) side = { r, o: r.pts[1] }; else if (Math.hypot(b[0] - jx, b[1] - jz) < 1) side = { r, o: r.pts[r.pts.length - 2] }; }
-    if (!side) continue;
-    for (const { r, pts } of dense) if (r !== side.r && pts.some(p => Math.hypot(p.x - jx, p.z - jz) < 1.5)) hwT = Math.max(hwT, r.w / 2);
-    if (!hwT) continue;
-    const dx = side.o[0] - jx, dz = side.o[1] - jz, dl = Math.hypot(dx, dz) || 1, ux = dx / dl, uz = dz / dl;
-    pavedGrid('asphalt', jx + ux * 0.55, jz + uz * 0.55, 2 * hwT - 0.1, side.r.w, Math.atan2(dz, dx), 0.1, 8, jm);
+    const sides = [];                                                              // every road that starts or ends here (on the Port map one; in the Urban port a street can meet the avenue from both sides)
+    for (const r of ROADS) { const a = r.pts[0], b = r.pts[r.pts.length - 1]; if (Math.hypot(a[0] - jx, a[1] - jz) < 1) sides.push({ r, o: r.pts[1] }); else if (Math.hypot(b[0] - jx, b[1] - jz) < 1) sides.push({ r, o: r.pts[r.pts.length - 2] }); }
+    for (const side of sides) {
+      let hwT = 0;
+      for (const { r, pts } of dense) if (r !== side.r && pts.some(p => Math.hypot(p.x - jx, p.z - jz) < 1.5)) hwT = Math.max(hwT, r.w / 2);
+      if (!hwT) continue;
+      const dx = side.o[0] - jx, dz = side.o[1] - jz, dl = Math.hypot(dx, dz) || 1, ux = dx / dl, uz = dz / dl;
+      pavedGrid('asphalt', jx + ux * 0.55, jz + uz * 0.55, 2 * hwT - 0.1, side.r.w, Math.atan2(dz, dx), 0.1, 8, jm);
+    }
   }
 }
 const ROADCELL = new Uint8Array(64 * 64);
@@ -4019,7 +4346,7 @@ const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['ri
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
 function kitButtons(host, after) { const h = document.createElement('div'); h.className = 'sChips'; for (const k in LOADOUTS) { const b = document.createElement('button'); b.type = 'button'; b.textContent = LOADOUTS[k].name; b.title = LOADOUTS[k].note; b.setAttribute('aria-pressed', String((BATTLE.kit || 'assault') === k)); b.addEventListener('click', () => { BATTLE.kit = k; after(); }); h.append(b); } host.append(h); const n = document.createElement('div'); n.className = 'sNote'; n.textContent = 'Loadout: ' + LOADOUTS[BATTLE.kit || 'assault'].name + ', ' + LOADOUTS[BATTLE.kit || 'assault'].note + '.'; host.append(n); }
 const BATTLE = { on: false, over: false, size: isTouch ? 5 : 9, tickets: { blue: 80, red: 80 }, kills: { blue: 0, red: 0 }, points: [], t: 0, planT: 0, spawnT: 0, redKind: 'Raiders', team: 'blue', plan: {}, hurtT: 0, feed: [], capT: 0, bleedT: 0, squadMode: 'follow' };
-const BPT_DEFS = [['Quay West', -150, 78, 'blue'], ['Quay East', 90, 76, 'blue'], ['Town centre', -20, -40, null], ['West farm', -235, -160, null], ['East farm', 205, -185, null], ['Lighthouse', -336, 56, null], ['Mountain lake', -68, -228, null], ['Landing beach', 228, 84, 'red'], ['Raider camp', 305, -32, 'red']];
+/* the capture points of each map are in BATTLE_MAPS (near the top of the script) */
 const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red' : null), otherTeam = (t) => t === 'blue' ? 'red' : 'blue';
 const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
 const tracers = (() => { const N = 160, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
@@ -4034,17 +4361,17 @@ function makeFlag(def) {
 }
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
-  if (MAP.t !== 'port') { toast('Battles are played on the Port and mountains map. Opening it.'); startMap('port', 'port'); return; }
+  if (!isBattleMap()) { offerBattleMaps(); return; }
   ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
-  BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); ensureAir().then(() => { if (BATTLE.on && BATTLE.gen === gen) layAA(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
+  BATTLE.points = BM().points.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); ensureAir().then(() => { if (BATTLE.on && BATTLE.gen === gen) layAA(); }).catch(e => { window.__aaerr = String(e && e.stack || e); });
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
-  document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle: Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
+  document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle on the ' + BM().name + ': Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
   if (BATTLE.team === 'red') for (const q of people) if (q.bot) { /* teams are fixed; the player joins the red side below */ }
 }
 function layCover() {
   const itm = (id) => BUILD.find(b => b.id === id); BATTLE.coverStart = props.length;
-  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2 || groundAt(x, z) < 0.3) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
+  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2 || groundAt(x, z) < 0.3 || footBlocked(x, z, 1.4)) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
@@ -4056,7 +4383,7 @@ const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle
 function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === team); const base = own.length ? own[Math.floor(Math.random() * own.length)] : BATTLE.points.find(p => p.base && (p.owner === team || true)) || BATTLE.points[0]; return base; }
 function spawnBot(team, first, at) {
   if (people.length >= MAX_PEOPLE) return null; const pt = at || spawnPointOf(team); if (!pt) return null; let x = pt.x, z = pt.z;
-  for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 4 + Math.random() * 9, xx = pt.x + Math.cos(a) * d, zz = pt.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
+  for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 4 + Math.random() * 9, xx = pt.x + Math.cos(a) * d, zz = pt.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5 && !footBlocked(xx, zz, 1.0)) { x = xx; z = zz; break; } }
   const q = makePerson(troopSkin(team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider', true) || Math.floor(Math.random() * 16), x, z); q.y = standY(x, z); q.side = team; q.role = team === 'blue' ? 'Guard' : BATTLE.redKind === 'Invaders' ? 'Invader' : 'Raider'; if (team === 'red') q.fromHostile = true;
   const cls = BCLS[Math.floor(Math.random() * BCLS.length)], w = cls === 'medic' ? 'pistol' : cls; q.hp = 100;
   q.bot = { team, cls, w, ammo: WPN[w].mag, cool: rnd(0.3, 1), scan: rnd(0, 0.3), tgt: null, obj: null, alert: 0, rev: 0, reload: 0, burst: 0, cmdUntil: 0, myOrder: null, follow: false, step: rnd(0, 2), idle: rnd(0, 2) };
@@ -4206,7 +4533,7 @@ function teamMark(g, team, a, b, c, d, kind) {                       // team col
     }; nm.customProgramCacheKey = () => 'teampaint-' + team + '-' + k; cache.set(key, nm); return nm; }); o.material = Array.isArray(o.material) ? out : out[0]; });
 }
 function airSpawn(team, kind, center) {
-  const hs = center || hotSpot(team); if (!hs) return null; const a = Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship';
+  const hs = center || hotSpot(team); if (!hs) return null; const a = (BM().airAng && BM().airAng[team]) ? angIn(BM().airAng[team]) : Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship';
   const hm = ['griffon', 'griffon', 'huey', 'blackhawk'][Math.floor(Math.random() * 4)], hn = !gun && D.glb.helis ? nodeByName(D.glb.helis, hm) : null, mesh = gun ? airNode('gunship', stubGunship) : hn ? shadowAll(hn.clone()) : airNode('griffon', stubGriffon); g.add(mesh); teamMark(g, team, 0, 0, 0, 0, gun ? 'gunship' : 'heli'); scene.add(g);
   const u = { manual: !!center, kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? 165 : 80, hd: 0, tgt: hs, hp: gun ? 380 : 120, hpMax: gun ? 380 : 120, rad: gun ? 18 : 6, life: gun ? 85 : 70, orbit: gun ? 110 : 62, spd: gun ? 42 : 24, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false };
   u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_mainrotor'); u.tr = nodeByName({ scene: g }, (hn ? hm : 'griffon') + '_tailrotor'); u.props = [0, 1, 2, 3].map(i => nodeByName({ scene: g }, 'gunship_prop_' + i)).filter(Boolean);
@@ -4234,7 +4561,9 @@ function damageAir(u, dmg, by) {
   else if (u.hp < u.hpMax * 0.3) u.leaving = true;
 }
 function layAA() {                                                  // an anti-air gun and a machine-gun nest at every capture point, working for whoever holds it
-  for (const p of BATTLE.points) for (const kind of ['aa', 'mg']) { const a = (kind === 'aa' ? 0.9 : 3.5) + p.x * 0.013, d = 15 + (kind === 'mg' ? 3 : 0), x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d, y = standY(x, z); if (y < 0.4) continue;
+  for (const p of BATTLE.points) for (const kind of ['aa', 'mg']) { let a = (kind === 'aa' ? 0.9 : 3.5) + p.x * 0.013, x, z; const d = 15 + (kind === 'mg' ? 3 : 0); x = p.x + Math.cos(a) * d; z = p.z + Math.sin(a) * d;
+    for (let k = 1; k < 9 && footBlocked(x, z, 2.6); k++) { a += 0.8; x = p.x + Math.cos(a) * d; z = p.z + Math.sin(a) * d; }        // turn the nest round the point until it is clear of the buildings
+    const y = standY(x, z); if (y < 0.4 || footBlocked(x, z, 2.6)) continue;
     const mesh = airNode('emplacement_' + kind, () => box3(2.4, 1.2, 2.4, 0x59624d, 0, 0.6, 0)); mesh.position.set(x, y, z); mesh.rotation.y = Math.atan2(p.x - x, p.z - z) + Math.PI; scene.add(mesh);
     AAS.push({ kind, p, x, z, y, mesh, gun: nodeByName({ scene: mesh }, 'emplacement_' + kind + (kind === 'aa' ? '_barrels' : '_gun')), cd: Math.random() * 0.5 }); }
 }
@@ -4343,7 +4672,7 @@ function stubJet() { const g = new THREE.Group(); g.add(box3(1.4, 1.3, 14, 0x8a9
 function dropBomb(x, y, z, vx, vz, o) { BOMBS.push({ x, y, z, vx, vy: 0, vz, g: 9.8, ...o }); }
 function callStrike(team, pt, free) {
   const c = AIR.cd[team]; if (!free && c) { if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c.st > 0) { if (team === BATTLE.team) toast(AIR.off[team].st ? 'The strike aircraft is offline.' : 'Strike aircraft are rearming.'); return false; } c.st = 85; }
-  const hd = Math.random() * 6.283, sx = Math.sin(hd), sz = Math.cos(hd), g = new THREE.Group(); g.add(airNode('jet', stubJet)); teamMark(g, team, 0, 0, 0, 0, 'jet'); scene.add(g);
+  const am = BM().airAng && BM().airAng[team], aq = am ? angIn(am) : 0, hd = am ? Math.atan2(-Math.cos(aq), -Math.sin(aq)) : Math.random() * 6.283, sx = Math.sin(hd), sz = Math.cos(hd), g = new THREE.Group(); g.add(airNode('jet', stubJet)); teamMark(g, team, 0, 0, 0, 0, 'jet'); scene.add(g);
   AIR.list.push({ kind: 'strike', team, g, mesh: g.children[0], x: pt.x - sx * 540, z: pt.z - sz * 540, y: 140, hd, spd: 120, hp: 70, hpMax: 70, rad: 7, trav: 0, drops: 0, life: 99, props: [], px: pt.x, pz: pt.z }); toast('Air strike inbound.'); return true;
 }
 function callArty(team, pt, free, spec) {
@@ -4477,7 +4806,7 @@ function deploy(p) {
   const near = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 4); for (const q of near) q.bot.follow = BATTLE.squadMode === 'follow'; fp.nades = 3; fp.c4 = 3; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
 }
 function playBattle(team) {
-  if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } q.botSaved = q.bot; q.roleSaved = q.role; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
+  if (!isBattleMap()) { offerBattleMaps(); return; } if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } q.botSaved = q.bot; q.roleSaved = q.role; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
 }
 function squadOrder(mode) {
   BATTLE.squadMode = mode; const mine = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag' && q.bot.follow !== undefined).sort((a, b) => Math.hypot(a.x - fp.p.x, a.z - fp.p.z) - Math.hypot(b.x - fp.p.x, b.z - fp.p.z)).slice(0, 4);
@@ -4508,7 +4837,7 @@ function botWeapon(w) {
 const SURF = { dirt: [[0.45, 0.36, 0.26, 0.55], [0.35, 0.28, 0.2]], grass: [[0.3, 0.4, 0.2, 0.5], [0.3, 0.26, 0.18]], sand: [[0.82, 0.72, 0.5, 0.5], [0.8, 0.7, 0.5]], concrete: [[0.62, 0.62, 0.6, 0.55], [0.7, 0.7, 0.68]], asphalt: [[0.3, 0.3, 0.3, 0.55], [0.35, 0.35, 0.36]], gravel: [[0.6, 0.55, 0.48, 0.55], [0.55, 0.5, 0.45]], wood: [[0.6, 0.45, 0.28, 0.6], [0.6, 0.42, 0.25]], metal: [[0.7, 0.7, 0.72, 0.4], [0.8, 0.8, 0.85]], glass: [[0.8, 0.95, 1, 0.5], [0.85, 0.95, 1]] };
 function surfaceAt(x, z) {
   const k = Math.round(W2G(z)) * TN + Math.round(W2G(x)); if (MET[k] === 120) return 'gravel'; const j = Math.floor((W2G(x) - 2) / 4 + 0.5), i = Math.floor((W2G(z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64 && ROADCELL[i * 64 + j]) return 'asphalt';
-  if (MAP.t === 'port' && x > -200 && x < 160 && z > 40 && z < 100 && heightAt(x, z) < 2.2) return 'concrete'; const h = heightAt(x, z); return h < 2.8 ? 'sand' : h > 14 ? 'dirt' : 'grass';
+  if (isBattleMap() && BM().concrete(x, z)) return 'concrete'; const h = heightAt(x, z); return h < 2.8 ? 'sand' : h > 14 ? 'dirt' : 'grass';
 }
 function impactFx(kind, ref, pt, d) {
   let mat = 'dirt', sparks = false, snd = 'imp_dirt';
@@ -5284,8 +5613,9 @@ setTool('select'); refreshPanel(); refreshHelm();
 progress(1, 'Ready');
 setTimeout(() => $('loading').classList.add('done'), 250);
 function openBattleSetup() { try { sideTab = 'battle'; setSide(true); renderSide(); toast('Set up the battle: pick a loadout, the enemy and the size, then begin.'); } catch (e) { } }
-{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') return; const map = what === 'large' ? 'cove&size=large' : 'port'; if ((what === 'port' || what === 'battle') && MAP.t === 'port' && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
-  $('introVer').textContent = 'v8.7 battle build'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
+{ const intro = $('intro'); let seen = false; try { seen = sessionStorage.getItem('sc-intro') === '1'; } catch (e) { } const qp = new URLSearchParams(location.search); const go = (what) => { try { sessionStorage.setItem('sc-intro', '1'); } catch (e) { } intro.hidden = true; if (what === 'sail') return; const map = what === 'large' ? 'cove&size=large' : (what === 'urban' || what === 'desert') ? what : isBattleMap() && what === 'battle' ? MAP.t : 'port'; if ((what === 'port' || what === 'urban' || what === 'desert' || what === 'battle') && MAP.t === map && !qp.get('size')) { if (what === 'battle') setTimeout(openBattleSetup, 400); return; } if (what === 'sail' && MAP.t === 'cove') return; location.search = '?map=' + map + (what === 'battle' ? '&battle=1' : ''); };
+  { const bb = intro.querySelector('[data-go="battle"]'); if (bb && !isBattleMap()) bb.hidden = true; }
+  $('introVer').textContent = 'v8.8 battle maps'; for (const b of intro.querySelectorAll('[data-go]')) b.addEventListener('click', () => go(b.dataset.go)); $('introCtl').addEventListener('click', () => { intro.hidden = true; $('help').hidden = false; });
   if (qp.get('battle')) setTimeout(openBattleSetup, 1200);
   if (qp.get('intro') || (!seen && !qp.get('battle') && !qp.get('nointro') && !navigator.webdriver)) intro.hidden = false; }
 requestAnimationFrame(frame);
@@ -6456,7 +6786,7 @@ function squadAt(side, n, cp) { const out = []; for (let i = 0; i < n && people.
 function sideBoat(side, key, from, to) { const bt = makeBoat(key, null, null, from.x, from.z, Math.atan2(to.z - from.z, to.x - from.x)); sideCrew(bt, side); bt.anchor = null; orderTo(bt, to.x, to.z); return bt; }
 const LANDINGS = [];
 function landingParty(side, n, nboats, kind) {
-  const L = landingSpot(), e = edgeSpot(); if (!L || !e) { toast('No shore to land on'); return false; }
+  const L = landingSpot(side), e = edgeSpot(side); if (!L || !e) { toast('No shore to land on'); return false; }
   const invade = kind === 'invasion', role = side === 'blue' ? 'SWAT' : invade ? 'Invader' : 'Raider', keyOf = (i) => side === 'blue' ? 'swatrib' : invade ? (i === 0 ? 'landing' : 'gunboat') : 'runner';
   const bp = { x: L.cp.x + Math.cos(L.a) * 5, z: L.cp.z + Math.sin(L.a) * 5 }, boatsL = [];
   for (let b = 0; b < nboats; b++) { const from = { x: e.x * (1 - b * 0.05) + b * 12, z: e.z + b * 12 }, bt = sideBoat(side, keyOf(b), from, { x: bp.x + b * 7, z: bp.z + b * 4 }); const cap = bt.sp.capacity || 4; for (const q of people) if (q.ride && q.ride.boat === bt) q.role = role; crewOn(bt, Math.min(cap, Math.ceil(n / nboats)) - 2); for (const q of people) if (q.ride && q.ride.boat === bt) { q.side = side; q.role = role; if (side === 'red') q.fromHostile = true; } bt.landing = { state: 'run', L, role, t: 0, k: 0 }; boatsL.push(bt); }
@@ -7142,9 +7472,9 @@ const ECON = { trust: 0.7, rumours: [], events: [], stashed: 0, seized: 0, false
 function logEvent(kind, x, z, extra) { ECON.events.push({ kind, x, z, t: simT, seen: new Set(), ...(extra || {}) }); if (ECON.events.length > 24) ECON.events.shift(); }
 function los(x0, z0, y0, x1, z1, y1) { for (let i = 1; i < 12; i++) { const u = i / 12, x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * u, y = y0 + (y1 - y0) * u; if (heightAt(x, z) > y) return false; } return true; }
 function watchers() { const w = []; if (pierInfo) w.push(pierInfo.end, pierInfo.c); if (LM.ready) for (const o of lmLookouts()) w.push(o); for (const st of sites) w.push(st); for (const p of people) if (!p.ride && p.trueRole !== 'Courier' && p.trueRole !== 'Agent') w.push({ x: p.x, z: p.z }); return w; }
-function landingSpot() {                                          // the quietest bit of coast: furthest from the pier, the lookouts, the sites and anyone walking about
+function landingSpot(side) {                                          // the quietest bit of coast: furthest from the pier, the lookouts, the sites and anyone walking about
   const w = watchers(); let best = null, bs = -1;
-  for (let n = 0; n < 60; n++) { const a = Math.random() * 6.283, cp = coastPoint(a, 2), sea = coastPoint(a, -10); if (!cp || !sea || !safeSpot(cp.x, cp.z) || heightAt(sea.x, sea.z) > -2) continue; let md = 1e9; for (const q of w) md = Math.min(md, Math.hypot(q.x - cp.x, q.z - cp.z)); if (md > bs) { bs = md; best = { cp, sea, a, md }; } }
+  for (let n = 0; n < 60; n++) { const a = (BATTLE.on && side && BM().seaAng) ? angIn(BM().seaAng[side]) : Math.random() * 6.283, cp = coastPoint(a, 2), sea = coastPoint(a, -10); if (!cp || !sea || !safeSpot(cp.x, cp.z) || heightAt(sea.x, sea.z) > -2) continue; let md = 1e9; for (const q of w) md = Math.min(md, Math.hypot(q.x - cp.x, q.z - cp.z)); if (md > bs) { bs = md; best = { cp, sea, a, md }; } }
   return best;
 }
 function stashSpot(from) {
@@ -7456,7 +7786,7 @@ function cgCheck(bt, me, pos, step) {                                        // 
 }
 let threatT = 40, roleT = 0;
 const hostiles = () => boats.filter(b => (b.side === 'hostile' || b.raider) && !b.sunk);
-function edgeSpot() { for (let n = 0; n < 60; n++) { const a = Math.random() * 6.28, x = Math.cos(a) * (EXT - 4), z = Math.sin(a) * (EXT - 4); if (heightAt(x, z) < -4) return { x, z, a }; } return null; }
+function edgeSpot(side) { for (let n = 0; n < 60; n++) { const a = (BATTLE.on && side && BM().seaAng) ? angIn(BM().seaAng[side]) : Math.random() * 6.28, x = Math.cos(a) * (EXT - 4), z = Math.sin(a) * (EXT - 4); if (heightAt(x, z) < -4) return { x, z, a }; } return null; }
 function spawnThreat() {
   const e = edgeSpot(); if (!e) return; const kind = Math.random() < 0.6 ? 'smuggler' : 'raider'; if (kind === 'smuggler' && spawnSmuggler()) return;
   const bt = makeBoat(Math.random() < 0.7 ? 'runner' : 'gunboat', null, null, e.x, e.z, Math.atan2(-(0 - e.z), 0 - e.x)); crewOn(bt, 2); bt.side = 'hostile'; bt.threat = kind; bt.anchor = null;
@@ -7969,7 +8299,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
+window.__sc = { isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera };
 </script>
 
 </body>
