@@ -12,7 +12,10 @@ for id_ in list(merged):
     src = os.path.join(OUT, id_ + '.ogg')
     if not os.path.exists(src): merged.pop(id_); continue
     shutil.copy2(src, os.path.join(DST, id_ + '.ogg')); n += 1
-RULES = [('amb_', 'core'), ('ui_', 'core'), ('hold_', 'core'), ('water_splash_', 'core'), ('water_wake', 'core'), ('water_object_in', 'core'), ('npc_', 'core'), ('mat_wood_knock', 'core'), ('mat_stone_tock', 'core'),
+RULES = [('amb_battle', 'weapons'), ('amb_farm', 'weather'), ('amb_town', 'weather'), ('amb_quay', 'weather'),
+         ('wpn_', 'weapons'), ('imp_', 'weapons'), ('ui_flag_', 'weapons'), ('ui_tickets_low', 'weapons'), ('ui_respawn', 'weapons'), ('ui_victory', 'weapons'), ('ui_defeat', 'weapons'), ('ui_hitmarker', 'weapons'), ('ui_kill', 'weapons'),
+         ('step_', 'people'), ('foley_', 'people'),
+         ('amb_', 'core'), ('ui_', 'core'), ('hold_', 'core'), ('water_splash_', 'core'), ('water_wake', 'core'), ('water_object_in', 'core'), ('npc_', 'core'), ('mat_wood_knock', 'core'), ('mat_stone_tock', 'core'),
          ('mat_wood_crack', 'core'), ('mat_glass_shatter', 'core'), ('ppl_step_grass', 'core'), ('ppl_step_sand', 'core'), ('ppl_step_wood', 'core'), ('ppl_step_deck', 'core'), ('ppl_step_water', 'core'), ('ppl_stone_place', 'core'),
          ('veh_eng_', 'boats'), ('veh_heli', 'aircraft'), ('veh_prop', 'aircraft'), ('veh_bomber', 'aircraft'), ('veh_water_drop', 'aircraft'), ('veh_gun', 'weapons'), ('veh_mg', 'weapons'), ('veh_', 'boats'),
          ('wx_', 'weather'), ('mus_', 'music'), ('ppl_', 'people'), ('water_', 'water'), ('fire_', 'fx'), ('elec_', 'fx'), ('heat_', 'fx'), ('cold_', 'fx'), ('mat_', 'mat'), ('grain_', 'mat'), ('lava_', 'mat'), ('pile_', 'mat'), ('glass_', 'mat'), ('furnace_', 'fx'), ('seed_', 'fx'), ('sprout_', 'fx'), ('quake_', 'fx'), ('rubble_', 'mat')]

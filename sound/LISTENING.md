@@ -18,6 +18,14 @@ I could not listen to any of these. They are built from physical models and chec
 12. **UI.** Taps, toasts, menu open and close: soft and pleasant, never annoying after ten minutes.
 13. **Music (Menu > Music).** Slow pads by time of day, a tension layer when a threat is near and a storm layer in storms. Should be unobtrusive.
 
+## Weapons and battle pack (added Oct 2026; `NOTES-weapons.md` has the stem list and how to trigger each)
+14. **Gunshots.** Pistol, SMG, rifle, shotgun and sniper (three variants each), their distant versions and two outdoor echo tails. They should be punchy, never harsh or clipping; the sniper has a long tail; the far versions should be faint cracks with echoes. Tell me if the rifle or sniper sounds boomy instead of cracking, or small on laptop speakers.
+15. **Handling and shells.** Magazine out and in, bolt, shotgun pump, dry click, draw, knife swish; brass casings on concrete, dirt and metal. Clear but quiet.
+16. **Bullet passes and impacts.** Whiz (crack plus whip), ricochet (sharp tick then a falling "pee-yow"), impacts on dirt, concrete, wood, metal, glass, sand and water. The body hit is a cartoon thump with a short "oof" breath; the knock-out is a longer thump, a wobble and a star tinkle. No gore or screams are expected; tell me if the oof or the hurt breath sounds creepy.
+17. **Footsteps and foley.** Nine surfaces with six walking variants each, hard and soft runs, jump and landings, cloth and gear rustle, pickup, crate drop, swim stroke, hurt breath, heal chime. Listen for any surface that sounds like another (mud, gravel and water are my weakest).
+18. **Battle UI stings.** Flag capture (rising brass), flag lost (falling), tickets low (tense pulse, must not feel like a timer), respawn, victory and defeat (4 s each), hitmarker tick, kill double tick. Short, readable, and not annoying after many repeats.
+19. **Battle ambience beds.** `amb_battle_distant` (thin far-off gunfire and booms with real gaps), `amb_farm`, `amb_town` (with a distant dog), `amb_quay`. Each loops in about 16 s; tell me if a loop point or a repeated event is noticeable.
+
 ## Things I expect to need tuning
 - Overall balance between beds, effects and music.
 - Very low sounds (far thunder, quakes) on small speakers.
@@ -25,6 +33,7 @@ I could not listen to any of these. They are built from physical models and chec
 - Fire crackle sizes differ mostly in density.
 - Car engines sharing boat engine layers.
 - Repetition in 10 to 20 second loops after a minute or two.
+- Gunshots are low-heavy on small speakers; the dog bark, the "oof" and the brass stings are synthetic approximations.
 
 ## How to report
 Say the scene number and what you heard ("scene 6, glass sounds like a bell and never shatters"). I will adjust the generator in `sound/` and re-render everything in about ten minutes.

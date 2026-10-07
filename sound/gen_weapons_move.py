@@ -9,14 +9,14 @@ from wpn_common import *
 
 # ------------------------------------------------------------------ single foot contacts: f(r, k) k=1 heel, ~0.6 toe
 def c_concrete(r, k):
-    n = n_of(0.2); j = r.uniform(0.85, 1.2)
-    return tickn(r, 0.006, 1400 * j, 5500 * j, 0.9 * k, n) + thump(n, 88 * j, 0.035, 0.75 * k) + fit(S.modal(300 * j, 'stone', 0.12, 0.6, 0.8, r=r), n) * 0.12 * k \
+    n = n_of(0.2); j = r.uniform(0.8, 1.35)
+    return tickn(r, 0.006, 1400 * j, 5500 * j, 0.9 * k, n) + thump(n, 105 * j, 0.03, 0.4 * k) + fit(S.modal(300 * j, 'stone', 0.12, 0.6, 0.8, r=r), n) * 0.12 * k \
         + bp(noise(n, 'white', r), 3500, 9000, SR, 1) * edec(n, 0.02) * 0.12
 
 
 def c_asphalt(r, k):
-    n = n_of(0.2); j = r.uniform(0.85, 1.2)
-    y = lp(tickn(r, 0.007, 900 * j, 4200 * j, 0.85 * k, n), 4500, SR, 2) + thump(n, 80 * j, 0.04, 0.85 * k)
+    n = n_of(0.2); j = r.uniform(0.7, 1.4)
+    y = lp(tickn(r, 0.007, 700 * j, 3000 * j, 3.5 * k, n), 3500, SR, 2) + thump(n, 62 * j, 0.05, 0.45 * k) * r.uniform(0.6, 1.2)
     return y + fit(U.ticks(0.1, lambda t: 300 * math.exp(-t * 18), r, 2000, 6500, 0.002), n) * 0.25 * k
 
 

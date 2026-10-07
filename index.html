@@ -579,7 +579,9 @@ const Snd = (() => {
     const L = A.L; for (const p of people) {
       if (p.state === 'rag' || p.fp && false) continue; const dx = p.x - (p._sx ?? p.x), dz = p.z - (p._sz ?? p.z); p._sx = p.x; p._sz = p.z; const mv = Math.hypot(dx, dz); if (mv > 3 || mv < 0.002) continue; p._sacc = (p._sacc || 0) + mv; if (p._sacc < 0.78) continue; p._sacc = 0;
       if (Math.hypot(p.x - L.x, p.z - L.z) > 32) continue; const h = standY(p.x, p.z); let k = 'grass'; if (p.ride) k = 'deck'; else if (h < 0.25) k = 'water'; else if (pierInfo && Math.hypot(p.x - pierInfo.c.x, p.z - pierInfo.c.z) < 14 && pierY(p.x, p.z) > -90) k = 'wood'; else if (h < 1.7) k = 'sand'; else if (h > 14) k = 'rock'; else { const gi = Math.round(W2G(p.z)) * TN + Math.round(W2G(p.x)); if (snowData[gi * 4] > 60) k = 'snow'; else if (matData[gi * 4 + 1]) k = 'sand'; else if (MET[gi] > 200) k = 'metal'; else if (MET[gi] > 0) k = 'gravel'; }
-      A.fx(STEP[k], p.x, p.z, { gain: 0.5, gap: 0.01, far: 0.3, y: p.y });
+      let kk = k; if (MAP.t === 'port' && !p.ride && (k === 'grass' || k === 'sand' || k === 'gravel')) { const sf = surfaceAt(p.x, p.z); if (sf === 'concrete' || sf === 'asphalt' || sf === 'gravel') kk = sf; }
+      const NS = { concrete: 'step_concrete', asphalt: 'step_asphalt', grass: 'step_grass', gravel: 'step_gravel', sand: 'step_sand', wood: 'step_wood', metal: 'step_metal', water: 'step_water' }, run = (p.bot && p.run) || (p.fp && fp.spd > 4.2), hard = kk === 'concrete' || kk === 'asphalt' || kk === 'metal' || kk === 'wood';
+      const stem = run && NS[kk] && kk !== 'water' ? (hard ? 'step_run_hard' : 'step_run_soft') : (NS[kk] || STEP[k]); A.fx(stem, p.x, p.z, { gain: p.fp ? 0.45 : 0.5, gap: 0.01, far: 0.3, y: p.y });
     }
   };
   A.frame = (dt) => {
@@ -3444,9 +3446,9 @@ function updateFP(dt, t) {
     if (p.swim) { p.y = waveH(p.x, p.z, t) - 1.15; fp.vy = 0; fp.air = false; fp.jumpBuf = 0; }
     else {
       const g2 = standY(p.x, p.z);
-      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; }
+      if (fp.jumpBuf > 0 && (!fp.air || fp.coyote > 0)) { Snd.fx('foley_jump', p.x, p.z, { gain: 0.5 }); fp.vy = 4.4; fp.air = true; fp.coyote = 0; fp.jumpBuf = 0; }
       if (!fp.air && p.y - g2 > 0.5) { fp.air = true; fp.vy = 0; fp.coyote = 0.1; }               // walked off a ledge
-      if (fp.air) { fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) fp.land = Math.min(1, -fp.vy / 8); p.y = g2; fp.vy = 0; fp.air = false; } }
+      if (fp.air) { fp.vy -= G * dt; p.y += fp.vy * dt; if (p.y <= g2) { if (fp.vy < -3) { fp.land = Math.min(1, -fp.vy / 8); Snd.fx(fp.vy < -6 ? 'foley_land_hard' : 'foley_land_soft', p.x, p.z, { gain: 0.6 }); } p.y = g2; fp.vy = 0; fp.air = false; } }
       else p.y += (g2 - p.y) * Math.min(1, 22 * dt);
     }
   }
@@ -3511,7 +3513,7 @@ const fpToolMesh = {};
 const bobber = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshStandardMaterial({ color: 0xd64b2c, roughness: 0.5 })); bobber.visible = false; scene.add(bobber);
 const lineGeo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 10 }, () => new THREE.Vector3())), lineMesh = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0xf1ece2, transparent: true, opacity: 0.8 })); lineMesh.frustumCulled = false; lineMesh.visible = false; scene.add(lineMesh);
 function fpSetTool(t) {
-  fp.tool = t; if (t !== 'rod') fpRodReset(true);
+  if (fp.on && t !== fp.tool && WPN[t]) Snd.fx('wpn_draw', fp.p.x, fp.p.z, { gain: 0.5 }); fp.tool = t; if (t !== 'rod') fpRodReset(true);
   for (const k in fpToolMesh) fpToolMesh[k].visible = fp.on && k === t;
   $('fpTools').innerHTML = ''; for (const [id, name, key] of FPT) { const b = document.createElement('button'); b.type = 'button'; b.textContent = (isTouch ? '' : key + ' ') + name; b.setAttribute('aria-pressed', String(id === t)); b.addEventListener('click', () => fpSetTool(id)); $('fpTools').append(b); }
   $('fpFire').textContent = WPN[t] ? 'Fire' : t === 'rod' ? 'Cast / reel' : 'Pick up / throw'; fp.zoom = false;
@@ -3561,15 +3563,15 @@ function fpCatch() {
   const f = tbl[Math.floor(Math.random() * tbl.length)], kg = f[1] * (0.6 + Math.random() * 0.9); fp.fish.n++; fp.fish.kg += kg; fp.fish.log.unshift(f[0] + ', ' + kg.toFixed(1) + ' kg'); fp.fish.log.length = Math.min(fp.fish.log.length, 14);
   splash(r.x, r.z, 0.5); toast(f[0] === 'old boot' ? 'You caught an old boot.' : 'You caught a ' + f[0] + ', ' + kg.toFixed(1) + ' kg.'); npcEv('fishCaught'); fpRodReset(true); Snd.fx('ppl_fishing_reel', p.x, p.z, { gain: 0.7 }); refreshSide();
 }
-function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = 1.7; fp.reloadTool = fp.tool; Snd.fx('mat_wood_tock', fp.p.x, fp.p.z, { gain: 0.5 }); }
+function fpReload() { const w = WPN[fp.tool]; if (!w || fp.reload > 0) return; fp.ammo = fp.ammo || {}; if ((fp.ammo[fp.tool] == null ? w.mag : fp.ammo[fp.tool]) >= w.mag) return; fp.reload = 1.7; fp.reloadTool = fp.tool; Snd.fx('wpn_reload_mag_out', fp.p.x, fp.p.z, { gain: 0.6 }); setTimeout(() => { if (fp.on && fp.p) Snd.fx(fp.tool === 'shotgun' ? 'wpn_pump_shotgun' : fp.tool === 'sniper' ? 'wpn_reload_bolt' : 'wpn_reload_mag_in', fp.p.x, fp.p.z, { gain: 0.6 }); }, 900); }
 function fpFireGun() {
-  const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { fpReload(); return; }
-  fp.ammo[id]--; fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + 0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)); fp.yaw += (Math.random() - 0.5) * 0.006; fp.flash = 0.05;
+  const p = fp.p, id = fp.tool, w = WPN[id]; if (!p || !w || fp.cool > 0 || p.state === 'rag' || p.hop || fp.reload > 0 || (BATTLE.on && BATTLE.down)) return; fp.ammo = fp.ammo || {}; if (fp.ammo[id] == null) fp.ammo[id] = w.mag; if (fp.ammo[id] <= 0) { Snd.fx('wpn_dry_click', p.x, p.z, { gain: 0.5 }); fpReload(); return; }
+  fp.ammo[id]--; { const sf = surfaceAt(p.x, p.z); setTimeout(() => Snd.fx('wpn_shell_' + (sf === 'concrete' || sf === 'asphalt' ? 'concrete' : 'dirt'), p.x + 0.5, p.z, { gain: 0.35 }), 380); } fp.cool = w.rate; fp.kick = 1; fp.pitch = Math.min(1.4, fp.pitch + 0.008 + w.dmg * 0.0004 * (w.pellets ? 3 : 1)); fp.yaw += (Math.random() - 0.5) * 0.006; fp.flash = 0.05;
   { const sn = 'wpn_' + id + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
   const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1);
   for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z);
-    impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) hurt(q, w.dmg * fall, p, head); else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
+    impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { hurt(q, w.dmg * fall, p, head); Snd.ui('ui_hitmarker', 0.6); } else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
     else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
     else if (h.kind === 'obj') { const o = h.ref; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(_d.x * w.dmg * 3, _d.y * w.dmg * 3 + 12, _d.z * w.dmg * 3), new CANNON.Vec3(pt.x - o.body.position.x, pt.y - o.body.position.y, pt.z - o.body.position.z)); if (o.m && o.m.frag && o.m.str < 120 && Math.random() < 0.2) fracture(o, 'shot'); }
     }
@@ -3749,6 +3751,12 @@ function layPortBuildings() {
   put('b-tent', 235, -300, 0); put('b-tent', 255, -292, 0); put('b-tent', 275, -300, 90); put('b-bunker', 262, -270, 0); put('p-barrier', 222, -262, 0);
   layFarms(put); ensureProps2().then(() => layScenery(put)).catch(() => { });
 }
+let ambT = 0;
+function portAmbience(dt) {
+  if (MAP.t !== 'port' || !Snd.ready) return; ambT -= dt; if (ambT > 0) return; ambT = 1; const L = Snd.L || { x: god.tgt.x, z: god.tgt.z }, near = (x, z, R) => Math.max(0, 1 - Math.hypot(L.x - x, L.z - z) / R);
+  Snd.set('bed:amb_farm', 'amb_farm', Math.max(near(-235, -160, 130), near(205, -185, 130)) * 0.55, { tc: 1.5 }); Snd.set('bed:amb_town', 'amb_town', near(0, -40, 160) * 0.5, { tc: 1.5 }); Snd.set('bed:amb_quay', 'amb_quay', near(-30, 70, 120) * 0.55, { tc: 1.5 });
+  Snd.set('bed:amb_battle', 'amb_battle_distant', BATTLE.on ? 0.5 : 0, { tc: 2 });
+}
 function portSupply() {                                           // a delivery lands at the first yard whenever the yards are running low on stone, so builders always have work
   if (!sites.length || MAP.t !== 'port' || objects.length > MAX_OBJ - 40) return; const stoneC = CARGO.find(c => c.id === 'stone'); let stone = 0; for (const o of objects) if (!o.gone && !o.placed && o.c.id === 'stone') stone++; if (stone >= 6) return;
   const y = sites.find(q => q.kind === 'yard'); if (!y) return; for (let i = 0; i < 8; i++) { const x = y.x + rnd(-9, 9), z = y.z + rnd(-7, 7); spawn(stoneC, x, standY(x, z) + 14 + i * 1.5, z); } updateCount(); Snd.fx('veh_water_drop_whoosh_02', y.x, y.z, { gain: 0.6, y: 14 }); noteOnce('supply', 'A delivery is lowered onto the quay: stone for the builders.');
@@ -3875,7 +3883,7 @@ function makeFlag(def) {
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
   if (MAP.t !== 'port') { toast('Battles are played on the Port and mountains map. Opening it.'); startMap('port', 'port'); return; }
-  ensureWeapons(); battleStop(true); BATTLE.on = true; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
+  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tickets = { blue: 80, red: 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {};
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   for (const bt of boats.slice()) if (boatCrew(bt).length === 0) { }
   BATTLE.points = BPT_DEFS.map(makeFlag); BATTLE.points.forEach(paintFlag); ensureProps2().then(() => { if (BATTLE.on) layCover(); }).catch(() => { });
@@ -3914,7 +3922,7 @@ function losFull(x0, y0, z0, x1, y1, z1) {
 }
 function hurt(q, dmg, from, head) {
   if (!q || q.state === 'rag' || q.hp <= 0) return; if (q.hp === undefined) q.hp = 100; if (head) dmg *= 1.8; q.hp -= dmg; const isP = fp.on && fp.p === q;
-  if (isP) { BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
+  if (isP) { Snd.fx('foley_breath_hurt', q.x, q.z, { gain: 0.6, gap: 0.5 }); BATTLE.hurtT = 0.6; const hv = $('bHurt'); if (hv) { hv.style.opacity = 0.85; } Snd.ui('ui_toast_warn', 0.3); }
   else if (q.bot) { q.bot.alert = 6; if (from) q.bot.lastHit = from; }
   if (q.hp <= 0) downPerson(q, from);
 }
@@ -3922,7 +3930,7 @@ function downPerson(q, from) {
   const t = teamOf(q); let dx = 0, dz = 1; if (from) { dx = q.x - from.x; dz = q.z - from.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; }
   try { topple(q, new CANNON.Vec3(dx * 2.5, 2.4, dz * 2.5)); } catch (e) { } q.koUntil = simT + 99999; if (q.bot) { q.bot.dead = true; q.bot.deadAt = simT; }
   if (BATTLE.on && t) { BATTLE.tickets[t] = Math.max(0, BATTLE.tickets[t] - 1); BATTLE.kills[otherTeam(t)]++; }
-  const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
+  Snd.fx('imp_ko', q.x, q.z, { gain: 0.7, y: q.y + 1 }); const mine = fp.on && fp.p === from, me = fp.on && fp.p === q; if (mine) Snd.ui('ui_kill', 0.7); if (mine) { fp.ko++; noteOnce('kf' + simT, 'You knocked out a ' + (t === 'red' ? BATTLE.redKind.slice(0, -1).toLowerCase() : 'guard') + '.'); } if (me) { BATTLE.down = true; deployMenu(); noteOnce('down', 'You were knocked out. Choose where to deploy.'); }
   npcEv('battleKO');
 }
 function botWeaponMesh() { const g = new THREE.Group(), dark = new THREE.MeshStandardMaterial({ color: 0x23272a, roughness: 0.5, metalness: 0.5 }); const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.62), dark); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.018, 0.4, 6), dark); br.rotation.x = Math.PI / 2; br.position.set(0, 0.02, 0.5); g.add(b, br); g.position.set(0.14, 1.12, 0.3); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; }
@@ -3986,13 +3994,14 @@ function updateBattle(dt) {
   for (const q of people) if (q.bot) botThink(q, dt);
   BATTLE.capT -= dt; if (BATTLE.capT <= 0) { const step = 0.5; BATTLE.capT = step;
     for (const p of BATTLE.points) { let nb = 0, nr = 0; for (const q of people) { if (q.state === 'rag' || q.ride || q.swim || q.hp <= 0) continue; const t = teamOf(q); if (!t || Math.hypot(q.x - p.x, q.z - p.z) > p.r) continue; if (t === 'blue') nb++; else nr++; }
-      p.nb = nb; p.nr = nr; const d = clamp(nb - nr, -4, 4); if (nb && nr && Math.abs(nb - nr) < 1) continue; const before = p.owner; p.prog = clamp(p.prog + d * 0.07 * step * 2, -1, 1); const ow = p.prog > 0.6 ? 'blue' : p.prog < -0.6 ? 'red' : null; if (ow !== p.owner) { p.owner = ow; paintFlag(p); if (ow) noteOnce('cap' + p.name + ow, (ow === 'blue' ? 'The Port' : 'The ' + BATTLE.redKind) + ' captured ' + p.name + '.'); else noteOnce('neu' + p.name, p.name + ' is neutral.'); } }
+      p.nb = nb; p.nr = nr; const d = clamp(nb - nr, -4, 4); if (nb && nr && Math.abs(nb - nr) < 1) continue; const before = p.owner; p.prog = clamp(p.prog + d * 0.07 * step * 2, -1, 1); const ow = p.prog > 0.6 ? 'blue' : p.prog < -0.6 ? 'red' : null; if (ow !== p.owner) { p.owner = ow; paintFlag(p); Snd.ui(ow === BATTLE.team ? 'ui_flag_capture' : 'ui_flag_lost', 0.8); if (ow) noteOnce('cap' + p.name + ow, (ow === 'blue' ? 'The Port' : 'The ' + BATTLE.redKind) + ' captured ' + p.name + '.'); else noteOnce('neu' + p.name, p.name + ' is neutral.'); } }
     battleHud();
   }
+  if (!BATTLE.lowSnd && BATTLE.tickets[BATTLE.team] < 15) { BATTLE.lowSnd = true; Snd.ui('ui_tickets_low', 0.7); }
   BATTLE.bleedT -= dt; if (BATTLE.bleedT <= 0) { BATTLE.bleedT = 8; const nbl = BATTLE.points.filter(p => p.owner === 'blue').length, nrd = BATTLE.points.filter(p => p.owner === 'red').length; if (nbl > nrd + 1) BATTLE.tickets.red = Math.max(0, BATTLE.tickets.red - (nbl - nrd - 1)); else if (nrd > nbl + 1) BATTLE.tickets.blue = Math.max(0, BATTLE.tickets.blue - (nrd - nbl - 1)); }
   BATTLE.planT -= dt; if (BATTLE.planT <= 0) { BATTLE.planT = 12; planBattle(); }
   BATTLE.spawnT -= dt; if (BATTLE.spawnT <= 0) { BATTLE.spawnT = 2.5; for (const team of ['blue', 'red']) { const alive = people.filter(q => q.bot && q.bot.team === team && !q.bot.dead).length; if (alive < BATTLE.size && BATTLE.tickets[team] > BATTLE.size - alive) { const q = spawnBot(team, false); if (q) planBattle(); } } }
-  if (!BATTLE.over && (BATTLE.tickets.blue <= 0 || BATTLE.tickets.red <= 0)) { BATTLE.over = true; const win = BATTLE.tickets.blue > 0 ? 'The Port wins' : 'The ' + BATTLE.redKind + ' win'; toast(win + '. Open the Battle tab to play again.'); battleHud(); }
+  if (!BATTLE.over && (BATTLE.tickets.blue <= 0 || BATTLE.tickets.red <= 0)) { BATTLE.over = true; const win = BATTLE.tickets.blue > 0 ? 'The Port wins' : 'The ' + BATTLE.redKind + ' win'; toast(win + '. Open the Battle tab to play again.'); Snd.ui((BATTLE.tickets[BATTLE.team] > 0) ? 'ui_victory' : 'ui_defeat', 0.9); battleHud(); }
 }
 function battleHud(force) {
   const h = $('bHud'); if (!h || h.hidden) return; const nb = BATTLE.points.filter(p => p.owner === 'blue').length, nr = BATTLE.points.filter(p => p.owner === 'red').length;
@@ -4005,7 +4014,7 @@ function deployMenu() {
 }
 function deploy(p) {
   const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
-  me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
+  me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; Snd.ui('ui_respawn', 0.7); $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
   const near = people.filter(q => q.bot && q.bot.team === BATTLE.team && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 4); for (const q of near) q.bot.follow = BATTLE.squadMode === 'follow';
 }
 function playBattle(team) {
@@ -4676,7 +4685,7 @@ function frame(now) {
   stepWeather(dt);
   world.step(1 / 60, dt, 5);                                    // fixed 60 Hz physics, rendered with interpolation
   const t = simT;
-  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
+  updateLake(dt); updateDisasters(dt, t); updateVolcanoes(dt, t); updateLava(dt); updateLavaVents(dt); updateTreeFire(dt); updatePlants(dt); updateThreats(dt); updateFleet(dt); updateAgents(dt); updateFarms(dt); updateBattle(dt); portAmbience(dt); for (const sp of SPINNERS) if (sp.g.parent) sp.mesh.rotation.x += sp.rate * dt; updateClimate(dt); ledgerTick(dt); updateMaterials(dt); updateGuards(); updateIce(dt); updateWindView(dt); updateStorms(dt); updateLegend(dt); updateCamera(dt); updateCamPad(); updateHud();
   for (const b of boats) {
     syncMesh(b.group, b.body);
     if (b.rig) { b.rig.rotation.y = b.beta; b.rig.scale.z = b.beta >= 0 ? 1 : -1; }

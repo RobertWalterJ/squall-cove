@@ -43,17 +43,17 @@ def far_boom(r, dur=3.0, level=1.0):
 def amb_battle(r):
     n = n_of(DUR); out = np.zeros(n)
     def wind(d):
-        w = lp(noise(n_of(d), 'pink', r), 450, SR, 2); return w * S.smooth_random(len(w), 0.2, r, 0.5) * 0.02
+        w = lp(noise(n_of(d), 'pink', r), 450, SR, 2); return w * slowmod(len(w), 0.2, r, 0.5) * 0.006
     out += bed(wind)
     windows = [(0.8, 4.0), (8.2, 10.5), (12.4, 15.0)]                    # fire fights only inside windows; the rest is quiet
     for lo, hi in windows:
         t = r.uniform(lo, hi - 0.6); kind = r.choice(['rifle', 'smg', 'pistol']); cnt = int(r.integers(3, 8))
         for k in range(cnt):
-            cplace(out, far_pop(r, str(kind)), t, r.uniform(0.12, 0.3))
+            cplace(out, far_pop(r, str(kind)), t, r.uniform(0.25, 0.5))
             t += r.uniform(0.07, 0.28) if k % 3 else r.uniform(0.3, 0.6)
     for t in (5.6, 11.0):
-        cplace(out, far_boom(r), t, r.uniform(0.5, 0.8))
-    cplace(out, far_pop(r, 'sniper'), 6.8, 0.2)                           # one lone shot in the gap
+        cplace(out, far_boom(r), t, r.uniform(0.3, 0.5))
+    cplace(out, far_pop(r, 'sniper'), 6.8, 0.4)                           # one lone shot in the gap
     return out
 
 
@@ -68,7 +68,7 @@ def amb_farm(r):
     n = n_of(DUR); out = np.zeros(n)
     def crops(d):
         m = n_of(d); w = bp(noise(m, 'white', r), 600, 3200, SR, 2); w2 = lp(noise(m, 'pink', r), 300, SR, 2) * 0.6
-        g = 0.2 + 0.8 * S.smooth_random(m, 0.3, r, 1.0) ** 1.5
+        g = 0.2 + 0.8 * slowmod(m, 0.3, r, 1.0) ** 1.5
         return (w * 0.04 + w2 * 0.03) * g
     out += bed(crops)
     for k in range(5):                                                 # phrases of birdsong
@@ -102,7 +102,7 @@ def car_pass(r, dur=4.0, lvl=1.0):
 def amb_town(r):
     n = n_of(DUR); out = np.zeros(n)
     def hush(d):
-        m = n_of(d); w = lp(noise(m, 'pink', r), 700, SR, 2) * (0.5 + 0.5 * S.smooth_random(m, 0.25, r, 1.0)); return w * 0.05
+        m = n_of(d); w = lp(noise(m, 'pink', r), 700, SR, 2) * (0.5 + 0.5 * slowmod(m, 0.25, r, 1.0)); return w * 0.05
     out += bed(hush)
     for t, d in [(1.0, 4.5), (8.5, 5.0), (13.0, 3.4)]:
         cplace(out, car_pass(r, d, 0.06), t, 1.0)
@@ -118,7 +118,7 @@ def amb_town(r):
 def amb_quay(r):
     n = n_of(DUR); out = np.zeros(n)
     def water(d):
-        m = n_of(d); sw = S.smooth_random(m, 0.18, r, 1.0)
+        m = n_of(d); sw = slowmod(m, 0.18, r, 1.0)
         return lp(noise(m, 'pink', r), 1200, SR, 2) * 0.012 * (0.4 + 0.6 * sw)
     out += bed(water)
     def slap(rr, i):
@@ -132,7 +132,7 @@ def amb_quay(r):
     while t < DUR:                                                      # rigging clinks, bunched like gusts
         burst = int(r.integers(1, 5)); f = r.uniform(1600, 3600)
         for j in range(burst):
-            cplace(out, pingn(f * r.uniform(0.9, 1.15), r.uniform(0.02, 0.05), 0.3, ((1, 1, 1), (2.76, .4, .5), (5.4, .2, .3)), r=r) + tickn(r, 0.002, 2500, 8000, 0.4), t + j * r.uniform(0.1, 0.4), r.uniform(0.01, 0.03))
+            cplace(out, sumv(pingn(f * r.uniform(0.9, 1.15), r.uniform(0.02, 0.05), 0.3, ((1, 1, 1), (2.76, .4, .5), (5.4, .2, .3)), r=r), tickn(r, 0.002, 2500, 8000, 0.4)), t + j * r.uniform(0.1, 0.4), r.uniform(0.01, 0.03))
         t += r.uniform(1.5, 3.5)
     out += periodic_hum(n, [(58, 0.006), (116, 0.004), (174, 0.0022), (2300, 0.0008)], r) * (0.7 + 0.3 * np.sin(TWO_PI * 3 * np.arange(n) / n))   # crane/dock machinery hum
     return out

@@ -20578,6 +20578,5023 @@
     "note": "tiny drop on surface"
    }
   },
+  "wpn_pistol_fire_01": {
+   "id": "wpn_pistol_fire_01",
+   "file": "audio/wpn_pistol_fire_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -28.1,
+   "lufs": -27.9,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "pistol"
+   ]
+  },
+  "wpn_pistol_fire_02": {
+   "id": "wpn_pistol_fire_02",
+   "file": "audio/wpn_pistol_fire_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.0,
+   "lufs": -26.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "pistol"
+   ]
+  },
+  "wpn_pistol_fire_03": {
+   "id": "wpn_pistol_fire_03",
+   "file": "audio/wpn_pistol_fire_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.3,
+   "lufs": -26.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "pistol"
+   ]
+  },
+  "wpn_pistol_far": {
+   "id": "wpn_pistol_far",
+   "file": "audio/wpn_pistol_far.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 0.7,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 1,
+   "maxDist": 900,
+   "weight": 5,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -4.0,
+   "rmsDb": -31.9,
+   "lufs": -32.2,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "far",
+    "pistol"
+   ]
+  },
+  "wpn_smg_fire_01": {
+   "id": "wpn_smg_fire_01",
+   "file": "audio/wpn_smg_fire_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.0,
+   "lufs": -26.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "smg"
+   ]
+  },
+  "wpn_smg_fire_02": {
+   "id": "wpn_smg_fire_02",
+   "file": "audio/wpn_smg_fire_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -28.1,
+   "lufs": -27.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "smg"
+   ]
+  },
+  "wpn_smg_fire_03": {
+   "id": "wpn_smg_fire_03",
+   "file": "audio/wpn_smg_fire_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.2,
+   "lufs": -26.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "smg"
+   ]
+  },
+  "wpn_smg_far": {
+   "id": "wpn_smg_far",
+   "file": "audio/wpn_smg_far.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 0.7,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 1,
+   "maxDist": 900,
+   "weight": 5,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -4.0,
+   "rmsDb": -33.3,
+   "lufs": -33.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "far",
+    "smg"
+   ]
+  },
+  "wpn_rifle_fire_01": {
+   "id": "wpn_rifle_fire_01",
+   "file": "audio/wpn_rifle_fire_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -26.0,
+   "lufs": -25.9,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "rifle"
+   ]
+  },
+  "wpn_rifle_fire_02": {
+   "id": "wpn_rifle_fire_02",
+   "file": "audio/wpn_rifle_fire_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -25.8,
+   "lufs": -25.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "rifle"
+   ]
+  },
+  "wpn_rifle_fire_03": {
+   "id": "wpn_rifle_fire_03",
+   "file": "audio/wpn_rifle_fire_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -26.4,
+   "lufs": -26.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "rifle"
+   ]
+  },
+  "wpn_rifle_far": {
+   "id": "wpn_rifle_far",
+   "file": "audio/wpn_rifle_far.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 0.7,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 1,
+   "maxDist": 900,
+   "weight": 5,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -4.0,
+   "rmsDb": -28.4,
+   "lufs": -28.6,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "far",
+    "rifle"
+   ]
+  },
+  "wpn_shotgun_fire_01": {
+   "id": "wpn_shotgun_fire_01",
+   "file": "audio/wpn_shotgun_fire_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -22.8,
+   "lufs": -22.6,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "shotgun"
+   ]
+  },
+  "wpn_shotgun_fire_02": {
+   "id": "wpn_shotgun_fire_02",
+   "file": "audio/wpn_shotgun_fire_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -23.3,
+   "lufs": -23.0,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "shotgun"
+   ]
+  },
+  "wpn_shotgun_fire_03": {
+   "id": "wpn_shotgun_fire_03",
+   "file": "audio/wpn_shotgun_fire_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -22.7,
+   "lufs": -22.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "shotgun"
+   ]
+  },
+  "wpn_shotgun_far": {
+   "id": "wpn_shotgun_far",
+   "file": "audio/wpn_shotgun_far.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 0.7,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 1,
+   "maxDist": 900,
+   "weight": 5,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -4.0,
+   "rmsDb": -26.6,
+   "lufs": -26.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "far",
+    "shotgun"
+   ]
+  },
+  "wpn_sniper_fire_01": {
+   "id": "wpn_sniper_fire_01",
+   "file": "audio/wpn_sniper_fire_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 4.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.2,
+   "lufs": -27.2,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "sniper"
+   ]
+  },
+  "wpn_sniper_fire_02": {
+   "id": "wpn_sniper_fire_02",
+   "file": "audio/wpn_sniper_fire_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 4.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -26.0,
+   "lufs": -26.1,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "sniper"
+   ]
+  },
+  "wpn_sniper_fire_03": {
+   "id": "wpn_sniper_fire_03",
+   "file": "audio/wpn_sniper_fire_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 300,
+   "weight": 8,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 4.2,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -3.0,
+   "rmsDb": -27.5,
+   "lufs": -27.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "sniper"
+   ]
+  },
+  "wpn_sniper_far": {
+   "id": "wpn_sniper_far",
+   "file": "audio/wpn_sniper_far.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 0.7,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 1,
+   "maxDist": 900,
+   "weight": 5,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -4.0,
+   "rmsDb": -26.0,
+   "lufs": -26.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "gunshot",
+    "far",
+    "sniper"
+   ]
+  },
+  "wpn_gun_echo_tail_01": {
+   "id": "wpn_gun_echo_tail_01",
+   "file": "audio/wpn_gun_echo_tail_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 2,
+   "maxDist": 600,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 2.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -28.4,
+   "lufs": -27.8,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "tail"
+   ]
+  },
+  "wpn_gun_echo_tail_02": {
+   "id": "wpn_gun_echo_tail_02",
+   "file": "audio/wpn_gun_echo_tail_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.95,
+    1.05
+   ],
+   "variants": 2,
+   "maxDist": 600,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 3.875,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -29.8,
+   "lufs": -29.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "tail"
+   ]
+  },
+  "wpn_reload_mag_out_01": {
+   "id": "wpn_reload_mag_out_01",
+   "file": "audio/wpn_reload_mag_out_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -25.4,
+   "lufs": -24.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_reload_mag_out_02": {
+   "id": "wpn_reload_mag_out_02",
+   "file": "audio/wpn_reload_mag_out_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -25.5,
+   "lufs": -24.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_reload_mag_in_01": {
+   "id": "wpn_reload_mag_in_01",
+   "file": "audio/wpn_reload_mag_in_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -27.4,
+   "lufs": -27.1,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_reload_mag_in_02": {
+   "id": "wpn_reload_mag_in_02",
+   "file": "audio/wpn_reload_mag_in_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -27.0,
+   "lufs": -26.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_reload_bolt_01": {
+   "id": "wpn_reload_bolt_01",
+   "file": "audio/wpn_reload_bolt_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.7,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -27.7,
+   "lufs": -27.2,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_reload_bolt_02": {
+   "id": "wpn_reload_bolt_02",
+   "file": "audio/wpn_reload_bolt_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.7,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.4,
+   "lufs": -26.0,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_pump_shotgun_01": {
+   "id": "wpn_pump_shotgun_01",
+   "file": "audio/wpn_pump_shotgun_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.2,
+   "lufs": -26.0,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_pump_shotgun_02": {
+   "id": "wpn_pump_shotgun_02",
+   "file": "audio/wpn_pump_shotgun_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -25.6,
+   "lufs": -25.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_dry_click_01": {
+   "id": "wpn_dry_click_01",
+   "file": "audio/wpn_dry_click_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.1,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -24.0,
+   "lufs": -22.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_dry_click_02": {
+   "id": "wpn_dry_click_02",
+   "file": "audio/wpn_dry_click_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.1,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.1,
+   "lufs": -24.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_draw_01": {
+   "id": "wpn_draw_01",
+   "file": "audio/wpn_draw_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.5,
+   "lufs": -22.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_draw_02": {
+   "id": "wpn_draw_02",
+   "file": "audio/wpn_draw_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.4,
+   "lufs": -22.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_knife_swish_01": {
+   "id": "wpn_knife_swish_01",
+   "file": "audio/wpn_knife_swish_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -23.5,
+   "lufs": -21.6,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_knife_swish_02": {
+   "id": "wpn_knife_swish_02",
+   "file": "audio/wpn_knife_swish_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 2,
+   "maxDist": 40,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -23.9,
+   "lufs": -22.0,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "handling"
+   ]
+  },
+  "wpn_shell_concrete_01": {
+   "id": "wpn_shell_concrete_01",
+   "file": "audio/wpn_shell_concrete_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -29.6,
+   "lufs": -27.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "wpn_shell_concrete_02": {
+   "id": "wpn_shell_concrete_02",
+   "file": "audio/wpn_shell_concrete_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -28.8,
+   "lufs": -26.8,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "wpn_shell_concrete_03": {
+   "id": "wpn_shell_concrete_03",
+   "file": "audio/wpn_shell_concrete_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -29.1,
+   "lufs": -27.1,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "wpn_shell_dirt_01": {
+   "id": "wpn_shell_dirt_01",
+   "file": "audio/wpn_shell_dirt_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -32.0,
+   "lufs": -31.8,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "wpn_shell_dirt_02": {
+   "id": "wpn_shell_dirt_02",
+   "file": "audio/wpn_shell_dirt_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -32.2,
+   "lufs": -32.3,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "wpn_shell_dirt_03": {
+   "id": "wpn_shell_dirt_03",
+   "file": "audio/wpn_shell_dirt_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -30.3,
+   "lufs": -30.5,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "wpn_shell_metal_01": {
+   "id": "wpn_shell_metal_01",
+   "file": "audio/wpn_shell_metal_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -25.6,
+   "lufs": -23.6,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "wpn_shell_metal_02": {
+   "id": "wpn_shell_metal_02",
+   "file": "audio/wpn_shell_metal_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -25.6,
+   "lufs": -23.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "wpn_shell_metal_03": {
+   "id": "wpn_shell_metal_03",
+   "file": "audio/wpn_shell_metal_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -25.8,
+   "lufs": -23.8,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "shell",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "wpn_whiz_01": {
+   "id": "wpn_whiz_01",
+   "file": "audio/wpn_whiz_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 60,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.0,
+   "lufs": -20.6,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "bullet-pass"
+   ]
+  },
+  "wpn_whiz_02": {
+   "id": "wpn_whiz_02",
+   "file": "audio/wpn_whiz_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 60,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -21.5,
+   "lufs": -19.9,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "bullet-pass"
+   ]
+  },
+  "wpn_whiz_03": {
+   "id": "wpn_whiz_03",
+   "file": "audio/wpn_whiz_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 60,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -20.6,
+   "lufs": -19.2,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "bullet-pass"
+   ]
+  },
+  "wpn_ricochet_01": {
+   "id": "wpn_ricochet_01",
+   "file": "audio/wpn_ricochet_01.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 80,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -20.1,
+   "lufs": -18.7,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "ricochet"
+   ]
+  },
+  "wpn_ricochet_02": {
+   "id": "wpn_ricochet_02",
+   "file": "audio/wpn_ricochet_02.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 80,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -21.0,
+   "lufs": -19.4,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "ricochet"
+   ]
+  },
+  "wpn_ricochet_03": {
+   "id": "wpn_ricochet_03",
+   "file": "audio/wpn_ricochet_03.ogg",
+   "bus": "veh",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.93,
+    1.07
+   ],
+   "variants": 3,
+   "maxDist": 80,
+   "weight": 4,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -19.6,
+   "lufs": -18.1,
+   "seamDb": null,
+   "tags": [
+    "weapon",
+    "ricochet"
+   ]
+  },
+  "imp_dirt_01": {
+   "id": "imp_dirt_01",
+   "file": "audio/imp_dirt_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.0,
+   "lufs": -26.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "imp_dirt_02": {
+   "id": "imp_dirt_02",
+   "file": "audio/imp_dirt_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.8,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "imp_dirt_03": {
+   "id": "imp_dirt_03",
+   "file": "audio/imp_dirt_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.5,
+   "lufs": -24.3,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "dirt"
+   ],
+   "meta": {
+    "surface": "dirt"
+   }
+  },
+  "imp_concrete_01": {
+   "id": "imp_concrete_01",
+   "file": "audio/imp_concrete_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.6,
+   "lufs": -26.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "imp_concrete_02": {
+   "id": "imp_concrete_02",
+   "file": "audio/imp_concrete_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -24.9,
+   "lufs": -24.0,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "imp_concrete_03": {
+   "id": "imp_concrete_03",
+   "file": "audio/imp_concrete_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -27.7,
+   "lufs": -27.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "imp_wood_01": {
+   "id": "imp_wood_01",
+   "file": "audio/imp_wood_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -21.7,
+   "lufs": -22.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "imp_wood_02": {
+   "id": "imp_wood_02",
+   "file": "audio/imp_wood_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.1,
+   "lufs": -22.5,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "imp_wood_03": {
+   "id": "imp_wood_03",
+   "file": "audio/imp_wood_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -21.8,
+   "lufs": -22.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "imp_metal_01": {
+   "id": "imp_metal_01",
+   "file": "audio/imp_metal_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.7,
+   "lufs": -21.3,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "imp_metal_02": {
+   "id": "imp_metal_02",
+   "file": "audio/imp_metal_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -20.7,
+   "lufs": -19.5,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "imp_metal_03": {
+   "id": "imp_metal_03",
+   "file": "audio/imp_metal_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.1,
+   "lufs": -21.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "imp_glass_01": {
+   "id": "imp_glass_01",
+   "file": "audio/imp_glass_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.1,
+   "lufs": -20.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "glass"
+   ],
+   "meta": {
+    "surface": "glass"
+   }
+  },
+  "imp_glass_02": {
+   "id": "imp_glass_02",
+   "file": "audio/imp_glass_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.1,
+   "lufs": -20.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "glass"
+   ],
+   "meta": {
+    "surface": "glass"
+   }
+  },
+  "imp_glass_03": {
+   "id": "imp_glass_03",
+   "file": "audio/imp_glass_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.1,
+   "lufs": -21.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "glass"
+   ],
+   "meta": {
+    "surface": "glass"
+   }
+  },
+  "imp_sand_01": {
+   "id": "imp_sand_01",
+   "file": "audio/imp_sand_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -25.2,
+   "lufs": -24.8,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "imp_sand_02": {
+   "id": "imp_sand_02",
+   "file": "audio/imp_sand_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -24.5,
+   "lufs": -24.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "imp_sand_03": {
+   "id": "imp_sand_03",
+   "file": "audio/imp_sand_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.7,
+   "lufs": -23.3,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "imp_water_01": {
+   "id": "imp_water_01",
+   "file": "audio/imp_water_01.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.3,
+   "lufs": -22.5,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "imp_water_02": {
+   "id": "imp_water_02",
+   "file": "audio/imp_water_02.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -24.4,
+   "lufs": -23.5,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "imp_water_03": {
+   "id": "imp_water_03",
+   "file": "audio/imp_water_03.ogg",
+   "bus": "mat",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 70,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -24.1,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "imp_body_01": {
+   "id": "imp_body_01",
+   "file": "audio/imp_body_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -20.1,
+   "lufs": -20.3,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "body",
+    "cartoon"
+   ]
+  },
+  "imp_body_02": {
+   "id": "imp_body_02",
+   "file": "audio/imp_body_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -20.3,
+   "lufs": -20.6,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "body",
+    "cartoon"
+   ]
+  },
+  "imp_body_03": {
+   "id": "imp_body_03",
+   "file": "audio/imp_body_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -19.8,
+   "lufs": -20.1,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "body",
+    "cartoon"
+   ]
+  },
+  "imp_ko_01": {
+   "id": "imp_ko_01",
+   "file": "audio/imp_ko_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.7,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.0,
+   "lufs": -23.5,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "ko",
+    "cartoon"
+   ]
+  },
+  "imp_ko_02": {
+   "id": "imp_ko_02",
+   "file": "audio/imp_ko_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.7,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.6,
+   "lufs": -23.8,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "ko",
+    "cartoon"
+   ]
+  },
+  "imp_ko_03": {
+   "id": "imp_ko_03",
+   "file": "audio/imp_ko_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.92,
+    1.08
+   ],
+   "variants": 3,
+   "maxDist": 45,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.7,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.2,
+   "lufs": -24.7,
+   "seamDb": null,
+   "tags": [
+    "impact",
+    "ko",
+    "cartoon"
+   ]
+  },
+  "ui_flag_capture": {
+   "id": "ui_flag_capture",
+   "file": "audio/ui_flag_capture.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -18.1,
+   "lufs": -18.2,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_flag_lost": {
+   "id": "ui_flag_lost",
+   "file": "audio/ui_flag_lost.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -17.8,
+   "lufs": -18.2,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_tickets_low": {
+   "id": "ui_tickets_low",
+   "file": "audio/ui_tickets_low.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 1.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -19.7,
+   "lufs": -20.4,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_respawn": {
+   "id": "ui_respawn",
+   "file": "audio/ui_respawn.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.9,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.3,
+   "lufs": -22.9,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_victory": {
+   "id": "ui_victory",
+   "file": "audio/ui_victory.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 4.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -20.3,
+   "lufs": -20.3,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_defeat": {
+   "id": "ui_defeat",
+   "file": "audio/ui_defeat.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 4.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -20.0,
+   "lufs": -20.6,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_hitmarker": {
+   "id": "ui_hitmarker",
+   "file": "audio/ui_hitmarker.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.12,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -23.8,
+   "lufs": -22.3,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "ui_kill": {
+   "id": "ui_kill",
+   "file": "audio/ui_kill.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 6,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 0.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -25.7,
+   "lufs": -23.9,
+   "seamDb": null,
+   "tags": [
+    "ui",
+    "battle"
+   ]
+  },
+  "step_concrete_01": {
+   "id": "step_concrete_01",
+   "file": "audio/step_concrete_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -29.7,
+   "lufs": -29.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_concrete_02": {
+   "id": "step_concrete_02",
+   "file": "audio/step_concrete_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -28.0,
+   "lufs": -28.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_concrete_03": {
+   "id": "step_concrete_03",
+   "file": "audio/step_concrete_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -27.9,
+   "lufs": -28.0,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_concrete_04": {
+   "id": "step_concrete_04",
+   "file": "audio/step_concrete_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -27.9,
+   "lufs": -27.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_concrete_05": {
+   "id": "step_concrete_05",
+   "file": "audio/step_concrete_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -30.0,
+   "lufs": -30.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_concrete_06": {
+   "id": "step_concrete_06",
+   "file": "audio/step_concrete_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.7,
+   "lufs": -26.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "concrete"
+   ],
+   "meta": {
+    "surface": "concrete"
+   }
+  },
+  "step_asphalt_01": {
+   "id": "step_asphalt_01",
+   "file": "audio/step_asphalt_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -29.1,
+   "lufs": -28.7,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_asphalt_02": {
+   "id": "step_asphalt_02",
+   "file": "audio/step_asphalt_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -30.0,
+   "lufs": -29.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_asphalt_03": {
+   "id": "step_asphalt_03",
+   "file": "audio/step_asphalt_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -31.0,
+   "lufs": -30.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_asphalt_04": {
+   "id": "step_asphalt_04",
+   "file": "audio/step_asphalt_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -31.0,
+   "lufs": -30.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_asphalt_05": {
+   "id": "step_asphalt_05",
+   "file": "audio/step_asphalt_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -28.1,
+   "lufs": -28.0,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_asphalt_06": {
+   "id": "step_asphalt_06",
+   "file": "audio/step_asphalt_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -27.0,
+   "lufs": -27.2,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "asphalt"
+   ],
+   "meta": {
+    "surface": "asphalt"
+   }
+  },
+  "step_grass_01": {
+   "id": "step_grass_01",
+   "file": "audio/step_grass_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.9,
+   "lufs": -23.8,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_grass_02": {
+   "id": "step_grass_02",
+   "file": "audio/step_grass_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -25.3,
+   "lufs": -25.0,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_grass_03": {
+   "id": "step_grass_03",
+   "file": "audio/step_grass_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.6,
+   "lufs": -26.2,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_grass_04": {
+   "id": "step_grass_04",
+   "file": "audio/step_grass_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.2,
+   "lufs": -23.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_grass_05": {
+   "id": "step_grass_05",
+   "file": "audio/step_grass_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.7,
+   "lufs": -24.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_grass_06": {
+   "id": "step_grass_06",
+   "file": "audio/step_grass_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.2,
+   "lufs": -23.6,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "grass"
+   ],
+   "meta": {
+    "surface": "grass"
+   }
+  },
+  "step_gravel_01": {
+   "id": "step_gravel_01",
+   "file": "audio/step_gravel_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.7,
+   "lufs": -25.8,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_gravel_02": {
+   "id": "step_gravel_02",
+   "file": "audio/step_gravel_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.1,
+   "lufs": -22.4,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_gravel_03": {
+   "id": "step_gravel_03",
+   "file": "audio/step_gravel_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -25.5,
+   "lufs": -24.6,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_gravel_04": {
+   "id": "step_gravel_04",
+   "file": "audio/step_gravel_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.3,
+   "lufs": -25.4,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_gravel_05": {
+   "id": "step_gravel_05",
+   "file": "audio/step_gravel_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.2,
+   "lufs": -25.4,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_gravel_06": {
+   "id": "step_gravel_06",
+   "file": "audio/step_gravel_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.1,
+   "lufs": -25.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "gravel"
+   ],
+   "meta": {
+    "surface": "gravel"
+   }
+  },
+  "step_sand_01": {
+   "id": "step_sand_01",
+   "file": "audio/step_sand_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -28.6,
+   "lufs": -28.0,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_sand_02": {
+   "id": "step_sand_02",
+   "file": "audio/step_sand_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.6,
+   "lufs": -26.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_sand_03": {
+   "id": "step_sand_03",
+   "file": "audio/step_sand_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.0,
+   "lufs": -25.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_sand_04": {
+   "id": "step_sand_04",
+   "file": "audio/step_sand_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.1,
+   "lufs": -23.7,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_sand_05": {
+   "id": "step_sand_05",
+   "file": "audio/step_sand_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -27.0,
+   "lufs": -26.2,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_sand_06": {
+   "id": "step_sand_06",
+   "file": "audio/step_sand_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.38,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.7,
+   "lufs": -26.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "sand"
+   ],
+   "meta": {
+    "surface": "sand"
+   }
+  },
+  "step_wood_01": {
+   "id": "step_wood_01",
+   "file": "audio/step_wood_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.3,
+   "lufs": -23.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_wood_02": {
+   "id": "step_wood_02",
+   "file": "audio/step_wood_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -20.8,
+   "lufs": -21.4,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_wood_03": {
+   "id": "step_wood_03",
+   "file": "audio/step_wood_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.6,
+   "lufs": -23.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_wood_04": {
+   "id": "step_wood_04",
+   "file": "audio/step_wood_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.4,
+   "lufs": -23.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_wood_05": {
+   "id": "step_wood_05",
+   "file": "audio/step_wood_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -20.9,
+   "lufs": -21.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_wood_06": {
+   "id": "step_wood_06",
+   "file": "audio/step_wood_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.45,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.4,
+   "lufs": -23.0,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "wood"
+   ],
+   "meta": {
+    "surface": "wood"
+   }
+  },
+  "step_metal_01": {
+   "id": "step_metal_01",
+   "file": "audio/step_metal_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.9,
+   "lufs": -23.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_metal_02": {
+   "id": "step_metal_02",
+   "file": "audio/step_metal_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.8,
+   "lufs": -24.6,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_metal_03": {
+   "id": "step_metal_03",
+   "file": "audio/step_metal_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.4,
+   "lufs": -24.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_metal_04": {
+   "id": "step_metal_04",
+   "file": "audio/step_metal_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.8,
+   "lufs": -23.7,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_metal_05": {
+   "id": "step_metal_05",
+   "file": "audio/step_metal_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.0,
+   "lufs": -22.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_metal_06": {
+   "id": "step_metal_06",
+   "file": "audio/step_metal_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.55,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.3,
+   "lufs": -24.2,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "metal"
+   ],
+   "meta": {
+    "surface": "metal"
+   }
+  },
+  "step_mud_01": {
+   "id": "step_mud_01",
+   "file": "audio/step_mud_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -20.3,
+   "lufs": -21.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_mud_02": {
+   "id": "step_mud_02",
+   "file": "audio/step_mud_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -19.2,
+   "lufs": -19.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_mud_03": {
+   "id": "step_mud_03",
+   "file": "audio/step_mud_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -19.9,
+   "lufs": -20.7,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_mud_04": {
+   "id": "step_mud_04",
+   "file": "audio/step_mud_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.9,
+   "lufs": -23.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_mud_05": {
+   "id": "step_mud_05",
+   "file": "audio/step_mud_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -21.3,
+   "lufs": -22.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_mud_06": {
+   "id": "step_mud_06",
+   "file": "audio/step_mud_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.5,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -21.5,
+   "lufs": -22.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "mud"
+   ],
+   "meta": {
+    "surface": "mud"
+   }
+  },
+  "step_water_01": {
+   "id": "step_water_01",
+   "file": "audio/step_water_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -25.9,
+   "lufs": -24.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_water_02": {
+   "id": "step_water_02",
+   "file": "audio/step_water_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.2,
+   "lufs": -24.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_water_03": {
+   "id": "step_water_03",
+   "file": "audio/step_water_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -26.1,
+   "lufs": -25.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_water_04": {
+   "id": "step_water_04",
+   "file": "audio/step_water_04.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.8,
+   "lufs": -22.7,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_water_05": {
+   "id": "step_water_05",
+   "file": "audio/step_water_05.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -24.8,
+   "lufs": -23.8,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_water_06": {
+   "id": "step_water_06",
+   "file": "audio/step_water_06.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 6,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.0,
+   "lufs": -21.9,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "water"
+   ],
+   "meta": {
+    "surface": "water"
+   }
+  },
+  "step_run_hard_01": {
+   "id": "step_run_hard_01",
+   "file": "audio/step_run_hard_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -27.0,
+   "lufs": -27.1,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "hard"
+   ],
+   "meta": {
+    "surface": "hard"
+   }
+  },
+  "step_run_hard_02": {
+   "id": "step_run_hard_02",
+   "file": "audio/step_run_hard_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -28.8,
+   "lufs": -28.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "hard"
+   ],
+   "meta": {
+    "surface": "hard"
+   }
+  },
+  "step_run_hard_03": {
+   "id": "step_run_hard_03",
+   "file": "audio/step_run_hard_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -19.9,
+   "lufs": -20.5,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "hard"
+   ],
+   "meta": {
+    "surface": "hard"
+   }
+  },
+  "step_run_soft_01": {
+   "id": "step_run_soft_01",
+   "file": "audio/step_run_soft_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -22.9,
+   "lufs": -22.3,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "soft"
+   ],
+   "meta": {
+    "surface": "soft"
+   }
+  },
+  "step_run_soft_02": {
+   "id": "step_run_soft_02",
+   "file": "audio/step_run_soft_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -23.7,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "soft"
+   ],
+   "meta": {
+    "surface": "soft"
+   }
+  },
+  "step_run_soft_03": {
+   "id": "step_run_soft_03",
+   "file": "audio/step_run_soft_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.28,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -6.0,
+   "rmsDb": -20.1,
+   "lufs": -20.8,
+   "seamDb": null,
+   "tags": [
+    "step",
+    "run",
+    "soft"
+   ],
+   "meta": {
+    "surface": "soft"
+   }
+  },
+  "foley_jump_01": {
+   "id": "foley_jump_01",
+   "file": "audio/foley_jump_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -21.7,
+   "lufs": -20.5,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "jump"
+   ]
+  },
+  "foley_jump_02": {
+   "id": "foley_jump_02",
+   "file": "audio/foley_jump_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -21.8,
+   "lufs": -20.7,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "jump"
+   ]
+  },
+  "foley_jump_03": {
+   "id": "foley_jump_03",
+   "file": "audio/foley_jump_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.4,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -22.0,
+   "lufs": -20.8,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "jump"
+   ]
+  },
+  "foley_land_hard_01": {
+   "id": "foley_land_hard_01",
+   "file": "audio/foley_land_hard_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -25.8,
+   "lufs": -26.4,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_land_hard_02": {
+   "id": "foley_land_hard_02",
+   "file": "audio/foley_land_hard_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -26.9,
+   "lufs": -26.8,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_land_hard_03": {
+   "id": "foley_land_hard_03",
+   "file": "audio/foley_land_hard_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -22.9,
+   "lufs": -23.5,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_land_soft_01": {
+   "id": "foley_land_soft_01",
+   "file": "audio/foley_land_soft_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -25.3,
+   "lufs": -25.5,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_land_soft_02": {
+   "id": "foley_land_soft_02",
+   "file": "audio/foley_land_soft_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -27.0,
+   "lufs": -27.0,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_land_soft_03": {
+   "id": "foley_land_soft_03",
+   "file": "audio/foley_land_soft_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 28,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.6,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -23.1,
+   "lufs": -23.8,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "land"
+   ]
+  },
+  "foley_cloth_01": {
+   "id": "foley_cloth_01",
+   "file": "audio/foley_cloth_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.761,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -10.0,
+   "rmsDb": -26.7,
+   "lufs": -25.1,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "cloth"
+   ]
+  },
+  "foley_cloth_02": {
+   "id": "foley_cloth_02",
+   "file": "audio/foley_cloth_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.697,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -10.0,
+   "rmsDb": -24.8,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "cloth"
+   ]
+  },
+  "foley_cloth_03": {
+   "id": "foley_cloth_03",
+   "file": "audio/foley_cloth_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.68,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -10.0,
+   "rmsDb": -25.4,
+   "lufs": -24.0,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "cloth"
+   ]
+  },
+  "foley_gear_01": {
+   "id": "foley_gear_01",
+   "file": "audio/foley_gear_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -26.3,
+   "lufs": -25.0,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "gear"
+   ]
+  },
+  "foley_gear_02": {
+   "id": "foley_gear_02",
+   "file": "audio/foley_gear_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -26.6,
+   "lufs": -25.2,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "gear"
+   ]
+  },
+  "foley_gear_03": {
+   "id": "foley_gear_03",
+   "file": "audio/foley_gear_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -29.2,
+   "lufs": -28.2,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "gear"
+   ]
+  },
+  "foley_pickup": {
+   "id": "foley_pickup",
+   "file": "audio/foley_pickup.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 1,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.35,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -25.9,
+   "lufs": -24.8,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "pickup"
+   ]
+  },
+  "foley_drop_crate": {
+   "id": "foley_drop_crate",
+   "file": "audio/foley_drop_crate.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 1,
+   "maxDist": 60,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.8,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -5.0,
+   "rmsDb": -23.1,
+   "lufs": -23.9,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "crate"
+   ]
+  },
+  "foley_swim_stroke_01": {
+   "id": "foley_swim_stroke_01",
+   "file": "audio/foley_swim_stroke_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -25.1,
+   "lufs": -23.7,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "swim"
+   ]
+  },
+  "foley_swim_stroke_02": {
+   "id": "foley_swim_stroke_02",
+   "file": "audio/foley_swim_stroke_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -25.2,
+   "lufs": -23.6,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "swim"
+   ]
+  },
+  "foley_swim_stroke_03": {
+   "id": "foley_swim_stroke_03",
+   "file": "audio/foley_swim_stroke_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 22,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.75,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -9.0,
+   "rmsDb": -24.7,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "swim"
+   ]
+  },
+  "foley_breath_hurt_01": {
+   "id": "foley_breath_hurt_01",
+   "file": "audio/foley_breath_hurt_01.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.32,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -22.3,
+   "lufs": -21.7,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "breath",
+    "hurt"
+   ]
+  },
+  "foley_breath_hurt_02": {
+   "id": "foley_breath_hurt_02",
+   "file": "audio/foley_breath_hurt_02.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.32,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -23.8,
+   "lufs": -23.2,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "breath",
+    "hurt"
+   ]
+  },
+  "foley_breath_hurt_03": {
+   "id": "foley_breath_hurt_03",
+   "file": "audio/foley_breath_hurt_03.ogg",
+   "bus": "ppl",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    0.94,
+    1.06
+   ],
+   "variants": 3,
+   "maxDist": 35,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 0.32,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.0,
+   "rmsDb": -22.5,
+   "lufs": -21.9,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "breath",
+    "hurt"
+   ]
+  },
+  "foley_heal": {
+   "id": "foley_heal",
+   "file": "audio/foley_heal.ogg",
+   "bus": "ui",
+   "loop": false,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 1000,
+   "weight": 1.0,
+   "lazy": true,
+   "group": "people",
+   "dur": 1.3,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -8.0,
+   "rmsDb": -21.6,
+   "lufs": -21.3,
+   "seamDb": null,
+   "tags": [
+    "foley",
+    "heal"
+   ]
+  },
+  "amb_battle_distant": {
+   "id": "amb_battle_distant",
+   "file": "audio/amb_battle_distant.ogg",
+   "bus": "amb",
+   "loop": true,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 400,
+   "weight": 3,
+   "lazy": true,
+   "group": "weapons",
+   "dur": 16.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -7.5,
+   "rmsDb": -28.1,
+   "lufs": -29.0,
+   "seamDb": -70.3,
+   "tags": [
+    "ambience",
+    "bed"
+   ]
+  },
+  "amb_farm": {
+   "id": "amb_farm",
+   "file": "audio/amb_farm.ogg",
+   "bus": "amb",
+   "loop": true,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 400,
+   "weight": 3,
+   "lazy": true,
+   "group": "weather",
+   "dur": 16.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -15.6,
+   "rmsDb": -30.6,
+   "lufs": -30.0,
+   "seamDb": -49.5,
+   "tags": [
+    "ambience",
+    "bed"
+   ]
+  },
+  "amb_town": {
+   "id": "amb_town",
+   "file": "audio/amb_town.ogg",
+   "bus": "amb",
+   "loop": true,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 400,
+   "weight": 3,
+   "lazy": true,
+   "group": "weather",
+   "dur": 16.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -12.8,
+   "rmsDb": -29.0,
+   "lufs": -30.0,
+   "seamDb": -54.5,
+   "tags": [
+    "ambience",
+    "bed"
+   ]
+  },
+  "amb_quay": {
+   "id": "amb_quay",
+   "file": "audio/amb_quay.ogg",
+   "bus": "amb",
+   "loop": true,
+   "gain": 1.0,
+   "rate": [
+    1.0,
+    1.0
+   ],
+   "variants": 1,
+   "maxDist": 400,
+   "weight": 3,
+   "lazy": true,
+   "group": "weather",
+   "dur": 16.0,
+   "ch": 1,
+   "sr": 44100,
+   "peakDb": -10.1,
+   "rmsDb": -28.5,
+   "lufs": -29.0,
+   "seamDb": -50.8,
+   "tags": [
+    "ambience",
+    "bed"
+   ]
+  },
   "wx_thunder_near_01": {
    "id": "wx_thunder_near_01",
    "file": "audio/wx_thunder_near_01.ogg",

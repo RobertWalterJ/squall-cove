@@ -100,3 +100,10 @@ def sumv(*xs):
     n = max(len(x) for x in xs); out = np.zeros(n)
     for x in xs: out[:len(x)] += x
     return out
+
+
+def slowmod(n, rate, r, depth=1.0):
+    """Cheap smooth random modulation in [1-depth, 1] (synthlib.smooth_random convolves with a huge window at sub-Hz rates)."""
+    k = int(n / SR * rate) + 3; pts = r.random(k); y = np.interp(np.arange(n), np.linspace(0, n - 1, k), pts)
+    y = lp(y, max(rate * 1.5, 0.05), SR, 1); y = (y - y.min()) / (y.max() - y.min() + 1e-9)
+    return 1.0 - depth + depth * y

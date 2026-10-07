@@ -29,7 +29,8 @@ def shot_dry(r, p, dur):
     f = p['f1'] * pj + (p['f0'] - p['f1']) * pj * np.exp(-t / 0.05)
     boom = np.sin(TWO_PI * np.cumsum(f) / SR + r.uniform(0, 6.28)) * np.exp(-t / (p['bt'] * pj)) * p['boom'] * gj()
     thm = lp(noise(n, 'brown', r), 200, SR, 2) * np.exp(-t / (p['bt'] * 0.7)) * p['th'] * gj()
-    return S.soft_clip(click + crack + body * 0.9 + boom + thm * 0.8, 1.7)
+    y = click * 1.4 + crack * 1.6 + body * 1.8 + boom * 0.2 + thm * 0.12
+    return S.soft_clip(hp(y, 60, SR, 2), 1.7)
 
 
 def gun_shot(r, name, i=0):
@@ -48,12 +49,12 @@ def gun_shot(r, name, i=0):
 def far_shot(r, name, i=0):
     """Distant version: low-passed, softened onset, a few short echoes and a thin rumble."""
     p = GUNS[name]; dry = shot_dry(r, p, 0.7)
-    d = lp(dry, r.uniform(1300, 1900), SR, 3)
+    d = lp(dry, r.uniform(1800, 2600), SR, 3)
     d *= np.minimum(1, np.arange(len(d)) / (0.004 * SR)) ** 2
     out = np.zeros(n_of(2.6)); put(out, d, 0.0, 1.0)
     for k, (dt, lv, fc) in enumerate([(0.30, .45, 1300), (0.66, .28, 950), (1.15, .17, 700)]):
         put(out, lp(d, fc, SR, 2), dt * r.uniform(0.9, 1.15), lv)
-    rum = lp(noise(len(out), 'brown', r), 180, SR, 2) * np.exp(-np.arange(len(out)) / (0.5 * SR)) * 0.35
+    rum = lp(noise(len(out), 'brown', r), 180, SR, 2) * np.exp(-np.arange(len(out)) / (0.5 * SR)) * 0.12
     out += rum * np.max(np.abs(d))
     return fade_out(out, 0.2)
 
@@ -139,7 +140,7 @@ def render_handling():
     kw = dict(bus='veh', group='weapons', peak=-5, weight=3, max_dist=40, rate=(0.94, 1.06), tags=['weapon', 'handling'])
     for name, mk in [('wpn_reload_mag_out', mag_out), ('wpn_reload_mag_in', mag_in), ('wpn_reload_bolt', reload_bolt), ('wpn_pump_shotgun', pump_shotgun),
                      ('wpn_dry_click', dry_click), ('wpn_draw', draw), ('wpn_knife_swish', knife_swish)]:
-        fam(name, 2, mk, **kw)
+        fam(name, 2, mk, **dict(kw, peak=-9) if name == 'wpn_knife_swish' else kw)
 
 
 # ------------------------------------------------------------------ shell casings
@@ -196,13 +197,13 @@ def ricochet(r, i):
 
 def render_passes():
     fam('wpn_whiz', 3, whiz, 'veh', 'weapons', peak=-5, weight=4, max_dist=60, rate=(0.93, 1.07), tags=['weapon', 'bullet-pass'])
-    fam('wpn_ricochet', 3, ricochet, 'veh', 'weapons', peak=-5, weight=4, max_dist=80, rate=(0.93, 1.07), tags=['weapon', 'ricochet'])
+    fam('wpn_ricochet', 3, ricochet, 'veh', 'weapons', peak=-8, weight=4, max_dist=80, rate=(0.93, 1.07), tags=['weapon', 'ricochet'])
 
 
 # ------------------------------------------------------------------ impacts
 def imp_dirt(r, i):
     n = n_of(0.45)
-    y = thump(n, r.uniform(90, 130), 0.05, 1.0) + lp(noise(n, 'white', r), 1400, SR, 2) * edec(n, 0.03) * 0.7
+    y = thump(n, r.uniform(70, 170), r.uniform(0.03, 0.07), r.uniform(0.5, 1.0)) + lp(noise(n, 'white', r), r.uniform(900, 2400), SR, 2) * edec(n, r.uniform(0.02, 0.05)) * r.uniform(1.2, 2.0)
     g = fit(U.ticks(0.3, lambda t: 120 * math.exp(-t * 9), r, 800, 3500, 0.004), n) * 0.3
     return y + g
 
@@ -238,7 +239,7 @@ def imp_glass(r, i):
 
 def imp_sand(r, i):
     n = n_of(0.4)
-    y = bp(noise(n, 'white', r), 300, 2600, SR, 2) * edec(n, 0.05) * np.minimum(1, np.arange(n) / (0.004 * SR)) * 0.9 + thump(n, 85, 0.05, 0.7)
+    y = bp(noise(n, 'white', r), 300, 2600, SR, 2) * edec(n, 0.05) * np.minimum(1, np.arange(n) / (0.004 * SR)) * 0.9 + thump(n, 85, 0.05, 0.35)
     y += fit(U.ticks(0.3, lambda t: 220 * math.exp(-t * 10), r, 1200, 4200, 0.004), n) * 0.45
     return y
 
@@ -303,12 +304,12 @@ def ui_flag_lost(r=None):
 
 def ui_tickets_low(r=None):
     r = rng(503); n = n_of(1.3); t = np.arange(n) / SR
-    base = np.sin(TWO_PI * 73.4 * t) + 0.8 * np.sin(TWO_PI * 103.8 * t) + 0.3 * np.sin(TWO_PI * 147 * t)   # tritone, uneasy
+    base = np.sin(TWO_PI * 146.8 * t) + 0.8 * np.sin(TWO_PI * 207.7 * t) + 0.35 * np.sin(TWO_PI * 293.6 * t) + 0.2 * np.sin(TWO_PI * 415 * t)   # tritone, uneasy
     pulse = 0.55 + 0.45 * np.sin(TWO_PI * 2.6 * t - 1.5) ** 2
     env = np.minimum(1, t / 0.05) * np.exp(-t / 0.9)
     hits = mix(1.3, [(thump(n_of(0.4), 62, 0.12, 1.0), 0.0, 0.9), (thump(n_of(0.4), 62, 0.12, 1.0), 0.42, 0.8), (thump(n_of(0.4), 62, 0.12, 1.0), 0.84, 0.7)])
     air = bp(noise(n, 'white', r), 700, 2500, SR, 1) * np.sin(np.pi * np.clip(t / 1.3, 0, 1)) ** 2 * 0.1
-    return fade_out(lp(base, 700, SR, 2) * pulse * env * 0.6 + hits * 0.6 + air, 0.12)
+    return fade_out(lp(base, 1800, SR, 2) * pulse * env * 0.5 + hits * 0.4 + air, 0.12)
 
 
 def ui_respawn(r=None):
