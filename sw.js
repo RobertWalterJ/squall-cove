@@ -3,7 +3,7 @@
    squall-cove-assets-aN heavy, rarely changing files (assets/ and audio/). NOT replaced on a release, so a
                          release downloads about 1.5 MB, not 18 to 46 MB. Bump ASSETS only if an asset file
                          changes its CONTENT under the same name (this re-downloads everything once). */
-const VERSION = 'v9.4.0';      // v9.4.0: phone edition push-ready (layout ladder, 48 px targets, tilt aim, wake lock, haptics, lost-graphics recovery, governor, touch tactical map). v9.3.0: stable asset cache split out (releases no longer re-download assets); phone edition. v9.2.0: static start menu, Lemnos real maps, cheats panel.
+const VERSION = 'v9.5.0';      // v9.5.0: gunfire and explosion effects (travelling tracers by calibre, muzzle flashes, impacts per surface, shockwaves, lingering fires, horizon flashes). v9.4.0: phone edition push-ready (layout ladder, 48 px targets, tilt aim, wake lock, haptics, lost-graphics recovery, governor, touch tactical map). v9.3.0: stable asset cache split out (releases no longer re-download assets); phone edition. v9.2.0: static start menu, Lemnos real maps, cheats panel.
 const ASSETS = 'a1';
 const CACHE = 'squall-cove-' + VERSION;
 const ACACHE = 'squall-cove-assets-' + ASSETS;

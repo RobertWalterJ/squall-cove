@@ -256,7 +256,7 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.4 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.5 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -514,6 +514,7 @@ body.battle #killFeed{display:grid}
 body.touch #bStat{bottom:calc(168px + var(--safe-b))}
 #bStat .hp{height:12px;background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;width:100%;height:100%;background:#d64b2c;transform-origin:0 50%}
 #bStat .hpn{font:600 15px var(--f-body)}
+#bSupp{position:fixed;inset:0;pointer-events:none;z-index:var(--z-hud);opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 60%,rgba(8,8,10,.5) 100%);will-change:opacity}
 #bHurt{position:fixed;inset:0;pointer-events:none;z-index:var(--z-hud);opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(214,40,20,.7) 100%);will-change:opacity}
 #hitm{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:var(--z-fx);opacity:0}#hitm.on{opacity:1}
 #hitm i{position:absolute;left:12px;top:-2px;width:2px;height:30px;background:#fff;box-shadow:0 0 3px #000;transform:rotate(45deg)}#hitm i+i{transform:rotate(-45deg)}#hitm.k i{background:#ff2a1d;width:3px}
@@ -4328,7 +4329,7 @@ function fireShot(bt, m, tgt) {
   const vx = Math.sin(yaw) * cp * w.v, vz = Math.cos(yaw) * cp * w.v, vy = Math.sin(pitch) * w.v;
   shots.push({ x: from.x, y: from.y, z: from.z, vx, vy, vz, dmg: w.dmg, owner: bt, k: m.k, age: 0 }); Snd.fx(m.k === 'heavy' ? 'wpn_naval_gun_fire' : m.k === 'gun' ? 'wpn_tank_cannon_fire' : 'wpn_hmg_fire', from.x, from.z, { gain: m.k === 'heavy' ? 1.5 : m.k === 'gun' ? 1 : 0.6, far: m.k === 'heavy' ? 3 : 1.5, y: from.y });
   // muzzle flash, smoke and a little kick
-  const fl = w.flash; fxG.emit(from.x, from.y, from.z, 0, 0, 0, 0.09, 1.1 * fl, 0.6, [1, 0.85, 0.5, 1]); puffSmoke(from.x, from.y, from.z, m.k === 'heavy' ? 6 : m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
+  const fl = w.flash; muzzleFlash(from.x, from.y, from.z, Math.sin(yaw) * cp, Math.sin(pitch), Math.cos(yaw) * cp, m.k === 'heavy' ? 'heavy' : m.k === 'gun' ? 'cannon' : 'hmg', null); puffSmoke(from.x, from.y, from.z, m.k === 'heavy' ? 6 : m.k === 'gun' ? 3 : 1, false, 0.5 * fl);
   bt.body.applyImpulse(new CANNON.Vec3(-Math.sin(yaw) * w.recoil, 0, -Math.cos(yaw) * w.recoil), new CANNON.Vec3(from.x - bt.body.position.x, 0, from.z - bt.body.position.z));
   m.burst = 0.12; return yaw;
 }
@@ -4568,8 +4569,8 @@ function fpManFire() {
   { const gap = simT - (e.lastShot || -9); if (e.lockUntil > simT) { fp.cool = 0.25; noteOnce('heat' + Math.floor(simT / 2), 'The barrels are too hot. Wait a moment.'); return; } if (gap > 1) e.burstT = 0; else e.burstT = (e.burstT || 0) + gap; e.lastShot = simT; if (e.burstT > 4) { e.burstT = 0; e.lockUntil = simT + 2; noteOnce('heat' + Math.floor(simT / 2), 'The gun is overheating. It needs a short rest.'); } }          // four seconds of fire, then two to cool
   fp.cool = aa ? 0.13 : 0.1; fp.kick = 0.6; camera.getWorldDirection(_d); const o = new THREE.Vector3(e.x, e.y + 1.5, e.z), range = aa ? 700 : 260;
   let hitAir = null, bt = 1e9; for (const u of AIR.list) { if (u.down || u.team === BATTLE.team) continue; const v = new THREE.Vector3(u.x - o.x, u.y - o.y, u.z - o.z), t = v.dot(_d); if (t < 5 || t > range * 1.4) continue; const miss = v.addScaledVector(_d, -t).length(); if (miss < u.rad * (aa ? 1.1 : 0.8) && t < bt) { bt = t; hitAir = u; } }
-  if (hitAir) { damageAir(hitAir, aa ? 22 : 7, 'you'); addTracer(o.x, o.y, o.z, o.x + _d.x * bt, o.y + _d.y * bt, o.z + _d.z * bt); }
-  else { const h = fpAim(range, aa ? 0.004 : 0.012); if (h.pt) { addTracer(o.x, o.y, o.z, h.pt.x, h.pt.y, h.pt.z); impactFx(h.kind, h.ref, h.pt, h.t); if (h.kind === 'person' && !aa && BATTLE.on) hurt(h.ref, 20, p, false, 'MG nest'); } }
+  if (hitAir) { damageAir(hitAir, aa ? 22 : 7, 'you'); addTracer(o.x, o.y, o.z, o.x + _d.x * bt, o.y + _d.y * bt, o.z + _d.z * bt, { k: 'mg', own: true }); }
+  else { const h = fpAim(range, aa ? 0.004 : 0.012); if (h.pt) { addTracer(o.x, o.y, o.z, h.pt.x, h.pt.y, h.pt.z, { k: 'mg', own: true }); impactFx(h.kind, h.ref, h.pt, h.t); if (h.kind === 'person' && !aa && BATTLE.on) hurt(h.ref, 20, p, false, 'MG nest'); } }
   empShot(e, o.y); fp.pitch = Math.min(1.45, fp.pitch + (aa ? 0.004 : 0.003)); fp.yaw += (Math.random() - 0.5) * (aa ? 0.004 : 0.003); dis.quake = Math.max(dis.quake, aa ? 0.5 : 0.3);
 }
 function fpUse() {
@@ -4767,7 +4768,7 @@ function fpFireGun() {
   { const sn = 'wpn_' + wsnd(id) + '_fire_0' + (1 + Math.floor(Math.random() * 3)); Snd.fx(sn, p.x, p.z, { gain: 0.9, y: p.y + 1.5, gap: 0.02 }); Snd.fx('veh_gun_fire_0' + (1 + Math.floor(Math.random() * 4)), p.x, p.z, { gain: 0.35, y: p.y + 1.5, gap: 0.02 }); }
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
   ejectCasing(p.x, p.y + 1.3, p.z, Math.atan2(_d.x, _d.z)); fpAirHit(w); const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1) * [1, 0.7, 0.45][fp.stance || 0];
-  for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z);
+  for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z, { k: WK[id] || 'rifle', team: BATTLE.on ? BATTLE.team : null, own: true });
     impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { if (id === 'sniper') hurt(q, head ? 120 : 70 * Math.max(0.8, fall), p, false, w.name); else hurt(q, w.dmg * fall, p, head, w.name); Snd.ui('ui_hitmarker', 0.6); }          /* the sniper rifle only one-shots on the head; a body shot leaves a target on its feet */ else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
     else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
     else if (h.kind === 'veh') damageVehicle(h.ref, w.dmg * fall * 0.7 * (w.pellets ? 3 : 1) * h.ref.sp.arm, BATTLE.on ? BATTLE.team : null, w.name, p);
@@ -5408,9 +5409,151 @@ const livingCount = () => { let n = 0; for (const p of people) if (p.state !== '
 /* the capture points of each map are in BATTLE_MAPS (near the top of the script) */
 const teamOf = (q) => q && (q.side === 'blue' ? 'blue' : q.side === 'red' ? 'red' : null), otherTeam = (t) => t === 'blue' ? 'red' : 'blue';
 const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
-const tracers = (() => { const N = 160, pos = new Float32Array(N * 6), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.85, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 6; scene.add(m); return { N, pos, g, life: new Float32Array(N), i: 0, m }; })();
-function addTracer(x0, y0, z0, x1, y1, z1) { const T = tracers, i = T.i = (T.i + 1) % T.N; T.pos.set([x0, y0, z0, x1, y1, z1], i * 6); T.life[i] = 0.06; T.g.attributes.position.needsUpdate = true; }
-function updateTracers(dt) { updateSplashes(dt); const T = tracers; let ch = false; for (let i = 0; i < T.N; i++) if (T.life[i] > 0) { T.life[i] -= dt; if (T.life[i] <= 0) { T.pos.fill(0, i * 6, i * 6 + 6); ch = true; } } if (ch) T.g.attributes.position.needsUpdate = true; }
+/* ---- v8.6: gunfire and explosions you can see. Travelling tracers (team colours, length and thickness per weapon), per-weapon muzzle flashes with a brief light, the whiz of a near miss,
+   surface-specific impacts, shockwave rings, lingering fires and smoke columns, and distant flashes on the horizon. Everything is pooled with hard caps; the phone gets about 40% of the counts,
+   at most two flash lights, and with reduced motion there are fewer flashes and no shake. Nothing here survives the end of a battle. */
+const FXK = ED.phone ? 0.4 : 1, fxN = (n) => Math.max(1, Math.round(n * FXK));
+const WK = { pistol: 'smg', smg: 'smg', rifle: 'rifle', shotgun: 'shot', sniper: 'sniper', carbine: 'rifle', lmg: 'mg', marksman: 'sniper', revolver: 'smg' };
+// TRACER CLASSES: one row per calibre class, tune thickness (w, metres) and length (len, metres) here. v is the stylised speed in m/s.
+const TRK = { smg: { v: 270, len: 3, w: 0.04 }, shot: { v: 240, len: 2.5, w: 0.035 }, rifle: { v: 330, len: 4.5, w: 0.05 }, mg: { v: 300, len: 7, w: 0.075 }, sniper: { v: 700, len: 14, w: 0.09 }, hmg: { v: 340, len: 12, w: 0.15 }, aa: { v: 380, len: 17, w: 0.22 }, cannon: { v: 460, len: 20, w: 0.32 }, naval: { v: 500, len: 28, w: 0.46 } };
+const TCOL = { blue: [0.5, 0.8, 1], red: [1, 0.36, 0.2], none: [1, 0.86, 0.45] };
+const tracers = (() => {
+  const N = ED.phone ? 64 : 160, pos = new Float32Array(N * 12), col = new Float32Array(N * 16), idx = new Uint16Array(N * 6), g = new THREE.BufferGeometry();
+  for (let i = 0; i < N; i++) { const b = i * 4; idx.set([b, b + 1, b + 2, b + 2, b + 1, b + 3], i * 6); }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 4)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.setDrawRange(0, 0);
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: 'attribute vec4 aCol; varying vec4 vC; void main(){ vC = aCol; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }', fragmentShader: 'varying vec4 vC; void main(){ gl_FragColor = vec4(vC.rgb, vC.a); }' }));
+  m.frustumCulled = false; m.renderOrder = 8; scene.add(m);
+  const f = (n) => new Float32Array(n);
+  return { N, pos, col, g, m, i: 0, act: new Uint8Array(N), mode: new Uint8Array(N), sx: f(N), sy: f(N), sz: f(N), ux: f(N), uy: f(N), uz: f(N), D: f(N), t: f(N), v: f(N), len: f(N), w: f(N), r: f(N), gg: f(N), b: f(N), age: f(N), life: f(N), wz: f(N), wd: f(N) };
+})();
+const MZF = { n: 0, max: ED.phone ? 5 : 14, lights: [], li: 0, wzT: -9 }, SUPP = { v: 0 };
+function addTracer(x0, y0, z0, x1, y1, z1, o) {
+  o = o || {}; const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0, D = Math.hypot(dx, dy, dz); if (D < 0.05) return; const cp = camera.position, kind = o.k || 'rifle', K = TRK[kind] || TRK.rifle, ux = dx / D, uy = dy / D, uz = dz / D;
+  if (!o.trail && !o.own) muzzleFlash(x0, y0, z0, ux, uy, uz, kind, o.team);                              // a flash goes with every shot, even one too far away to draw a tracer for
+  if (o.own) flashLight(x0 + ux * 0.5, y0 + uy * 0.5, z0 + uz * 0.5, 0.9, o.team);
+  const far = ED.phone ? 200 : 330; if (Math.hypot(x0 - cp.x, z0 - cp.z) > far && Math.hypot(x1 - cp.x, z1 - cp.z) > far) return;
+  if (ED.phone && !o.trail && !o.own && Math.random() < 0.3) return;
+  const T = tracers, i = T.i = (T.i + 1) % T.N, c = TCOL[o.team] || TCOL.none; T.act[i] = 1; T.mode[i] = o.trail ? 1 : 0; T.sx[i] = x0; T.sy[i] = y0; T.sz[i] = z0; T.ux[i] = ux; T.uy[i] = uy; T.uz[i] = uz; T.D[i] = D;
+  T.t[i] = 0; T.v[i] = K.v; T.len[i] = o.len || K.len; T.w[i] = o.w || K.w; T.r[i] = c[0]; T.gg[i] = c[1]; T.b[i] = c[2]; T.age[i] = 0; T.life[i] = 0.07; T.wz[i] = -1; T.wd[i] = 9;
+  if (!o.trail && fp.on && !o.own && D > 6) {                                                              // would this round pass close to the player's head?
+    const tt = clamp((cp.x - x0) * ux + (cp.y - y0) * uy + (cp.z - z0) * uz, 0, D), px = x0 + ux * tt - cp.x, py = y0 + uy * tt - cp.y, pz = z0 + uz * tt - cp.z, dm = Math.hypot(px, py, pz);
+    if (dm < 3.5 && tt > 4) { T.wz[i] = tt; T.wd[i] = dm; }
+  }
+}
+function updateTracers(dt) {
+  updateSplashes(dt); fx2Update(dt); const T = tracers, cp = camera.position; let nv = 0;
+  for (let i = 0; i < T.N; i++) {
+    if (!T.act[i]) continue; let head, tail, a = 1;
+    if (T.mode[i] === 1) { T.age[i] += dt; if (T.age[i] >= T.life[i]) { T.act[i] = 0; continue; } head = T.D[i]; tail = Math.max(0, head - T.len[i]); a = 1 - T.age[i] / T.life[i]; }
+    else { T.t[i] += T.v[i] * dt; if (T.wz[i] >= 0 && T.t[i] >= T.wz[i]) { whiz(T.wd[i]); T.wz[i] = -1; } if (T.t[i] - T.len[i] >= T.D[i]) { T.act[i] = 0; continue; } head = Math.min(T.t[i], T.D[i]); tail = Math.max(0, T.t[i] - T.len[i]); }
+    const hx = T.sx[i] + T.ux[i] * head, hy = T.sy[i] + T.uy[i] * head, hz = T.sz[i] + T.uz[i] * head, tx = T.sx[i] + T.ux[i] * tail, ty = T.sy[i] + T.uy[i] * tail, tz = T.sz[i] + T.uz[i] * tail;
+    const mx = (hx + tx) * 0.5 - cp.x, my = (hy + ty) * 0.5 - cp.y, mz = (hz + tz) * 0.5 - cp.z, dist = Math.hypot(mx, my, mz);
+    let sx = T.uy[i] * mz - T.uz[i] * my, sy = T.uz[i] * mx - T.ux[i] * mz, sz = T.ux[i] * my - T.uy[i] * mx; const sl = Math.hypot(sx, sy, sz) || 1, hw = 0.5 * T.w[i] * Math.max(1, dist / 22) / sl; sx *= hw; sy *= hw; sz *= hw;
+    const p = nv * 12, c = nv * 16; nv++;
+    T.pos[p] = hx - sx; T.pos[p + 1] = hy - sy; T.pos[p + 2] = hz - sz; T.pos[p + 3] = hx + sx; T.pos[p + 4] = hy + sy; T.pos[p + 5] = hz + sz; T.pos[p + 6] = tx - sx * 0.5; T.pos[p + 7] = ty - sy * 0.5; T.pos[p + 8] = tz - sz * 0.5; T.pos[p + 9] = tx + sx * 0.5; T.pos[p + 10] = ty + sy * 0.5; T.pos[p + 11] = tz + sz * 0.5;
+    const r = T.r[i], g = T.gg[i], b = T.b[i], hr = r + (1 - r) * 0.65, hg = g + (1 - g) * 0.65, hb = b + (1 - b) * 0.65;
+    T.col.set([hr, hg, hb, a, hr, hg, hb, a, r, g, b, 0, r, g, b, 0], c);
+  }
+  // note: the pool is packed into the first nv quads each frame, so index order never matters
+  T.g.setDrawRange(0, nv * 6); T.g.attributes.position.needsUpdate = true; T.g.attributes.aCol.needsUpdate = true; MZF.n = 0;
+}
+function clearTracers() { const T = tracers; T.act.fill(0); T.g.setDrawRange(0, 0); }
+/* the crack of a round going past: a recorded whiz and a faint dim at the screen edge (first person only) */
+function whiz(dm) {
+  if (simT - MZF.wzT < 0.1) return; MZF.wzT = simT; const k = clamp(1 - dm / 3.5, 0.15, 1);
+  Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), camera.position.x, camera.position.z, { gain: 0.5 + 0.45 * k, y: camera.position.y }); SUPP.v = Math.min(1, SUPP.v + 0.18 + 0.3 * k);
+}
+function fx2Init() {                                                 // flash lights are made at load so the shaders are built once; they only ever change intensity
+  if (MZF.lights.length) return; const n = (ED.phone || isTouch) ? 2 : 4;
+  for (let i = 0; i < n; i++) { const L = new THREE.PointLight(0xffc880, 0, 40, 2); L.userData.t = 0; L.userData.peak = 0; scene.add(L); MZF.lights.push(L); }
+  const el = document.createElement('div'); el.id = 'bSupp'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); SUPP.el = el;
+}
+function flashLight(x, y, z, peak, team) {                           // one of a few pooled lights, reused oldest first
+  if (REDUCE_MOTION || !MZF.lights.length || Math.hypot(x - camera.position.x, z - camera.position.z) > 90) return; let L = MZF.lights[0];
+  for (const l of MZF.lights) if (l.userData.t <= 0) { L = l; break; } else if (l.userData.t < L.userData.t) L = l;
+  L.position.set(x, y, z); L.color.setRGB(...(team === 'blue' ? [0.8, 0.9, 1] : [1, 0.76, 0.5])); L.userData.peak = peak; L.userData.t = 0.09; L.distance = 12 + peak * 12;
+}
+/* a muzzle flash: a hot core, a fan of sparks down the barrel, a wisp of smoke and a brief light. kind: rifle smg shot mg hmg sniper cannon heavy how */
+const MZ = {
+  rifle: { s: 0.5, L: 0, sp: 2, sm: 0 }, smg: { s: 0.42, L: 0, sp: 1, sm: 0 }, shot: { s: 0.8, L: 0.8, sp: 4, sm: 1 }, mg: { s: 0.6, L: 0.8, sp: 3, sm: 0 }, hmg: { s: 0.95, L: 1.4, sp: 4, sm: 1 }, sniper: { s: 0.8, L: 1.0, sp: 3, sm: 1 },
+  aa: { s: 1.2, L: 1.6, sp: 5, sm: 1 }, naval: { s: 3.4, L: 4.5, sp: 10, sm: 6, dust: 1, jet: 1 }, cannon: { s: 2.4, L: 3.5, sp: 8, sm: 4, dust: 1, jet: 1 }, heavy: { s: 3.2, L: 4.5, sp: 10, sm: 6, dust: 1, jet: 1 }, how: { s: 3.6, L: 5, sp: 10, sm: 7, dust: 1, jet: 1 },
+};
+function muzzleFlash(x, y, z, dx, dy, dz, kind, team) {
+  const cp = camera.position, d = Math.hypot(x - cp.x, z - cp.z); if (d > (ED.phone ? 110 : 170) || MZF.n >= MZF.max) return; MZF.n++; if (REDUCE_MOTION && Math.random() < 0.5) return;
+  const m = MZ[kind] || MZ.rifle, s = m.s;
+  fxG.emit(x + dx * 0.25, y + dy * 0.25, z + dz * 0.25, dx * 2, dy * 2, dz * 2, m.jet ? 0.14 : 0.06, s, 0.5, [1, 0.9, 0.55, 1]);
+  for (let k = 0, n = fxN(m.sp); k < n; k++) fxG.emit(x + dx * 0.4, y + dy * 0.4, z + dz * 0.4, dx * rnd(7, 15) + rnd(-2, 2), dy * rnd(7, 15) + rnd(-1, 2), dz * rnd(7, 15) + rnd(-2, 2), rnd(0.06, 0.14), s * rnd(0.2, 0.4), -0.2, [1, rnd(0.55, 0.8), 0.25, 0.9], 3, 1.5);
+  if (m.sm && !REDUCE_MOTION) for (let k = 0, n = fxN(m.sm); k < n; k++) fxS.emit(x + dx * (0.5 + k * 0.3), y + dy * 0.5, z + dz * (0.5 + k * 0.3), dx * 2 + rnd(-0.4, 0.4) + wind.v.x * 0.2, dy * 2 + 0.5, dz * 2 + rnd(-0.4, 0.4) + wind.v.z * 0.2, rnd(0.8, 1.6), s * rnd(0.5, 0.8), 3, [0.78, 0.78, 0.8, 0.3], -0.15, 0.9);
+  if (m.jet) {                                                          // a heavy gun: a fan of flame and a blast of dust off the ground in front
+    for (let k = 0; k < fxN(5); k++) fxG.emit(x + dx * 1.2, y + dy * 1.2, z + dz * 1.2, dx * rnd(12, 22) + rnd(-3, 3), dy * rnd(12, 22) + rnd(-2, 3), dz * rnd(12, 22) + rnd(-3, 3), rnd(0.12, 0.25), s * rnd(0.3, 0.5), 0.3, [1, 0.6, 0.25, 0.85], 0, 2);
+    const gh = Math.max(heightAt(x, z), 0); if (m.dust && y - gh < 7 && d < 120 && !REDUCE_MOTION) { const c = (SURF[surfaceAt(x, z)] || SURF.dirt)[0]; for (let k = 0, n = fxN(8); k < n; k++) { const a = Math.random() * 6.283, sp = rnd(3, 7); fxS.emit(x + dx * 3, gh + 0.3, z + dz * 3, Math.cos(a) * sp, rnd(0.3, 1.2), Math.sin(a) * sp, rnd(0.9, 1.6), rnd(0.8, 1.4), 3, [c[0], c[1], c[2], 0.45], 0, 1.8); } }
+  }
+  if (m.L) flashLight(x + dx * 0.8, y + dy * 0.8, z + dz * 0.8, m.L, team);
+}
+/* surface-specific impacts. dust and clods from the ground, grey dust and chips from concrete, sparks from metal, splinters from wood, spray from water */
+const IMP = { // dust: n, size; clod: n; spark: n; chip: n (thrown pieces); flash; snd stem
+  dirt: { dust: 5, ds: 0.5, spark: 0, chip: 4, p: 2.6 }, grass: { dust: 3, ds: 0.4, spark: 0, chip: 3, p: 2.4 }, sand: { dust: 9, ds: 0.7, spark: 0, chip: 0, p: 2 }, gravel: { dust: 5, ds: 0.45, spark: 1, chip: 5, p: 3 },
+  concrete: { dust: 6, ds: 0.55, spark: 4, chip: 4, p: 3.2 }, asphalt: { dust: 4, ds: 0.5, spark: 3, chip: 3, p: 3 }, metal: { dust: 0, ds: 0, spark: 9, chip: 2, p: 4, flash: 1 }, wood: { dust: 2, ds: 0.35, spark: 0, chip: 7, p: 2.8, thin: 1 }, glass: { dust: 0, ds: 0, spark: 0, chip: 6, p: 3.5 },
+};
+const IMB = { n: 0 };
+function impactFx(kind, ref, pt, d) {
+  let mat = 'dirt', snd = 'imp_dirt'; const cp = camera.position, near = Math.hypot(pt.x - cp.x, pt.z - cp.z);
+  if (kind === 'land' && heightAt(pt.x, pt.z) < -0.05) kind = 'water';
+  if (kind === 'water') { if (near < 260) splash(pt.x, pt.z, 0.55); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
+  if (kind === 'person') { if (near < 200) { for (let i = 0; i < fxN(4); i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); } Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
+  if (kind === 'boat' || kind === 'veh') { mat = 'metal'; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; snd = 'imp_' + mat; }
+  else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; }
+  const P = IMP[mat] || IMP.dirt;
+  if (near < (ED.phone ? 110 : 200) && IMB.n < (ED.phone ? 6 : 16)) {
+    IMB.n++; const c = (SURF[mat] || SURF.dirt)[0], c2 = (SURF[mat] || SURF.dirt)[1], low = mat === 'sand';
+    for (let i = 0, n = fxN(P.dust); i < n; i++) fxS.emit(pt.x + rnd(-0.1, 0.1), pt.y + 0.05, pt.z + rnd(-0.1, 0.1), rnd(-1, 1) * (low ? 2.2 : 1.2), rnd(0.4, low ? 1 : 2), rnd(-1, 1) * (low ? 2.2 : 1.2), rnd(0.5, 1.1), P.ds * rnd(0.7, 1.2), 3, [c[0], c[1], c[2], 0.5], -0.1, 1.2);
+    if (mat !== 'metal' && mat !== 'glass') for (let i = 0, n = fxN(5); i < n; i++) fxS.emit(pt.x, pt.y + 0.05, pt.z, rnd(-2.2, 2.2), rnd(1, 4), rnd(-2.2, 2.2), rnd(0.35, 0.7), 0.06, 0.15, [c2[0], c2[1], c2[2], 0.9], 9, 0.5);
+    for (let i = 0, n = fxN(P.spark); i < n; i++) fxG.emit(pt.x, pt.y + 0.05, pt.z, rnd(-4, 4), rnd(1.5, 4.5), rnd(-4, 4), rnd(0.2, 0.45), 0.07, 0.2, [1, rnd(0.65, 0.85), 0.35, 1], 9, 0.4);
+    if (P.flash) fxG.emit(pt.x, pt.y + 0.1, pt.z, 0, 0, 0, 0.06, 0.45, 0.6, [1, 0.9, 0.6, 1]);
+    if (P.chip) debrisBurst(pt.x, pt.y + 0.05, pt.z, fxN(P.chip), P.p, mat, P.thin ? 'wood' : (mat === 'metal' || mat === 'concrete' || mat === 'asphalt') ? true : false);
+  }
+  Snd.fx(snd + '_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7, y: pt.y }); if (Math.random() < (mat === 'metal' ? 0.5 : 0.25)) Snd.fx('wpn_ricochet_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.4 });
+}
+/* explosions: a ring of shockwave, a ring of dust, a flash of light, then fire and a smoke column that linger a while */
+const SHK = { list: [], geo: null, N: ED.phone ? 3 : 6, i: 0 }, LF = { list: [], max: ED.phone ? 3 : 6 };
+function shockRing(x, gy, z, R) {
+  if (!SHK.geo) SHK.geo = new THREE.RingGeometry(0.86, 1, 48).rotateX(-Math.PI / 2);
+  let o; if (SHK.list.length < SHK.N) { const m = new THREE.Mesh(SHK.geo, new THREE.MeshBasicMaterial({ color: 0xfff1d8, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); m.renderOrder = 7; m.visible = false; scene.add(m); o = { m, t: 9, life: 1, R: 1 }; SHK.list.push(o); } else o = SHK.list[SHK.i = (SHK.i + 1) % SHK.N];
+  o.t = 0; o.life = 0.4 + R * 0.025; o.R = R * 1.7; o.m.position.set(x, gy + 0.35 + R * 0.03, z); o.m.visible = true;
+}
+function blastFx(x, gy, z, R, wet) {
+  const cp = camera.position, cd = Math.hypot(x - cp.x, z - cp.z); if (cd > 800) return;
+  shockRing(x, gy, z, R); flashLight(x, gy + R * 0.5, z, Math.min(7, 1.5 + R * 0.35), null);
+  if (!wet && cd < 400) { const c = (SURF[surfaceAt(x, z)] || SURF.dirt)[0], n = fxN(Math.round(10 + R * 1.6));
+    for (let i = 0; i < n; i++) { const a = (i / n) * 6.283 + rnd(-0.2, 0.2), sp = R * rnd(0.8, 1.5); fxS.emit(x + Math.cos(a), gy + 0.4, z + Math.sin(a), Math.cos(a) * sp, rnd(0.2, 1), Math.sin(a) * sp, rnd(1, 1.9), 0.8 + R * 0.07, 3, [c[0], c[1], c[2], 0.5], 0, 1.7); } }
+  if (!wet && R >= 5) { if (LF.list.length >= LF.max) LF.list.shift(); LF.list.push({ x, y: gy, z, R, age: 0, life: (R >= 10 ? 26 : 14) * rnd(0.8, 1.2), acc: 0 }); }
+}
+function fx2Update(dt) {
+  IMB.n = 0;
+  for (const L of MZF.lights) if (L.userData.t > 0) { L.userData.t -= dt; L.intensity = L.userData.t > 0 ? L.userData.peak * 40 * (L.userData.t / 0.09) : 0; }
+  if (SUPP.el) { SUPP.v = Math.max(0, SUPP.v - dt * 1.2); SUPP.el.style.opacity = fp.on ? (SUPP.v * (REDUCE_MOTION ? 0.5 : 1)).toFixed(2) : '0'; }
+  for (const o of SHK.list) if (o.m.visible) { o.t += dt; const u = o.t / o.life; if (u >= 1) { o.m.visible = false; o.m.material.opacity = 0; continue; } const e = 1 - Math.pow(1 - u, 2.2); o.m.scale.setScalar(Math.max(0.5, 0.15 * o.R + o.R * e)); o.m.material.opacity = 0.55 * (1 - u) * (1 - u); }
+  const cp = camera.position;
+  for (let i = LF.list.length - 1; i >= 0; i--) {
+    const f = LF.list[i]; f.age += dt; if (f.age >= f.life) { LF.list.splice(i, 1); continue; } if (Math.hypot(f.x - cp.x, f.z - cp.z) > 450) continue;
+    const fade = Math.min(1, (f.life - f.age) / (f.life * 0.35)), up = Math.min(1, f.age / 1.2); f.acc += dt * FXK * fade * up * (6 + f.R);
+    while (f.acc >= 1) { f.acc -= 1; const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * f.R * 0.28, px = f.x + Math.cos(a) * r, pz = f.z + Math.sin(a) * r, gh = Math.max(heightAt(px, pz), 0);
+      if (Math.random() < 0.6) fxG.emit(px, gh + 0.2, pz, rnd(-0.3, 0.3), rnd(1.2, 2.8), rnd(-0.3, 0.3), rnd(0.5, 0.9), rnd(0.45, 0.9) * (0.6 + f.R * 0.05), -0.7, [1, rnd(0.45, 0.65), 0.15, 0.75], -1.5, 0.6);
+      else fxS.emit(px, gh + 1.2, pz, rnd(-0.4, 0.4) + wind.v.x * 0.5, rnd(2.5, 4.5), rnd(-0.4, 0.4) + wind.v.z * 0.5, rnd(4, 7), rnd(0.9, 1.5) * (0.7 + f.R * 0.06), 4, [0.13, 0.13, 0.14, 0.4], -0.2, 0.15); }
+  }
+  hzUpdate(dt);
+}
+function lfClear() { LF.list.length = 0; for (const o of SHK.list) { o.m.visible = false; o.t = 9; } HZ.q.length = 0; }
+/* the rest of the war, heard and seen far off: flashes on the horizon and the thump that follows them */
+const HZ = { t: 3, q: [] };
+function hzUpdate(dt) {
+  for (let i = HZ.q.length - 1; i >= 0; i--) { const h = HZ.q[i]; h.t -= dt; if (h.t <= 0) { Snd.fx(h.stem, h.x, h.z, { gain: h.g, far: 4, y: h.y }); HZ.q.splice(i, 1); } }
+  if (!BATTLE.on || BATTLE.over) return; HZ.t -= dt; if (HZ.t > 0) return; HZ.t = (ED.phone ? 1.9 : 1) * rnd(2.2, 6.5) * (REDUCE_MOTION ? 1.6 : 1);
+  const a = Math.random() * 6.283, dist = rnd(380, 900), x = camera.position.x + Math.cos(a) * dist, z = camera.position.z + Math.sin(a) * dist, gy = Math.max(heightAt(x, z), 0) + rnd(1, 8), big = Math.random() < 0.25;
+  fxG.emit(x, gy, z, 0, 0, 0, big ? 0.5 : 0.22, dist * (big ? 0.08 : 0.045), 0.5, [1, 0.72, 0.38, 0.85]); if (big && !REDUCE_MOTION) puffSmoke(x, gy + 3, z, fxN(3), true, dist * 0.03);
+  if (HZ.q.length < 6) HZ.q.push({ t: Math.min(2.6, dist / 343), x, z, y: gy, stem: big ? 'wpn_howitzer_far' : Math.random() < 0.5 ? 'wpn_hmg_far' : 'wpn_tank_cannon_far', g: big ? 0.35 : 0.22 });
+}
 function makeFlag(def) {
   const [name, x, z, owner, type] = def, g = new THREE.Group(), pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 9, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 })); pole.position.y = 4.5;
   const cloth = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2), new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide })); cloth.position.set(1.7, 7.8, 0);
@@ -5434,7 +5577,7 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
+function battleStop(quiet) { try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); clearTracers(); lfClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0;
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
@@ -5543,8 +5686,8 @@ function botFire(q, b, e, d) {
   b.ammo--; b.cool = w.rate + w.bot * (0.7 + Math.random() * 0.8); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 6 : 99)) { b.burst = 0; b.cool += 0.7 + Math.random() * 0.6; }
   const moving = e.fpMoving || (e.order != null), vsMe = !!e.fp, acc = Math.min(0.85, (e.fp ? [1, 0.8, 0.55][fp.stance || 0] : 1) * (b.cls === 'sniper' ? 0.75 : b.cls === 'shotgun' ? 0.5 : 0.52) * (1 - 0.65 * Math.min(1, d / w.range)) * (moving ? 0.7 : 1) * (isTouch ? 0.8 : 1) * (vsMe ? 1.5 : 1) * (q.plat ? 1.2 : 1)), hit = Math.random() < acc;      // against the player a rifleman now needs roughly 3 to 4 s to drop a standing target at 40 m
   const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + 1.3, ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + 1.1 + (hit ? 0 : rnd(-0.5, 0.5));
-  addTracer(sx, sy, sz, ex, ey, ez); ejectCasing(q.x, q.y + 1.2, q.z, q.heading); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + wsnd(b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
-  if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)) * (vsMe ? 1.5 : 1), q, Math.random() < 0.08, w.name); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) { e.bot.alert = Math.max(e.bot.alert, 3); e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.25); } impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d); if (fp.on && fp.p === e) Snd.fx('wpn_whiz_0' + (1 + Math.floor(Math.random() * 3)), e.x, e.z, { gain: 0.8 }); }
+  addTracer(sx, sy, sz, ex, ey, ez, { k: WK[b.w] || 'rifle', team: b.team }); ejectCasing(q.x, q.y + 1.2, q.z, q.heading); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + wsnd(b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); }
+  if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)) * (vsMe ? 1.5 : 1), q, Math.random() < 0.08, w.name); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) { e.bot.alert = Math.max(e.bot.alert, 3); e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.25); } impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d) }
   if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); } else if (b.ammo === Math.ceil(w.mag * 0.2)) vsay(q, 'low_ammo', 1);
 }
 let sqT = -9, sqMap = new Map();
@@ -5687,7 +5830,7 @@ const gunshipUp = (team) => AIR.list.some(u => u.kind === 'gunship' && u.team ==
 function airFire(u, dt) {
   const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; u.fireT -= dt; if (u.fmP) fmAirExtra(u, dt); const e = (u.fmP && fmAirPerson(u, R)) || enemyOf(u.team, u.x, u.z, R); if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
   if (u.fireT <= 0) { u.fireT = gun ? 0.07 : cob ? 0.09 : 0.11; const hit = Math.random() < (gun ? 0.5 : 0.38) * (e.order || e.fpMoving ? 0.7 : 1) * BKIT.airK, ex = e.x + (hit ? 0 : rnd(-3, 3)), ez = e.z + (hit ? 0 : rnd(-3, 3)), sx = u.x + Math.cos(u.hd) * 2.2, sz = u.z - Math.sin(u.hd) * 2.2;
-    { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
+    { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez, { k: 'mg', team: u.team }); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
     if (hit) { hurt(e, gun ? 6 : cob ? 7 : 8, null, false, gun ? 'Gunship' : cob ? 'Chin gun' : 'Door gun'); impactFx('person', e, { x: ex, y: e.y + 1, z: ez }, 60); } else impactFx('land', null, { x: ex, y: heightAt(ex, ez), z: ez }, 60); }
   if (gun) { u.shellT -= dt; if (u.shellT <= 0) { u.shellT = 7; const c = people.filter(q => teamOf(q) === otherTeam(u.team) && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - u.x, a.z - u.z) - Math.hypot(b.x - u.x, b.z - u.z))[0]; if (c) { u.shellAim = { x: c.x, y: c.y, z: c.z }; AIR.shells.push({ x: c.x + rnd(-4, 4), z: c.z + rnd(-4, 4), t: 1.6, team: u.team, y0: u.y, ox: u.x, oz: u.z }); Snd.fx('veh_gunship_cannon', u.x, u.z, { gain: 1.1, far: 4, y: u.y }); } } }
   if (cob) { u.shellT -= dt; if (u.shellT <= 0) { u.shellT = 8; AIR.shells.push({ x: e.x + rnd(-2, 2), z: e.z + rnd(-2, 2), t: 0.9, T: 0.9, team: u.team, y0: u.y, ox: u.x, oz: u.z, R: 6, dmg: 95, crater: 1.5, depth: 0.5 }); Snd.fx('veh_gun_fire', u.x, u.z, { gain: 0.9, far: 2, y: u.y }); } }
@@ -5730,7 +5873,7 @@ function updateAAS(dt) {
     if (!tgt && !tp && !aa) { bd = 55; for (const q of people) { if (teamOf(q) !== otherTeam(team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.vin) continue; const d = Math.hypot(q.x - e.x, q.z - e.z); if (d < bd && losFull(e.x, gy, e.z, q.x, q.y + 1.2, q.z)) { bd = d; tp = q; } } }
     if (!tgt && !tp) continue; const tx = tgt ? tgt.x : tp.x, ty = tgt ? tgt.y : tp.y + 1.2, tz = tgt ? tgt.z : tp.z; e.aimAt = { x: tx, z: tz }; e.aimT = simT;
     let rerr = 0; if (e.rig) rerr = rigAim(e.rig, Math.atan2(tx - e.x, tz - e.z), Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)), dt, e.rig.d.ys * 1.4, e.rig.d.ps * 1.4); else if (e.gun) { e.gun.rotation.y = Math.atan2(tx - e.x, tz - e.z) - e.mesh.rotation.y; e.gun.rotation.x = -Math.atan2(ty - gy, Math.hypot(tx - e.x, tz - e.z)); }
-    if (e.cd <= 0 && rerr < 0.12) { e.cd = aa ? 0.16 : 0.12; const hit = Math.random() < (tgt ? (aa ? 0.3 : 0.1) : 0.1), j = hit ? 0 : 3; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, tx + rnd(-j, j), ty + rnd(-j, j), tz + rnd(-j, j)); empShot(e, gy);
+    if (e.cd <= 0 && rerr < 0.12) { e.cd = aa ? 0.16 : 0.12; const hit = Math.random() < (tgt ? (aa ? 0.3 : 0.1) : 0.1), j = hit ? 0 : 3; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, tx + rnd(-j, j), ty + rnd(-j, j), tz + rnd(-j, j), { k: aa ? 'aa' : 'mg', team: e.team }); empShot(e, gy);
       if (hit) { if (tgt) damageAir(tgt, aa ? 15 : 5, team); else { hurt(tp, 5, null, false, 'MG nest'); impactFx('person', tp, { x: tx, y: ty, z: tz }, 40); } } }
   }
 }
@@ -5833,6 +5976,7 @@ function crater(x, z, Rm, depth) {                                  // dig into 
   try { dumpGrains(x, z, Math.min(30, depth * Rm * 0.8), Math.max(2, Math.round(Rc * 1.4)), 'rock'); } catch (e) { }
 }
 /* ---- battle residue: scorch on pavement (no terrain change), brass casings and burnt wrecks. All capped, and they fade away after a while. */
+const CASN = ED.phone ? 40 : 100;
 const LIFE = { decals: [], cl: [], wrecks: [], tex: null, geo: null, cas: null, casGeo: null };
 const _lm = new THREE.Matrix4(), _lq = new THREE.Quaternion(), _lp = new THREE.Vector3(), _ls = new THREE.Vector3(1, 1, 1), _le = new THREE.Euler();
 function lifeTex() {
@@ -5849,14 +5993,14 @@ function ejectCasing(x, y, z, hd) {                                 // a brass c
   if (isTouch && Math.random() < 0.5) return; if (Math.hypot(x - camera.position.x, z - camera.position.z) > 55) return;
   if (!LIFE.cas) { const geo = new THREE.CylinderGeometry(0.012, 0.012, 0.045, 5).rotateZ(Math.PI / 2), m = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.4, metalness: 0.8 }), 100); m.count = 0; m.frustumCulled = false; scene.add(m); LIFE.cas = m; }
   const s = Math.sin(hd + 1.57), c = Math.cos(hd + 1.57); LIFE.cl.push({ x, y, z, vx: s * (1.2 + Math.random()), vy: 1.5 + Math.random() * 1.2, vz: c * (1.2 + Math.random()), r: Math.random() * 6, born: simT, rest: false });
-  const cap = Math.min(100, 120 - LIFE.wrecks.length); while (LIFE.cl.length > cap) LIFE.cl.shift();
+  const cap = Math.min(CASN, 120 - LIFE.wrecks.length); while (LIFE.cl.length > cap) LIFE.cl.shift();
 }
 function lifeWreck(x, y, z) {                                       // a burnt hulk where an aircraft came down
   const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x1c1b1a, roughness: 0.95, transparent: true });
   const part = (w, h, d, px, py, pz, ry) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(px, py, pz); o.rotation.y = ry || 0; o.rotation.z = (Math.random() - 0.5) * 0.3; o.castShadow = true; g.add(o); };
   part(1.9, 1.1, 5.2, 0, 0.55, 0, 0); part(0.5, 1.5, 2.6, 0.2, 0.75, -3.4, 0.2); part(3.2, 0.12, 0.35, 0.5, 1.15, 0.6, 0.9); part(1.2, 0.5, 1.4, -1.6, 0.25, 1.8, 0.5);
   g.position.set(x, y, z); g.rotation.y = Math.random() * 6.283; scene.add(g); LIFE.wrecks.push({ g, m, born: simT, x, y, z }); while (LIFE.wrecks.length > 12) { const w = LIFE.wrecks.shift(); scene.remove(w.g); w.m.dispose(); }
-  while (LIFE.cl.length > Math.min(100, 120 - LIFE.wrecks.length)) LIFE.cl.shift();
+  while (LIFE.cl.length > Math.min(CASN, 120 - LIFE.wrecks.length)) LIFE.cl.shift();
 }
 function updateLife(dt) {
   for (let i = LIFE.decals.length - 1; i >= 0; i--) { const d = LIFE.decals[i], a = simT - d.born; if (a > 100) { d.m.material.opacity = Math.max(0, 1 - (a - 100) / 20); d.m.material.needsUpdate = false; if (a > 120) { scene.remove(d.m); d.m.material.dispose(); LIFE.decals.splice(i, 1); } } }
@@ -5869,7 +6013,7 @@ function lifeClear() { for (const d of LIFE.decals) { scene.remove(d.m); d.m.mat
 function blast(x, y, z, o) {                                        // one explosion: flash and smoke, a crater, a shockwave on people, cargo and boats, and trees knocked down
   const R = (o.R || 10) * (CHEAT.big ? 2 : 1), dmg = o.dmg || 100, wet = heightAt(x, z) < 0.3, gy = wet ? waveH(x, z, simT) : heightAt(x, z);
   fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14);
-  if (wet) splash(x, z, Math.min(6, R * 0.3)); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40); }
+  blastFx(x, gy, z, R, wet); if (wet) splash(x, z, Math.min(6, R * 0.3)); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40); }
   Snd.fx(R < 8 ? 'imp_blast_small' : R < 14 ? 'imp_blast_medium' : 'imp_blast_large', x, z, { gain: Math.min(1.5, 0.7 + R * 0.05), far: 4, y: gy }); if (!wet && R >= 6) Snd.fx('imp_crater_thud', x, z, { gain: 0.7, far: 3, y: gy });
   const cx = camera.position.x, cz = camera.position.z, k = clamp(1 - Math.hypot(cx - x, cz - z) / (R * 12), 0, 1); dis.quake = Math.max(dis.quake, k * Math.min(2.5, R * 0.16));
   if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2);
@@ -5982,13 +6126,13 @@ function debInit() {
 function debrisBurst(x, y, z, n, power, mat, frag) {                    // chunks of the surface thrown out of an impact (frag = hot thin splinters of metal)
   if (Math.hypot(x - camera.position.x, z - camera.position.z) > 160) return; debInit(); const c = (SURF[mat] || SURF.dirt)[1];
   for (let i = 0; i < n; i++) { if (DEB.p.length >= DEB.N) DEB.p.shift(); const a = Math.random() * 6.283, e = 0.3 + Math.random() * 1.1, sp = power * (0.4 + Math.random() * 0.9);
-    DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
+    DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, wd: frag === 'wood', rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
 }
 function updateDebris(dt) {
   const L = DEB.p; if (!L.length || !DEB.m) { if (DEB.m && DEB.m.count) DEB.m.count = 0; return; } let k = 0;
   for (let i = L.length - 1; i >= 0; i--) { const d = L[i]; d.age += dt; if (d.age > d.life) { L.splice(i, 1); continue; } d.vy -= 9.8 * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt; const gy = Math.max(heightAt(d.x, d.z), 0) + d.s * 0.4; if (d.y < gy) { d.y = gy; if (d.vy < -1.2) { d.vy *= -0.3; d.vx *= 0.55; d.vz *= 0.55; } else { d.vy = 0; d.vx *= 0.8; d.vz *= 0.8; d.vr *= 0.6; } } d.rx += d.vr * dt; d.ry += d.vr * 0.6 * dt; }
   for (const d of L) { if (k >= DEB.N) break; const f = d.age > d.life * 0.6 ? Math.max(0.02, 1 - (d.age - d.life * 0.6) / (d.life * 0.4)) : 1, o = DEB.o; o.position.set(d.x, d.y, d.z); o.rotation.set(d.rx, d.ry, 0); if (d.frag) o.scale.set(d.s * f, d.s * 0.35 * f, d.s * 3 * f); else o.scale.set(d.s * f, d.s * 0.7 * f, d.s * 0.9 * f); o.updateMatrix(); DEB.m.setMatrixAt(k, o.matrix);
-    if (d.frag) DEB.c.setRGB(d.age < 0.35 ? 1 : 0.28, d.age < 0.35 ? 0.55 : 0.26, d.age < 0.35 ? 0.15 : 0.25); else DEB.c.setRGB(d.r, d.g, d.b); DEB.m.setColorAt(k, DEB.c); k++; }
+    if (d.frag && !d.wd) DEB.c.setRGB(d.age < 0.35 ? 1 : 0.28, d.age < 0.35 ? 0.55 : 0.26, d.age < 0.35 ? 0.15 : 0.25); else DEB.c.setRGB(d.r, d.g, d.b); DEB.m.setColorAt(k, DEB.c); k++; }
   DEB.m.count = k; DEB.m.instanceMatrix.needsUpdate = true; if (DEB.m.instanceColor) DEB.m.instanceColor.needsUpdate = true;
 }
 function updateMines() {
@@ -6902,7 +7046,7 @@ function bvShoot(v, who) {
   const G = v.sp.gun, W = v.wst, T = v.T; if (W.cd > 0 || W.rel > 0) return false; W.cd = G.rate; const mzn = T.mz || T.gun; if (v._mw !== BV.frame) { v.g.updateMatrixWorld(true); v._mw = BV.frame; }
   mzn.getWorldPosition(_bvP); mzn.getWorldDirection(_bvD); const j = G.spread; _bvD.x += rnd(-j, j); _bvD.y += rnd(-j, j); _bvD.z += rnd(-j, j); _bvD.normalize();
   const ox = _bvP.x, oy = _bvP.y, oz = _bvP.z, dx = _bvD.x, dy = _bvD.y, dz = _bvD.z, far = Math.hypot(ox - camera.position.x, oz - camera.position.z) > 95;
-  v.recoil = 1; fxG.emit(ox + dx * 0.4, oy + dy * 0.4, oz + dz * 0.4, dx * 3, dy * 3, dz * 3, 0.07, G.kind === 'cannon' ? 2.4 : 1.2, 0.8, [1, 0.85, 0.5, 1]);
+  v.recoil = 1; muzzleFlash(ox, oy, oz, dx, dy, dz, G.kind === 'cannon' ? 'cannon' : 'hmg', v.team);
   Snd.fx(far ? G.far : G.snd, ox, oz, { gain: G.gain, y: oy, gap: 0.02, far: G.kind === 'cannon' ? 2 : 1 });
   if (G.kind === 'cannon') {
     if (BV.shells.length < 10) BV.shells.push({ x: ox, y: oy, z: oz, vx: dx * 200, vy: dy * 200, vz: dz * 200, team: v.team, q: who, src: v, age: 0, vdmg: 150 });
@@ -6959,7 +7103,7 @@ function bvShells(dt) {                                                // tank s
       if (hit) break;
       for (const u of AIR.list) { if (u.down || u.team === s.team) continue; if (Math.hypot(u.x - s.x, u.y - s.y, u.z - s.z) < u.rad + 1.5) { hit = true; damageAir(u, 140, 'vehicle'); break; } }
     }
-    addTracer(sx, sy, sz, s.x, s.y, s.z); if (Math.random() < dt * 20) puffSmoke(s.x, s.y, s.z, 1, false, 0.5);
+    addTracer(sx, sy, sz, s.x, s.y, s.z, { trail: true, k: 'cannon', team: s.team, len: 6 }); if (Math.random() < dt * 20) puffSmoke(s.x, s.y, s.z, 1, false, 0.5);
     if (hit) { BV.shells.splice(i, 1); if (hv) damageVehicle(hv, s.vdmg, s.team, 'Tank shell', s.q); blast(s.x, Math.max(s.y, heightAt(s.x, s.z)), s.z, { R: 7, dmg: 120, crater: 2, depth: 0.7, owner: null, by: s.team, rpg: true, skip: hv, name: 'Tank shell' }); }
   }
 }
@@ -7439,18 +7583,6 @@ const SURF = { dirt: [[0.45, 0.36, 0.26, 0.55], [0.35, 0.28, 0.2]], grass: [[0.3
 function surfaceAt(x, z) {
   const k = Math.round(W2G(z)) * TN + Math.round(W2G(x)); if (MET[k] === 120) return 'gravel'; const j = Math.floor((W2G(x) - 2) / 4 + 0.5), i = Math.floor((W2G(z) - 2) / 4 + 0.5); if (i >= 0 && j >= 0 && i < 64 && j < 64 && ROADCELL[i * 64 + j]) return 'asphalt';
   if (isBattleMap() && BM().concrete(x, z)) return 'concrete'; const h = heightAt(x, z); return h < 2.8 ? 'sand' : h > 14 ? 'dirt' : 'grass';
-}
-function impactFx(kind, ref, pt, d) {
-  let mat = 'dirt', sparks = false, snd = 'imp_dirt';
-  if (kind === 'water') { splash(pt.x, pt.z, 0.55); Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
-  if (kind === 'person') { for (let i = 0; i < 4; i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
-  if (kind === 'boat' || kind === 'veh') { mat = 'metal'; sparks = true; snd = 'imp_metal'; } else if (kind === 'obj') { const nm = ref && ref.m && ref.m.name; mat = nm === 'wood' ? 'wood' : nm === 'glass' ? 'glass' : nm === 'rock' ? 'concrete' : 'metal'; sparks = mat === 'metal' || mat === 'concrete'; snd = 'imp_' + mat; } else { mat = surfaceAt(pt.x, pt.z); snd = mat === 'asphalt' ? 'imp_concrete' : mat === 'grass' ? 'imp_dirt' : mat === 'gravel' ? 'imp_sand' : 'imp_' + mat; sparks = mat === 'concrete' || mat === 'asphalt'; }
-  const c = (SURF[mat] || SURF.dirt)[0], c2 = (SURF[mat] || SURF.dirt)[1];
-  for (let i = 0; i < 7; i++) fxS.emit(pt.x, pt.y + 0.05, pt.z, rnd(-2.2, 2.2), rnd(1, 4), rnd(-2.2, 2.2), rnd(0.35, 0.7), 0.06, 0.15, [c2[0], c2[1], c2[2], 0.9], 9, 0.5);
-  fxS.emit(pt.x, pt.y + 0.1, pt.z, 0, 0.7, 0, 0.7, 0.45, 3, c, 0, 1);
-  if (sparks) for (let i = 0; i < 5; i++) fxG.emit(pt.x, pt.y + 0.05, pt.z, rnd(-3, 3), rnd(1, 3.5), rnd(-3, 3), 0.25, 0.07, 0.2, [1, 0.8, 0.4, 1], 9, 0.5);
-  debrisBurst(pt.x, pt.y + 0.05, pt.z, sparks ? 3 : 4, sparks ? 3.5 : 2.6, mat, sparks);
-  Snd.fx(snd + '_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7, y: pt.y }); if (Math.random() < 0.3) Snd.fx('wpn_ricochet_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.4 });
 }
 
 /* ---- getting into the action and back out: take over any soldier, watch the fight from behind one, swap to the next, go back to the overview. When you let go, they carry on by themselves. */
@@ -11027,7 +11159,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
+window.__sc = { BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -11124,7 +11256,7 @@ function sqFace(q, yaw, dt) { if (!q.order) q.heading += wrap(yaw - q.heading) *
 function sqFireAt(q, b, x, y, z) {                                  // suppressive fire into an area: tracers and dust, and anyone there is pinned
   const w = WPN[b.w]; if (b.reload > 0 || b.cool > 0 || SQD.hf) return; b.ammo--; b.cool = w.rate + w.bot * (0.9 + Math.random() * 0.9); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 5 : 99)) { b.burst = 0; b.cool += 0.5 + Math.random() * 0.5; }
   const dx = x - q.x, dz = z - q.z; q.heading = Math.atan2(dx, dz); const ex = x + rnd(-2.2, 2.2), ez = z + rnd(-2.2, 2.2), ey = y + rnd(0.3, 1.4);
-  addTracer(q.x + Math.sin(q.heading) * 0.6, q.y + 1.3, q.z + Math.cos(q.heading) * 0.6, ex, ey, ez); ejectCasing(q.x, q.y + 1.2, q.z, q.heading);
+  addTracer(q.x + Math.sin(q.heading) * 0.6, q.y + 1.3, q.z + Math.cos(q.heading) * 0.6, ex, ey, ez, { k: WK[b.w] || 'rifle', team: b.team }); ejectCasing(q.x, q.y + 1.2, q.z, q.heading);
   Snd.fx('wpn_' + wsnd(b.w) + '_fire_0' + (1 + Math.floor(Math.random() * 3)), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, Math.hypot(dx, dz));
   for (const e of people) { if (e.state === 'rag' || !e.bot || teamOf(e) !== otherTeam(b.team)) continue; if (Math.hypot(e.x - x, e.z - z) < 7) { e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.12); e.bot.alert = Math.max(e.bot.alert, 3); } }
   if (b.ammo <= 0) { b.reload = 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); }
@@ -11795,7 +11927,7 @@ function rigMuzzle(R, i, pos, dir) {                                 // world po
 }
 function rigShotFx0(e, gy, aa) {                                      // one shot from a chain model: flash at the muzzle, brass from the casing marker, the barrels kick, a heavy report
   const R = e.rig; R.kick = 1; const mi = R.mi++; rigMuzzle(R, mi, _mp, _md);
-  fxG.emit(_mp.x, _mp.y, _mp.z, _md.x * 3, _md.y * 3, _md.z * 3, 0.07, aa ? 2.2 : 1.4, 0.8, [1, 0.85, 0.5, 1]); if (Math.random() < 0.5) puffSmoke(_mp.x, _mp.y, _mp.z, 1, false, aa ? 0.9 : 0.5);
+  muzzleFlash(_mp.x, _mp.y, _mp.z, _md.x, _md.y, _md.z, aa ? 'aa' : 'mg', e.team); if (Math.random() < 0.5) puffSmoke(_mp.x, _mp.y, _mp.z, 1, false, aa ? 0.9 : 0.5);
   if (simT - (e.casT || 0) > 0.08) { e.casT = simT; const hd = e.mesh.rotation.y + R.yawA; if (R.cas) { rigNodePos(R.cas, _sv); ejectCasing(_sv.x, _sv.y, _sv.z, hd); } else ejectCasing(e.x, gy, e.z, hd); }
   const near = Math.hypot(e.x - (fp.on ? fp.p.x : god.tgt.x), e.z - (fp.on ? fp.p.z : god.tgt.z)) < 110; if (simT - (e.sndT || 0) > (aa ? 0.16 : 0.12)) { e.sndT = simT; Snd.fx(empStem(e.kind, near), e.x, e.z, { gain: near ? 0.85 : 0.7, y: gy, far: 3, gap: 0.0 }); }
 }
@@ -11873,7 +12005,7 @@ function updateShells(dt) {
     }
     if (gone) { SHELLS.splice(i, 1); continue; }
     if (s.age > 70 || Math.abs(s.x) > EXT * 1.6 || Math.abs(s.z) > EXT * 1.6) { SHELLS.splice(i, 1); continue; }
-    addTracer(s.px, s.py, s.pz, s.x, s.y, s.z); s.trT -= dt; if (s.trT <= 0) { s.trT = 0.1; puffSmoke(s.x, s.y, s.z, 1, false, 0.35); }
+    addTracer(s.px, s.py, s.pz, s.x, s.y, s.z, { trail: true, k: 'cannon', team: s.team, len: 8 }); s.trT -= dt; if (s.trT <= 0) { s.trT = 0.1; puffSmoke(s.x, s.y, s.z, 1, false, 0.35); }
     if (!s.wh && s.vy < 0) { const gs = Math.max(heightAt(s.x, s.z), 0); if ((s.y - gs) / -s.vy < 1.7) { s.wh = true; Snd.fx(s.mortar ? 'wpn_mortar_whistle' : 'imp_shell_whistle', s.x, s.z, { gain: 0.8, far: 3, y: gs + 8 }); if (s.fm && s.team === BATTLE.team) fmSay('fm_splash', 3); } }
   }
 }
@@ -11916,7 +12048,7 @@ function pieceShoot(e, J) {
   const r = Math.sqrt(Math.random()) * st.disp(s0.d), a = Math.random() * 6.283, tx = aim.x + Math.cos(a) * r, tz = aim.z + Math.sin(a) * r, ty = Math.max(heightAt(tx, tz), 0) + 0.2;
   const sb = solveBall(_mp.x, _mp.y, _mp.z, tx, ty, tz, s0.v), arc = st.arc === 'hi' ? (sb.hi || sb.lo) : (sb.lo || sb.hi); if (!arc) return false; const cs = Math.cos(arc.el);
   shellLaunch({ x: _mp.x, y: _mp.y, z: _mp.z, vx: Math.sin(sb.brg) * cs * s0.v, vy: Math.sin(arc.el) * s0.v, vz: Math.cos(sb.brg) * cs * s0.v, type: J.spec.type || 'he', team: J.team, st, kind: e.kind, fm: J.spec.fm, tx, tz });
-  fxG.emit(_mp.x + _md.x * 0.4, _mp.y + _md.y * 0.4, _mp.z + _md.z * 0.4, _md.x * 3, _md.y * 3, _md.z * 3, 0.3, how ? 3.2 : 1.8, 1.1, [1, 0.8, 0.4, 1]); puffSmoke(_mp.x + _md.x, _mp.y + _md.y, _mp.z + _md.z, how ? 6 : 4, false, how ? 1.1 : 0.8);
+  muzzleFlash(_mp.x, _mp.y, _mp.z, _md.x, _md.y, _md.z, how ? 'how' : 'heavy', J.team); puffSmoke(_mp.x + _md.x, _mp.y + _md.y, _mp.z + _md.z, how ? 6 : 4, false, how ? 1.1 : 0.8);
   Snd.fx(st.snd, e.x, e.z, { gain: how ? 1.0 : 0.95, y: e.y + 2, far: how ? 4 : 3 }); dis.quake = Math.max(dis.quake, Math.hypot(e.x - camera.position.x, e.z - camera.position.z) < (how ? 60 : 25) ? (how ? 1.2 : 0.7) : 0);
   if (R) R.kick = 1; else e.kick = 1; if (e.crewQ) e.crewQ.recoil = 1; if (J.shots === 0 && J.team === BATTLE.team && J.spec.fm) fmSay('fm_shot', 3);
   return true;
@@ -12101,7 +12233,7 @@ function fmNestPick0(e, aa, gy) {                                     // a gun n
   const d = Math.hypot(e.x - t.x, e.z - t.z); if (d >= 160 || !losFull(e.x, gy, e.z, t.x, t.y + 1, t.z)) return null;
   if (t.type === 'person') return { person: t.ref };
   if (t.type === 'vehicle') { let err = 0; if (e.rig) err = rigAim(e.rig, Math.atan2(t.x - e.x, t.z - e.z), Math.atan2(t.y - gy, d), FMS.dt, e.rig.d.ys * 1.4, e.rig.d.ps * 1.4); e.aimAt = { x: t.x, z: t.z }; e.aimT = simT;
-    if (e.cd <= 0 && err < 0.12) { e.cd = 0.12; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, t.x + rnd(-1.5, 1.5), t.y + rnd(-0.5, 0.5), t.z + rnd(-1.5, 1.5)); empShot(e, gy); if (Math.random() < 0.3) damageVehicle(t.ref, 4 * (t.ref.sp.arm || 1), e.p.owner, 'Machine gun nest'); } }
+    if (e.cd <= 0 && err < 0.12) { e.cd = 0.12; let ox = e.x, oy = gy + 0.4, oz = e.z; if (e.rig) { rigMuzzle(e.rig, e.rig.mi, _mp, null); ox = _mp.x; oy = _mp.y; oz = _mp.z; } addTracer(ox, oy, oz, t.x + rnd(-1.5, 1.5), t.y + rnd(-0.5, 0.5), t.z + rnd(-1.5, 1.5), { k: 'mg', team: e.team }); empShot(e, gy); if (Math.random() < 0.3) damageVehicle(t.ref, 4 * (t.ref.sp.arm || 1), e.p.owner, 'Machine gun nest'); } }
   return null;
 }
 function fmBotTarget0(q, b) {                                         // a sniper or marksman told to shoot the mission target: it, while it is a person in range and in view
@@ -12113,7 +12245,7 @@ function fmAirExtra0(u, dt) {                                         // an airc
   const f = u.fmP, m = f && f.m; if (!m || FMS.m !== m || m.state !== 'active') { u.fmP = null; u.manual = !!u.wasManual; return; } const t = m.target; if (t.type === 'person' || !t.alive) return; u.tgt = m.tp; u.life = Math.max(u.life, 12);
   const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; if (Math.hypot(t.x - u.x, t.z - u.z) > R) return; aimGuns(u, t.x, t.y, t.z, dt);
   u.fmT = (u.fmT || 0) - dt; if (u.fmT <= 0) { u.fmT = gun ? 0.12 : cob ? 0.14 : 0.16; const j = t.type === 'ground' ? 7 : 2.2, ex = t.x + rnd(-j, j), ez = t.z + rnd(-j, j), ey = t.type === 'ground' ? Math.max(heightAt(ex, ez), 0) : t.y;
-    addTracer(u.x + Math.cos(u.hd) * 2.2, u.y - 1, u.z - Math.sin(u.hd) * 2.2, ex, ey, ez); if (Math.random() < 0.2) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
+    addTracer(u.x + Math.cos(u.hd) * 2.2, u.y - 1, u.z - Math.sin(u.hd) * 2.2, ex, ey, ez, { k: 'mg', team: u.team }); if (Math.random() < 0.2) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
     if (t.type === 'vehicle' && Math.random() < 0.45) damageVehicle(t.ref, gun ? 7 : 5, u.team, 'Air support'); else if (t.type === 'ground') impactFx('land', null, { x: ex, y: ey, z: ez }, 60); }
   u.fmS = (u.fmS || 0) - dt; if ((gun || cob) && u.fmS <= 0) { u.fmS = gun ? 7 : 8; AIR.shells.push({ x: t.x + rnd(-4, 4), z: t.z + rnd(-4, 4), t: gun ? 1.6 : 0.9, T: gun ? 1.6 : 0.9, team: u.team, y0: u.y, ox: u.x, oz: u.z, R: gun ? 11 : 6, dmg: gun ? 150 : 95, crater: gun ? 4 : 1.5, depth: 0.6 }); Snd.fx(gun ? 'veh_gunship_cannon' : 'veh_gun_fire', u.x, u.z, { gain: 1.0, far: 3, y: u.y }); }
 }
@@ -12441,7 +12573,7 @@ const fmVehThink = fmSafe(fmVehThink0, false);
 const fmVehAim = fmSafe(fmVehAim0, undefined);
 const fmSig = fmSafe(fmSig0, '');
 const fmRenderPanel = fmSafe(fmRenderPanel0, undefined);
-if (!isTouch) flareInit(); tmInit();
+if (!isTouch) flareInit(); fx2Init(); tmInit();
 /* ================================================================ phone and touch: one modal at a time, the Back button, wake lock, haptics, tilt aiming, smoothness setting, lost-graphics recovery, orientation hint.
    Everything here is gated by ED.phone or isTouch, so the desktop edition behaves exactly as before. Nothing in it shows a timer or a countdown. */
 const PH = (() => {
