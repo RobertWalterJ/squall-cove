@@ -346,7 +346,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.1 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -1332,7 +1332,7 @@ const Snd = (() => {
     A.matLP = c.createBiquadFilter(); A.matLP.type = 'lowpass'; A.matLP.frequency.value = 20000; A.matLP.Q.value = 0.5; A.matLP.connect(A.master);                // the mat bus (impacts) passes through a low-pass that closes to 2.5 kHz at the sensor station
     for (const b of BUS) { const g = c.createGain(); g.connect(b === 'mat' ? A.matLP : A.master); A.buses[b] = g; }
     A.applyVol();
-    A.initP = fetch('audio/manifest.json?v=97').then(r => r.ok ? r.json() : null).then(m => {
+    A.initP = fetch('audio/manifest.json?v=99').then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
       A.ready = true; A.coreN = Object.keys(A.man).filter(id => A.man[id].group === 'core').length; A.coreP = A.group('core'); A.coreP.then(() => A.loadRest()); return A.coreP;
     }).catch(() => { });
@@ -5774,7 +5774,7 @@ function makeFlag(def) {
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
   if (!isBattleMap()) { offerBattleMaps(); return; }
-  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
+  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } try { voxPreload('sq'); } catch (e) { } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
   for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   BATTLE.points = BM().points.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); kitStart(gen);
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
@@ -11976,6 +11976,28 @@ const VLINES = {
 const VENEMY = { contact: 'e_contact', taking_fire: 'e_fire', grenade: 'e_grenade', man_down: 'e_down' };
 const VOICE = { on: true, caps: true, vol: 0.9, voices: [], prof: new Map(), q: [], busyUntil: 0, lastEnd: 0, ready: false };
 try { const a = localStorage.getItem('squall-cove-voices'), c = localStorage.getItem('squall-cove-captions'), v = localStorage.getItem('squall-cove-voice-vol'); if (a !== null) VOICE.on = a !== '0'; if (c !== null) VOICE.caps = c !== '0'; if (v !== null && !isNaN(+v)) VOICE.vol = clamp(+v / 100, 0, 1); } catch (e) { }
+/* ---- v9.9.1 recorded voices (audio/crew_samples): squad lines by exact text, crew calls at the station. The browser voice stays as the fallback for any string without a recording and whenever the
+   engine is not ready. Families vox_sq_<line> and vox_crew_<line> (headset set), two takes each (_01 main, _02 alt), group 'voices': never loaded in bulk, preloaded by voxPreload, otherwise on first use (a first play of an unloaded stem is queued by the engine). */
+const VREC = {"Contact front!":"contactfront","Contact left!":"contactleft","Contact right!":"contactright","Contact rear!":"contactrear","Moving up!":"movingup","Cover me!":"coverme","Taking fire!":"takingfire","Pinned down!":"pinned","Moving!":"moving","Go go go!":"gogogo","Covering!":"covering","Reloading!":"reloading","Low on ammo!":"lowammo","Grenade!":"grenade","Medic!":"medic","Man down!":"mandown","Got one.":"gotone","Roger, following.":"rogerfollowing","On you.":"onyou","Holding here.":"holdinghere","Roger, moving.":"rogermoving","Attacking!":"attacking","Taking cover.":"takingcover","Falling back!":"fallingback","Suppressing!":"suppressing","Marked.":"marked","Got it.":"gotit","Clear.":"clear","Roger.":"roger","Regroup!":"regroup","Follow me!":"followme","Holding fire.":"holdingfire","Weapons free.":"weaponsfree","Standing by.":"standingby","Aircraft inbound!":"aircraft"};
+const VOX = { rec: 0, tts: 0, off: 0, last: {}, pre: {}, log: [] };
+Snd.caps.vox = 2;
+function voxReady(stem) { return !!(Snd.ready && Snd.on && Snd.ctx && Snd.ctx.state === 'running' && Snd.fam[stem]); }
+function voxPlay(stem, x, z, o) {                                   // play one take (alternating main and alt, never the same take twice running); returns { dur, id } or null when the recorded path is not available
+  if (!voxReady(stem)) return null; const l = VOX.last[stem], n = l === 1 ? 2 : l === 2 ? 1 : 1 + ((Math.random() * 2) | 0), e = Snd.man[stem + '_0' + n] || Snd.man[stem + '_01'];
+  o = Object.assign({ gap: 0, q: true, cls: 'vox', nn: '0' + n }, o); const src = Snd.fx(stem, x, z, o), id = src ? Snd.lastId : null, m = id && /_0(\d)$/.exec(id); VOX.last[stem] = m ? +m[1] : n;
+  return { dur: e ? e.dur : 1, id, played: !!src };
+}
+function voxLog(path, key, text, r) { if (path === 'rec') VOX.rec++; else if (path === 'tts') VOX.tts++; else VOX.off++; VOX.log.push({ path, key, text, id: r && r.id || null, played: r ? r.played : false, t: Math.round(performance.now()) }); if (VOX.log.length > 80) VOX.log.shift(); }
+function voxSquad(it, now) {                                        // a friendly squad line with a recording: Lewis, 3D at the speaker, on the people bus
+  if (it.enemy) return false; const line = VREC[it.text]; if (!line) return false; const stem = 'vox_sq_' + line, q = it.q;
+  const r = voxPlay(stem, q.x, q.z, { gain: VOICE.vol, y: (q.y || 0) + 1.5, force: true }); if (!r) return false;
+  VOICE.busyUntil = now + r.dur * 1000 + 250; VOICE.lastEnd = VOICE.busyUntil; voxLog('rec', it.key, it.text, r); return true;
+}
+function voxPreload(kind, tries) {                                  // load the families the manifest marks preload: the crew set when the station opens, the common squad lines when a battle starts
+  if (!Snd.ready) { if ((tries || 0) < 14) setTimeout(() => voxPreload(kind, (tries || 0) + 1), 1200); return; }
+  const pre = kind === 'crew' ? 'vox_crew_' : 'vox_sq_', seen = new Set(); for (const id in Snd.man) { if (id.slice(0, pre.length) !== pre) continue; const pl = Snd.man[id].meta && Snd.man[id].meta.play; if (!(pl && pl.preload)) continue; const f = id.replace(/_\d\d$/, ''); if (seen.has(f)) continue; seen.add(f); Snd.need(f); }
+  VOX.pre[kind] = seen.size;
+}
 function voiceLoad() { const ss = window.speechSynthesis; if (!ss) return; try { const l = ss.getVoices(); if (l && l.length) { VOICE.voices = Array.from(l); VOICE.ready = true; VOICE.prof.clear(); } } catch (e) { } }
 if (window.speechSynthesis) { try { window.speechSynthesis.addEventListener('voiceschanged', voiceLoad); } catch (e) { if ('onvoiceschanged' in window.speechSynthesis) window.speechSynthesis.onvoiceschanged = voiceLoad; } voiceLoad(); }
 function vProfile(q, team) {                                        // a stable voice, pitch and rate for each named soldier
@@ -12001,9 +12023,10 @@ function voiceTick() {
   while (VOICE.q.length && now - VOICE.q[0].t > 6000) VOICE.q.shift(); const it = VOICE.q.shift(); if (!it) return;
   if (VOICE.caps) captionAdd(it.name, it.text, it.team, it.enemy);
   const ss = window.speechSynthesis; let spoke = false;
-  if (VOICE.on && ss && VOICE.vol > 0 && !ss.speaking) {
+  if (VOICE.on && VOICE.vol > 0 && voxSquad(it, now)) spoke = true;
+  else if (VOICE.on && ss && VOICE.vol > 0 && !ss.speaking) {
     try { const p = vProfile(it.q, it.team), u = new SpeechSynthesisUtterance(it.text); if (p.v) u.voice = p.v; u.lang = (p.v && p.v.lang) || 'en-US'; u.pitch = it.enemy ? clamp(p.pitch + 0.22, 0.8, 1.5) : p.pitch; u.rate = it.enemy ? Math.min(1.35, p.rate + 0.1) : p.rate; u.volume = VOICE.vol;
-      const done = () => { VOICE.busyUntil = 0; VOICE.lastEnd = performance.now(); }; u.onend = done; u.onerror = done; ss.speak(u); spoke = true; VOICE.busyUntil = now + 900 + it.text.length * 110; } catch (e) { }
+      const done = () => { VOICE.busyUntil = 0; VOICE.lastEnd = performance.now(); }; u.onend = done; u.onerror = done; ss.speak(u); spoke = true; voxLog('tts', it.key, it.text); VOICE.busyUntil = now + 900 + it.text.length * 110; } catch (e) { }
   }
   if (!spoke) { VOICE.busyUntil = now + 500 + it.text.length * 45; VOICE.lastEnd = VOICE.busyUntil - 500; }
 }
@@ -12015,8 +12038,8 @@ function captionAdd(name, text, team, enemy) {                      // 'Callsign
 }
 function voiceTest() {
   const ss = window.speechSynthesis; if (!ss) { toast('This browser cannot speak.'); return; } if (!VOICE.on) { toast('Squad voices are off.'); if (VOICE.caps) captionAdd('Test', 'Contact, 12 o' + "'" + 'clock, 80 metres', 'blue', false); return; }
-  try { ss.cancel(); } catch (e) { } const items = [['blue', 'Contact, 12 o' + "'" + 'clock, 80 metres'], ['red', 'Over there!']]; let i = 0;
-  const next = () => { if (i >= items.length) return; const [team, text] = items[i++], u = new SpeechSynthesisUtterance(text), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[(i - 1) % en.length]; u.pitch = team === 'blue' ? 1 : 1.2; u.rate = 1.05; u.volume = VOICE.vol; u.onend = next; u.onerror = next; if (VOICE.caps) captionAdd(team === 'blue' ? 'Test one' : 'Test two', text, team, team === 'red'); ss.speak(u); };
+  try { ss.cancel(); } catch (e) { } const items = [['blue', 'Contact front!'], ['red', 'Over there!']]; let i = 0;
+  const next = () => { if (i >= items.length) return; const [team, text] = items[i++]; if (VREC[text] && team !== 'red') { const r = voxPlay('vox_sq_' + VREC[text], undefined, undefined, { gain: VOICE.vol }); if (r) { if (VOICE.caps) captionAdd('Test one', text, team, false); voxLog('rec', 'test', text, r); setTimeout(next, r.dur * 1000 + 350); return; } } const u = new SpeechSynthesisUtterance(text), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[(i - 1) % en.length]; u.pitch = team === 'blue' ? 1 : 1.2; u.rate = 1.05; u.volume = VOICE.vol; u.onend = next; u.onerror = next; if (VOICE.caps) captionAdd(team === 'blue' ? 'Test one' : 'Test two', text, team, team === 'red'); ss.speak(u); };
   next();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { VOICE.q.length = 0; try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { } VOICE.busyUntil = 0; } });
@@ -12231,7 +12254,7 @@ function sqdLadderFollow(me) {                                      // the playe
   if (best) { towerClaim(best, best.bot, L, true); }
 }
 
-Object.assign(window.__sc, { SQD, SQD_ORD, sqdSet, sqdBind, sqdOff, sqdLeader, sqdPing, sqdMount, sqdDismountAll, sqdWheelOpen, sqdWheelClose, callsignOf, VOICE, VLINES, vsay, voiceTest, captionAdd, LADDERS, PLATFORMS, LAD_HAND, ladAddModel, ladGrab, ladDrop, ladUse, ladNearFor, ladMarkers, ladSweep, climbFrame, platHas, platClamp, standYP, towerPick, towerClaim, towerRelease });
+Object.assign(window.__sc, { VOX, VREC, voxPlay, voxPreload, voiceTick, SQD, SQD_ORD, sqdSet, sqdBind, sqdOff, sqdLeader, sqdPing, sqdMount, sqdDismountAll, sqdWheelOpen, sqdWheelClose, callsignOf, VOICE, VLINES, vsay, voiceTest, captionAdd, LADDERS, PLATFORMS, LAD_HAND, ladAddModel, ladGrab, ladDrop, ladUse, ladNearFor, ladMarkers, ladSweep, climbFrame, platHas, platClamp, standYP, towerPick, towerClaim, towerRelease });
 Object.assign(window.__sc, { openCommand, openBattleSetup, closeSetup, renderSetup, setupGo, SETUP, applyLook, objectiveHint, tbTabList, renderTablet, ic });
 /* ================================================================ cheats: for fun and testing. Nothing is scored. All off by default, remembered in 'squall-cove-cheats'.
    The switches are read where the game decides: hurt, fpFireGun, fpReload, cmdReady, cmdCharge, updateFP (speed, jump, fly), senseEnemy, damageVehicle, blast and frameStep (slow motion). */
@@ -13139,7 +13162,7 @@ function stnOpenFor(team, o) {
   for (const w of S.W) { w.prep = 0; w.rel = 0; w.fill = 1; w.lock = false; } S.weapon = 0; S.W[0].prep = SW[0].prep; S.W[0].was = false;
   document.body.classList.add('stn-on'); $('stn').hidden = false; stnLayout(); stnMiniBuild(); stnSetMode(S.mode, true); stnWeaponUi();
   S.focus.set(S.ax, S.ay, S.az); S.cd.set(0, -0.6, 0.8).normalize(); S.easeT = 1.2; S.wantInt = 0;
-  Snd.setStation(true); AC.stn.stop(u); AC.stn.preInt(); acSafe(acPre);
+  Snd.setStation(true); AC.stn.stop(u); AC.stn.preInt(); acSafe(acPre); try { voxPreload('crew'); } catch (e) { } S.crewPlan = undefined; S.crewKeepT = 0;
   Snd.fx('ac130_int_select_howitzer', undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_howitzer', undefined, undefined, { gain: 1.1, gap: 1.0, q: true });
   stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Slew with the arrow keys or drag. Space fires. Esc leaves.');
   return true;
@@ -13257,6 +13280,7 @@ function stnTryFire() {                                                         
   return true;
 }
 function stnHowSeq() {                                                               // the loader after each shell: hoist, ram, breech, then the re-armed click when it is ready
+  const plan = Math.random() < 0.667 ? (Math.random() < 0.4 ? 'fired' : 'ready') : 'none'; STN.crewPlan = plan; if (plan === 'fired') AC.later(1.7 + Math.random() * 0.6, () => { if (STN.on) stnCrew('fired'); });
   const go = (t, st) => AC.later(t, () => { if (STN.on) Snd.fx(st, undefined, undefined, { gain: 1.0, gap: 0.5, q: true }); }); go(1.0, 'ac130_int_howitzer_hoist'); go(2.5, 'ac130_int_howitzer_ram'); go(3.5, 'ac130_int_howitzer_breech');
 }
 function stnWeapons(dt) {
@@ -13273,12 +13297,19 @@ function stnWeapons(dt) {
   if (S.weapon === 2 && hold && !S.fireV && S.t - (S.whyT || 0) > 1.5) { S.whyT = S.t; const t = stnWhy(); if (t) stnMsg(t); }
   stnWeaponUi();
 }
-function stnCrew(kind) {                                                             // one short call when a gun can fire again: about two reloads in three for the howitzer, rarely for the 40 mm, never the same words twice running
-  const S = STN, C = S.crew; if (!S.on) return; const H = ['Ready!', 'Ready to fire!', 'Up!', 'Weapon up!'], L = ['Loaded!'], odds = kind === 'how' ? 0.667 : 0.25;
-  if (!(S.crewForce || Math.random() < odds)) return; const list = kind === 'how' ? H : L; let t = list[Math.floor(Math.random() * list.length)]; if (list.length > 1) { let n = 0; while (t === C.last && n++ < 8) t = list[Math.floor(Math.random() * list.length)]; } if (t === C.last && list.length === 1 && kind === 'can') return;
-  C.last = t; C.n++; C.say.push(t); if (C.say.length > 12) C.say.shift();
+const CREWTXT = { up: 'Up!', weaponup: 'Weapon up!', ready: 'Ready!', readytofire: 'Ready to fire!', gunready: 'Gun ready!', roundup: 'Round up!', shotout: 'Shot out!', standingby: 'Standing by!', loaded: 'Loaded!', reloading: 'Reloading!' };
+const CREWPOOL = { how: [['ready', 3], ['readytofire', 3], ['gunready', 2], ['up', 2], ['weaponup', 2], ['standingby', 1]], fired: [['roundup', 3], ['shotout', 3], ['reloading', 2]], can: [['loaded', 1]] };   // ready-type calls when the gun can fire again, shell-away calls just after a shot, 'loaded' for the 40 mm loader
+function stnCrew(kind) {                                                             // one short call: about two reloads in three for the howitzer (decided at the shot: 40 percent of those come just after it, the rest when it is ready), rarely for the 40 mm, never the same words twice running. Michael's headset recordings, the browser voice as fallback
+  const S = STN, C = S.crew; if (!S.on) return; let go;
+  if (kind === 'how' && S.crewPlan !== undefined && !S.crewForce) { go = S.crewPlan === 'ready'; S.crewPlan = undefined; } else go = kind === 'fired' || !!S.crewForce || Math.random() < (kind === 'how' ? 0.667 : 0.25);
+  if (!go) return; const pool = CREWPOOL[kind]; let key = null, n = 0;
+  do { let r = Math.random() * pool.reduce((a, p) => a + p[1], 0); key = pool[pool.length - 1][0]; for (const p of pool) { r -= p[1]; if (r <= 0) { key = p[0]; break; } } } while (key === C.last && pool.length > 1 && n++ < 12);
+  if (key === C.last) return; const t = CREWTXT[key];
+  C.last = key; C.n++; C.say.push(t); if (C.say.length > 12) C.say.shift();
   if (VOICE.caps) captionAdd('Gun crew', t, S.team, false);
-  const ss = window.speechSynthesis; if (VOICE.on && ss && VOICE.vol > 0 && !ss.speaking) { try { const u = new SpeechSynthesisUtterance(t), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[Math.min(en.length - 1, 2)]; u.lang = (u.voice && u.voice.lang) || 'en-US'; u.pitch = 0.8; u.rate = 1.3; u.volume = clamp(VOICE.vol * 1.15, 0, 1); ss.speak(u); } catch (e) { } }
+  if (!VOICE.on || VOICE.vol <= 0) { voxLog('off', key, t); return; }
+  const stem = 'vox_crew_' + key, r = voxPlay(stem, undefined, undefined, { gain: clamp(VOICE.vol * 1.15, 0, 1.2), gap: 0.25, force: true }); if (r) { voxLog('rec', key, t, r); return; }
+  const ss = window.speechSynthesis; if (ss && !ss.speaking) { try { const u = new SpeechSynthesisUtterance(t), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[Math.min(en.length - 1, 2)]; u.lang = (u.voice && u.voice.lang) || 'en-US'; u.pitch = 0.8; u.rate = 1.3; u.volume = clamp(VOICE.vol * 1.15, 0, 1); ss.speak(u); voxLog('tts', key, t); } catch (e) { } }
 }
 
 /* ---------------------------------------------------------------- sound: comms, lock and losing cues */
@@ -13287,6 +13318,7 @@ function stnSounds(dt) {
   if (S.commsT <= 0) { S.commsT = 3 + Math.random() * 6; if (S.t - S.lastShot > 1.2) Snd.fx('ac130_int_comms_click', undefined, undefined, { gain: 0.5, gap: 0.9, q: true }); }
   if (S.squelchT <= 0) { S.squelchT = 12 + Math.random() * 18; if (S.t - S.lastShot > 1.2) Snd.fx('ac130_int_comms_squelch', undefined, undefined, { gain: 0.5, gap: 4, q: true }); }
   if (S.state !== 'locked' && S.loseT <= 0) { S.loseT = 3.2; Snd.fx('ac130_int_losing_target', undefined, undefined, { gain: 0.9, gap: 3, q: true }); }
+  S.crewKeepT = (S.crewKeepT || 0) - dt; if (S.crewKeepT <= 0) { S.crewKeepT = 40; for (const k in CREWTXT) Snd.keep('vox_crew_' + k); }
   S.wantInt -= dt; if (S.wantInt <= 0) { S.wantInt = 2; if (!Snd.have('ac130_int_cabin_loop')) AC.stn.preInt(); }
 }
 
