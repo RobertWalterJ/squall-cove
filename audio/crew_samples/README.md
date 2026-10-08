@@ -29,3 +29,9 @@ tools/voices/.venv/Scripts/python tools/voices/make_samples.py [voice ids...]
 tools/voices/.venv/Scripts/python tools/voices/verify_samples.py
 ```
 Behind the corporate proxy, pip may need `--use-feature=truststore` (and a PEM export of the Windows cert store via `PIP_CERT` for the first bootstrap). Scripts call `truststore.inject_into_ssl()`.
+
+## Revision 2 (owner feedback: trailing vowel, slow lines)
+- Multi-word lines are rendered word by word (kept gap 45 ms for "Ready to"+"fire", 70 ms otherwise), without exclamation marks. For each word the generator renders three variants (text with period, bare text, Kokoro phoneme string for US voices), keeps the one with the shortest low-energy release tail, then cuts the tail after the last burst (threshold -24 dB below peak, 10 ms fade; for "up" -14 dB and 6 ms fade).
+- "fire" is rendered at Kokoro speed 1.6 then WSOLA time-compressed 1.35x (pitch preserved). "Weapon" is compressed 1.25x. Single words use speed 1.25 to 1.3.
+- `_alt` files are the second-best variant per line (Kokoro voices only). Previous versions are in `tools/voices/work/prev/` (git-ignored).
+- `tools/voices/verify_tails.py` prints before/after durations and the tail measure.

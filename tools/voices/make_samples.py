@@ -56,12 +56,12 @@ SQUAD_VOICES = [
 _kokoro = None
 _piper = {}
 
-def synth_kokoro(text, voice, lang, speed):
+def synth_kokoro(text, voice, lang, speed, is_phonemes=False):
     global _kokoro
     if _kokoro is None:
         from kokoro_onnx import Kokoro
         _kokoro = Kokoro(os.path.join(MODELS, "kokoro-v1.0.onnx"), os.path.join(MODELS, "voices-v1.0.bin"))
-    a, sr = _kokoro.create(text, voice=voice, speed=speed, lang=lang)
+    a, sr = _kokoro.create(text, voice=voice, speed=speed, lang=lang, is_phonemes=is_phonemes)
     return np.asarray(a, dtype=np.float32), sr
 
 def synth_piper(text, voice, lang, speed):
@@ -171,24 +171,126 @@ def render(engine, voice, lang, text, speed):
     a, sr = (synth_kokoro if engine == "kokoro" else synth_piper)(text, voice, lang, speed)
     return resample(a, sr)
 
+# ---------------------------------------------------------------- v2: clean stops, brisk delivery
+def env_frames(x, ms=2):
+    n = max(1, int(SR * ms / 1000))
+    m = len(x) // n
+    return np.sqrt((x[:m * n].reshape(m, n) ** 2).mean(1)) + 1e-12, n
+
+def tail_ms(x, hi=-20, lo=-42):
+    """Length of the low-energy voiced tail: from last frame above `hi` dB to last above `lo` dB (rel. peak)."""
+    e, n = env_frames(x)
+    d = 20 * np.log10(e / e.max())
+    a = np.where(d > hi)[0]; b = np.where(d > lo)[0]
+    return float((b[-1] - a[-1]) * n * 1000 / SR) if len(a) and len(b) else 0.0
+
+def cut_tail(x, thresh=-24, fade_ms=10):
+    """Cut the release vowel: end at last frame above `thresh` dB (rel. peak), short fade."""
+    e, n = env_frames(x)
+    d = 20 * np.log10(e / e.max())
+    a = np.where(d > thresh)[0]
+    end = min(len(x), (a[-1] + 1) * n + int(SR * 0.004))
+    x = x[:end].copy()
+    f = min(len(x), int(SR * fade_ms / 1000)); x[-f:] *= np.linspace(1, 0, f)
+    return x
+
+def lead_trim(x, thresh_db=-38):
+    th = np.abs(x).max() * 10 ** (thresh_db / 20)
+    i = np.where(np.abs(x) > th)[0]
+    return x[max(0, i[0] - int(SR * 0.004)):] if len(i) else x
+
+def stretch(x, rate, frame_ms=30):
+    """WSOLA time-compress (rate>1 = faster), pitch preserved."""
+    if rate <= 1.001: return x
+    N = int(SR * frame_ms / 1000); H = N // 2; S = int(H * rate); tol = int(SR * 0.006)
+    win = np.hanning(N); out = np.zeros(int(len(x) / rate) + 4 * N); norm = np.zeros_like(out)
+    pos = 0; o = 0; prev = None
+    while pos + N + tol < len(x) and o + N < len(out):
+        if prev is None: best = pos
+        else:
+            seg = x[max(0, pos - tol):pos + tol + N]
+            ref = prev
+            c = np.correlate(seg, ref, "valid") if len(seg) >= len(ref) else np.zeros(1)
+            best = max(0, pos - tol) + int(np.argmax(c))
+        fr = x[best:best + N]
+        if len(fr) < N: break
+        out[o:o + N] += fr * win; norm[o:o + N] += win
+        prev = x[best + H:best + H + N] if best + H + N <= len(x) else None
+        if prev is None: break
+        pos += S; o += H
+    norm[norm < 1e-3] = 1
+    y = (out / norm)[:o + N]
+    return y.astype(np.float32)
+
+# segment = (text, phonemes-or-None, kokoro speed, post time-compress rate)
+CREW2 = {
+    "up":          [("Up", "ʌp", 1.3, 1.0)],
+    "weaponup":    [("Weapon", "wˈɛpən", 1.3, 1.25), ("up", "ʌp", 1.3, 1.0)],
+    "ready":       [("Ready", "ɹˈɛdi", 1.3, 1.0)],
+    "readytofire": [("Ready to", "ɹˈɛdi tə", 1.35, 1.0), ("fire", "fˈIɚ", 1.6, 1.35)],
+    "loaded":      [("Loaded", "lˈOdᵻd", 1.3, 1.0)],
+}
+SQUAD2 = {
+    "contactfront": [("Contact", "kˈɑntˌækt", 1.25, 1.0), ("front", "fɹˈʌnt", 1.25, 1.0)],
+    "movingup":     [("Moving", "mˈuvɪŋ", 1.25, 1.0), ("up", "ʌp", 1.3, 1.0)],
+    "coverme":      [("Cover", "kˈʌvɚ", 1.25, 1.0), ("me", "mˈi", 1.25, 1.0)],
+}
+GAP = {"readytofire": 0.045, "default": 0.07}
+
+def seg_variants(engine, voice, lang, text, ph, speed, rate):
+    """Return list of (name, audio, tail_ms_before_cut) for one word/segment."""
+    outs = []
+    forms = [("per", text + "."), ("bare", text)]
+    for nm, t in forms:
+        try:
+            a = render(engine, voice, lang, t, speed)
+            outs.append((nm, a))
+        except Exception as e:
+            print("   variant fail", nm, e, flush=True)
+    if engine == "kokoro" and lang == "en-us" and ph:
+        try:
+            a, sr = _kokoro.create(ph, voice=voice, speed=speed, lang=lang, is_phonemes=True)
+            outs.append(("ph", resample(np.asarray(a, np.float32), sr)))
+        except Exception as e:
+            print("   phoneme variant fail", ph, str(e)[:80], flush=True)
+    res = []
+    for nm, a in outs:
+        a = lead_trim(trim(a, -45, (4, 40)))
+        res.append((nm, a, tail_ms(a)))
+    return res
+
+def build_line(engine, voice, lang, segs, slug, rank=0):
+    parts = []; info = []
+    for i, (text, ph, speed, rate) in enumerate(segs):
+        vs = seg_variants(engine, voice, lang, text, ph, speed, rate)
+        vs.sort(key=lambda v: v[2])
+        nm, a, tm = vs[min(rank, len(vs) - 1)]
+        strict = text.lower() == 'up'
+        a = cut_tail(a, -14, 6) if strict else cut_tail(a)
+        a = stretch(a, rate)
+        parts.append(a); info.append((nm, round(tm)))
+    g = GAP.get(slug, GAP["default"])
+    gap = np.zeros(int(SR * g), np.float32)
+    x = parts[0]
+    for p in parts[1:]: x = np.concatenate([x, gap, p])
+    return x, info
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     only = set(sys.argv[1:])
-    n = 0
-    for vid, eng, voice, lang, speed in CREW_VOICES:
-        if only and vid not in only: continue
-        for slug, (text, bump) in CREW_LINES.items():
-            raw = shout(trim(render(eng, voice, lang, text, speed)))
-            write(os.path.join(OUT, f"crew_{vid}_{slug}.ogg"), raw)
-            write(os.path.join(OUT, f"crew_{vid}_{slug}_hs.ogg"), headset(raw))
-            n += 2; print("ok crew", vid, slug, flush=True)
-    for vid, eng, voice, lang, speed in SQUAD_VOICES:
-        if only and vid not in only: continue
-        for slug, (text, bump) in SQUAD_LINES.items():
-            raw = shout(trim(render(eng, voice, lang, text, speed)))
-            write(os.path.join(OUT, f"squad_{vid}_{slug}.ogg"), raw)
-            n += 1; print("ok squad", vid, slug, flush=True)
-    print("files", n)
+    synth_kokoro("a", "am_michael", "en-us", 1.0)    # warm / init _kokoro
+    for group, voices, lines in (("crew", CREW_VOICES, CREW2), ("squad", SQUAD_VOICES, SQUAD2)):
+        for vid, eng, voice, lang, speed in voices:
+            if only and vid not in only: continue
+            for slug, segs in lines.items():
+                for rank, suffix in ((0, ""), (1, "_alt")):
+                    if eng == "piper" and rank == 1: continue
+                    raw_b, info = build_line(eng, voice, lang, segs, slug, rank)
+                    raw = shout(raw_b)
+                    write(os.path.join(OUT, f"{group}_{vid}_{slug}{suffix}.ogg"), raw)
+                    if group == "crew" and rank == 0:
+                        write(os.path.join(OUT, f"{group}_{vid}_{slug}_hs.ogg"), headset(raw))
+                    print("ok", group, vid, slug + suffix, info, f"{len(raw)/SR:.2f}s", flush=True)
 
 if __name__ == "__main__":
     main()
