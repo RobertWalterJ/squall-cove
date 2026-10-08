@@ -56,6 +56,51 @@ def place(d, parts):
     return buf
 
 
+def chips(r, dur, t0, rate0, tau, lo=1500, hi=7000, lvl=1.0, dull=0.12):
+    """Real concrete/gravel debris: dry hard fragments. Irregular broadband noise bursts (0.7-5 ms, fast decay, bandpassed lo-hi),
+    random timing and level, occasional 2-3 chip skitters, and a few very small dull damped 'tok' bits (fixed pitch, no sweeps)."""
+    out = np.zeros(n_of(dur)); t = t0
+    while t < dur - 0.03:
+        t += r.exponential(1.0 / max(rate0, 1.0))
+        if t >= dur - 0.03: break
+        if r.random() > math.exp(-(t - t0) / tau): continue
+        for j in range(int(r.integers(1, 4)) if r.random() < 0.3 else 1):
+            tj = t + j * r.uniform(0.001, 0.008); g = lvl * (r.uniform(0.08, 1.0) ** 1.6)
+            k = int(r.uniform(0.0007, 0.005) * SR); x = r.standard_normal(k) * np.exp(-np.arange(k) / (k * 0.22))
+            c = r.uniform(lo * 1.3, hi * 0.7); x = bp(x, max(lo, c * 0.6), min(hi, c * 1.5), SR, 2)
+            put(out, x * g, tj, 1.0)
+            if r.random() < dull:
+                m = int(r.uniform(0.003, 0.008) * SR); tx = np.arange(m) / SR
+                put(out, np.sin(TWO_PI * r.uniform(500, 1500) * tx) * np.exp(-tx / r.uniform(0.002, 0.004)) * g * 0.25, tj, 1.0)
+    return out
+
+
+def sprinkle(r, dur, t0, rate0, tau, lvl=1.0, lo=3500, hi=10000, gmin=0.04, gmax=0.6):
+    """Tiny light droplets: very short quiet high ticks at random times, slowly thinning out (rate0 * exp(-(t-t0)/tau))."""
+    out = np.zeros(n_of(dur)); t = t0
+    while t < dur - 0.02:
+        t += r.exponential(1.0 / max(rate0, 1.0))
+        if t >= dur - 0.02: break
+        if r.random() > math.exp(-(t - t0) / tau): continue
+        k = int(r.uniform(0.0006, 0.002) * SR); x = r.standard_normal(k) * np.exp(-np.arange(k) / (k * 0.25))
+        c = r.uniform(lo * 1.2, hi * 0.8); x = bp(x, max(lo, c * 0.7), min(hi, c * 1.4), SR, 2)
+        put(out, x * lvl * (r.uniform(gmin, gmax) ** 1.5), t, 1.0)
+    return out
+
+
+def spray(r, dur, rise, hold, fall, lo, hi, lvl=1.0):
+    """Spray column: soft broadband hiss that swells, holds and falls back, with irregular flutter."""
+    n = n_of(dur); t = tt(n)
+    env = np.where(t < rise, np.sin(np.clip(t / rise, 0, 1) * math.pi / 2) ** 2, np.where(t < rise + hold, 1.0, np.exp(-(t - rise - hold) / fall)))
+    return unit(bp(noise(n, 'white', r), lo, hi, SR, 2)) * env * slowmod(n, 14, r, 0.6) * lvl
+
+
+def slap(r, dur, tau, fc=800, lvl=1.0):
+    """Dull water slap: low-passed noise, quick decay."""
+    n = n_of(dur); t = tt(n)
+    return unit(lp(noise(n, 'white', r), fc, SR, 2)) * np.exp(-t / tau) * np.minimum(1, t / 0.0015) * lvl
+
+
 def v_dirt(r, i):
     pj = r.uniform(0.92, 1.08)
     return place(0.25, [(punch(r, pj, 1.6), 0.0), (body(r, 0.08, 900, 0.02, 0.45, 150), 0.01), (hiss_short(r, 0.06, 4500, 11500, 0.7), 0.012),
@@ -65,21 +110,42 @@ def v_dirt(r, i):
 def v_concrete(r, i):
     pj = r.uniform(0.92, 1.08)
     return place(0.25, [(punch(r, pj, 1.4, 190, 70, 0.018), 0.0), (crack(r, 0.03, 3000, 12000, 0.0015, 1.3), 0.003),
-                        (grit(r, 8, 0.008, 0.1, 1.0, 4500, 12000), 0.0), (zip_short(r, r.uniform(9500, 12500), 4000, r.uniform(0.04, 0.075), 0.7), 0.015)])
+                        (chips(r, 0.24, 0.006, 420, 0.07, 1500, 7000, 1.0), 0.0), (zip_short(r, r.uniform(9500, 12500), 4000, r.uniform(0.04, 0.075), 0.6), 0.015)])
+
+
+SQ_LOG = []      # (element length ms) of every metal squeak element generated (for the QA report)
+PING_TAUS = []
 
 
 def v_metal(r, i):
-    pj = r.uniform(0.92, 1.08); f = r.uniform(2200, 3800)
-    ping = fit(pingn(f, 0.018, 0.08, ((1, 1.0, 1.0), (2.76, 0.5, 0.6), (5.4, 0.3, 0.35)), None, r), n_of(0.08))
-    return place(0.3, [(punch(r, pj, 1.25, 180, 75, 0.02), 0.0), (crack(r, 0.02, 3500, 12000, 0.0012, 0.9), 0.002), (ping * 0.8, 0.008),
-                       (zip_short(r, r.uniform(10000, 12500), 5000, r.uniform(0.04, 0.07), 0.8), 0.012), (zip_short(r, r.uniform(8000, 10500), 4500, 0.035, 0.5), 0.03 + 0.01 * (i % 3))])
+    """Heavy punch, then many very short variable-length squeaks (10-60 ms, rising or falling, 6-13 kHz), plus a bright inharmonic
+    ping cluster (3-9 kHz, decays over roughly 80-200 ms) like struck sheet metal."""
+    pj = r.uniform(0.92, 1.08); d = 0.36
+    parts = [(punch(r, pj, 1.25, 180, 75, 0.02), 0.0), (crack(r, 0.02, 3500, 12000, 0.0012, 0.9), 0.002)]
+    # ping cluster: 4-5 slightly inharmonic partials, 3-9 kHz
+    base = r.uniform(3000, 4200); ratios = [1.0, r.uniform(1.38, 1.5), r.uniform(1.85, 2.05), r.uniform(2.3, 2.55), r.uniform(2.6, 2.95)]
+    tau = r.uniform(0.022, 0.04); PING_TAUS.append(tau)
+    n = n_of(0.3); t = tt(n); ping = np.zeros(n)
+    for k, q in enumerate(ratios):
+        f = min(base * q, 9000.0)
+        ping += np.sin(TWO_PI * f * t + r.uniform(0, 6.28)) * np.exp(-t / (tau * (1.0 - 0.12 * k))) * (1.0 - 0.12 * k)
+    ping *= np.minimum(1, t / 0.0006)
+    parts.append((ping * 0.45, 0.004))
+    # squeaks
+    for _ in range(int(r.integers(5, 10))):
+        L = float(np.exp(r.uniform(math.log(0.010), math.log(0.060)))); SQ_LOG.append(L * 1000)
+        f0 = r.uniform(6000, 12500); f1 = f0 * (r.uniform(0.45, 0.8) if r.random() < 0.5 else r.uniform(1.25, 1.7))
+        parts.append((zip_short(r, min(f0, 13000), min(f1, 13500), L, r.uniform(0.35, 0.8)), r.uniform(0.004, 0.15)))
+    return place(d, parts)
 
 
-def v_water(r, i):
+def v_water(r, i, more=False):
     pj = r.uniform(0.92, 1.08)
-    bub = fit(U.bubble(r, 1500, 3500), n_of(0.06)) * 0.9
-    return place(0.25, [(punch(r, pj, 1.3, 140, 55, 0.022), 0.0), (hiss_short(r, 0.07, 5000, 11500, 0.7), 0.01), (bub, 0.015),
-                        (grit(r, 4, 0.02, 0.11, 0.6, 5000, 11000), 0.0)])
+    parts = [(punch(r, pj, 1.5, 140, 52, 0.022), 0.0), (slap(r, 0.07, 0.02, 900, 0.7), 0.002), (hiss_short(r, 0.04, 3500, 11000, 0.45), 0.008),
+             (sprinkle(r, 0.22, 0.0, 90, 0.07, 0.3), 0.02)]
+    if more:
+        parts += [(sprinkle(r, 0.65, 0.0, 170, 0.28, 0.35), 0.03), (sprinkle(r, 0.65, 0.0, 380, 0.25, 0.12, 3000, 8000), 0.03)]
+    return place(0.7 if more else 0.25, parts)
 
 
 def v_person(r, i):
@@ -92,11 +158,11 @@ V_MAKERS = dict(dirt=v_dirt, concrete=v_concrete, metal=v_metal, water=v_water, 
 
 def m_stitch(r, i):
     d = 1.15; out = np.zeros(n_of(d)); t = 0.0; w = [('dirt', 4), ('concrete', 2), ('metal', 1), ('dirt', 2)]
-    names = ['dirt', 'dirt', 'dirt', 'concrete', 'concrete', 'metal', 'dirt', 'water'] if i == 2 else ['dirt', 'dirt', 'concrete', 'dirt', 'metal', 'dirt', 'dirt', 'concrete']
+    names = ['metal', 'dirt', 'water', 'concrete', 'metal', 'dirt', 'water', 'metal'] if i == 2 else ['metal', 'dirt', 'concrete', 'metal', 'metal', 'dirt', 'concrete', 'metal']
     k = 0
     while t < 0.95:
         nm = names[k % len(names)]; k += 1
-        h = V_MAKERS[nm](r, k)
+        h = v_water(r, k, True) if nm == 'water' else V_MAKERS[nm](r, k)
         put(out, h * r.uniform(0.6, 1.0), t, 1.0)
         t += 1.0 / 66.7 * r.integers(2, 4) * r.uniform(0.85, 1.15)    # every 2-3 rounds => about 25 hits
     return out * (0.6 + 0.4 * np.sin(np.pi * np.clip(tt(len(out)) / d, 0, 1)) ** 0.5)
@@ -120,7 +186,7 @@ def b_dirt(r, i):
 def b_concrete(r, i):
     d = 1.3; pj = r.uniform(0.92, 1.08)
     return sumv(bof_core(r, d, pj, 10000, 0.9), crack(r, 0.06, 2500, 11000, 0.003, 1.0),
-                debris(r, d, 0.1, 140, 0.45, 1500, 8000, 0.25, 0.7),
+                chips(r, d, 0.05, 260, 0.45, 1500, 7000, 0.9),
                 mix(d, [(zing(r, None, None, 0.45), 0.03, 1.0), (zing(r, None, None, 0.35), 0.06 + 0.03 * i, 1.0), (zing(r, None, None, 0.25), 0.14, 1.0)]),
                 echoes(tail(r, d - 0.05, 0.35, 0.2, 1200, 250, 0.6, 0.35, 0.02), [(0.1, 0.4, 1500), (0.22, 0.25, 900)]) * 0.5)
 
@@ -134,13 +200,21 @@ def b_metal(r, i):
 
 
 def b_water(r, i):
-    d = 1.7; pj = r.uniform(0.92, 1.08); n = n_of(d); t = tt(n)
-    plume = unit(bp(noise(n, 'white', r), 700, 4800, SR, 2)) * np.exp(-t / 0.28) * np.minimum(1, t / 0.01) * 0.9
-    bub = U.bubble_cloud(d, 200, 1400, 60, 0.35, r) * 0.7
-    drops = ticks_at(r, d, 70, 0.35, 1.5, 2500, 8000, 0.28)
-    s = fit(sub(d * 0.6, 85 * pj, 40 * pj, 0.07, 0.3, 0.004, 0.1), n)
-    return sumv(s, punch(r, pj, 1.1, 140, 52, 0.03), crack(r, 0.04, 2500, 11000, 0.003, 0.9), crack(r, 0.1, 500, 7000, 0.012, 1.0), body(r, 0.5, 500, 0.12, 1.0, 60), plume, fit(bub, n), drops,
-                mix(d, [(zing(r, None, None, 0.2), 0.05, 1.0)]), tail(r, d - 0.05, 0.4, 0.2, 600, 120, 0.8, 0.2, 0.03) * 0.5)
+    d = 1.5; pj = r.uniform(0.92, 1.08)
+    A_ = sumv(punch(r, pj, 1.3, 110, 45, 0.035), slap(r, 0.25, 0.05, 700, 0.9), body(r, 0.3, 350, 0.06, 0.6, 60), crack(r, 0.04, 2500, 11000, 0.003, 0.7))
+    B_ = place(d, [(hiss_short(r, 0.12, 2500, 10000, 0.6), 0.01), (spray(r, 0.9, 0.05, 0.08, 0.28, 2500, 9000, 0.25), 0.05),
+                   (sprinkle(r, 1.4, 0.0, 230, 0.5, 0.35), 0.05), (sprinkle(r, 1.4, 0.0, 500, 0.4, 0.12, 3000, 8000), 0.05)])
+    return sumv(A_, B_)
+
+
+def h_water(r, i):
+    """105 mm into water: heavy fast-dissipating thump, then a big splash and a spray column falling back as sprinkles."""
+    d = 4.2; pj = r.uniform(0.92, 1.08)
+    A_ = sumv(sub(2.0, 72 * pj, 27 * pj, 0.12, 0.5, 0.004, 0.1), sub(1.2, 48 * pj, 30 * pj, 0.3, 0.4, 0.014, 0.0) * 0.6, slap(r, 0.5, 0.12, 700, 1.0),
+              crack(r, 0.05, 300, 3500, 0.006, 0.7), body(r, 0.6, 300, 0.1, 0.9, 50))
+    B_ = place(d, [(hiss_short(r, 0.3, 2000, 9500, 0.8), 0.02), (spray(r, 2.6, 0.25, 0.35, 0.9, 1800, 8000, 0.3), 0.05),
+                   (sprinkle(r, 3.8, 0.0, 260, 1.4, 0.4), 0.1), (sprinkle(r, 3.8, 0.0, 600, 1.2, 0.12, 3000, 8000), 0.1)])
+    return sumv(fit(A_, n_of(d)), B_)
 
 
 B_MAKERS = dict(dirt=b_dirt, concrete=b_concrete, metal=b_metal, water=b_water)

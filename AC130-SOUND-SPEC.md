@@ -167,3 +167,112 @@ bofors_hit_metal              -19.8 -> -16.8   5.0 -> 8.0     7110 -> 6720     (
 bofors_hit_water              -22.5 -> -18.8   2.7 -> 6.5     5794 -> 5771     (same)
 ```
 Notes: low30 is a small improvement for dirt, concrete and person because the old versions already had a thump (3 dB), but the first 30 ms low band now carries 2.8 to 3.3 dB more of the file's energy for Vulcan dirt and concrete, and the old metal and water hits had essentially no punch at all (-55 and -48 dBFS). Vulcan person was already heavy, so it is nearly unchanged (+0.4 dB relative). The Bofors squeak centroid fell slightly (-4 to -7 percent) because the new low punch and crack dominate the whole-tail average and the debris layer was not changed; its zings are shorter but the debris patter, which I left alone, sets sqDur. Peaks are at or below -2.0 dBFS (Vulcan hits -3.2 to -6.5, stitches -7.2 to -8.4, Bofors -2.0 to -6.3); loudest-400 ms RMS is unchanged at about -22.2 (Vulcan hits), -21.2 (stitch), -19.3 (Bofors). Variant cross-correlation now 0.53 to 0.72 for the Vulcan hits (higher than before at 0.05 to 0.53, because the shared punch template dominates), stitch 0.06, stitch far 0.16. If repetition is audible, vary rate 0.9 to 1.1 and gain per hit, and never fire the same variant twice in a row.
+
+---
+
+# Addendum 3: metal squeak and ping, dry concrete debris, water family for all weapons
+
+Backups of the previous versions of everything changed in this pass are in `sound/out_old2/` (metal hits and stitches before the metal pass) and `sound/out_old3/` (metal, concrete, water, stitches before the concrete/water pass). Generators: `sound/gen_ac130_imp.py` (makers), `sound/fix3.py` + `sound/merge_fix3.py` (render and deploy), `sound/finalize_ac130.py` (tail trim, hints, tables), `sound/fix_peaks.py`. Measured by script only; not auditioned.
+
+## Vulcan metal hit and the stitch
+Heavy low punch up front is unchanged. After it: 5 to 9 brief squeak elements per hit with random lengths of 10 to 60 ms (log-uniform), random start times within the first 150 ms, 6 to 13 kHz, each either falling or rising in pitch, plus one ping cluster: 5 slightly inharmonic partials between 3 and 9 kHz (ratios about 1, 1.4, 1.95, 2.4, 2.8) that decays with a 28 to 38 ms time constant (about 100 to 130 ms to -30 dB). The stitch now has about 40 percent metal hits (variants 01 and 02: 4 of 8 pattern slots; variant 03: 3 of 8 plus two water hits), so each stitch contains many squeaks and pings among the dirt and concrete hits.
+
+Measured: generator log of the 4 shipped variants, 25 squeak elements, length min 10.1 ms, median 22.1 ms, max 41.3 ms (design range 10 to 60). Ping decay measured in the files, 3 to 9 kHz band to -30 dB: 131, 149, 137, 135 ms (old metal hit: 65, 72, 80, 61 ms); content above 9.5 kHz now lasts 119 to 155 ms (old: 20 to 50 ms). After trimming the metal hits are 0.17 to 0.21 s, loudest-400 ms RMS -19.5 to -20.3 dBFS, centroid about 6.2 to 7.1 kHz.
+
+## Concrete debris (Vulcan and Bofors)
+Replaced the pitched thump/bloop and tick debris with dry hard fragments: irregular 0.7 to 5 ms broadband noise bursts with fast decay, band-passed inside 1.5 to 7 kHz, random timing and random level, occasional 2 to 3 chip skitters, and a few very small dull damped "tok" bits at fixed pitches of 500 to 1500 Hz (no pitch sweeps, no bubble sounds). Measured on the post-60 ms tail (old to new): Vulcan concrete 1.5 to 7 kHz spectral flatness 0.23 to 0.79 (more noise-like, less tonal), separate clicks 10.5 to 19.8 per hit. Bofors concrete flatness 0.92 to 0.96, clicks 172 to 126; its under-1 kHz energy share is 0.9 both before and after because the crump and rumble tail dominate that file after 60 ms, so that metric does not isolate the debris there. The ricochet zips (short falling sweeps) in the Vulcan and the shrapnel zings in the Bofors concrete are separate squeak elements and were kept.
+
+## Water, all weapons
+Each water hit has two layers. Layer A, a heavy short thump (fast-attack 140 to 52 Hz drop, dull low-passed slap, tight tail). Layer B, a brief bright splash burst (2 to 11 kHz) followed by many tiny light droplet ticks (0.6 to 2 ms, 3 to 10 kHz, very quiet and irregular) and a soft rain-like patter, thinning out with time. No bubble or chirp sounds remain. The howitzer version adds a spray column that swells and falls back.
+
+| stem | n | dur | bus | use |
+|---|---|---|---|---|
+| `ac130_vulcan_hit_water` | 4 | 0.10 to 0.19 s | mat | Heavy part about 60 ms, sparse splash; fires at 10 to 25 per second. |
+| `ac130_vulcan_stitch` (variant with water) | 3 | 1.08 to 1.12 s | mat | Water hits inside the stitch carry the longer scatter (about 0.65 s of sprinkles each). |
+| `ac130_bofors_hit_water` | 4 | 1.36 to 1.44 s | mat | Heavy thump plus splash burst, spray swell and about 1.4 s of thinning droplets. `_far` x3 exist (1.3 s). |
+| `ac130_howitzer_hit_water` | 4 | 3.9 s | mat | Deep thump (72 to 27 Hz), big splash, spray column falling back, droplets thinning over about 3.8 s. |
+| `ac130_howitzer_hit_water_sub` | 4 | 2.0 s | mat | Sub layer for hits near the camera, same `_NN`. gain 0.8. |
+| `ac130_howitzer_hit_water_far` | 4 | 3.1 s | mat | Beyond about 150 m; add distance/340 s delay in code. gain 0.7. |
+
+Use `ac130_howitzer_hit_water` instead of `ac130_howitzer_hit` when the shell lands on water; for the sub layer use `_water_sub`.
+
+Measured (mean over variants), lowT = ms for the 60 to 300 Hz band to fall 30 dB, splashT = ms the 3 to 10 kHz band stays within 40 dB of its post-30 ms peak, drops = droplet clicks after 60 ms, wetRel = 3 to 10 kHz RMS after 60 ms minus whole-file RMS:
+```
+                          lowT ms   splashT ms   drops   wetRel dB
+vulcan_hit_water   old        59        103        10     -21.0
+vulcan_hit_water   new        63        113        10     -43.3   (splash kept deliberately faint at 10-25 per second)
+bofors_hit_water   old      1084       1499       298      -9.4
+bofors_hit_water   new       172       1391       190      -8.3   (heavy part dissipates 6x faster, scatter kept)
+howitzer_hit_water new       380       3787       545      -7.7   (generic howitzer_hit for comparison: lowT 4539 ms)
+vulcan_stitch      new    159-504   ~1070-1107   192-197   -6..-7  (3 variants)
+```
+Peaks are at or below -2.1 dBFS everywhere after a final gain trim on 7 files (Bofors water x4, Bofors dirt 04, Bofors shot 02, howitzer water 01 were between -1.6 and -2.0 and are now -2.3 to -2.9). Variant cross-correlation: concrete Vulcan 0.67, Vulcan water 0.65 (short template-heavy hits; rotate and jitter), Bofors concrete 0.40, Bofors water 0.34, howitzer water 0.45, howitzer water sub 0.92 (subs are all the same sub drop, as before).
+
+# High rate of fire playback
+
+How the engine (index.html, read only) behaves: `Snd.fx(stem, x, z, {gap})` ignores a play if the same stem family played within `gap` seconds (default 45 ms) and picks a variant that is not the previous one for that stem (lastVar). The voice budget is `A.max` = 24 on desktop and 14 on touch; at or above `A.max` a one-shot with weight under 3 and gain under 0.35 is culled, and nothing starts above 1.4 times `A.max`. Looping instances (`A.set`) are not counted as voices. `A.loadStem(stem)` loads a whole family on the first miss (that first call is silent); desktop also streams the `weapons` and `aircraft` groups in the background after start, touch loads only on demand and drops unused non-core buffers after 180 s. Because each surface is its own stem family, the 45 ms per-family gap does NOT limit the surfaces together, so game code must aggregate.
+
+Manifest hints are added to every `ac130_*` entry under `meta.play` (the engine does not read them yet): `gapMs` minimum interval between plays per family (use as `gap: gapMs/1000`), `maxVoices` simultaneous voices for that family, `rotate` number of variants to rotate (never repeat the last), `preload` true to load when a gunship is called, `bus`, and for the Vulcan hits `aggregateHz`. The weight of the Vulcan hit families is now 2 so that they are the first to be culled under pressure when their gain is below 0.35 (everything else keeps its weight).
+
+| family | gapMs | maxVoices | notes |
+|---|---|---|---|
+| `ac130_vulcan_hit_<surface>` (5 surfaces, shared cap) | 40 | 8 total (4 on touch) | At most about 12 plays per second in total across all surfaces, nearest to the listener first; all other hits within 60 m are dropped; targets beyond 60 m use `ac130_vulcan_stitch` (one per 0.5 to 0.8 s) instead of individual hits. |
+| `ac130_vulcan_stitch` / `_far` | 500 | 3 (2 on touch) | Stands in for throttled-out hits and distant impacts. |
+| `ac130_vulcan_loop` / `_start` / `_end` (+ `_far`) | 0 | 1 per firing gun | Loop through `A.set`, key per gun; only the nearest 2 guns get the near loop, others the far loop or nothing. |
+| `ac130_bofors_shot` / `_far` | 300 | 5 / 3 (3 on touch) | 2 to 3 shots per second; the 0.9 s tails overlap. |
+| `ac130_bofors_hit_<surface>` / `_far` | 250 | 4 / 3 | One per landing; nearest first. |
+| `ac130_howitzer_fire` / `hit` / `hit_water` (+ `_far`, `_sub`) | 1200 | 3 near, 2 sub | Sub only for the player's own gun or a hit within 80 m. |
+| `ac130_prop_loop` / `_far` | 0 | 1 per aircraft | Nearest 3 aircraft only. |
+| `ac130_creak` | 6000 | 1 | Near only. |
+
+Rules for the wiring agent:
+1. Never repeat the same variant twice in a row in a family (the engine already does this per stem), and never start two hits of the same stem within `gapMs`. Rate jitter 0.94 to 1.06 and gain jitter 1.5 dB are applied by the engine already; widen to 0.9 to 1.1 for the Vulcan hits.
+2. Keep Vulcan hit gain at or below 0.35 beyond about 40 m so that the weight-2 culling rule applies; closer, let them through (gain above 0.35).
+3. Count the aggregate: Vulcan hits at most about 12 per second, bots included; Bofors shots 3 per second per gun; all bot guns together at most 4 near-stem plays per second, the rest as far stems (`_far`, gain 0.7, gap 150 ms) beyond about 80 m or silent beyond 150 m.
+4. Budget on desktop (24 voices) for the player's own gunship: Vulcan hits 8, Bofors shots 5, Bofors hits 4, howitzer 3, stitch 3, one bot slot (1) = 24; on touch (14): 4, 3, 2, 2, 2, 1 = 14. Ambient and everything else must fit in the remainder, which is why the hit and stitch caps matter.
+5. Order of sacrifice when over budget: Vulcan hits, then Bofors hits, then bot shots, then Bofors shots, then howitzer. Never drop the Vulcan loop or the howitzer fire of the player's own gunship.
+6. Do not rely on a stem before its family is loaded: call `A.loadStem` for every `preload: true` family when the gunship is called (the first shot after a miss is silent).
+
+# Memory and download
+
+Decoded memory is samples times 4 bytes at 44.1 kHz (Web Audio keeps float32; multiply by about 1.09 if the audio context runs at 48 kHz). Download is the Ogg size. All stems are mono, 44.1 kHz. Dead tails were trimmed at -58 dBFS (Vulcan hits capped at 0.30 s) and dark far and sub stems re-encoded at q2 (others q4), which brought the whole set to 120 stems and 1.93 MB. Vulcan hits are now 0.10 to 0.22 s (dirt 0.13, person 0.10, water 0.11, concrete 0.22, metal 0.20).
+
+```
+family                          n   dur s     KB    MB decoded  load
+bofors_hit (generic)            4   1.00      47    0.66        preload
+bofors_hit_concrete             4   1.26      71    0.85        preload
+bofors_hit_concrete_far         3   1.66      35    0.86        lazy
+bofors_hit_dirt                 4   1.36      58    0.93        preload
+bofors_hit_dirt_far             3   1.88      41    1.03        lazy
+bofors_hit_metal                4   1.44      66    0.93        preload
+bofors_hit_metal_far            3   1.64      36    0.94        lazy
+bofors_hit_water                4   1.42      61    0.94        preload
+bofors_hit_water_far            3   1.32      28    0.65        lazy
+bofors_shot                     5   0.91      52    0.76        preload
+bofors_shot_far                 3   1.33      29    0.66        lazy
+creak                           3   2.18      50    1.07        lazy
+howitzer_fire                   4   3.36     134    2.27        preload
+howitzer_fire_far               4   4.65     103    3.05        lazy
+howitzer_fire_sub               4   3.03      62    2.04        lazy
+howitzer_hit                    4   4.77     175    3.20        preload
+howitzer_hit_far                4   5.98     134    4.02        lazy
+howitzer_hit_sub                4   3.93      82    2.69        lazy
+howitzer_hit_water              4   3.89     143    2.61        preload
+howitzer_hit_water_far          4   3.09      70    1.98        lazy
+howitzer_hit_water_sub          4   2.02      46    1.36        lazy
+prop_loop                       2   8.00      59    2.69        preload
+prop_loop_far                   1   8.00      25    1.35        lazy
+vulcan_end / _far               2   1.72/1.97 35/26 0.57/0.66   preload / lazy
+vulcan_hit_concrete             4   0.22      24    0.13        preload
+vulcan_hit_dirt                 4   0.13      20    0.09        preload
+vulcan_hit_metal                4   0.20      23    0.13        preload
+vulcan_hit_person               4   0.10      19    0.07        preload
+vulcan_hit_water                4   0.11      20    0.09        preload
+vulcan_loop / _far              2   1.20      42/17 0.40/0.40   preload / lazy
+vulcan_start / _far             2   1.35/1.77 40/25 0.45/0.60   preload / lazy
+vulcan_stitch / _far            3   1.12/1.65 49/31 0.56/0.80   preload / lazy
+TOTAL (120 stems)                         1.93 MB download, 42.5 MB decoded (46.3 MB at 48 kHz)
+PRELOAD when a gunship is called          1.11 MB download, 18.3 MB decoded
+LAZY on first use (far, sub, creak)       0.82 MB download, 24.2 MB decoded
+```
+The decoded total is dominated by the howitzer families (near, far and sub for fire, hit and hit_water make 25 MB of the 42.5). On touch devices preload only the near Vulcan set, the Bofors shot and the surface families actually on the map; load the howitzer families lazily, and load the `_sub` and `_far` howitzer families only when a shell lands within 80 m or beyond 150 m respectively (the engine's sweep frees them after 180 s of disuse).
