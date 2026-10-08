@@ -3,3 +3,8 @@ blender/*.blend
 blender/people/*.blend
 __pycache__/
 *.blend1
+
+# voice tooling (never commit)
+tools/voices/.venv/
+tools/voices/models/
+tools/voices/work/
