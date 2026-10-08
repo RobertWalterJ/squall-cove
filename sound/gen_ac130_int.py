@@ -16,7 +16,7 @@ from gen_heavy import *            # building blocks, CLASS_RMS, stage_save, put
 from gen_ac130 import circ_lp, rattle
 
 # interior classes: weapons sit 3 to 6 dB under the matching exterior near class (boom -17.5, fire -19.3, loop -21.3)
-CLASS_RMS.update(ihow=-22.0, ifire=-23.5, iloop=-25.5, ibed=-26.5, icomm=-34.0)
+CLASS_RMS.update(iwhine=-33.5, ihow=-22.0, ifire=-23.5, iloop=-25.5, ibed=-26.5, icomm=-34.0)
 EXT = 'aircraft'
 
 
@@ -43,6 +43,25 @@ def sine_tone(f, dur, att=0.008, rel=0.04, sweep=None, h2=0.0):
 
 
 # ------------------------------------------------------------------ cabin ambience (loops)
+WHINE_HZ = (2950.0, 3250.0)       # per variant, snapped to the loop length
+WHINE_DB = -10.0                  # whine amplitude relative to the drone (throb band) peak
+
+
+def whine_core(r, D, i):
+    """Thin steady 2 to 4 kHz tone, faint 2nd partial, +-4 Hz wavering at 3 Hz plus a slow 0.25 Hz drift, quiet sibilant turbine hiss above. Unit peak on the main tone."""
+    n = n_of(D); t = tt(n); f = snap(WHINE_HZ[i], D)
+    fm = 3.0; drift = 2.0 / D
+    ph = TWO_PI * f * t + (4.0 / fm) * np.sin(TWO_PI * fm * t + r.uniform(0, 6)) + (22.0 / drift) * np.sin(TWO_PI * drift * t + r.uniform(0, 6)) + r.uniform(0, 6)
+    am = 1 + 0.08 * np.sin(TWO_PI * (2 / D) * t + r.uniform(0, 6))
+    tone = np.sin(ph) * am + 0.16 * np.sin(2 * ph + 0.7)
+    hiss = circ_band(circ_noise(n, 4500, 9500, r, 0.0), 4500, 9500) * (1 + 0.3 * np.sin(TWO_PI * (3 / D) * t + r.uniform(0, 6)))
+    return tone + 0.045 * hiss
+
+
+def m_whine(r, i):
+    return whine_core(r, 8.0, i)
+
+
 def m_cabin(r, i):
     D = (10.0, 12.0)[i]; n = n_of(D); t = tt(n)
     bases = ((63.0, 64.4, 66.1, 67.7), (61.6, 63.8, 65.4, 68.1))[i]          # four props, 60 to 70 Hz, detuned => beating throb
@@ -68,7 +87,10 @@ def m_cabin(r, i):
         bz = unit(bp(noise(k, 'white', r), 110, 520, SR, 2)) * (0.5 + 0.5 * np.sign(np.sin(TWO_PI * r.uniform(24, 34) * tx))) * np.sin(np.pi * tx / tx[-1]) ** 2 * r.uniform(0.15, 0.3)
         put_circ(rt, bz, r.uniform(0, n))
     out = unit(th) * 1.0 + unit(roar) * 0.62 + unit(rumble) * 0.4 + unit(whine) * 0.075 + rt * 0.14
-    return circ_lp(out, 3200)
+    out = circ_lp(out, 3200)
+    drone_pk = np.max(np.abs(circ_band(out, 40, 160)))                       # throb-band peak
+    w = whine_core(rng(U.seed_of('ac130_int_whine', i)), D, i)
+    return out + w * drone_pk * 10 ** (WHINE_DB / 20) / np.max(np.abs(w))
 
 
 def m_headset(r, i):
@@ -293,6 +315,8 @@ def P(stem, mk, count, mode, lvl, bus, group, loop=False, weight=4, play=None, r
 TABLE = [
     P('ac130_int_cabin_loop', m_cabin, 2, 'rms', 'ibed', 'veh', EXT, loop=True, weight=6, rate=(1.0, 1.0), q=3, tags=['ac130', 'interior', 'loop', 'cabin'],
       play=dict(gapMs=0, maxVoices=1, preload=True, note='station bed; start on entering the station, crossfade 0.6 to 1.0 s')),
+    P('ac130_int_whine_loop', m_whine, 2, 'rms', 'iwhine', 'ui', EXT, loop=True, weight=4, rate=(0.97, 1.03), q=3, tags=['ac130', 'interior', 'loop', 'whine'],
+      play=dict(gapMs=0, maxVoices=1, preload=True, note='same whine as in the cabin loops, alone; modulate gain and playbackRate 0.97 to 1.03 with bank and engine load')),
     P('ac130_int_headset_loop', m_headset, 1, 'rms', 'icomm', 'ui', EXT, loop=True, weight=4, rate=(1.0, 1.0), q=2, tags=['ac130', 'interior', 'loop', 'headset'],
       play=dict(gapMs=0, maxVoices=1, preload=True, note='comms bed, 300 Hz to 3.4 kHz; play under the cabin loop')),
     P('ac130_int_comms_click', m_click, 4, 'pk', -21.0, 'ui', EXT, weight=3, rate=(0.92, 1.1), pad=0.1, tags=['ac130', 'interior', 'headset', 'click'],
@@ -350,7 +374,7 @@ def save_pk(name, x, peak_db, bus, **kw):
 def render(only=None):
     S.set_manifest('ac130int')
     for e in TABLE:
-        if only and only not in e['stem']: continue
+        if only and not any(o in e['stem'] for o in only.split(',')): continue
         for i in range(e['count']):
             name = e['stem'] if (e['plain'] or e['count'] == 1 and e['stem'].endswith(('howitzer_hoist', 'howitzer_ram', 'howitzer_breech'))) else '%s_%02d' % (e['stem'], i + 1)
             r = rng(U.seed_of(e['stem'], i)); x = np.asarray(e['mk'](r, i), dtype=np.float64)
