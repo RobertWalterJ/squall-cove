@@ -125,19 +125,21 @@ def hyd_hiss(r, dur, lo=450, hi=1800, peak_t=0.6, level=1.0):
 
 
 def m_ihow_fire(r, i):
-    pj = r.uniform(0.92, 1.08); dur = 2.1; n = n_of(dur); t = tt(n)
-    th = sumv(sub(1.7, 52 * pj, 24 * pj, 0.12, 0.6, 0.004, 0.22), sub(0.9, 90 * pj, 40 * pj, 0.05, 0.2, 0.002, 0.3) * 0.7)
-    bl = sumv(crack(r, 0.12, 90, 900, 0.03, 1.0), body(r, 0.5, 420, 0.12, 1.0, 40)) * 0.8
+    pj = r.uniform(0.92, 1.08); dur = 1.5; n = n_of(dur); t = tt(n)
+    th = sumv(sub(1.2, 52 * pj, 24 * pj, 0.12, 0.45, 0.004, 0.22), sub(0.7, 90 * pj, 40 * pj, 0.05, 0.16, 0.002, 0.3) * 0.7)
+    bl = sumv(crack(r, 0.12, 90, 900, 0.03, 1.0), body(r, 0.4, 420, 0.1, 1.0, 40)) * 0.8
     fm = r.uniform(13, 19)
-    sh = unit(bp(noise(n, 'white', r), 28, 180, SR, 2)) * (0.55 + 0.45 * np.sin(TWO_PI * fm * t + r.uniform(0, 6))) * np.exp(-t / 0.7) * np.minimum(1, t / 0.012) * 0.75
+    sh = unit(bp(noise(n, 'white', r), 28, 180, SR, 2)) * (0.55 + 0.45 * np.sin(TWO_PI * fm * t + r.uniform(0, 6))) * np.exp(-t / 0.5) * np.minimum(1, t / 0.012) * 0.7
+    # structural groan and creak: dense broadband low-mid noise with slow irregular swells, no pitched or ringing partials
+    g1 = unit(bp(noise(n, 'white', r), 70, 420, SR, 2)) * slowmod(n, 9.0, r, 0.7) * np.exp(-np.maximum(t - 0.05, 0) / 0.36) * np.minimum(1, t / 0.04)
+    g2 = unit(bp(noise(n, 'white', r), 200, 950, SR, 2)) * slowmod(n, 15.0, r, 0.8) * np.exp(-np.maximum(t - 0.1, 0) / 0.2) * np.minimum(1, t / 0.05)
     recoil_t = 0.13 + 0.01 * i
-    clunk = sumv(thump(n_of(0.3), 112 * pj, 0.05, 0.95, 0.3), tickn(r, 0.005, 250, 1800, 0.55, n_of(0.12)), pingn(240 * pj, 0.03, 0.2, ((1, 0.5, 1), (2.6, 0.3, 0.5)), r=r) * 0.5)
-    hyd = hyd_hiss(r, 0.55, 500, 1800, 0.7, 0.18)
-    clang_t = 0.40 + 0.03 * i + r.uniform(0, 0.02)
-    clang = sumv(pingn(380 * pj, 0.11, 0.7, ((1, 1.0, 1.0), (2.32, 0.55, 0.7), (3.6, 0.3, 0.5), (5.1, 0.12, 0.4)), r=r) * 0.45, tickn(r, 0.004, 400, 2400, 0.8, n_of(0.1)), thump(n_of(0.2), 150 * pj, 0.03, 0.5, 0.3))
-    rt = lp(rattle(r, dur, 0.06, 0.75), 1500, SR, 2)
-    x = mix(dur, [(th, 0.0, 1.0), (bl, 0.0, 1.0), (sh, 0.0, 1.0), (clunk, recoil_t, 1.0), (hyd, recoil_t + 0.04, 1.0), (clang, clang_t, 1.0), (rt, 0.0, 0.75)])
-    return ear(x, 2100)
+    clunk = sumv(thump(n_of(0.3), 112 * pj, 0.05, 0.95, 0.3), body(r, 0.12, 700, 0.025, 0.7, 110))
+    hyd = hyd_hiss(r, 0.4, 300, 1100, 0.7, 0.14)
+    clang_t = 0.36 + 0.03 * i + r.uniform(0, 0.02)
+    clang = sumv(body(r, 0.16, 1000, 0.035, 0.9, 180), thump(n_of(0.2), 150 * pj, 0.03, 0.5, 0.3))
+    x = mix(dur, [(th, 0.0, 1.0), (bl, 0.0, 1.0), (sh, 0.0, 1.0), (g1, 0.0, 0.85), (g2, 0.0, 0.45), (clunk, recoil_t, 1.0), (hyd, recoil_t + 0.04, 1.0), (clang, clang_t, 1.0)])
+    return ear(x, 1700)
 
 
 # ------------------------------------------------------------------ mechanics (howitzer loader, cannon loader)
@@ -258,7 +260,11 @@ def m_ivul_loop(r, i):
         whirr += a * np.sin(TWO_PI * (kk / VD) * t + r.uniform(0, 6) + 0.35 * np.sin(TWO_PI * (5 / VD) * t + r.uniform(0, 6)))
     gear = circ_noise(n, 300, 1500, r, 0.2) * (0.7 + 0.3 * np.sin(TWO_PI * 16 / VD * t))
     out = out * 0.85 + whirr * 0.34 + gear * 0.14 + circ_noise(n, 30, 140, r, 0.0) * 0.18
-    return circ_lp(out, 2300)
+    out = circ_lp(out, 2300)
+    ck = np.zeros(n)                                                         # dry 3 to 6 kHz click at the start of every pulse (80 per loop)
+    for k in range(VN):
+        put_circ(ck, tickn(r, 0.0011, 3000, 6000, 1.0) * r.uniform(0.7, 1.0), k * per + r.uniform(-0.0003, 0.0003) * SR)
+    return out + 0.2 * ck
 
 
 def spin_pulses_i(r, dur, rate_fn, amp_fn):
@@ -277,6 +283,18 @@ def m_ivul_start(r, i):
     gear = unit(S.tv_filter(noise(n, 'white', r), 300 + 1200 * s, 'lp', 2, SR, 512)) * 0.12 * (0.3 + 0.7 * s)
     clunk = mix(0.3, [(sumv(thump(n_of(0.2), 100, 0.04, 0.8, 0.3), tickn(r, 0.004, 300, 1800, 0.6, n_of(0.08))), 0.0, 1.0)])   # clutch engages
     x = out * 0.85 + whirr * 0.3 + gear + fit(clunk, n)
+    return ear(x, 2300)
+
+
+def m_ivul_startup(r, i):
+    dur = 0.6; n = n_of(dur); t = tt(n); T = 0.42 + 0.04 * i
+    sm = lambda x: (lambda s_: s_ * s_ * (3 - 2 * s_))(np.clip(x / T, 0, 1))
+    out = spin_pulses_i(r, dur, lambda x: 4 + (VRATE - 4) * sm(x), lambda tj: 0.4 + 0.6 * min(1, tj / T))
+    s = sm(t); f = 70 + 263.3 * s; ph = TWO_PI * np.cumsum(f) / SR
+    whirr = (np.sin(ph) + 0.55 * np.sin(2 * ph + 0.4) + 0.3 * np.sin(3 * ph + 1.0)) * np.minimum(1, t / 0.04) * (0.3 + 0.7 * s)
+    gear = unit(S.tv_filter(noise(n, 'white', r), 300 + 1200 * s, 'lp', 2, SR, 512)) * 0.12 * (0.3 + 0.7 * s)
+    latch = fit(sumv(clack(r, 600 + 60 * i, 1.0, 1.1), thump(n_of(0.12), 95, 0.03, 0.6, 0.3)), n)
+    x = out * 0.85 + whirr * 0.3 + gear + latch * 0.9
     return ear(x, 2300)
 
 
@@ -337,6 +355,8 @@ TABLE = [
       play=dict(gapMs=700, maxVoices=1, preload=True, note='every 4 to 6 rounds, or when the clip is reloaded')),
     P('ac130_int_vulcan_start', m_ivul_start, 1, 'rms', 'iloop', 'veh', 'weapons', weight=8, tags=['ac130', 'interior', 'weapon', 'vulcan', 'spinup'],
       play=dict(gapMs=0, maxVoices=1, preload=True, note='on trigger press; start the loop at about 1.2 s with a 0.15 s crossfade')),
+    P('ac130_int_vulcan_startup', m_ivul_startup, 2, 'rms', 'iloop', 'veh', 'weapons', weight=8, tags=['ac130', 'interior', 'weapon', 'vulcan', 'startup'],
+      play=dict(gapMs=0, maxVoices=1, preload=True, note='short 0.5 s quick start (latch clack plus rising whirr); alternative to vulcan_start for repeated bursts; start the loop at about 0.45 s with a 0.1 s crossfade')),
     P('ac130_int_vulcan_loop', m_ivul_loop, 2, 'rms', 'iloop', 'veh', 'weapons', loop=True, weight=8, rate=(1.0, 1.0), tags=['ac130', 'interior', 'weapon', 'vulcan', 'loop'],
       play=dict(gapMs=0, maxVoices=1, preload=True, note='one variant per burst; do not rate-modulate more than 0.97 to 1.03')),
     P('ac130_int_vulcan_end', m_ivul_end, 1, 'rms', 'iloop', 'veh', 'weapons', weight=8, tags=['ac130', 'interior', 'weapon', 'vulcan', 'spindown'],
