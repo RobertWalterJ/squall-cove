@@ -41,16 +41,10 @@ SQUAD_LINES = {
 }
 # (id, engine, model voice, lang, speed)
 CREW_VOICES = [
-    ("michael", "kokoro", "am_michael", "en-us", 1.15),
-    ("adam",    "kokoro", "am_adam",    "en-us", 1.15),
-    ("george",  "kokoro", "bm_george",  "en-gb", 1.15),
-    ("eric",    "kokoro", "am_eric",    "en-us", 1.15),
-    ("joe",     "piper",  "en_US-joe-medium", "en-us", 1.15),   # Piper joe: CC0 dataset
+    ("michael", "kokoro", "am_michael", "en-us", 1.15),   # approved by owner
 ]
 SQUAD_VOICES = [
-    ("liam",  "kokoro", "am_liam",   "en-us", 1.1),
-    ("lewis", "kokoro", "bm_lewis",  "en-gb", 1.1),
-    ("onyx",  "kokoro", "am_onyx",   "en-us", 1.1),
+    ("lewis", "kokoro", "bm_lewis", "en-gb", 1.1),   # approved by owner
 ]
 
 _kokoro = None
@@ -229,7 +223,13 @@ CREW2 = {
     "ready":       [("Ready", "ɹˈɛdi", 1.3, 1.0)],
     "readytofire": [("Ready to", "ɹˈɛdi tə", 1.35, 1.0), ("fire", "fˈIɚ", 1.6, 1.35)],
     "loaded":      [("Loaded", "lˈOdᵻd", 1.3, 1.0)],
+    "roundup":     [("Round", None, 1.3, 1.0), ("up", "ʌp", 1.3, 1.0)],
+    "standingby":  [("Standing by", None, 1.3, 1.0)],
+    "gunready":    [("Gun", None, 1.3, 1.0), ("ready", "ɹˈɛdi", 1.3, 1.0)],
+    "shotout":     [("Shot", None, 1.3, 1.0), ("out", None, 1.3, 1.0)],
+    "reloading":   [("Reloading", None, 1.3, 1.0)],
 }
+CREW_TEXT = {"up": "Up!", "weaponup": "Weapon up!", "ready": "Ready!", "readytofire": "Ready to fire!", "loaded": "Loaded!", "roundup": "Round up!", "standingby": "Standing by!", "gunready": "Gun ready!", "shotout": "Shot out!", "reloading": "Reloading!"}
 SQUAD2 = {
     "contactfront": [("Contact", "kˈɑntˌækt", 1.25, 1.0), ("front", "fɹˈʌnt", 1.25, 1.0)],
     "movingup":     [("Moving", "mˈuvɪŋ", 1.25, 1.0), ("up", "ʌp", 1.3, 1.0)],
@@ -275,22 +275,73 @@ def build_line(engine, voice, lang, segs, slug, rank=0):
     for p in parts[1:]: x = np.concatenate([x, gap, p])
     return x, info
 
+def P(t, sp=1.2): return [(t, None, sp, 1.0)]
+def W(*ws): return [(w, None, 1.25, 1.0) for w in ws]
+# (slug, text, VLINES key or None, segments)  -- Lewis squad set
+SQUAD_SET = [
+    ("contactfront", "Contact front!", "contact", SQUAD2["contactfront"]),
+    ("contactleft",  "Contact left!",  "contact", W("Contact", "left")),
+    ("contactright", "Contact right!", "contact", W("Contact", "right")),
+    ("contactrear",  "Contact rear!",  "contact", W("Contact", "rear")),
+    ("movingup",     "Moving up!",     "moving",  SQUAD2["movingup"]),
+    ("coverme",      "Cover me!",      "reload",  SQUAD2["coverme"]),
+    ("takingfire",   "Taking fire!",   "taking_fire", P("Taking fire")),
+    ("pinned",       "Pinned down!",   "pinned",  P("Pinned down")),
+    ("moving",       "Moving!",        "moving",  P("Moving")),
+    ("gogogo",       "Go go go!",      "moving",  P("Go, go, go", 1.3)),
+    ("covering",     "Covering!",      "covering", P("Covering")),
+    ("reloading",    "Reloading!",     "reload",  P("Reloading")),
+    ("lowammo",      "Low on ammo!",   "low_ammo", P("Low on ammo")),
+    ("grenade",      "Grenade!",       "grenade", P("Grenade")),
+    ("medic",        "Medic!",         "medic_call", P("Medic")),
+    ("mandown",      "Man down!",      "man_down", P("Man down")),
+    ("gotone",       "Got one.",       "kill",    P("Got one")),
+    ("rogerfollowing", "Roger, following.", "ack_follow", P("Roger, following")),
+    ("onyou",        "On you.",        "ack_follow", P("On you")),
+    ("holdinghere",  "Holding here.",  "ack_hold", P("Holding here")),
+    ("rogermoving",  "Roger, moving.", "ack_move", P("Roger, moving")),
+    ("attacking",    "Attacking!",     "ack_attack", P("Attacking")),
+    ("takingcover",  "Taking cover.",  "ack_cover", P("Taking cover")),
+    ("fallingback",  "Falling back!",  "ack_fall", P("Falling back")),
+    ("suppressing",  "Suppressing!",   "ack_suppress", P("Suppressing")),
+    ("marked",       "Marked.",        "ack_ping", P("Marked")),
+    ("gotit",        "Got it.",        "ack_ping", P("Got it")),
+    ("clear",        "Clear.",         "clear",   P("Clear")),
+    ("roger",        "Roger.",         None,      P("Roger")),
+    ("regroup",      "Regroup!",       "regroup", P("Regroup")),
+    ("followme",     "Follow me!",     None,      P("Follow me")),
+    ("holdingfire",  "Holding fire.",  "ack_holdfire", P("Holding fire")),
+    ("weaponsfree",  "Weapons free.",  "ack_freefire", P("Weapons free")),
+    ("standingby",   "Standing by.",   "idle",    P("Standing by")),
+    ("aircraft",     "Aircraft inbound!", "aircraft", P("Aircraft inbound")),
+]
+
 def main():
+    import json
     os.makedirs(OUT, exist_ok=True)
     only = set(sys.argv[1:])
-    synth_kokoro("a", "am_michael", "en-us", 1.0)    # warm / init _kokoro
-    for group, voices, lines in (("crew", CREW_VOICES, CREW2), ("squad", SQUAD_VOICES, SQUAD2)):
-        for vid, eng, voice, lang, speed in voices:
-            if only and vid not in only: continue
-            for slug, segs in lines.items():
-                for rank, suffix in ((0, ""), (1, "_alt")):
-                    if eng == "piper" and rank == 1: continue
-                    raw_b, info = build_line(eng, voice, lang, segs, slug, rank)
-                    raw = shout(raw_b)
-                    write(os.path.join(OUT, f"{group}_{vid}_{slug}{suffix}.ogg"), raw)
-                    if group == "crew" and rank == 0:
-                        write(os.path.join(OUT, f"{group}_{vid}_{slug}_hs.ogg"), headset(raw))
-                    print("ok", group, vid, slug + suffix, info, f"{len(raw)/SR:.2f}s", flush=True)
+    synth_kokoro("a", "am_michael", "en-us", 1.0)
+    meta = []
+    for vid, eng, voice, lang, speed in CREW_VOICES:
+        for slug, segs in CREW2.items():
+            for rank, suffix in ((0, ""), (1, "_alt")):
+                raw_b, info = build_line(eng, voice, lang, segs, slug, rank)
+                raw = shout(raw_b)
+                base = f"crew_{vid}_{slug}{suffix}"
+                write(os.path.join(OUT, base + ".ogg"), raw)
+                write(os.path.join(OUT, base + "_hs.ogg"), headset(raw))
+                meta.append({"file": base + ".ogg", "headset": base + "_hs.ogg", "text": CREW_TEXT[slug], "role": "crew", "voice": "am_michael", "line": slug, "take": "alt" if rank else "main", "vlines_key": None, "duration_s": round(len(raw)/SR, 2)})
+                print("ok", base, info, f"{len(raw)/SR:.2f}s", flush=True)
+    for vid, eng, voice, lang, speed in SQUAD_VOICES:
+        for slug, text, key, segs in SQUAD_SET:
+            for rank, suffix in ((0, ""), (1, "_alt")):
+                raw_b, info = build_line(eng, voice, lang, segs, slug, rank)
+                raw = shout(raw_b)
+                base = f"squad_{vid}_{slug}{suffix}"
+                write(os.path.join(OUT, base + ".ogg"), raw)
+                meta.append({"file": base + ".ogg", "headset": None, "text": text, "role": "squad", "voice": "bm_lewis", "line": slug, "take": "alt" if rank else "main", "vlines_key": key, "duration_s": round(len(raw)/SR, 2)})
+                print("ok", base, info, f"{len(raw)/SR:.2f}s", flush=True)
+    json.dump(meta, open(os.path.join(OUT, "lines.json"), "w", encoding="utf8"), indent=1, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()

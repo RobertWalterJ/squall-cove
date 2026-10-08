@@ -35,3 +35,7 @@ Behind the corporate proxy, pip may need `--use-feature=truststore` (and a PEM e
 - "fire" is rendered at Kokoro speed 1.6 then WSOLA time-compressed 1.35x (pitch preserved). "Weapon" is compressed 1.25x. Single words use speed 1.25 to 1.3.
 - `_alt` files are the second-best variant per line (Kokoro voices only). Previous versions are in `tools/voices/work/prev/` (git-ignored).
 - `tools/voices/verify_tails.py` prints before/after durations and the tail measure.
+
+## Revision 3 (owner listening verdict)
+Kept only Michael (Kokoro am_michael, crew) and Lewis (Kokoro bm_lewis, UK squad). Rejected and deleted from this folder: onyx (sounds Chinese), adam (odd pause in "ready to ... fire", bad "weapon up", "up" ends as "upe"/"up-it"), eric ("up" ends with a trailing vowel), and george, joe, liam (not chosen). Processing for Michael and Lewis is unchanged from revision 2.
+`lines.json` maps every file to its text, role (crew or squad), headset file, take (main or alt) and the matching `VLINES` key in index.html (null when none). Crew lines: up, weaponup, ready, readytofire, loaded, roundup, standingby, gunready, shotout, reloading (main, alt, and headset for both). Squad: 35 Lewis lines, main and alt.
