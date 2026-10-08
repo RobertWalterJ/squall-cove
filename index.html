@@ -5436,7 +5436,7 @@ const TMASS = { small: 0.03, vulcan: 0.16, heavy: 0.5 };                       /
 const trkClass = (k) => (k === 'vulcan' ? 'vulcan' : (k === 'hmg' || k === 'aa' || k === 'cannon' || k === 'naval') ? 'heavy' : 'small');
 const TCOL = { blue: [0.3, 0.62, 1], red: [1, 0.26, 0.12], none: [1, 0.86, 0.45] };
 const tracers = (() => {
-  const N = ED.phone ? 64 : 160, Q = N * 2, pos = new Float32Array(Q * 12), col = new Float32Array(Q * 16), idx = new Uint16Array(Q * 6), g = new THREE.BufferGeometry();
+  const N = ED.phone ? 64 : 160, Q = N * 6, pos = new Float32Array(Q * 12), col = new Float32Array(Q * 16), idx = new Uint16Array(Q * 6), g = new THREE.BufferGeometry();
   for (let i = 0; i < Q; i++) { const b = i * 4; idx.set([b, b + 1, b + 2, b + 2, b + 1, b + 3], i * 6); }
   const side = new Float32Array(Q * 4); for (let i = 0; i < Q; i++) side.set([-1, 1, -1, 1], i * 4);                                       // across the streak: edge, middle, edge
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 4)); g.setAttribute('aSide', new THREE.BufferAttribute(side, 1)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.setDrawRange(0, 0);
@@ -5446,7 +5446,7 @@ const tracers = (() => {
     fragmentShader: 'varying vec4 vC; varying float vS; void main(){ float e = 1.0 - abs(vS); vec3 c = mix(vC.rgb, vec3(1.0), e * e * 0.5); gl_FragColor = vec4(c, vC.a * smoothstep(0.0, 0.3, e)); }' }));
   m.frustumCulled = false; m.renderOrder = 8; scene.add(m);
   const f = (n) => new Float32Array(n);
-  return { N, pos, col, g, m, i: 0, mass: new Uint8Array(N), act: new Uint8Array(N), mode: new Uint8Array(N), sx: f(N), sy: f(N), sz: f(N), ux: f(N), uy: f(N), uz: f(N), D: f(N), t: f(N), v: f(N), len: f(N), w: f(N), r: f(N), gg: f(N), b: f(N), age: f(N), life: f(N), wz: f(N), wd: f(N) };
+  return { N, Q, pos, col, g, m, i: 0, mass: new Uint8Array(N), act: new Uint8Array(N), mode: new Uint8Array(N), sx: f(N), sy: f(N), sz: f(N), ux: f(N), uy: f(N), uz: f(N), D: f(N), t: f(N), v: f(N), len: f(N), w: f(N), r: f(N), gg: f(N), b: f(N), age: f(N), life: f(N), wz: f(N), wd: f(N) };
 })();
 const MZF = { n: 0, max: ED.phone ? 5 : 14, lights: [], li: 0, wzT: -9 }, SUPP = { v: 0 };
 function addTracer(x0, y0, z0, x1, y1, z1, o) {
@@ -5471,17 +5471,24 @@ function updateTracers(dt) {
     const hx = T.sx[i] + T.ux[i] * head, hy = T.sy[i] + T.uy[i] * head, hz = T.sz[i] + T.uz[i] * head, tx = T.sx[i] + T.ux[i] * tail, ty = T.sy[i] + T.uy[i] * tail, tz = T.sz[i] + T.uz[i] * tail;
     const mx = (hx + tx) * 0.5 - cp.x, my = (hy + ty) * 0.5 - cp.y, mz = (hz + tz) * 0.5 - cp.z, dist = Math.hypot(mx, my, mz);
     let sx = T.uy[i] * mz - T.uz[i] * my, sy = T.uz[i] * mx - T.ux[i] * mz, sz = T.ux[i] * my - T.uy[i] * mx; const sl = Math.hypot(sx, sy, sz) || 1, hw = 0.5 * T.w[i] * Math.max(1, dist / 22) / sl; sx *= hw; sy *= hw; sz *= hw;
-    if (nv >= T.N * 2 - 1) continue;
-    let p = nv * 12, c = nv * 16; nv++;
-    T.pos[p] = hx - sx; T.pos[p + 1] = hy - sy; T.pos[p + 2] = hz - sz; T.pos[p + 3] = hx + sx; T.pos[p + 4] = hy + sy; T.pos[p + 5] = hz + sz; T.pos[p + 6] = tx - sx; T.pos[p + 7] = ty - sy; T.pos[p + 8] = tz - sz; T.pos[p + 9] = tx + sx; T.pos[p + 10] = ty + sy; T.pos[p + 11] = tz + sz;
-    const r = T.r[i], g = T.gg[i], b = T.b[i], hr = r + (1 - r) * 0.35, hg = g + (1 - g) * 0.35, hb = b + (1 - b) * 0.35;
-    T.col.set([hr, hg, hb, a, hr, hg, hb, a, r, g, b, a * 0.8, r, g, b, a * 0.8], c);
-    if (T.mass[i] && nv < T.N * 2) {                                  // a bright mass in the middle of the line: a short, fatter, whiter piece
-      const L = head - tail, mc = (head + tail) * 0.5, m0 = mc + L * 0.14, m1 = mc - L * 0.14, f = 2.6;
-      const ax = T.sx[i] + T.ux[i] * m0, ay = T.sy[i] + T.uy[i] * m0, az = T.sz[i] + T.uz[i] * m0, bx = T.sx[i] + T.ux[i] * m1, by = T.sy[i] + T.uy[i] * m1, bz = T.sz[i] + T.uz[i] * m1;
-      p = nv * 12; c = nv * 16; nv++;
-      T.pos[p] = ax - sx * f; T.pos[p + 1] = ay - sy * f; T.pos[p + 2] = az - sz * f; T.pos[p + 3] = ax + sx * f; T.pos[p + 4] = ay + sy * f; T.pos[p + 5] = az + sz * f; T.pos[p + 6] = bx - sx * f; T.pos[p + 7] = by - sy * f; T.pos[p + 8] = bz - sz * f; T.pos[p + 9] = bx + sx * f; T.pos[p + 10] = by + sy * f; T.pos[p + 11] = bz + sz * f;
-      const wr = r + (1 - r) * 0.6, wg = g + (1 - g) * 0.6, wb = b + (1 - b) * 0.6; T.col.set([wr, wg, wb, a, wr, wg, wb, a, wr, wg, wb, a, wr, wg, wb, a], c);
+    if (nv >= T.Q - 7) continue;
+    const r = T.r[i], g = T.gg[i], b = T.b[i];
+    if (!T.mass[i]) {                                                 // a plain line: constant width, near constant brightness
+      const p = nv * 12, c = nv * 16; nv++; const hr = r + (1 - r) * 0.35, hg = g + (1 - g) * 0.35, hb = b + (1 - b) * 0.35;
+      T.pos[p] = hx - sx; T.pos[p + 1] = hy - sy; T.pos[p + 2] = hz - sz; T.pos[p + 3] = hx + sx; T.pos[p + 4] = hy + sy; T.pos[p + 5] = hz + sz; T.pos[p + 6] = tx - sx; T.pos[p + 7] = ty - sy; T.pos[p + 8] = tz - sz; T.pos[p + 9] = tx + sx; T.pos[p + 10] = ty + sy; T.pos[p + 11] = tz + sz;
+      T.col.set([hr, hg, hb, a, hr, hg, hb, a, r, g, b, a * 0.8, r, g, b, a * 0.8], c);
+    } else {                                                          // a mass in the middle: the line swells gradually to a heavier core and eases back, in short joined segments
+      const SEG = 6, F = 2.6, L = head - tail; let px0 = 0, py0 = 0, pz0 = 0, pw = 1, pk = 0, first = true;
+      for (let k = 0; k <= SEG; k++) {
+        const u = k / SEG, bell = Math.pow(Math.sin(Math.PI * u), 2), wk = 1 + (F - 1) * bell, d = head - L * u, x = T.sx[i] + T.ux[i] * d, y = T.sy[i] + T.uy[i] * d, z = T.sz[i] + T.uz[i] * d;
+        if (!first) {
+          const p = nv * 12, c = nv * 16; nv++;
+          const w0 = pw, w1 = wk, m0 = pk, m1 = bell, h0 = r + (1 - r) * (0.35 + 0.35 * m0), h1 = r + (1 - r) * (0.35 + 0.35 * m1), j0 = g + (1 - g) * (0.35 + 0.35 * m0), j1 = g + (1 - g) * (0.35 + 0.35 * m1), l0 = b + (1 - b) * (0.35 + 0.35 * m0), l1 = b + (1 - b) * (0.35 + 0.35 * m1), al = a * (1 - 0.2 * u);
+          T.pos[p] = px0 - sx * w0; T.pos[p + 1] = py0 - sy * w0; T.pos[p + 2] = pz0 - sz * w0; T.pos[p + 3] = px0 + sx * w0; T.pos[p + 4] = py0 + sy * w0; T.pos[p + 5] = pz0 + sz * w0; T.pos[p + 6] = x - sx * w1; T.pos[p + 7] = y - sy * w1; T.pos[p + 8] = z - sz * w1; T.pos[p + 9] = x + sx * w1; T.pos[p + 10] = y + sy * w1; T.pos[p + 11] = z + sz * w1;
+          T.col.set([h0, j0, l0, al, h0, j0, l0, al, h1, j1, l1, al, h1, j1, l1, al], c);
+        }
+        px0 = x; py0 = y; pz0 = z; pw = wk; pk = bell; first = false;
+      }
     }
   }
   // note: the pool is packed into the first nv quads each frame, so index order never matters
