@@ -83,6 +83,79 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
   try { if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
 })();
 </script>
+<style id="stnCss">
+/* AC-130 sensor station (GUNSHIP-STATION-SPEC.md). Everything the page shows underneath is hidden while it is open; the live captions stay. */
+body.stn-on>*:not(#stn):not(#c):not(#feedCol):not(script):not(style){display:none!important}
+body.stn-on #feedCol{z-index:calc(var(--z-menu) + 1);top:calc(116px + var(--safe-t));bottom:auto;left:12px;max-height:30vh;justify-content:flex-start;width:min(300px,calc(100vw - 24px))}
+#stn{position:fixed;inset:0;z-index:var(--z-menu);display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"view cards" "bar bar";color:var(--paper);font:600 15px/1.25 var(--f-body);touch-action:none;-webkit-user-select:none;user-select:none}
+#stn[hidden]{display:none}
+#stnView{grid-area:view;position:relative;min-width:0;min-height:0;overflow:hidden}
+#stnHud{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#stnTL,#stnTR{position:absolute;top:10px;padding:7px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 14px/1.35 var(--f-mono);white-space:pre-line;pointer-events:none;max-width:48%}
+#stnTL{left:10px}#stnTR{right:10px;text-align:right}
+#stnMsg{position:absolute;left:50%;top:112px;transform:translateX(-50%);max-width:min(560px,50%);padding:8px 14px;border-radius:10px;background:rgba(8,12,12,.82);color:#fff;border:2px solid #fff;font:700 16px/1.3 var(--f-body);text-align:center;white-space:pre-line;pointer-events:none}
+#stnMsg[data-warn="1"]{border-color:#ffd60a}
+#stnMsg[data-dc="1"]{background:#8a0f0a;border-color:#fff}
+#stnMsg[hidden]{display:none}
+#stnSt{position:absolute;left:10px;bottom:10px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 14px var(--f-mono);pointer-events:none}
+#stnMini{position:absolute;right:10px;bottom:10px;width:132px;height:132px;border:2px solid #f1f5f0;border-radius:8px;background:#000;touch-action:none;cursor:pointer}
+#stnPad{display:none;position:absolute;left:14px;bottom:56px;width:132px;height:132px;border-radius:50%;border:2px solid #f1f5f0;background:rgba(8,12,12,.55);touch-action:none;align-items:center;justify-content:center}
+#stnPad i{width:52px;height:52px;border-radius:50%;background:#f1f5f0;opacity:.85}
+#stnPad::after{content:"Slew";position:absolute;top:-24px;left:0;right:0;text-align:center;font:600 13px var(--f-body);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+body.touch #stnPad{display:flex}
+#stnCards{grid-area:cards;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;gap:8px;padding:8px;overflow:auto;min-height:0}
+.stnCard{border:2px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:7px;background:rgba(255,255,255,.04)}
+.stnCard[data-sel="true"]{border:4px solid var(--brass);padding:6px 10px}
+.stnSel{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;background:transparent;border:0;color:var(--paper);font:700 17px var(--f-display);text-align:left;padding:0 2px;cursor:pointer}
+.stnCard .stnSel{box-shadow:none}
+.stnSel b{font-weight:700}
+.stnCard[data-sel="true"] .stnSel b::after{content:"(selected)";font:600 13px var(--f-body);color:var(--brass);margin-left:6px}
+.stnLab{font:700 14px var(--f-body);padding:3px 8px;border-radius:999px;border:1.5px solid var(--line)}
+.stnCard[data-st="Ready"] .stnLab{border-color:#7ee08a;color:#a8f0b0}
+.stnCard[data-st="Reloading"] .stnLab,.stnCard[data-st="Getting ready"] .stnLab{border-color:var(--brass);color:var(--brass)}
+.stnBar{height:12px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
+.stnBar i{display:block;height:100%;width:0;background:var(--brass);border-radius:6px}
+.stnFire{min-height:64px;border-radius:12px;border:2px solid var(--brass);background:var(--brass);color:#10201f;font:800 22px var(--f-display);letter-spacing:.05em;cursor:pointer;touch-action:none}
+.stnFire[aria-disabled="true"]{background:transparent;color:var(--paper);border-color:var(--line);opacity:.8}
+#stnBar{grid-area:bar;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;padding:8px 10px calc(8px + var(--safe-b)) 10px}
+#stnBar button{min-height:52px;min-width:52px;padding:4px 14px;border-radius:10px;border:2px solid var(--line);background:rgba(255,255,255,.06);color:var(--paper);font:700 16px var(--f-display);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+#stnBar button small{font:600 12px var(--f-body);opacity:.85}
+#stnBar button[aria-pressed="true"]{border-color:var(--brass);background:rgba(227,169,72,.22);box-shadow:inset 0 0 0 2px var(--brass)}
+#stnBar button[aria-pressed="true"] b::after{content:"(on)";font:600 12px var(--f-body);margin-left:5px}
+#stnLeave{margin-left:auto;background:#8e2a1a!important;border-color:#fff!important;color:#fff!important}
+body.ed-phone #stn{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:"view" "cards" "bar";padding-top:var(--safe-t)}
+body.ed-phone #stnCards{flex-direction:row;border-left:0;border-top:1px solid var(--line);padding:6px calc(6px + var(--safe-r)) 6px calc(6px + var(--safe-l));overflow:visible}
+body.ed-phone .stnCard{flex:1 1 0;min-width:0;padding:6px;gap:5px}
+body.ed-phone .stnCard[data-sel="true"]{padding:4px}
+body.ed-phone .stnSel{flex-direction:column;align-items:flex-start;min-height:48px;font-size:15px;gap:3px}
+body.ed-phone .stnCard[data-sel="true"] .stnSel b::after{display:block;margin:0;font-size:12px}
+body.ed-phone .stnLab{font-size:13px;padding:2px 6px}
+body.ed-phone .stnFire{min-height:54px;font-size:18px}
+body.ed-phone #stnBar{gap:6px;padding:6px calc(6px + var(--safe-r)) calc(6px + var(--safe-b)) calc(6px + var(--safe-l))}
+body.ed-phone #stnBar button{flex:1 1 auto;padding:2px 8px;font-size:15px;min-height:48px}
+body.ed-phone #stnBar button small{font-size:11px}
+body.ed-phone #stnTL,body.ed-phone #stnTR{font-size:12px;padding:5px 7px;max-width:46%}
+body.ed-phone #stnMsg{top:120px;max-width:94%;font-size:14px;padding:6px 10px}
+body.ed-phone #stnMini{width:96px;height:96px;bottom:42px}
+body.ed-phone #stnSt{font-size:11px;left:10px;bottom:8px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden}
+body.ed-phone #stnPad{bottom:42px;width:112px;height:112px}
+body.ed-phone #stnPad i{width:44px;height:44px}
+@media (orientation:landscape) and (max-height:480px){
+ body.ed-phone #stn{grid-template-columns:minmax(0,1fr) 230px;grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"view cards" "bar bar"}
+ body.ed-phone #stnCards{flex-direction:column;border-top:0;border-left:1px solid var(--line);padding:4px;gap:4px;overflow:auto}
+ body.ed-phone .stnCard{flex:0 0 auto;grid-template-columns:1fr 92px;grid-template-areas:"sel fire" "bar fire";gap:4px 6px;padding:5px}
+ body.ed-phone .stnCard .stnSel{grid-area:sel;flex-direction:row;align-items:center;min-height:48px;font-size:14px}
+ body.ed-phone .stnCard .stnBar{grid-area:bar}
+ body.ed-phone .stnCard .stnFire{grid-area:fire;min-height:48px;font-size:16px}
+ body.ed-phone .stnLab{font-size:12px}
+ body.ed-phone #stnBar button small{display:none}
+ body.ed-phone #stnBar{padding-top:4px;padding-bottom:calc(4px + var(--safe-b))}
+ body.ed-phone #stnMsg{top:auto;bottom:40px;left:136px;right:116px;transform:none;max-width:none;font-size:13px}
+ body.ed-phone #stnPad{bottom:12px;width:104px;height:104px}
+ body.ed-phone #stnMini{bottom:10px}
+ body.ed-phone #stnSt{left:136px;bottom:8px;max-width:calc(100% - 270px)}
+}
+</style>
 </head>
 <body>
 <div id="boot" role="dialog" aria-modal="true" aria-labelledby="bootTitle"><div class="bw">
@@ -272,7 +345,7 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.6 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.7 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -1026,6 +1099,13 @@ body.ed-phone .actions > #burger{position:static!important;left:auto;top:auto;z-
 <button id="calmBtn" type="button" hidden>Calm all</button>
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
+<div id="stn" hidden role="dialog" aria-label="Gunship sensor station">
+<div id="stnView"><canvas id="stnHud" aria-hidden="true"></canvas><div id="stnTL"></div><div id="stnTR"></div><div id="stnMsg" role="status" aria-live="polite" hidden></div><div id="stnSt"></div><canvas id="stnMini" width="144" height="144" role="img" aria-label="Map. Tap it to move the aim point."></canvas><div id="stnPad" aria-label="Slew pad. Drag with your thumb to move the aim point."><i id="stnKnob"></i></div></div>
+<div id="stnCards"><div class="stnCard" id="stnC1" data-sel="true"><button type="button" class="stnSel" id="stnS1" aria-pressed="true"><b>105 mm howitzer</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF1" aria-disabled="true">Fire</button></div>
+<div class="stnCard" id="stnC2" data-sel="false"><button type="button" class="stnSel" id="stnS2" aria-pressed="false"><b>40 mm cannon</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF2" aria-disabled="true">Fire</button></div>
+<div class="stnCard" id="stnC3" data-sel="false"><button type="button" class="stnSel" id="stnS3" aria-pressed="false"><b>25 mm Vulcan</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF3" aria-disabled="true">Hold to fire</button></div></div>
+<div id="stnBar"><button type="button" id="stnThermal" aria-pressed="true"><b>Thermal</b><small>Sees through cloud</small></button><button type="button" id="stnNight" aria-pressed="false"><b>Night</b><small>Clouds can block this</small></button><button type="button" id="stnColour" aria-pressed="false"><b>Colour</b><small>Clouds can block this</small></button><button type="button" id="stnZoomOut">Zoom -</button><button type="button" id="stnZoomIn">Zoom +</button><button type="button" id="stnTrack" aria-pressed="false">Track target</button><button type="button" id="stnLeave">Leave station</button></div>
+</div>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
 <div id="tint" aria-hidden="true"></div>
 <div class="hud">
@@ -1146,7 +1226,7 @@ const $ = (id) => document.getElementById(id);
 var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
 const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
 const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot' };
-const CLS_IC = { tankhunter: 'aa', assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa' };
+const CLS_IC = { tankhunter: 'aa', assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa', gunship: 'scope' };
 const A = 'assets/';
 const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = matchMedia('(pointer: coarse)').matches ? 90 : 220, MAX_BOATS = matchMedia('(pointer: coarse)').matches ? 14 : 26;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -1195,7 +1275,10 @@ const Snd = (() => {
   const BUS = ['amb', 'wx', 'water', 'mat', 'veh', 'ppl', 'ui', 'mus'];
   A.vol = { master: 0.8, amb: 1, wx: 1, water: 1, mat: 1, veh: 1, ppl: 1, ui: 0.9, mus: 0.35 }; A.on = true; try { const sp0 = JSON.parse(localStorage.getItem('squall-cove-prefs') || '{}').sound; if (sp0 && sp0.on === false) A.on = false; } catch (e) { }
   A.setPrefs = (p) => { if (!p) return; A.on = p.on !== false; if (p.vol !== undefined) A.vol.master = p.vol; if (p.mus !== undefined) A.vol.mus = p.mus; A.applyVol(); if (A.on && A.want && !A.ctx) { A.want = false; A.init(); } };
-  A.applyVol = () => { if (!A.ctx) return; const t = A.ctx.currentTime; A.master.gain.setTargetAtTime(A.on ? A.vol.master : 0, t, 0.05); for (const b of BUS) A.buses[b].gain.setTargetAtTime(A.vol[b], t, 0.05); };
+  A.stnOn = false; const STNK = { amb: 0.08, wx: 0.1, water: 0.08, ppl: 0.12, mat: 0.5 }; A.bv = (b) => A.vol[b] * (A.stnOn && STNK[b] !== undefined ? STNK[b] : 1);        // at the sensor station the outdoor beds fall to a few percent and impacts lose 6 dB
+  A.applyVol = (tc) => { if (!A.ctx) return; const t = A.ctx.currentTime; A.master.gain.setTargetAtTime(A.on ? A.vol.master : 0, t, 0.05); for (const b of BUS) A.buses[b].gain.setTargetAtTime(A.bv(b), t, typeof tc === 'number' ? tc : 0.05); };
+  A.setStation = (on) => { A.stnOn = !!on; if (A.ctx) { A.applyVol(0.27); A.matLP.frequency.setTargetAtTime(on ? 2500 : 20000, A.ctx.currentTime, 0.27); } };           // 0.27 s time constant: the crossfade is done in about 0.8 s
+  A.stnState = () => { const g = (k) => A.inst[k] ? +A.inst[k].g.gain.value.toFixed(3) : null, pr = Object.keys(A.inst).filter(k => /^air:u\d+:p$/.test(k)).map(k => +A.inst[k].g.gain.value.toFixed(3)); return { on: A.stnOn, ctx: A.ctx && A.ctx.state, buses: A.ctx ? Object.fromEntries(BUS.map(b => [b, +A.buses[b].gain.value.toFixed(3)])) : null, vol: A.vol, matCut: A.ctx ? Math.round(A.matLP.frequency.value) : null, cabin: g('stn:cabin'), head: g('stn:head'), whine: g('stn:whine'), prop: pr }; };
   A.init = () => {
     if (A.ctx) { if (A.ctx.state === 'suspended') A.ctx.resume(); return; }
     if (!A.on) { A.want = true; return; }                                // sound is off: nothing is fetched until it is turned on
@@ -1203,9 +1286,10 @@ const Snd = (() => {
     const c = A.ctx; A.master = c.createGain(); A.mlp = c.createBiquadFilter(); A.mlp.type = 'lowpass'; A.mlp.frequency.value = 20000;
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -9; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.003; comp.release.value = 0.18;
     A.master.connect(A.mlp); A.mlp.connect(comp); comp.connect(c.destination); A.buses = {};
-    for (const b of BUS) { const g = c.createGain(); g.connect(A.master); A.buses[b] = g; }
+    A.matLP = c.createBiquadFilter(); A.matLP.type = 'lowpass'; A.matLP.frequency.value = 20000; A.matLP.Q.value = 0.5; A.matLP.connect(A.master);                // the mat bus (impacts) passes through a low-pass that closes to 2.5 kHz at the sensor station
+    for (const b of BUS) { const g = c.createGain(); g.connect(b === 'mat' ? A.matLP : A.master); A.buses[b] = g; }
     A.applyVol();
-    A.initP = fetch('audio/manifest.json?v=96').then(r => r.ok ? r.json() : null).then(m => {
+    A.initP = fetch('audio/manifest.json?v=97').then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
       A.ready = true; A.coreN = Object.keys(A.man).filter(id => A.man[id].group === 'core').length; A.coreP = A.group('core'); A.coreP.then(() => A.loadRest()); return A.coreP;
     }).catch(() => { });
@@ -1261,7 +1345,7 @@ const Snd = (() => {
   A.vstop = (V, fade) => { if (!V || V.dead) return; const t = A.ctx.currentTime, fd = Math.max(0.01, fade || 0.09); try { V.env.gain.cancelScheduledValues(t); V.env.gain.setValueAtTime(t < V.t0 ? 0 : V.env.gain.value, t); V.env.gain.linearRampToValueAtTime(0, t + fd); V.src.stop(t + fd + 0.02); } catch (er) { } };
   A.vphase = (V) => { const t = A.ctx.currentTime; return (V.off + Math.max(0, t - V.t0)) % V.dur; };
   // lower the other buses for a moment (a big near hit)
-  A.duck = (db, sec, skip) => { if (!A.ctx || A.T < (A.duckT || 0)) return; A.duckT = A.T + sec + 0.2; const t = A.ctx.currentTime, k = 10 ** (-db / 20); for (const b of ['amb', 'wx', 'water', 'veh', 'ppl', 'mus']) { if (b === skip) continue; const gn = A.buses[b].gain; gn.cancelScheduledValues(t); gn.setTargetAtTime(A.vol[b] * k, t, 0.02); gn.setTargetAtTime(A.vol[b], t + sec, 0.25); } };
+  A.duck = (db, sec, skip) => { if (!A.ctx || A.T < (A.duckT || 0)) return; A.duckT = A.T + sec + 0.2; const t = A.ctx.currentTime, k = 10 ** (-db / 20); for (const b of ['amb', 'wx', 'water', 'veh', 'ppl', 'mus']) { if (b === skip) continue; const gn = A.buses[b].gain; gn.cancelScheduledValues(t); gn.setTargetAtTime(A.bv(b) * k, t, 0.02); gn.setTargetAtTime(A.bv(b), t + sec, 0.25); } };
   // looping instances: keyed so each boat, bed or tool owns its own source; level 0 for a few seconds stops the source
   A.set = (key, stem, level, o) => {
     if (!A.ready || A.ctx.state !== 'running') return; o = o || {}; let it = A.inst[key]; const c = A.ctx, t = c.currentTime;
@@ -1290,7 +1374,7 @@ const Snd = (() => {
   A.holdKind = (kind, x, z) => { A.hold.until = A.T + 0.3; A.hold.kind = kind; A.hold.x = x; A.hold.z = z; };
   A.listen = () => {
     const c = typeof camera !== 'undefined' ? camera : null; if (!c) return; const L = A.L; c.updateMatrixWorld(); const m = c.matrixWorld.elements; L.rx = m[0]; L.rz = m[2]; const rl = Math.hypot(L.rx, L.rz) || 1; L.rx /= rl; L.rz /= rl;
-    if (mode === 'god') { L.x = god.tgt.x; L.z = god.tgt.z; L.y = 2 + Math.min(40, c.position.y * 0.25); } else { L.x = c.position.x; L.z = c.position.z; L.y = c.position.y; }
+    if (STN && STN.on) { L.x = c.position.x; L.z = c.position.z; L.y = c.position.y; } else if (mode === 'god') { L.x = god.tgt.x; L.z = god.tgt.z; L.y = 2 + Math.min(40, c.position.y * 0.25); } else { L.x = c.position.x; L.z = c.position.z; L.y = c.position.y; }
   };
   const WIND = [['amb_wind_light', 3.2], ['amb_wind_fresh', 9.5], ['amb_wind_gale', 16], ['amb_wind_hurricane', 38]], SEAS = [['amb_sea_calm', 0.1], ['amb_sea_moderate', 0.28], ['amb_sea_rough', 0.7]];
   const nearest = (arr, x, z, f) => { let d = 1e9; for (const o of arr) d = Math.min(d, Math.hypot(f(o).x - x, f(o).z - z)); return d; };
@@ -1313,6 +1397,7 @@ const Snd = (() => {
     const calm = cl(1 - storm * 1.3, 0, 1) * (underwater ? 0 : 1); A.set('bed:gulls', 'amb_gulls', day ? calm * 0.6 * cl((90 - Math.abs(shore - 25)) / 90, 0.15, 1) : 0); A.set('bed:birds', 'amb_birds_day', day && !onWater ? calm * 0.55 : 0); A.set('bed:crick', 'amb_crickets_night', night && !onWater ? calm * 0.5 : 0); A.set('bed:forest', 'amb_forest_air', !onWater ? calm * 0.35 : 0);
     if (pierInfo) A.set('bed:harbour', 'amb_harbour_far', 0.5 / (1 + Math.hypot(pierInfo.c.x - L.x, pierInfo.c.z - L.z) / 60) * calm);
     A.set('bed:under', 'amb_underwater', underwater ? 1 : 0);
+    { const on = !!(STN && STN.on && A.stnOn), bk = on && STN.u ? Math.min(1, Math.abs(STN.u.bank || 0) / 0.8) : 0; A.set('stn:cabin', 'ac130_int_cabin_loop', on ? 0.7 : 0, { tc: 0.27 }); A.set('stn:head', 'ac130_int_headset_loop', on ? 0.6 : 0, { tc: 0.27 }); A.set('stn:whine', 'ac130_int_whine_loop', on ? 0.12 + 0.3 * bk : 0, { tc: 0.4, rate: 0.98 + 0.04 * bk }); }          // the station bed: cabin drone (whine baked in), a light whine layer that follows the bank, and the headset hiss
     // music: one pad for the time of day, the tension layers under threats and storms
     const mk = { dawn: 'mus_pad_dawn', day: 'mus_pad_day', golden: 'mus_pad_day', dusk: 'mus_pad_dusk', night: 'mus_pad_night' }; for (const k of ['dawn', 'day', 'dusk', 'night']) A.set('bed:mus' + k, 'mus_pad_' + k, mk[sky] === 'mus_pad_' + k ? 0.8 : 0, { tc: 4 });
     A.set('bed:mustens', 'mus_tension_layer', hostiles().length || boats.some(b => b.disguise && b.disguise.susp > 0.6) ? 0.7 : 0, { tc: 3 }); A.set('bed:musstorm', 'mus_storm_layer', storm > 0.55 ? (storm - 0.4) : 0, { tc: 3 });
@@ -1339,7 +1424,7 @@ const Snd = (() => {
     if (bomber.on && bomber.g) A.set('air:bomb', 'veh_prop_big_loop', 0.9, { x: bomber.pos.x, z: bomber.pos.z }); else A.set('air:bomb', 'veh_prop_big_loop', 0);
     try { A.airK = A.airK || {}; A.airN = A.airN || 0; const act = {};          // battle aircraft: each has its own engine loops, fading with distance (rotor and whine for helicopters, props for the gunship, a thin whine for jets)
       for (const u of AIR.list) { const sid = u._sid || (u._sid = ++A.airN), base = 'air:u' + sid, set = (suf, stem, lv, extra) => { const key = base + suf; act[key] = 1; A.airK[key] = stem; A.set(key, stem, lv, Object.assign({ x: u.x, z: u.z, y: u.y }, extra || {})); };
-        if (u.kind === 'gunship') { const dd = Math.hypot(u.x - L.x, u.z - L.z, (u.y - L.y) * 0.5), nw = cl(1 - (dd - 180) / 140, 0, 1), dk = u.acDuck > 0 ? 0.5 : 1; set(':p', 'ac130_prop_loop', 1.0 * nw * dk, { tc: 1.5 }); set(':pf', 'ac130_prop_loop_far', 1.2 * (1 - nw) * dk, { tc: 1.5 }); }          // the four-engine AC-130 drone: near and far beds crossfade over 1.5 s, and it dips 6 dB for a second when the howitzer fires
+        if (u.kind === 'gunship') { const dd = Math.hypot(u.x - L.x, u.z - L.z, (u.y - L.y) * 0.5), nw = cl(1 - (dd - 180) / 140, 0, 1), dk = u.acDuck > 0 ? 0.5 : 1; const oi = (STN && STN.on && STN.u === u) ? 0 : 1, tcc = oi ? 1.5 : 0.27; set(':p', 'ac130_prop_loop', 1.0 * nw * dk * oi, { tc: tcc }); set(':pf', 'ac130_prop_loop_far', 1.2 * (1 - nw) * dk * oi, { tc: tcc }); }          // the four-engine AC-130 drone: near and far beds crossfade over 1.5 s, and it dips 6 dB for a second when the howitzer fires
         else if (u.kind === 'strike') set(':j', 'veh_prop_small_loop', 0.7, { rate: 1.7 }); else { set(':r', 'veh_heli_rotor_loop', u.bv ? (u.rpm > 0.04 ? (0.4 + 0.5 * (fp.veh === u ? 1 : 0.3)) * u.rpm : 0) : 0.55, u.bv ? { rate: 0.8 + 0.25 * u.rpm } : undefined); set(':w', 'veh_heli_whine_loop', u.bv ? 0.22 * u.rpm : 0.22); if (u.y - Math.max(heightAt(u.x, u.z), 0) < 30) set(':s', 'veh_heli_wash_loop', u.bv ? 0.5 * u.rpm : 0.5); } }
       for (const key in A.airK) if (!act[key]) { A.set(key, A.airK[key], 0); if (!A.inst[key]) delete A.airK[key]; }
       const rp = BATTLE.on ? BATTLE.points.find(p => p.type === 'radio' && Math.hypot(p.x - L.x, p.z - L.z) < 55) : null; A.set('bed:radiochat', 'ppl_radio_chatter_loop', rp ? 0.35 : 0, rp ? { x: rp.x, z: rp.z } : {});
@@ -1518,6 +1603,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 3000);
+var STN;                                                           // the gunship sensor station (see the STN block at the end); hoisted so every hook can ask whether it is open
+const fxPos = () => (STN && STN.on) ? STN.focus : camera.position;      // where gunfire effects are judged near or far: the point the operator is looking at
 const sunDir = new THREE.Vector3();
 const FOG = new THREE.Color();
 const sunLight = new THREE.DirectionalLight(0xffdcb4, 2.4);
@@ -4312,7 +4399,7 @@ function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(
 const WSP = [];                                                       // live splash columns and rings
 let wspGeo = null, wspMat = null, wspRingGeo = null;
 function waterSplash(x, z, big) {                                      // a tangible splash: a tapered column of spray that shoots up and collapses, two rings on the surface, droplets and foam
-  if (Math.hypot(x - camera.position.x, z - camera.position.z) > 260) return; const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7));
+  if (Math.hypot(x - fxPos().x, z - fxPos().z) > 260) return; const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7));
   if (!wspGeo) { wspGeo = new THREE.CylinderGeometry(0.55, 1, 1, 14, 1, true); wspGeo.translate(0, 0.5, 0); wspMat = new THREE.MeshBasicMaterial({ color: 0xe6f4ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, fog: true }); wspRingGeo = new THREE.RingGeometry(0.82, 1, 32).rotateX(-Math.PI / 2); }
   if (WSP.length > 24) { const o = WSP.shift(); scene.remove(o.m); o.m.material.dispose(); }
   const col = new THREE.Mesh(wspGeo, wspMat.clone()); col.position.set(x, y, z); col.scale.set(0.2 * b, 0.1, 0.2 * b); col.renderOrder = 5; scene.add(col); WSP.push({ m: col, t: 0, life: 0.55 + 0.14 * b, h: 0.7 + 0.9 * b, r: 0.35 + 0.28 * b, col: true });
@@ -4713,12 +4800,12 @@ const noMouse = () => isTouch && !SEEN_MOUSE;
 const FPAIM_HINT = 'Click the view to aim with the mouse. Esc or the Leave button returns to the overview.';
 document.addEventListener('pointerlockerror', () => { fp.lockFail = true; fp.free = true; if (fp.on && !noMouse()) $('fpHint').textContent = 'The browser would not capture the mouse, so move it over the view to look around. Click the view to try again.'; });
 // the mouse still aims when the browser will not lock the pointer (a refused request, an overlay that ate the click): after one click on the view, plain mouse movement turns the view
-document.addEventListener('pointerdown', (e) => { if (!fp.on || mode !== 'fp' || e.pointerType !== 'mouse' || fp.locked || (BATTLE.on && BATTLE.down)) return; const t = e.target; if (t && t.closest && t.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help')) return; fp.free = true; lockPointer(); }, true);
+document.addEventListener('pointerdown', (e) => { if (!fp.on || mode !== 'fp' || e.pointerType !== 'mouse' || fp.locked || (BATTLE.on && BATTLE.down)) return; const t = e.target; if (t && t.closest && t.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help,#stn')) return; fp.free = true; lockPointer(); }, true);
 addEventListener('mousemove', (e) => {
   if (!fp.on || noMouse()) return;
   if (SQD.wheel && SQD.wheelEl && SQD.wheelEl.hidden) SQD.wheel = false;                  // a stuck ring must never swallow the aim
   if (fp.locked) { if (SQD.wheel) { sqdWheelMove(e.movementX, e.movementY); return; } fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); return; }
-  if (fp.free && mode === 'fp' && !(e.buttons & 1) && (e.target === canvas || !(e.target && e.target.closest && e.target.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help'))) && !SQD.wheel && !(BATTLE.on && BATTLE.down)) { fp.yaw -= e.movementX * 0.0034; fp.pitch = clamp(fp.pitch - e.movementY * 0.0034, -1.45, 1.45); }   // held-button drag is handled by the pointermove drag-look
+  if (fp.free && mode === 'fp' && !(e.buttons & 1) && (e.target === canvas || !(e.target && e.target.closest && e.target.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help,#stn'))) && !SQD.wheel && !(BATTLE.on && BATTLE.down)) { fp.yaw -= e.movementX * 0.0034; fp.pitch = clamp(fp.pitch - e.movementY * 0.0034, -1.45, 1.45); }   // held-button drag is handled by the pointermove drag-look
 });
 canvas.addEventListener('wheel', (e) => { if (fp.on) { e.preventDefault(); if (!fp.man && Math.abs(e.deltaY) > 4) { const now = performance.now(); if (now - (fp.wheelT || 0) > 160) { fp.wheelT = now; const kt = inKit() ? ['hands', ...kitTools()] : FPT.filter(f => !NEWT.has(f[0])).map(f => f[0]), i = kt.indexOf(fp.tool); fpSetTool(kt[(i + (e.deltaY > 0 ? 1 : kt.length - 1)) % kt.length]); } } } }, { passive: false });
 { // touch: stick and look pad
@@ -5446,7 +5533,7 @@ const WPN = {
   revolver: { name: 'Revolver', dmg: 34, rate: 0.5, mag: 6, spread: 0.01, range: 110, auto: false, bot: 1.2, zoom: 50, reloadT: 2.4 },
   rpg: { name: 'Rocket launcher', dmg: 0, rate: 1.0, mag: 1, spread: 0, range: 400, auto: false, zoom: 40, bot: 9, reloadT: 4.2 },
 };
-const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, tankhunter: { name: 'Tank hunter', note: 'rocket launcher, anti-armour mines, pistol and a grenade. Rockets hit vehicles hard', w: ['rpg', 'atmine', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] } };
+const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, tankhunter: { name: 'Tank hunter', note: 'rocket launcher, anti-armour mines, pistol and a grenade. Rockets hit vehicles hard', w: ['rpg', 'atmine', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] }, gunship: { name: 'Gunship operator', note: 'sensor station aboard your gunship, with three guns. Your side\'s gunship is called if none is up. Esc leaves the station', w: ['pistol'] } };
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
 function kitButtons(host, after, cols) {                              // the loadout cards: an icon, a name and one plain line each
   const g = document.createElement('div'); g.className = cols === 2 ? 'cards two' : 'cards';
@@ -5490,7 +5577,7 @@ const tracers = (() => {
 })();
 const MZF = { n: 0, max: ED.phone ? 5 : 14, lights: [], li: 0, wzT: -9 }, SUPP = { v: 0 };
 function addTracer(x0, y0, z0, x1, y1, z1, o) {
-  o = o || {}; const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0, D = Math.hypot(dx, dy, dz); if (D < 0.05) return; const cp = camera.position, kind = o.k || 'rifle', K = TRK[kind] || TRK.rifle, ux = dx / D, uy = dy / D, uz = dz / D;
+  o = o || {}; const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0, D = Math.hypot(dx, dy, dz); if (D < 0.05) return; const cp = fxPos(), kind = o.k || 'rifle', K = TRK[kind] || TRK.rifle, ux = dx / D, uy = dy / D, uz = dz / D;
   if (!o.trail && !o.own && !o.nf) muzzleFlash(x0, y0, z0, ux, uy, uz, kind, o.team);                              // a flash goes with every shot, even one too far away to draw a tracer for
   if (o.own) flashLight(x0 + ux * 0.5, y0 + uy * 0.5, z0 + uz * 0.5, 0.9, o.team);
   const far = ED.phone ? 200 : 330; if (Math.hypot(x0 - cp.x, z0 - cp.z) > far && Math.hypot(x1 - cp.x, z1 - cp.z) > far) return;
@@ -5546,7 +5633,7 @@ function fx2Init() {                                                 // flash li
   const el = document.createElement('div'); el.id = 'bSupp'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); SUPP.el = el;
 }
 function flashLight(x, y, z, peak, team) {                           // one of a few pooled lights, reused oldest first
-  if (REDUCE_MOTION || !MZF.lights.length || Math.hypot(x - camera.position.x, z - camera.position.z) > 90) return; let L = MZF.lights[0];
+  if (REDUCE_MOTION || !MZF.lights.length || Math.hypot(x - fxPos().x, z - fxPos().z) > 90) return; let L = MZF.lights[0];
   for (const l of MZF.lights) if (l.userData.t <= 0) { L = l; break; } else if (l.userData.t < L.userData.t) L = l;
   L.position.set(x, y, z); L.color.setRGB(...(team === 'blue' ? [0.8, 0.9, 1] : [1, 0.76, 0.5])); L.userData.peak = peak; L.userData.t = 0.09; L.distance = 12 + peak * 12;
 }
@@ -5556,7 +5643,7 @@ const MZ = {
   aa: { s: 1.2, L: 1.6, sp: 5, sm: 1 }, naval: { s: 3.4, L: 4.5, sp: 10, sm: 6, dust: 1, jet: 1 }, vulcan: { s: 0.8, L: 1.1, sp: 4, sm: 0 }, cannon: { s: 2.4, L: 3.5, sp: 8, sm: 4, dust: 1, jet: 1 }, heavy: { s: 3.2, L: 4.5, sp: 10, sm: 6, dust: 1, jet: 1 }, how: { s: 3.6, L: 5, sp: 10, sm: 7, dust: 1, jet: 1 },
 };
 function muzzleFlash(x, y, z, dx, dy, dz, kind, team) {
-  const cp = camera.position, d = Math.hypot(x - cp.x, z - cp.z); if (d > (ED.phone ? 110 : 170) || MZF.n >= MZF.max) return; MZF.n++; if (REDUCE_MOTION && Math.random() < 0.5) return;
+  const cp = fxPos(), d = Math.hypot(x - cp.x, z - cp.z); if (d > (ED.phone ? 110 : 170) || MZF.n >= MZF.max) return; MZF.n++; if (REDUCE_MOTION && Math.random() < 0.5) return;
   const m = MZ[kind] || MZ.rifle, s = m.s;
   fxG.emit(x + dx * 0.25, y + dy * 0.25, z + dz * 0.25, dx * 2, dy * 2, dz * 2, m.jet ? 0.14 : 0.06, s, 0.5, [1, 0.9, 0.55, 1]);
   for (let k = 0, n = fxN(m.sp); k < n; k++) fxG.emit(x + dx * 0.4, y + dy * 0.4, z + dz * 0.4, dx * rnd(7, 15) + rnd(-2, 2), dy * rnd(7, 15) + rnd(-1, 2), dz * rnd(7, 15) + rnd(-2, 2), rnd(0.06, 0.14), s * rnd(0.2, 0.4), -0.2, [1, rnd(0.55, 0.8), 0.25, 0.9], 3, 1.5);
@@ -5574,7 +5661,7 @@ const IMP = { // dust: n, size; clod: n; spark: n; chip: n (thrown pieces); flas
 };
 const IMB = { n: 0 };
 function impactFx(kind, ref, pt, d, quiet) {          // quiet: the caller plays its own impact sound (the AC-130 per-surface stems)
-  let mat = 'dirt', snd = 'imp_dirt'; const cp = camera.position, near = Math.hypot(pt.x - cp.x, pt.z - cp.z);
+  let mat = 'dirt', snd = 'imp_dirt'; const cp = fxPos(), near = Math.hypot(pt.x - cp.x, pt.z - cp.z);
   if (kind === 'land' && heightAt(pt.x, pt.z) < -0.05) kind = 'water';
   if (kind === 'water') { if (near < 260) splash(pt.x, pt.z, 0.55, quiet); if (!quiet) Snd.fx('imp_water_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.7 }); return; }
   if (kind === 'person') { if (near < 200) { for (let i = 0; i < fxN(4); i++) fxG.emit(pt.x, pt.y + 0.2, pt.z, rnd(-2, 2), rnd(1, 3), rnd(-2, 2), 0.5, 0.12, 0.2, [1, 0.9, 0.35, 1], 6, 0.6); fxS.emit(pt.x, pt.y, pt.z, 0, 0.6, 0, 0.35, 0.5, 2, [1, 1, 1, 0.5], 0, 1); } if (!quiet) Snd.fx('imp_body_0' + (1 + Math.floor(Math.random() * 3)), pt.x, pt.z, { gain: 0.8, y: pt.y }); return; }
@@ -5599,7 +5686,7 @@ function shockRing(x, gy, z, R) {
   o.t = 0; o.life = 0.4 + R * 0.025; o.R = R * 1.7; o.m.position.set(x, gy + 0.35 + R * 0.03, z); o.m.visible = true;
 }
 function blastFx(x, gy, z, R, wet) {
-  const cp = camera.position, cd = Math.hypot(x - cp.x, z - cp.z); if (cd > 800) return;
+  const cp = fxPos(), cd = Math.hypot(x - cp.x, z - cp.z); if (cd > 800) return;
   shockRing(x, gy, z, R); flashLight(x, gy + R * 0.5, z, Math.min(7, 1.5 + R * 0.35), null);
   if (!wet && cd < 400) { const c = (SURF[surfaceAt(x, z)] || SURF.dirt)[0], n = fxN(Math.round(10 + R * 1.6));
     for (let i = 0; i < n; i++) { const a = (i / n) * 6.283 + rnd(-0.2, 0.2), sp = R * rnd(0.8, 1.5); fxS.emit(x + Math.cos(a), gy + 0.4, z + Math.sin(a), Math.cos(a) * sp, rnd(0.2, 1), Math.sin(a) * sp, rnd(1, 1.9), 0.8 + R * 0.07, 3, [c[0], c[1], c[2], 0.5], 0, 1.7); } }
@@ -5610,7 +5697,7 @@ function fx2Update(dt) {
   for (const L of MZF.lights) if (L.userData.t > 0) { L.userData.t -= dt; L.intensity = L.userData.t > 0 ? L.userData.peak * 26 * (L.userData.t / 0.09) : 0; }
   if (SUPP.el) { SUPP.v = Math.max(0, SUPP.v - dt * 1.2); SUPP.el.style.opacity = fp.on ? (SUPP.v * (REDUCE_MOTION ? 0.5 : 1)).toFixed(2) : '0'; }
   for (const o of SHK.list) if (o.m.visible) { o.t += dt; const u = o.t / o.life; if (u >= 1) { o.m.visible = false; o.m.material.opacity = 0; continue; } const e = 1 - Math.pow(1 - u, 2.2); o.m.scale.setScalar(Math.max(0.5, 0.15 * o.R + o.R * e)); o.m.material.opacity = 0.55 * (1 - u) * (1 - u); }
-  const cp = camera.position;
+  const cp = fxPos();
   for (let i = LF.list.length - 1; i >= 0; i--) {
     const f = LF.list[i]; f.age += dt; if (f.age >= f.life) { LF.list.splice(i, 1); continue; } if (Math.hypot(f.x - cp.x, f.z - cp.z) > 450) continue;
     const fade = Math.min(1, (f.life - f.age) / (f.life * 0.35)), up = Math.min(1, f.age / 1.2); f.acc += dt * FXK * fade * up * (6 + f.R);
@@ -5864,7 +5951,8 @@ function teamMark(g, team, a, b, c, d, kind) {                       // team col
     }; nm.customProgramCacheKey = () => 'teampaint-' + team + '-' + k; cache.set(key, nm); return nm; }); o.material = Array.isArray(o.material) ? out : out[0]; });
 }
 /* helicopter kinds: the Griffon family (door gunner), the gunship, the Cobra attack helicopter (chin turret), the Chinook troop carrier and the Bell medevac */
-const AIRSPEC = { griffon: { hp: 120, life: 70, orbit: 62, spd: 24, rad: 6 }, gunship: { hp: 380, life: 60, orbit: 110, spd: 42, rad: 18 }, cobra: { hp: 170, life: 60, orbit: 72, spd: 28, rad: 6 }, medevac: { hp: 90, life: 40, orbit: 0, spd: 26, rad: 5 }, chinook: { hp: 230, life: 150, orbit: 0, spd: 30, rad: 9 } };
+const AIRSPEC = { griffon: { hp: 120, life: 70, orbit: 62, spd: 24, rad: 6 }, gunship: { hp: 380, life: 60, orbit: 360, spd: 54, rad: 18 }, cobra: { hp: 170, life: 60, orbit: 72, spd: 28, rad: 6 }, medevac: { hp: 90, life: 40, orbit: 0, spd: 26, rad: 5 }, chinook: { hp: 230, life: 150, orbit: 0, spd: 30, rad: 9 } };
+const ACALT = 520, ACORB = 360;                                       // the gunship flies high (metres above sea level) in a left-wing-down orbit; the camera zoom does the rest
 const AIRKEY = { griffon: 'gr', gunship: 'gs', cobra: 'co', medevac: 'md', chinook: 'pa', strike: 'st' }, AIRNAME = { griffon: 'Griffon', gunship: 'gunship', cobra: 'attack helicopter', medevac: 'medevac helicopter', chinook: 'transport helicopter', strike: 'strike aircraft' };
 const _gpv = new THREE.Vector3();
 function gunRest(n) {                                                // which way the barrel points when at rest: along z (forward or back) or along x (out of a door), found from the model's own bounds
@@ -5892,9 +5980,9 @@ function airSpawn(team, kind, center) {
   const hs = center || hotSpot(team); if (!hs) return null; const a = (BM().airAng && BM().airAng[team]) ? angIn(BM().airAng[team]) : Math.random() * 6.283, R = EXT * 0.9, g = new THREE.Group(), gun = kind === 'gunship', S = AIRSPEC[kind] || AIRSPEC.griffon;
   let pre = kind === 'cobra' ? 'cobra' : kind === 'medevac' ? 'bell206' : kind === 'chinook' ? 'chinook' : ['griffon', 'griffon', 'huey', 'blackhawk'][Math.floor(Math.random() * 4)];
   const hn = !gun && D.glb.helis ? nodeByName(D.glb.helis, pre) : null, mesh = gun ? airNode('gunship', stubGunship) : hn ? shadowAll(hn.clone()) : airNode('griffon', stubGriffon); if (!hn && !gun) pre = 'griffon'; g.add(mesh); teamMark(g, team, 0, 0, 0, 0, gun ? 'gunship' : 'heli'); scene.add(g);
-  const u = { manual: !!center, kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? 165 : kind === 'chinook' ? 90 : 80, hd: 0, tgt: hs, hp: S.hp, hpMax: S.hp, rad: S.rad, life: S.life, orbit: S.orbit, spd: S.spd, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false, pre }, nb = (n) => nodeByName({ scene: g }, n);
+  const u = { manual: !!center, kind, team, g, mesh, x: Math.cos(a) * R, z: Math.sin(a) * R, y: gun ? ACALT : kind === 'chinook' ? 90 : 80, hd: 0, tgt: hs, hp: S.hp, hpMax: S.hp, rad: S.rad, life: S.life, orbit: S.orbit, spd: S.spd, a: a + Math.PI, fireT: 0, shellT: 3, leaving: false, pre }, nb = (n) => nodeByName({ scene: g }, n);
   u.hd = Math.atan2(hs.x - u.x, hs.z - u.z); u.mr = nb(pre + '_mainrotor') || nb(pre + '_rotor_front'); u.mr2 = nb(pre + '_rotor_rear'); u.tr = nb(pre + '_tailrotor'); u.props = [0, 1, 2, 3].map(i => nb('gunship_prop_' + i)).filter(Boolean); u.ramp = nb(pre + '_ramp'); u.guns = findGuns(g, team);
-  AIR.list.push(u); if (gun) acSafe(acPre); return u;
+  if (gun) u.oa = Math.atan2(u.z - hs.z, u.x - hs.x); AIR.list.push(u); if (gun) acSafe(acPre); return u;
 }
 function callAir(team, kind) {
   const k = AIRKEY[kind] || 'gs', c = AIR.cd[team]; if (!BATTLE.on) { toast('Start a battle first.'); return false; } if (c[k] > 0) { if (team === BATTLE.team) toast('The ' + (AIRNAME[kind] || kind) + ' is not ready yet.'); return false; }
@@ -5912,12 +6000,13 @@ const AC = (() => {
   const CAP = lite ? { vhit: 4, bshot: 3, bhit: 2, how: 2, stitch: 2, bot: 1 } : { vhit: 8, bshot: 5, bhit: 4, how: 3, stitch: 3, bot: 1 };
   const LAD = { vhit: 0.7, stitch: 0.75, bhit: 0.8, bot: 0.88, bshot: 0.95 };                                   // fraction of the voice limit at which a class gives way: Vulcan hits first, then Bofors hits, bot shots, Bofors shots; the howitzer never
   Object.assign(Snd.caps, CAP);
-  const st = { vhit: 0, vdrop: 0, vthrottled: 0, stitch: 0, bshot: 0, bhit: 0, howFire: 0, howHit: 0, creak: 0, vstart: 0, vend: 0, swaps: 0, botSkipped: 0, loopRetry: 0 };
+  const st = { clip: 0, vhit: 0, vdrop: 0, vthrottled: 0, stitch: 0, bshot: 0, bhit: 0, howFire: 0, howHit: 0, creak: 0, vstart: 0, vend: 0, swaps: 0, botSkipped: 0, loopRetry: 0 };
   const later = [], vb = [], bursts = new Map(), tails = [], M1 = {}, M2 = {}, M3 = {}, _mv = new THREE.Vector3(), _md = new THREE.Vector3(); let vT = 0, stT = 0, keepT = 0, botTok = 4, creakT = 0, preWant = false;
   const LEN = { minigun: 1.97, cannon: 2.65, howitzer: 3.05 }, AMP = { minigun: 0.12, cannon: 0.3, howitzer: 0.8 }, DEC = { minigun: 7, cannon: 4, howitzer: 1.6 }, NAMES = ['minigun', 'cannon', 'howitzer'];
   const dist3 = (x, y, z) => { const L = Snd.L; return Math.hypot(x - L.x, z - L.z, (y - L.y) * 0.5); };       // the engine's own distance measure (height counts half)
   const comp = (d) => clamp(1 + (d - 90) / 160, 1, 2.2), lvl = (d) => 1.8 * comp(d);                            // far weapons stay audible: a gentle lift with distance
   const isOwn = (team) => !BATTLE.team || team === BATTLE.team;
+  const int = (u) => !!(STN && STN.on && STN.u === u);                                                       // the operator is aboard this aircraft: our own guns use the interior sound set
   const groundSurf = (x, z) => { const s = surfaceAt(x, z); return s === 'concrete' || s === 'asphalt' ? 'concrete' : 'dirt'; };
   const defer = (t, f) => { later.push({ t: Math.max(0, t), f }); };
   const FAMS = () => { const m = Snd.man, seen = new Set(), out = []; if (!m) return out; for (const id in m) { if (id.slice(0, 6) !== 'ac130_') continue; const f = id.replace(/_\d\d$/, ''); if (seen.has(f)) continue; seen.add(f); const pl = m[id].meta && m[id].meta.play; out.push({ f, pre: !!(pl && pl.preload) }); } return out; };
@@ -5941,15 +6030,15 @@ const AC = (() => {
   }
   /* 25 mm Vulcan: one voice set per burst. start (spin-up) then the loop from 1.15 s with a 0.15 s crossfade, then end (spin-down) as the loop fades in 90 ms; near or far set by distance, crossfaded if the listener crosses over */
   function vBegin(u) {
-    const d = dist3(u.x, u.y, u.z), far = d > 150, B = { far, T: 0, u, start: null, loop: null, loopAt: 0, retry: 0 }; bursts.set(u, B); st.vstart++;
-    const sS = far ? 'ac130_vulcan_start_far' : 'ac130_vulcan_start'; B.start = Snd.voice(sS, { tail: 0.2 }); if (!B.start) Snd.need(sS);
-    B.loopAt = B.start ? 1.15 : 0.02; vLoop(B, B.loopAt, 0.15, 0);
+    const ii = int(u), d = dist3(u.x, u.y, u.z), far = !ii && d > 150, B = { far, int: ii, T: 0, u, start: null, loop: null, loopAt: 0, retry: 0 }; bursts.set(u, B); st.vstart++;
+    const sS = ii ? 'ac130_int_vulcan_startup' : far ? 'ac130_vulcan_start_far' : 'ac130_vulcan_start'; B.start = Snd.voice(sS, { tail: ii ? 0.1 : 0.2 }); if (!B.start) Snd.need(sS);
+    B.loopAt = B.start ? (ii ? 0.45 : 1.15) : 0.02; vLoop(B, B.loopAt, ii ? 0.1 : 0.15, 0);
   }
-  function vLoop(B, when, fadeIn, offset) { const ls = B.far ? 'ac130_vulcan_loop_far' : 'ac130_vulcan_loop', V = Snd.voice(ls, { loop: true, when, fadeIn, offset }); if (!V) { Snd.need(ls); return null; } B.loop = V; return V; }
+  function vLoop(B, when, fadeIn, offset) { const ls = B.int ? 'ac130_int_vulcan_loop' : B.far ? 'ac130_vulcan_loop_far' : 'ac130_vulcan_loop', V = Snd.voice(ls, { loop: true, when, fadeIn, offset }); if (!V) { Snd.need(ls); return null; } B.loop = V; return V; }
   function vEnd(u) {
     const B = bursts.get(u); if (u.ac) u.ac.v.on = false; if (!B) return; bursts.delete(u); st.vend++;
     if (B.loop) Snd.vstop(B.loop, 0.09); if (B.start && !B.start.dead) Snd.vstop(B.start, 0.06);
-    const es = B.far ? 'ac130_vulcan_end_far' : 'ac130_vulcan_end', E = Snd.voice(es, {}); if (E) tails.push({ V: E, u }); else Snd.need(es);
+    const es = B.int ? 'ac130_int_vulcan_end' : B.far ? 'ac130_vulcan_end_far' : 'ac130_vulcan_end', E = Snd.voice(es, {}); if (E) tails.push({ V: E, u }); else Snd.need(es);
   }
   function vFollow(B, dt) {
     const u = B.u, d = dist3(u.x, u.y, u.z), L = lvl(d); B.T += dt;
@@ -5971,18 +6060,22 @@ const AC = (() => {
     vb.length = 0;
   }
   function vRound(u, tg) {
-    const m = muzzle(u, 'minigun', M1), person = tg.type === 'person', e = person ? tg.ref : null; let ex, ey, ez, hit = false;
+    const m = muzzle(u, 'minigun', M1), person = tg.type === 'person', e = person ? tg.ref : null; let ex, ey, ez, hit = false, sp = null, sv = null;
     if (person) { hit = Math.random() < 0.5 * (e.order || e.fpMoving ? 0.7 : 1) * BKIT.airK; ex = e.x + (hit ? 0 : rnd(-3, 3)); ez = e.z + (hit ? 0 : rnd(-3, 3)); ey = e.y + 1; if (hit) hurt(e, 8, null, false, 'Gunship'); }
-    else { const j = tg.type === 'ground' ? 7 : 2.2; ex = tg.x + rnd(-j, j); ez = tg.z + rnd(-j, j); ey = tg.type === 'ground' ? Math.max(heightAt(ex, ez), 0) : tg.y; if (tg.type === 'vehicle' && Math.random() < 0.45) { damageVehicle(tg.ref, 7, u.team, 'Air support'); hit = true; } }
+    else { const j = tg.type === 'ground' ? (tg.area ? 3.2 : 7) : 2.2; ex = tg.x + rnd(-j, j); ez = tg.z + rnd(-j, j); ey = tg.type === 'ground' ? Math.max(heightAt(ex, ez), 0) : tg.y; if (tg.type === 'vehicle' && Math.random() < 0.45) { damageVehicle(tg.ref, 7, u.team, 'Air support'); hit = true; }
+      else if (tg.area) { for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.ride || q.vin) continue; if (Math.hypot(q.x - ex, q.z - ez) < 2.4 && Math.random() < 0.6) { hurt(q, 8, null, false, 'Gunship'); sp = q; hit = true; break; } } if (!sp) for (const v of BVL) { if (v.dead || Math.hypot(v.x - ex, v.z - ez) > 4.5) continue; damageVehicle(v, 7, u.team, 'Air support'); sv = v; hit = true; break; } } }
     addTracer(m.x, m.y, m.z, ex, ey, ez, { k: 'vulcan', team: u.team }); if (m.G) m.G.rec = Math.min(1, m.G.rec + 0.5);
     defer(Math.hypot(ex - m.x, ey - m.y, ez - m.z) / 420, () => {                                              // the round lands when the tracer does
-      if (person && hit) { impactFx('person', e, { x: ex, y: ey, z: ez }, 60, true); vHit('person', ex, ey, ez); }
+      if (sp) { impactFx('person', sp, { x: ex, y: sp.y + 1, z: ez }, 60, true); vHit('person', ex, sp.y + 1, ez); }
+      else if (sv) { impactFx('veh', sv, { x: ex, y: ey, z: ez }, 60, true); vHit('metal', ex, ey, ez); }
+      else if (person && hit) { impactFx('person', e, { x: ex, y: ey, z: ez }, 60, true); vHit('person', ex, ey, ez); }
       else if (hit && tg.type === 'vehicle') { impactFx('veh', tg.ref, { x: ex, y: ey, z: ez }, 60, true); vHit('metal', ex, ey, ez); }
       else { const h = heightAt(ex, ez), wet = h < -0.05; impactFx('land', null, { x: ex, y: wet ? 0 : h, z: ez }, 60, true); vHit(wet ? 'water' : groundSurf(ex, ez), ex, Math.max(h, 0), ez); }
     });
   }
   /* 40 mm Bofors: 4 to 8 rounds at about 2.5 a second, then a rest. Each round is a tracer from the cannon node, a shot sound, and a small blast with its own surface sound when it lands. */
   function bShot(u, m) {
+    if (int(u)) { if (Snd.fx('ac130_int_cannon_fire', undefined, undefined, { gain: 1.7, gap: 0.2, cls: 'bshot', q: true })) { st.bshot++; defer(0.12 + Math.random() * 0.25, () => { Snd.fx('ac130_int_casing', undefined, undefined, { gain: 0.9, gap: 0.2, q: true }); }); if (++st.clip >= 4 + (st.bshot % 3)) { st.clip = 0; defer(0.45, () => { Snd.fx('ac130_int_cannon_clip', undefined, undefined, { gain: 0.8, gap: 0.7, q: true }); }); } } return; }
     const own = isOwn(u.team), d = dist3(m.x, m.y, m.z), dh = Math.hypot(m.x - Snd.L.x, m.z - Snd.L.z);
     if (!own) { if (botTok < 1 || dh > 200) { st.botSkipped++; return; } botTok--; }                                  // a rival gunship's cannon: one voice, four plays a second at most, silent beyond 200 m on the ground
     const near = own ? d < 150 : dh < 80, s = Snd.fx(near ? 'ac130_bofors_shot' : 'ac130_bofors_shot_far', m.x, m.z, { y: m.y, cls: own ? 'bshot' : 'bot', lad: own ? LAD.bshot : LAD.bot, gap: near ? 0.25 : 0.15, delay: near ? 0 : Math.min(d / 340, 3), gain: near ? 1.3 : 1.2 * comp(d), q: true });
@@ -6002,6 +6095,7 @@ const AC = (() => {
   /* 105 mm howitzer: the boom at the aircraft (near stem and a sub layer when it is ours and close, a far stem delayed by distance / 340 otherwise) and the hit where the shell lands */
   function hFire(u, m) {
     const own = isOwn(u.team), d = dist3(m.x, m.y, m.z), near = d < 120;
+    if (int(u)) { if (Snd.fx('ac130_int_howitzer_fire', undefined, undefined, { gain: 2.0, gap: 1.0, cls: 'how', force: true, q: true })) { st.howFire++; defer(0.1 + Math.random() * 0.3, () => { Snd.fx('ac130_int_casing', undefined, undefined, { gain: 0.9, gap: 0.2, q: true }); }); } u.acDuck = 1; return; }
     if (near) { const s = Snd.fx('ac130_howitzer_fire', m.x, m.z, { y: m.y, cls: 'how', gap: 1.0, gain: 1.4, force: own, q: true }); if (s) { st.howFire++; if (own) Snd.fx('ac130_howitzer_fire_sub', m.x, m.z, { y: m.y, cls: 'how', nn: Snd.lastId.slice(-2), gap: 1.0, gain: 1.2, q: true }); } }
     else { const s = Snd.fx('ac130_howitzer_fire_far', m.x, m.z, { y: m.y, cls: 'how', gap: 1.0, delay: Math.min(d / 340, 3.5), gain: 1.3 * comp(d), force: own, q: true }); if (s) st.howFire++; }
     u.acDuck = 1;                                                                                              // the prop bed dips 6 dB for a second
@@ -6015,13 +6109,14 @@ const AC = (() => {
     if (!tg) return; const dF = dist3(u.x, u.y, u.z), own = isOwn(u.team); Snd.need(dF < 120 ? 'ac130_howitzer_fire' : 'ac130_howitzer_fire_far'); if (own && dF < 120) Snd.need('ac130_howitzer_fire_sub');
     const wet = heightAt(tg.x, tg.z) < 0.3, fam = wet ? 'ac130_howitzer_hit_water' : 'ac130_howitzer_hit', dH = dist3(tg.x, Math.max(heightAt(tg.x, tg.z), 0), tg.z); Snd.need(dH < 150 ? fam : fam + '_far'); if (dH < 80) Snd.need(fam + '_sub');
   }
-  const pickFoe = (u, R) => { let best = null, bd = R; for (const q of people) { if (teamOf(q) !== otherTeam(u.team) || q.state === 'rag') continue; const d = Math.hypot(q.x - u.x, q.z - u.z); if (d < bd) { bd = d; best = q; } } return best && { type: 'person', ref: best, x: best.x, y: best.y, z: best.z }; };
+  const pickFoe = (u, R) => { let best = null, bd = R; const c = u.tgt || u; for (const q of people) { if (teamOf(q) !== otherTeam(u.team) || q.state === 'rag') continue; const d = Math.hypot(q.x - c.x, q.z - c.z); if (d < bd) { bd = d; best = q; } } return best && { type: 'person', ref: best, x: best.x, y: best.y, z: best.z }; };
   function bPick(u, tg) {
-    if (tg.type !== 'person') return tg; const list = []; for (const q of people) { if (teamOf(q) !== otherTeam(u.team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; const d = Math.hypot(q.x - u.x, q.z - u.z); if (d < 190) list.push({ q, d }); }
+    if (tg.type !== 'person') return tg; const list = []; for (const q of people) { if (teamOf(q) !== otherTeam(u.team) || q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; const c = u.tgt || u, d = Math.hypot(q.x - c.x, q.z - c.z); if (d < 230) list.push({ q, d }); }
     if (!list.length) return null; list.sort((a, b) => a.d - b.d); const q = list[Math.floor(Math.random() * Math.min(4, list.length))].q; return { type: 'person', ref: q, x: q.x, y: q.y, z: q.z };
   }
   /* per aircraft: called from airFire with the nearest enemy (or null) and from fmAirExtra's mission target */
   function step(u, e, dt) {
+    if (int(u)) { stnFrame(u, dt); return; }                                                                 // the operator is flying the guns: no AI fire control
     const S = u.ac || (u.ac = { v: { on: false, t: rnd(0.4, 1.2), acc: 0, age: 0 }, b: { on: false, n: 0, t: rnd(1.2, 2.5), acc: 0, tg: null }, h: { t: rnd(3.5, 5), tg: null } });
     const ft = u.fmTgt; u.fmTgt = null; const tg = e ? { type: 'person', ref: e, x: e.x, y: e.y + 1, z: e.z } : ft; if (tg) aimGuns(u, tg.x, tg.y, tg.z, dt);
     const V = S.v; V.t -= dt;
@@ -6033,7 +6128,7 @@ const AC = (() => {
     if (Bf.on) { const bt = Bf.tg; if (bt.type === 'person') { u.bofAim = { x: bt.ref.x, y: bt.ref.y + 1, z: bt.ref.z }; } else u.bofAim = bt; Bf.acc -= dt;
       if (Bf.acc <= 0) { Bf.acc = 0.33 + Math.random() * 0.14; Bf.n--; if (!bRound(u, bt)) Bf.n = 0; if (Bf.n <= 0) { Bf.on = false; Bf.t = 1.5 + Math.random() * 1.7; u.bofAim = null; } } }
     const H = S.h; H.t -= dt;
-    if (H.t < 3.5 && !H.tg) { H.tg = (ft && ft.type !== 'person' ? ft : null) || pickFoe(u, 600); if (H.tg) hNeed(u, H.tg); else H.t = 1.5; }
+    if (H.t < 3.5 && !H.tg) { H.tg = (ft && ft.type !== 'person' ? ft : null) || pickFoe(u, 330); if (H.tg) hNeed(u, H.tg); else H.t = 1.5; }
     if (H.t <= 0 && H.tg) {
       const t = H.tg; H.tg = null; H.t = 6 + Math.random() * 2; if (t.type === 'person' && t.ref.state !== 'rag') { t.x = t.ref.x; t.y = t.ref.y; t.z = t.ref.z; }
       const m = muzzle(u, 'howitzer', M3), fm = t.type !== 'person'; u.shellAim = { x: t.x, y: t.y, z: t.z };
@@ -6041,6 +6136,24 @@ const AC = (() => {
       muzzleFlash(m.x, m.y, m.z, m.dx, m.dy, m.dz, 'how', u.team); if (m.G) m.G.rec = 1; hFire(u, m);
     }
   }
+  /* the sensor station drives the three guns at one ground point (or the unit under the reticle): same tracers, shells, blasts and impact sounds as the AI uses, with the interior sound set for our own aircraft */
+  const SS = { vOn: false, vAcc: 0, vAge: 0, cQ: 0, cT: 0, casT: 0 };
+  function stnFrame(u, dt) {
+    const g = STN.gun; if (g) { aimGuns(u, g.x, g.y, g.z, dt); u.shellAim = g; u.bofAim = g; }
+    const tg = STN.tg(), V = STN.fireV && !!tg;
+    if (V && !SS.vOn) { SS.vOn = true; SS.vAcc = 0; SS.vAge = 0; vBegin(u); STN.lastShot = STN.t; }
+    if (SS.vOn && !V) { SS.vOn = false; vEnd(u); }
+    if (SS.vOn) { SS.vAge += dt; SS.vAcc += dt * clamp(SS.vAge / 0.46, 0.15, 1); while (SS.vAcc >= 0.07) { SS.vAcc -= 0.07; vRound(u, tg); STN.shots.vul++; } STN.lastShot = STN.t; SS.casT -= dt; if (SS.casT <= 0) { SS.casT = 0.34; Snd.fx('ac130_int_casing', undefined, undefined, { gain: 0.7, gap: 0.25, q: true }); } STN.drainV(dt); }
+    if (SS.cQ > 0) { SS.cT -= dt; if (SS.cT <= 0) { SS.cT = 0.38; SS.cQ--; if (tg) bRound(u, tg); } }
+  }
+  function stnHow(u, tg) {
+    const m = muzzle(u, 'howitzer', M3), T = clamp(Math.hypot(tg.x - m.x, tg.z - m.z) / 320, 1.4, 2.6); u.shellAim = { x: tg.x, y: tg.y, z: tg.z };
+    AIR.shells.push({ x: tg.x + rnd(-3, 3), z: tg.z + rnd(-3, 3), t: T, T, team: u.team, y0: m.y, ox: m.x, oz: m.z, ac: true, R: 11, dmg: 150, crater: 4, depth: 0.6, stn: true });
+    muzzleFlash(m.x, m.y, m.z, m.dx, m.dy, m.dz, 'how', u.team); if (m.G) m.G.rec = 1; hFire(u, m); Snd.need(dist3(tg.x, Math.max(heightAt(tg.x, tg.z), 0), tg.z) < 150 ? 'ac130_howitzer_hit' : 'ac130_howitzer_hit_far');
+  }
+  function stnCannon(u, n) { SS.cQ = n; SS.cT = 0; }
+  function stnStop(u) { if (SS.vOn) { SS.vOn = false; } SS.cQ = 0; if (u && bursts.has(u)) vEnd(u); if (u && u.ac) u.ac.v.on = false; }
+  function preInt() { for (const { f } of FAMS()) if (f.slice(0, 10) === 'ac130_int_') Snd.need(f); }
   /* every frame for each gunship: recoil, the creak on a hard bank */
   function tick(u, dt) {
     recoil(u, dt); if (u.acDuck > 0) u.acDuck = Math.max(0, u.acDuck - dt);
@@ -6057,12 +6170,12 @@ const AC = (() => {
   function trim() {                                                                                        // phone: the big howitzer, far, sub and Bofors-hit buffers are let go 40 s after their last use (the engine's sweep alone waits 180 s), so the AC-130 stays near its preload set
     if (!lite) return; for (const id in Snd.bufs) { if (id.slice(0, 6) !== 'ac130_') continue; const f = id.replace(/_\d\d$/, ''); if ((LITE_SKIP.test(f) || /_far$|_sub$|creak/.test(f)) && Snd.T - (Snd.used[id] || 0) > 40) delete Snd.bufs[id]; }
   }
-  function reset() { later.length = 0; vb.length = 0; for (const [u] of [...bursts]) vEnd(u); tails.length = 0; }
-  return { st, CAP, lite, pre, step, tick, frame, hHit, reset, later: defer, bursts, get preWant() { return preWant; } };
+  function reset() { later.length = 0; vb.length = 0; for (const [u] of [...bursts]) vEnd(u); tails.length = 0; SS.vOn = false; SS.cQ = 0; }
+  return { st, CAP, lite, pre, step, tick, frame, hHit, reset, later: defer, bursts, stn: { how: stnHow, cannon: stnCannon, stop: stnStop, preInt, SS }, get preWant() { return preWant; } };
 })();
 const acPre = AC.pre, acStep = AC.step, acTick = AC.tick, acFrame = AC.frame, acHowHit = AC.hHit, acReset = AC.reset;
 function airFire(u, dt) {
-  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; u.fireT -= dt; if (u.fmP) fmAirExtra(u, dt); const e = (u.fmP && fmAirPerson(u, R)) || enemyOf(u.team, u.x, u.z, R); if (gun) { acSafe(acStep, u, e, dt); return; } if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
+  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 1100 : cob ? 125 : 95; u.fireT -= dt; if (u.fmP) fmAirExtra(u, dt); const e = (u.fmP && fmAirPerson(u, R)) || (gun ? enemyOf(u.team, u.tgt.x, u.tgt.z, 240) : enemyOf(u.team, u.x, u.z, R)); if (gun) { acSafe(acStep, u, e, dt); return; } if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
   if (u.fireT <= 0) { u.fireT = gun ? 0.07 : cob ? 0.09 : 0.11; const hit = Math.random() < (gun ? 0.5 : 0.38) * (e.order || e.fpMoving ? 0.7 : 1) * BKIT.airK, ex = e.x + (hit ? 0 : rnd(-3, 3)), ez = e.z + (hit ? 0 : rnd(-3, 3)), sx = u.x + Math.cos(u.hd) * 2.2, sz = u.z - Math.sin(u.hd) * 2.2;
     { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez, { k: gun ? 'vulcan' : 'mg', team: u.team }); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
     if (hit) { hurt(e, gun ? 6 : cob ? 7 : 8, null, false, gun ? 'Gunship' : cob ? 'Chin gun' : 'Door gun'); impactFx('person', e, { x: ex, y: e.y + 1, z: ez }, 60); } else impactFx('land', null, { x: ex, y: heightAt(ex, ez), z: ez }, 60); }
@@ -6073,8 +6186,9 @@ function updateShellsAir(dt) {
     if (s.t > 0) continue; AIR.shells.splice(i, 1); blast(s.x, gy, s.z, { R: s.R || 11, dmg: s.dmg || 150, crater: s.crater === undefined ? 5 : s.crater, depth: s.depth || 1.4, owner: null, quiet: !!s.ac }); if (s.ac) acSafe(acHowHit, s, gy); }
 }
 const AAS = [], MIS = [];
-function damageAir(u, dmg, by) {
-  if (u.down) return; u.hp -= dmg; fxG.emit(u.x, u.y, u.z, 0, 0, 0, 0.2, 2.5, 1, [1, 0.8, 0.4, 1]); if (u.hp < u.hpMax * 0.5) puffSmoke(u.x, u.y, u.z, 1, true, 0.9);
+function damageAir(u, dmg, by, kind) {
+  if (u.down) return; if (u.kind === 'gunship') { if (kind !== 'missile') return; dmg = Math.min(dmg * 0.12, u.hpMax * 0.05); }      /* the gunship: small arms, machine guns, light AA and crashes cannot hurt it; a missile hurts it slowly and never kills it in one hit */
+  u.hp -= dmg; fxG.emit(u.x, u.y, u.z, 0, 0, 0, 0.2, 2.5, 1, [1, 0.8, 0.4, 1]); if (u.hp < u.hpMax * 0.5) puffSmoke(u.x, u.y, u.z, 1, true, 0.9);
   if (u.hp <= 0) { u.down = true; u.vy = 0; if (u.bv) bvHeliDowned(u); { const ck = AIRKEY[u.kind] || 'st'; if (AIR.cd[u.team] && !u.bv) { AIR.cd[u.team][ck] = Math.max(AIR.cd[u.team][ck], ck === 'gs' ? 160 : 110); AIR.off[u.team][ck] = true; } } Snd.fx('imp_ko', u.x, u.z, { gain: 1, far: 3, y: u.y }); noteOnce('down' + Math.floor(simT), u.team === BATTLE.team ? 'Our ' + (AIRNAME[u.kind] || 'aircraft') + ' has been shot down.' : 'Enemy ' + (AIRNAME[u.kind] || 'aircraft') + ' shot down!'); }
   else if (u.hp < u.hpMax * 0.3 && !u.bv) u.leaving = true;
 }
@@ -6123,10 +6237,21 @@ function fpAirHit(w) {                                              // high-cali
 function updateMIS(dt) {
   for (let i = MIS.length - 1; i >= 0; i--) { const m = MIS[i]; m.age += dt; m.sp = Math.min(115, m.sp + 40 * dt); let sx = m.vx, sy = m.vy, sz = m.vz; const sl = Math.hypot(sx, sy, sz) || 1;
     if (m.tgt && !m.tgt.down && AIR.list.includes(m.tgt)) { const dx = m.tgt.x - m.x, dy = m.tgt.y - m.y, dz = m.tgt.z - m.z, dl = Math.hypot(dx, dy, dz) || 1, k = Math.min(1, dt * (m.rpg ? 1.1 : 3.2)); sx = sx / sl + (dx / dl - sx / sl) * k; sy = sy / sl + (dy / dl - sy / sl) * k; sz = sz / sl + (dz / dl - sz / sl) * k; const nl = Math.hypot(sx, sy, sz) || 1; m.vx = sx / nl * m.sp; m.vy = sy / nl * m.sp; m.vz = sz / nl * m.sp;
-      if (dl < m.tgt.rad + 3) { damageAir(m.tgt, 170, 'you'); fxG.emit(m.x, m.y, m.z, 0, 0, 0, 0.4, 14, 1.4, [1, 0.75, 0.35, 1]); puffSmoke(m.x, m.y, m.z, 10, true, 1.4); Snd.fx('veh_gun_fire', m.x, m.z, { gain: 1.4, far: 3, y: m.y }); MIS.splice(i, 1); continue; } }
+      if (dl < m.tgt.rad + 3) { damageAir(m.tgt, 170, 'you', 'missile'); fxG.emit(m.x, m.y, m.z, 0, 0, 0, 0.4, 14, 1.4, [1, 0.75, 0.35, 1]); puffSmoke(m.x, m.y, m.z, 10, true, 1.4); Snd.fx('veh_gun_fire', m.x, m.z, { gain: 1.4, far: 3, y: m.y }); MIS.splice(i, 1); continue; } }
     else { m.vx *= m.sp / sl; m.vy = m.vy * m.sp / sl; m.vz *= m.sp / sl; }
     m.x += m.vx * dt; m.y += m.vy * dt; m.z += m.vz * dt; fxG.emit(m.x, m.y, m.z, 0, 0, 0, 0.12, 1.2, -0.5, [1, 0.7, 0.3, 0.9]); puffSmoke(m.x, m.y, m.z, 1, false, 0.5); if (m.rpg && m.age > 0.12 && rpgHit(m)) { MIS.splice(i, 1); continue; }
     if (m.age > 9 || m.y < heightAt(m.x, m.z)) { if (m.y < heightAt(m.x, m.z)) blast(m.x, m.y, m.z, { R: m.R || 8, dmg: m.dmg || 80, crater: m.crater || 3, depth: 0.8, owner: null }); MIS.splice(i, 1); } }
+}
+function gunshipFly(u, dt) {                                         // high, circling its point with the left wing down; the station can move the point; the clock stands still while an operator is aboard
+  const st = !!(STN && STN.on && STN.u === u);
+  if (st) { u.life = Math.max(u.life, 30); u.leaving = false; const c = u.tgt, dx = STN.ax - c.x, dz = STN.az - c.z, d = Math.hypot(dx, dz); if (d > 1) { const m = Math.min(d, Math.min(60, Math.max(24, d * 0.25)) * dt); c.x += dx / d * m; c.z += dz / d * m; } } else { u.life -= dt; if (u.life <= 0) u.leaving = true; }
+  let tx, tz;
+  if (u.leaving) { tx = Math.cos(u.a) * EXT * 1.3; tz = Math.sin(u.a) * EXT * 1.3; }
+  else { if (!st) u.tgt = u.manual ? u.tgt : (hotSpot(u.team) || u.tgt); const c = u.tgt, ph = Math.atan2(u.z - c.z, u.x - c.x) - 0.35; tx = c.x + Math.cos(ph) * ACORB; tz = c.z + Math.sin(ph) * ACORB; }
+  const want = Math.atan2(tx - u.x, tz - u.z), da = wrap(want - u.hd); u.hd += clamp(da, -dt * 0.9, dt * 0.9); u.x += Math.sin(u.hd) * u.spd * dt; u.z += Math.cos(u.hd) * u.spd * dt; u.y += (ACALT - u.y) * Math.min(1, dt * 0.6);
+  u.bk = (u.bk || 0) + ((u.leaving ? 0 : 0.42) - (u.bk || 0)) * Math.min(1, dt * 0.8); u.bank = u.bk * 2;
+  u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, -u.bk, 'YXZ'); rotorsSpin(u, dt); acSafe(acTick, u, dt); if (!u.leaving) airFire(u, dt);
+  if (u.leaving && Math.hypot(u.x, u.z) > EXT * 1.05) { scene.remove(u.g); const k = AIR.list.indexOf(u); if (k >= 0) AIR.list.splice(k, 1); }
 }
 function updateAir(dt) {
   updateAAS(dt); updateMIS(dt); updateBombs(dt); updateLife(dt);
@@ -6138,6 +6263,7 @@ function updateAir(dt) {
     if (u.kind === 'strike') { u.x += Math.sin(u.hd) * u.spd * dt; u.z += Math.cos(u.hd) * u.spd * dt; u.trav += u.spd * dt; if (!u.snd && u.trav > 430) { u.snd = true; Snd.fx('veh_bomber_pass', u.x, u.z, { gain: 1.2, far: 3, y: u.y }); } u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, 0); while (u.drops < 5 && u.trav >= 535 + u.drops * 17) { u.drops++; dropBomb(u.x, u.y - 2, u.z, Math.sin(u.hd) * u.spd * 0.95, Math.cos(u.hd) * u.spd * 0.95, { R: 12, dmg: 220, crater: 6, depth: 1.8 }); } if (u.trav > 1250) { scene.remove(u.g); AIR.list.splice(i, 1); } continue; }
     if (u.bv) { bvHeliStep(u, dt); continue; }
     if (u.kind === 'chinook') { chinookStep(u, dt, i); continue; } if (u.kind === 'medevac') { medevacStep(u, dt, i); continue; }
+    if (u.kind === 'gunship') { gunshipFly(u, dt); continue; }
     u.life -= dt; if (u.life <= 0) u.leaving = true;
     let tx, tz; if (u.leaving) { tx = Math.cos(u.a) * EXT * 1.3; tz = Math.sin(u.a) * EXT * 1.3; } else { u.tgt = u.manual ? u.tgt : (hotSpot(u.team) || u.tgt); u.oa = (u.oa || 0) + dt * u.spd / u.orbit * (u.kind === 'gunship' ? 1 : -1); tx = u.tgt.x + Math.cos(u.oa) * u.orbit; tz = u.tgt.z + Math.sin(u.oa) * u.orbit; }
     const want = Math.atan2(tx - u.x, tz - u.z), da = wrap(want - u.hd); u.hd += clamp(da, -dt * 0.9, dt * 0.9); const bank = clamp(da, -0.6, 0.6); u.x += Math.sin(u.hd) * u.spd * dt; u.z += Math.cos(u.hd) * u.spd * dt; u.y += ((u.kind === 'gunship' ? 165 : Math.max(75, heightAt(u.x, u.z) + 62)) - u.y) * Math.min(1, dt);
@@ -6224,7 +6350,7 @@ function scorchAt(x, z, Rm) {                                       // a dark ci
   LIFE.decals.push({ m, born: simT }); while (LIFE.decals.length > 40) { const d = LIFE.decals.shift(); scene.remove(d.m); d.m.material.dispose(); }
 }
 function ejectCasing(x, y, z, hd) {                                 // a brass casing flicked out of a gun, near the camera only
-  if (isTouch && Math.random() < 0.5) return; if (Math.hypot(x - camera.position.x, z - camera.position.z) > 55) return;
+  if (isTouch && Math.random() < 0.5) return; if (Math.hypot(x - fxPos().x, z - fxPos().z) > 55) return;
   if (!LIFE.cas) { const geo = new THREE.CylinderGeometry(0.012, 0.012, 0.045, 5).rotateZ(Math.PI / 2), m = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.4, metalness: 0.8 }), 100); m.count = 0; m.frustumCulled = false; scene.add(m); LIFE.cas = m; }
   const s = Math.sin(hd + 1.57), c = Math.cos(hd + 1.57); LIFE.cl.push({ x, y, z, vx: s * (1.2 + Math.random()), vy: 1.5 + Math.random() * 1.2, vz: c * (1.2 + Math.random()), r: Math.random() * 6, born: simT, rest: false });
   const cap = Math.min(CASN, 120 - LIFE.wrecks.length); while (LIFE.cl.length > cap) LIFE.cl.shift();
@@ -6358,7 +6484,7 @@ function debInit() {
   if (DEB.m) return; DEB.N = isTouch ? 90 : 220; DEB.m = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), DEB.N); DEB.m.frustumCulled = false; DEB.m.count = 0; DEB.o = new THREE.Object3D(); DEB.c = new THREE.Color(); DEB.m.setColorAt(0, DEB.c.set(0xffffff)); scene.add(DEB.m);
 }
 function debrisBurst(x, y, z, n, power, mat, frag) {                    // chunks of the surface thrown out of an impact (frag = hot thin splinters of metal)
-  if (Math.hypot(x - camera.position.x, z - camera.position.z) > 160) return; debInit(); const c = (SURF[mat] || SURF.dirt)[1];
+  if (Math.hypot(x - fxPos().x, z - fxPos().z) > 160) return; debInit(); const c = (SURF[mat] || SURF.dirt)[1];
   for (let i = 0; i < n; i++) { if (DEB.p.length >= DEB.N) DEB.p.shift(); const a = Math.random() * 6.283, e = 0.3 + Math.random() * 1.1, sp = power * (0.4 + Math.random() * 0.9);
     DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, wd: frag === 'wood', rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
 }
@@ -6443,12 +6569,14 @@ function renderTablet() {
       head('Call support for your side', 'heli');
       const tp = () => targetPoint() || aimPoint() || hotSpot(team);
       wrow('heli', 'Griffon', 'door gunner on the hot spot', 'gr', () => { callAir(team, 'griffon'); renderTablet(); }); wrow('heli', 'Gunship', 'minigun and howitzer', 'gs', () => { callAir(team, 'gunship'); renderTablet(); }); wrow('heli', 'Attack helicopter', 'chin gun and rockets', 'co', () => { callAir(team, 'cobra'); renderTablet(); }); wrow('cross', 'Medevac', 'patches up people beneath it', 'md', () => { callAir(team, 'medevac'); renderTablet(); });
+      wrow('scope', 'Gunship station', stnPick(team) ? 'sensor view and the three guns of your gunship' : 'calls the gunship, then opens its sensor view', null, () => { toggleTablet(false); stnOpenFor(team); });
       wrow('jet', 'Air strike', 'at the target or the hot spot', 'st', () => { const p = tp(); if (p) callStrike(team, p); renderTablet(); }); wrow('arty', 'Artillery', 'at the target or the hot spot', 'ar', () => { const p = tp(); if (p) callArty(team, p); renderTablet(); }); wrow('arty', 'Battery barrage', 'free, from the batteries your side holds', 'by', () => { const p = tp(); if (p) batteryFire(team, { x: p.x, z: p.z }); renderTablet(); });
       wrow('para', 'Troop transport', 'a Chinook lands a squad', 'pa', () => { paraWave(team, 6); renderTablet(); }); wrow('boat', 'Boat landing', 'a landing party from the sea', 'bt', () => { boatWave(team); renderTablet(); });
       bvTablet('support', body, head, note);
     } else {
       head('Help on the way', 'heli'); note('Calls for the sandbox. In a battle this tab lists the support for your side.');
       wrow('heli', heli.on ? 'Recall rescue helicopter' : 'Call rescue helicopter', 'lifts people off roofs and wrecks', null, () => { callHeli(); renderTablet(); }); wrow('para', bomber.on ? 'Recall water bomber' : 'Call water bomber', 'scoops from the sea and drops on fires', null, () => { callBomber(true); renderTablet(); });
+      wrow('scope', 'Gunship station', stnPick(team) ? 'sensor view and the three guns of the gunship' : 'calls a gunship, then opens its sensor view', null, () => { toggleTablet(false); stnOpenFor(team); });
     }
   } else if (tbTab === 'squad') {
     head('Squad orders', 'person');
@@ -6576,6 +6704,7 @@ function deploy(p) {
   const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
   me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; Snd.ui('ui_respawn', 0.7); $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
   sqdBind(me); fp.nades = 3; fp.c4 = 3; fp.smokes = 2; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
+  if (BATTLE.kit === 'gunship' && fp.on && BATTLE.team) setTimeout(() => { try { if (fp.on && BATTLE.kit === 'gunship') stnOpenFor(BATTLE.team, { op: true, free: true }); } catch (e) { window.__sqerr = String(e && e.stack || e); } }, 80);
 }
 function playBattle(team) {
   if (!isBattleMap()) { offerBattleMaps(); return; } if (!BATTLE.on) battleStart(); BATTLE.team = team; const q = spawnBot(team, true); if (!q) { toast('No room for another person'); return; } q.botSaved = q.bot; q.roleSaved = q.role; q.bot = null; q.role = 'You'; q.hp = 100; q.ag.pause = 0; q.side = team; if (people.includes(q)) { enterFP(q); const p = spawnPointOf(team); if (p) deploy(p); }
@@ -8533,8 +8662,9 @@ function frameStep(now) {
     camera.lookAt(god.tgt);
   }
   camera.far = mode === 'god' ? 6000 : 4000; camera.near = mode === 'god' ? 0.6 : 0.1; camera.updateProjectionMatrix();
+  if (STN && STN.on) stnStep(dt);                                      // the gunship sensor station takes the camera (and closes itself if the aircraft is gone)
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(...o.pos); camera.lookAt(new THREE.Vector3(...o.look)); }
-  const focus = mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
+  const focus = (STN && STN.on) ? STN.focus : mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
   // markers
   updateRings(t);
   if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size] * CELL); } else brushRing.visible = false;
@@ -8598,7 +8728,7 @@ function frameStep(now) {
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
-  renderer.render(scene, camera);
+  if (STN && STN.on) stnRender(); else renderer.render(scene, camera);
   Snd.frame(dt);
   requestAnimationFrame(frame);
 }
@@ -8711,6 +8841,11 @@ const KEYMAP = [
   ['veh', 'F', 'Get out (same as E, and works in a helicopter that is under 3 metres up and slow)'],
   ['veh', 'Helicopter: W S, A D, Q E', 'Fly forward and back, bank and turn, and turn on the spot. E turns right in the air and gets you out on the ground'],
   ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
+  ['stn', '1, 2, 3', 'Gunship station: choose the 105 mm howitzer, the 40 mm cannon or the 25 mm Vulcan. A short "Getting ready" follows each switch'],
+  ['stn', 'Space, Enter, right button', 'Gunship station: fire the chosen gun. Hold for the Vulcan'],
+  ['stn', 'Arrow keys, W A S D, drag', 'Gunship station: slew the camera. A click or tap in the view, or on the small map, moves the aim point there'],
+  ['stn', '+, -, wheel', 'Gunship station: zoom in and out, up to x24'],
+  ['stn', 'M, T, Esc', 'Gunship station: change sensor (Thermal, Night vision, Colour), track the unit under the reticle, leave the station'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Fire mission', 'Marking a target opens a fire mission. The Fire tab lists what could fire on it (mortar pits, howitzers, vehicles, aircraft, your squad, snipers, anti-armour teams, gun nests). Tick any number and press Execute. Cease fire stops them. A destroyed person or vehicle clears the marker by itself. Ground cover fire carries on until you cease it'],
   ['tab', 'Map', 'Opens the tactical map (also the L key). Range rings, fire data (bearing, elevation, flight time, spread), danger close warning, shell types and adjust fire'],
@@ -8726,6 +8861,7 @@ function controlsNodes() {
   head('Controls: the overview'); rows(keyRows(['over']));
   head('Controls: first person'); rows(keyRows(['fp']));
   head('Controls: boats'); rows(keyRows(['boat'])); head('Controls: vehicles and helicopters'); rows(keyRows(['veh']));
+  head('Gunship sensor station'); rows(keyRows(['stn']));
   head('Command (T)'); rows(keyRows(['tab']));
   return out;
 }
@@ -12477,7 +12613,7 @@ function fmBotTarget0(q, b) {                                         // a snipe
 function fmAirPerson0(u, R) { const f = u.fmP; if (!f || FMS.m !== f.m || f.m.state !== 'active') { u.fmP = null; u.manual = !!u.wasManual; return null; } const t = f.m.target; return t.type === 'person' && t.alive && Math.hypot(t.x - u.x, t.z - u.z) < R ? t.ref : null; }
 function fmAirExtra0(u, dt) {                                         // an aircraft told to cover a target keeps orbiting it, and shoots at a vehicle or at open ground
   const f = u.fmP, m = f && f.m; if (!m || FMS.m !== m || m.state !== 'active') { u.fmP = null; u.manual = !!u.wasManual; return; } const t = m.target; if (t.type === 'person' || !t.alive) return; u.tgt = m.tp; u.life = Math.max(u.life, 12);
-  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; if (Math.hypot(t.x - u.x, t.z - u.z) > R) return; if (gun) { u.fmTgt = { type: t.type, ref: t.ref, x: t.x, y: t.y, z: t.z }; return; }        // the gunship's three weapons shoot the mission target through acStep (airFire runs next)
+  const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 1100 : cob ? 125 : 95; if (Math.hypot(t.x - u.x, t.z - u.z) > R) return; if (gun) { u.fmTgt = { type: t.type, ref: t.ref, x: t.x, y: t.y, z: t.z }; return; }        // the gunship's three weapons shoot the mission target through acStep (airFire runs next)
   aimGuns(u, t.x, t.y, t.z, dt);
   u.fmT = (u.fmT || 0) - dt; if (u.fmT <= 0) { u.fmT = gun ? 0.12 : cob ? 0.14 : 0.16; const j = t.type === 'ground' ? 7 : 2.2, ex = t.x + rnd(-j, j), ez = t.z + rnd(-j, j), ey = t.type === 'ground' ? Math.max(heightAt(ex, ez), 0) : t.y;
     addTracer(u.x + Math.cos(u.hd) * 2.2, u.y - 1, u.z - Math.sin(u.hd) * 2.2, ex, ey, ez, { k: 'mg', team: u.team }); if (Math.random() < 0.2) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
@@ -12820,9 +12956,9 @@ const PH = (() => {
   const body = document.body, modalOpen = () => body.classList.contains('modal-open');
 
   /* ---- one modal at a time. Whatever opens last stays; the rest are closed with their own close routines. The deploy window is never closed by another sheet. */
-  const ML = { open: new Set(), ids: ['tablet', 'bSetup', 'menuSheet', 'help', 'inspector', 'tmap', 'bSpawn', 'side', 'cheatSheet'], armed: false };
+  const ML = { open: new Set(), ids: ['tablet', 'bSetup', 'menuSheet', 'help', 'inspector', 'tmap', 'bSpawn', 'side', 'cheatSheet', 'stn'], armed: false };
   const isOpen = (id) => { const e = $(id); if (!e) return false; if (id === 'side') return body.classList.contains('sideopen'); return !e.hidden; };
-  const closers = { tablet: () => toggleTablet(false), bSetup: () => closeSetup(), menuSheet: () => closeMenu(), help: () => { $('help').hidden = true; }, inspector: () => closeInspector(), tmap: () => tmClose(), side: () => setSide(false), cheatSheet: () => { $('cheatSheet').hidden = true; }, bSpawn: () => { $('bSpawn').hidden = true; } };
+  const closers = { tablet: () => toggleTablet(false), bSetup: () => closeSetup(), menuSheet: () => closeMenu(), help: () => { $('help').hidden = true; }, inspector: () => closeInspector(), tmap: () => tmClose(), side: () => setSide(false), cheatSheet: () => { $('cheatSheet').hidden = true; }, bSpawn: () => { $('bSpawn').hidden = true; }, stn: () => stnClose() };
   const arm = () => { if (!ML.armed) { try { history.pushState({ sc: 1 }, ''); ML.armed = true; } catch (e) { } } };
   function ladderSync() {
     const now = ML.ids.filter(isOpen), fresh = now.filter(i => !ML.open.has(i));
@@ -12911,6 +13047,359 @@ const PH = (() => {
 Object.assign(window.__sc, { PH, GOV, govApply, govFrame });
 Object.assign(window.__sc, { EMP2, RIGDEF, emp2Make, ensureEmplace2, rigAim, rigMuzzle, PSPEC, solveBall, pieceSolve, pieceOrder, pieceFromCall, updatePiece, SHELLS, SHELLT, shellLaunch, FLARE, flareStart, FMS, FMIS: FMS, MISSION: () => FMS.m, fmMark, fmEnumerate, fmExecute, fmCease, fmFinish, fmStart, fmDetect, fmClearMarker, FMV, TMAP, tmOpen, tmClose, tmBuildBase, GUNS, gunScan, gunState, gunFire, fireData, dangerClose, tmFire, tmShift, gridRef, cmpDeg, addHowitzer, addMortar, empDress, EMP_DECK });
 Object.assign(window.__sc, { BOOT, LP, loadRealMap, REALMAPS, realPlanBuildings, realRoads, goMap, toStartMenu, bootBattle, runBootPlan, layRealMap, get REAL() { return REAL; }, get REAL_B() { return REAL_B; }, get REALC() { return REALC; } });
+/*STN-START*/
+/* ================================================================ AC-130 sensor station (GUNSHIP-STATION-SPEC.md, EDITION-RULES.md).
+   A full-screen view from a gimballed camera on the left side of the side's gunship. The camera stays locked on one GROUND POINT while the aircraft orbits; only the operator moves the point.
+   The scene is drawn from that camera into a render target (smaller on the phone) and a post pass makes it Thermal, Night vision or Colour. Three weapons all aim at the same point.
+   Nothing here shows a countdown or a timer. Not auditioned, not played on a phone: see QA-LOG.md. */
+const STN_LIM = 65 * D2R, STN_FOV = 34, STN_ZMAX = 24, STN_DC = 90;
+const SW = [{ id: 'how', name: '105 mm howitzer', prep: 2.0, reload: 7.0 }, { id: 'can', name: '40 mm cannon', prep: 1.0, reload: 2.2 }, { id: 'vul', name: '25 mm Vulcan', prep: 0.12, reload: 0 }];
+const STN_MODES = { thermal: { n: 'Thermal (white hot)', hint: 'Sees through cloud', k: 0 }, night: { n: 'Night vision', hint: 'Clouds can block this', k: 1 }, colour: { n: 'Colour', hint: 'Clouds can block this', k: 2 } };
+var STN = {
+  on: false, team: null, u: null, op: false, t: 0, mode: 'thermal', zoom: 1, zoomT: 1, ax: 0, ay: 0, az: 0, state: 'locked', outT: 0, off: 0, rel: 0, relB: 0, elB: 0, easeT: 0, cd: new THREE.Vector3(0, -0.6, 0.8).normalize(),
+  gun: null, focus: new THREE.Vector3(), view: { x: 0, y: 0, w: 1, h: 1 }, keys: new Set(), pad: { x: 0, y: 0 }, drag: null, ptr: new Map(), pinch: null, fireBtn: false, fireKey: false, fireRmb: false, fireV: false,
+  weapon: 0, W: SW.map(() => ({ prep: 0, rel: 0, fill: 1, lock: false, was: true })), lock: null, lockBox: { x: 0, y: 0, s: 120, id: 0 }, trk: null, contacts: [], cnt: { e: 0, f: 0, u: 0 }, cloud: 0, cloudT: 0,
+  why: '', msg: '', saved: null, hidden: [], hudT: 0, commsT: 4, squelchT: 18, lastShot: -9, loseT: 0, lockSnd: 0, danger: 0, shots: { how: 0, can: 0, vul: 0 }, crew: { n: 0, last: '', say: [] }, wantInt: 0, stats: { frames: 0 },
+  tg() { if (!this.on || this.state !== 'locked') return null; const l = this.lock; if (l && l.ref && Math.hypot(l.ref.x - this.ax, l.ref.z - this.az) < 12 && (l.kind === 'person' ? (l.ref.state !== 'rag' && l.ref.hp > 0) : !l.ref.dead)) return { type: l.kind, ref: l.ref, x: l.ref.x, y: (l.ref.y || 0) + (l.kind === 'person' ? 1 : 1.5), z: l.ref.z }; return { type: 'ground', x: this.ax, y: this.ay, z: this.az, area: true }; },
+  canFire(i) { const w = this.W[i]; return !!this.on && this.weapon === i && w.prep <= 0 && w.rel <= 0 && !w.lock && this.state === 'locked' && !!this.u && !this.u.down; },
+  drainV(dt) { const w = this.W[2]; w.fill = Math.max(0, w.fill - dt * 0.2); if (w.fill <= 0.001) { w.lock = true; w.fill = 0; } },
+};
+const stnEl = (id) => document.getElementById(id);
+const stnR = { rt: null, rw: 0, rh: 0, scene: null, cam: null, mats: {}, quad: null, hot: null, lists: new WeakMap(), half: true, ctx2: null, mini: null, miniBase: null, cv: null };
+let stnBuilt = false;
+
+/* ---------------------------------------------------------------- opening and closing */
+function stnPick(team) { return AIR.list.find(a => a.kind === 'gunship' && a.team === team && !a.down) || null; }
+const S0op = (o) => !!(o && o.op);
+function stnOpenFor(team, o) {
+  o = o || {}; if (STN.on) return true; if (BATTLE.over) return false; team = team || BATTLE.team || 'blue';
+  let u = stnPick(team); const hot = hotSpot(team), st0 = fp.on && S0op(o) ? (hot || { x: fp.p.x, z: fp.p.z }) : (!fp.on && Math.abs(god.tgt.x) < EXT && Math.abs(god.tgt.z) < EXT ? { x: god.tgt.x, z: god.tgt.z } : (hot || { x: 0, z: 0 }));
+  if (!u) {
+    if (BATTLE.on && !o.free && !CHEAT.free && AIR.cd[team].gs > 0) { toast('The gunship is not ready yet.'); return false; }
+    ensureAir(); const c = { x: st0.x, z: st0.z }; u = airSpawn(team, 'gunship', c); if (!u) { toast('No gunship could be called.'); return false; }
+    const a = Math.random() * 6.283; u.oa = a; u.x = c.x + Math.cos(a) * ACORB; u.z = c.z + Math.sin(a) * ACORB; u.hd = Math.PI - a; u.y = ACALT; u.life += 10; u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, 0, 'YXZ'); if (BATTLE.on) AIR.cd[team].gs = 180;
+  }
+  if (u.leaving) { u.leaving = false; u.life = Math.max(u.life, 30); }
+  stnBuild(); const S = STN;
+  if (!$('tablet').hidden) toggleTablet(false); if (TMAP.open) tmClose(); if (document.pointerLockElement) document.exitPointerLock(); fp.free = false; fp.fireHeld = false; keys.clear();
+  S.saved = { fov: camera.fov, aspect: camera.aspect, near: camera.near, far: camera.far, vis: [] };
+  S.on = true; S.team = team; S.u = u; S.op = !!o.op; S.t = 0; S.state = 'locked'; S.outT = 0; S.zoom = S.zoomT = 1; S.trk = null; S.lock = null; S.fireBtn = S.fireKey = S.fireRmb = S.fireV = false; S.keys.clear(); S.pad.x = S.pad.y = 0; S.why = ''; S.msg = '';
+  S.ax = clamp(st0.x, -EXT * 0.95, EXT * 0.95); S.az = clamp(st0.z, -EXT * 0.95, EXT * 0.95); S.ay = Math.max(heightAt(S.ax, S.az), 0);
+  u.wasManual = u.manual; u.manual = true; u.stnC = u.stnC || { x: u.tgt.x, z: u.tgt.z }; u.stnC.x = u.tgt.x; u.stnC.z = u.tgt.z; u.tgt = u.stnC; u.fmP = null;
+  for (const w of S.W) { w.prep = 0; w.rel = 0; w.fill = 1; w.lock = false; } S.weapon = 0; S.W[0].prep = SW[0].prep; S.W[0].was = false;
+  document.body.classList.add('stn-on'); $('stn').hidden = false; stnLayout(); stnMiniBuild(); stnSetMode(S.mode, true); stnWeaponUi();
+  S.focus.set(S.ax, S.ay, S.az); S.cd.set(0, -0.6, 0.8).normalize(); S.easeT = 1.2; S.wantInt = 0;
+  Snd.setStation(true); AC.stn.stop(u); AC.stn.preInt(); acSafe(acPre);
+  Snd.fx('ac130_int_select_howitzer', undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_howitzer', undefined, undefined, { gain: 1.1, gap: 1.0, q: true });
+  stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Slew with the arrow keys or drag. Space fires. Esc leaves.');
+  return true;
+}
+function stnClose(why) {
+  const S = STN; if (!S.on) return; const u = S.u; S.on = false; try { AC.stn.stop(u); } catch (e) { }
+  if (u && AIR.list.includes(u) && !u.down) { u.manual = !!u.wasManual; u.life = Math.min(Math.max(u.life, 25), 45); if (!u.manual) { u.tgt = hotSpot(u.team) || u.stnC || u.tgt; } }
+  const sv = S.saved; if (sv) { camera.fov = sv.fov; camera.near = sv.near; camera.far = sv.far; } camera.up.set(0, 1, 0); try { resize(); } catch (e) { }
+  document.body.classList.remove('stn-on'); $('stn').hidden = true; Snd.setStation(false); S.keys.clear(); S.fireBtn = S.fireKey = S.fireRmb = S.fireV = false; S.ptr.clear(); S.drag = null; S.pinch = null; S.trk = null; S.u = null;
+  try { renderer.setRenderTarget(null); renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight); if (stnR.rt) { stnR.rt.dispose(); stnR.rt = null; } } catch (e) { }                      // the sensor picture's target is given back to the graphics card
+  keys.clear(); if (fp.on && !isTouch && mode === 'fp') lockPointer(); if (why) toast(why);
+}
+function stnLeave() { stnClose(); }
+function stnMsg(t) { STN.msg = t; STN.msgT = STN.t; }
+
+/* ---------------------------------------------------------------- layout, map, mode */
+function stnLayout() {
+  const v = stnEl('stnView'); if (!v) return; const r = v.getBoundingClientRect(), S = STN;
+  S.view.x = r.left; S.view.y = r.top; S.view.w = Math.max(2, r.width); S.view.h = Math.max(2, r.height);
+  const cv = stnEl('stnHud'), dpr = Math.min(2, window.devicePixelRatio || 1); const W = Math.round(S.view.w * dpr), H = Math.round(S.view.h * dpr); if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; } stnR.dpr = dpr;
+}
+addEventListener('resize', () => { if (STN.on) { stnLayout(); } });
+function stnMiniBuild() {                                                           // a small flat map of land and sea, drawn once per visit
+  const N = 72, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), im = g.createImageData(N, N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const x = ((i + 0.5) / N * 2 - 1) * EXT, z = ((j + 0.5) / N * 2 - 1) * EXT, h = heightAt(x, z), p = (j * N + i) * 4; if (h < 0.05) { im.data[p] = 24; im.data[p + 1] = 58; im.data[p + 2] = 84; } else { const k = clamp(h / 30, 0, 1); im.data[p] = 70 + 70 * k; im.data[p + 1] = 96 + 60 * k; im.data[p + 2] = 62 + 60 * k; } im.data[p + 3] = 255; }
+  g.putImageData(im, 0, 0); stnR.miniBase = c;
+}
+function stnSetMode(m, quiet) {
+  STN.mode = m; for (const [k, id] of [['thermal', 'stnThermal'], ['night', 'stnNight'], ['colour', 'stnColour']]) { const b = stnEl(id); if (b) b.setAttribute('aria-pressed', String(k === m)); }
+  if (!quiet) stnMsg('Sensor: ' + STN_MODES[m].n + '. ' + STN_MODES[m].hint + '.');
+}
+function stnCycleMode() { const k = Object.keys(STN_MODES); stnSetMode(k[(k.indexOf(STN.mode) + 1) % k.length]); }
+function stnZoom(f) { STN.zoomT = clamp(STN.zoomT * f, 1, STN_ZMAX); }
+
+/* ---------------------------------------------------------------- geometry */
+function stnGround(px, py, pz, dx, dy, dz) {
+  if (dy > -0.02) return null; let t = py / -dy; for (let i = 0; i < 5; i++) { const x = px + dx * t, z = pz + dz * t, h = Math.max(heightAt(clamp(x, -EXT, EXT), clamp(z, -EXT, EXT)), 0); t = (py - h) / -dy; }
+  return { x: clamp(px + dx * t, -EXT, EXT), z: clamp(pz + dz * t, -EXT, EXT), t };
+}
+const _sv1 = new THREE.Vector3();
+function stnSetAim(x, z) {
+  const S = STN; S.ax = clamp(x, -EXT * 0.97, EXT * 0.97); S.az = clamp(z, -EXT * 0.97, EXT * 0.97); S.ay = Math.max(heightAt(S.ax, S.az), 0); S.trk = null;
+  if (S.state === 'broken') { S.state = 'locked'; S.outT = 0; } else if (S.state === 'losing') S.outT = Math.min(S.outT, 3); S.easeT = 1.2;
+}
+function stnClickAt(cx, cy) {                                                         // a click or tap in the view sets the point where the ray meets the ground
+  const S = STN, V = S.view, nx = ((cx - V.x) / V.w) * 2 - 1, ny = -(((cy - V.y) / V.h) * 2 - 1); _sv1.set(nx, ny, 0.5).unproject(camera).sub(camera.position).normalize();
+  const g = stnGround(camera.position.x, camera.position.y, camera.position.z, _sv1.x, _sv1.y, _sv1.z); if (g) { stnSetAim(g.x, g.z); Snd.fx('ac130_int_select_cannon', undefined, undefined, { gain: 0.6, gap: 0.1, q: true }); }
+}
+function stnSlew(dt) {
+  const S = STN, K = S.keys; let sx = (K.has('d') || K.has('arrowright') ? 1 : 0) - (K.has('a') || K.has('arrowleft') ? 1 : 0), sy = (K.has('w') || K.has('arrowup') ? 1 : 0) - (K.has('s') || K.has('arrowdown') ? 1 : 0);
+  sx += S.pad.x; sy -= S.pad.y; sx = clamp(sx, -1, 1); sy = clamp(sy, -1, 1); if (!sx && !sy) return;
+  const rg = Math.max(100, Math.hypot(S.ax - camera.position.x, S.ay - camera.position.y, S.az - camera.position.z)), half = rg * Math.tan(camera.fov * D2R / 2) * camera.aspect, sp = Math.max(3, half * 0.7);
+  const cx = S.cd.x, cz = S.cd.z, fl = Math.hypot(cx, cz) || 1, fx = cx / fl, fz = cz / fl, rx = -fz, rz = fx;                         // screen up and right laid flat on the ground
+  stnSetAim(S.ax + (rx * sx + fx * sy) * sp * dt, S.az + (rz * sx + fz * sy) * sp * dt);
+}
+function stnDrag(dx, dy) {                                                           // dragging the view moves the ground under your finger
+  const S = STN, rg = Math.max(100, Math.hypot(S.ax - camera.position.x, S.ay - camera.position.y, S.az - camera.position.z)), mpp = 2 * rg * Math.tan(camera.fov * D2R / 2) / S.view.h;
+  const cx = S.cd.x, cz = S.cd.z, fl = Math.hypot(cx, cz) || 1, fx = cx / fl, fz = cz / fl, rx = -fz, rz = fx, dep = Math.max(0.35, -S.cd.y);
+  stnSetAim(S.ax + (-rx * dx + fx * dy / dep) * mpp, S.az + (-rz * dx + fz * dy / dep) * mpp);
+}
+const _sv2 = new THREE.Vector3();
+function stnStep(dt) {                                                               // camera, state machine, weapons: once a frame while the station is open
+  const S = STN, u = S.u; if (!S.on) return;
+  if (!u || u.down || !AIR.list.includes(u)) { stnClose(u && u.down ? 'The gunship was lost.' : 'The gunship has left.'); return; }
+  if (BATTLE.on && BATTLE.over) { stnClose(); return; }
+  dt = Math.min(dt, 0.1); S.t += dt; S.stats.frames++;
+  if (!BATTLE.on) { gunshipFly(u, dt); acSafe(acFrame, dt); updateShellsAir(dt); }                // in the sandbox no battle loop runs the aircraft, so the station does
+  if (fp.on && fp.p) { fp.p.hp = Math.max(fp.p.hp, 100); fp.vx = fp.vz = 0; }                       // the operator's body is safe while aboard
+  S.zoom += (S.zoomT - S.zoom) * (1 - Math.exp(-dt * 7)); if (Math.abs(S.zoomT - S.zoom) < 0.002) S.zoom = S.zoomT;
+  const fov = 2 * Math.atan(Math.tan(STN_FOV * D2R / 2) / S.zoom) / D2R, V = S.view;
+  const lx = Math.cos(u.hd), lz = -Math.sin(u.hd), px = u.x + lx * 3.2, py = u.y - 3, pz = u.z + lz * 3.2;
+  if (S.trk) { const q = S.trk.ref; if (S.trk.kind === 'person' ? (q.state === 'rag' || q.hp <= 0 || !people.includes(q)) : (q.dead || !BVL.includes(q))) { S.trk = null; stnMsg('Tracked target lost.'); } else { S.ax = q.x; S.az = q.z; S.ay = Math.max(heightAt(q.x, q.z), 0); } }
+  stnSlew(dt);
+  const dx = S.ax - px, dz = S.az - pz, dy = S.ay - py, hz = Math.hypot(dx, dz) || 1, bear = Math.atan2(dx, dz), Lb = u.hd + Math.PI / 2, rel = wrap(bear - Lb), off = Math.abs(rel), el = Math.atan2(dy, hz);
+  S.rel = rel; S.off = off; S.range = Math.hypot(dx, dy, dz);
+  let dir = _sv2, prev = S.state;
+  if (S.state === 'broken') { const b = Lb + S.relB; dir.set(Math.sin(b) * Math.cos(S.elB), Math.sin(S.elB), Math.cos(b) * Math.cos(S.elB)); }
+  else {
+    if (off > STN_LIM) { if (S.state === 'locked') { S.state = 'losing'; S.outT = 0; S.easeT = 1.2; S.loseT = 0; } S.outT += dt; }
+    else if (S.state === 'losing' && off < STN_LIM - 0.035) { S.state = 'locked'; S.outT = 0; S.easeT = 1.2; Snd.fx('ac130_int_lock', undefined, undefined, { gain: 0.9, gap: 1.0, q: true }); stnMsg('Target regained.'); }
+    const rc = clamp(rel, -STN_LIM, STN_LIM), b = Lb + (S.state === 'losing' ? rc : rel); dir.set(Math.sin(b) * Math.cos(el), Math.sin(el), Math.cos(b) * Math.cos(el));
+    if (S.state === 'losing') { S.relB = rc; S.elB = el;
+      if (S.outT > 3.5) { const g = stnGround(px, py, pz, dir.x, dir.y, dir.z); if (g) { const k = Math.min(1, dt * 0.12); S.ax += (g.x - S.ax) * k; S.az += (g.z - S.az) * k; S.ay = Math.max(heightAt(S.ax, S.az), 0); } }
+      if (S.outT > 9) { S.state = 'broken'; stnMsg('Lock lost. Slew or tap the view to lock again.'); } }
+  }
+  if (S.state !== prev) S.easeT = 1.2;
+  if (S.state === 'locked' && S.easeT <= 0) S.cd.copy(dir); else { S.cd.lerp(dir, 1 - Math.exp(-dt * 6)).normalize(); S.easeT -= dt; }          // locked means rigid (a stabilised camera does not lag); it only eases for a moment after a cut, a state change, or while past the limit
+  const g = stnGround(px, py, pz, S.cd.x, S.cd.y, S.cd.z); if (g) { S.gun = { x: g.x, y: Math.max(heightAt(g.x, g.z), 0), z: g.z }; if (S.state === 'broken') { S.ax = g.x; S.az = g.z; S.ay = S.gun.y; } }
+  camera.position.set(px, py, pz); camera.fov = fov; camera.aspect = V.w / V.h; camera.near = 15; camera.far = 4200; camera.up.set(0, 1, 0); camera.updateProjectionMatrix(); camera.lookAt(px + S.cd.x * 100, py + S.cd.y * 100, pz + S.cd.z * 100); camera.updateMatrixWorld(true);
+  S.focus.set(S.ax, S.ay, S.az);
+  S.cloudT -= dt; if (S.cloudT <= 0) { S.cloudT = 0.5; let cc = 0; try { cc = csample(CC, S.ax, S.az); } catch (e) { } S.cloud = Math.max(clamp(cc / 2.4, 0, 1), wx.rainAmt * 0.6, [0, 0.45, 0.85][wx.fog] || 0, (dis && dis.hurricane > 0) ? 0.9 : 0); }
+  stnWeapons(dt); stnSounds(dt); stnContacts();
+  S.hudT -= dt; if (S.hudT <= 0) { S.hudT = 0.12; stnDom(); } stnDraw();
+}
+
+/* ---------------------------------------------------------------- weapons: ready-up, reload, fire */
+const stnLab = (i) => { const w = STN.W[i]; return w.prep > 0 ? 'Getting ready' : (w.rel > 0 || w.lock) ? 'Reloading' : 'Ready'; };
+function stnSelect(i) {
+  const S = STN; if (!S.on || i === S.weapon) return; S.weapon = i; const w = S.W[i], d = SW[i]; w.prep = d.prep; w.was = false; S.fireV = false; if (S.u) AC.stn.stop(S.u);
+  const nm = ['howitzer', 'cannon', 'vulcan'][i]; Snd.fx('ac130_int_select_' + nm, undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_' + nm, undefined, undefined, { gain: 1.1, gap: i === 2 ? 0.3 : 1.0, q: true });
+  stnMsg('Selected: ' + d.name + '.'); stnWeaponUi();
+}
+function stnWhy() { const S = STN; if (S.state === 'losing') return 'Cannot fire: the target is outside the gimbal limit. Turn back or slew the point.'; if (S.state === 'broken') return 'Cannot fire: lock lost. Slew or tap the view to lock again.'; const w = S.W[S.weapon]; if (w.prep > 0) return SW[S.weapon].name + ' is getting ready.'; if (w.rel > 0 || w.lock) return SW[S.weapon].name + ' is reloading.'; return ''; }
+function stnTryFire() {                                                              // one press: howitzer (one shell) or 40 mm (a string of three)
+  const S = STN; if (!S.on) return false; const i = S.weapon;
+  if (!S.canFire(i)) { const t = stnWhy(); if (t) stnMsg(t); return false; }
+  const tg = S.tg(); if (!tg) return false;
+  if (i === 0) { S.W[0].rel = SW[0].reload; S.W[0].was = false; AC.stn.how(S.u, tg); S.lastShot = S.t; S.shots.how++; stnHowSeq(); }
+  else if (i === 1) { S.W[1].rel = 1.2 + SW[1].reload; S.W[1].was = false; AC.stn.cannon(S.u, 3); S.lastShot = S.t; S.shots.can++; }
+  return true;
+}
+function stnHowSeq() {                                                               // the loader after each shell: hoist, ram, breech, then the re-armed click when it is ready
+  const go = (t, st) => AC.later(t, () => { if (STN.on) Snd.fx(st, undefined, undefined, { gain: 1.0, gap: 0.5, q: true }); }); go(1.0, 'ac130_int_howitzer_hoist'); go(2.5, 'ac130_int_howitzer_ram'); go(3.5, 'ac130_int_howitzer_breech');
+}
+function stnWeapons(dt) {
+  const S = STN, hold = S.fireBtn || S.fireKey || S.fireRmb;
+  for (let i = 0; i < 3; i++) {
+    const w = S.W[i], d = SW[i]; if (w.prep > 0) w.prep = Math.max(0, w.prep - dt); if (w.rel > 0) w.rel = Math.max(0, w.rel - dt);
+    if (i === 2) { if (w.lock) { w.fill = Math.min(1, w.fill + dt * 0.25); if (w.fill >= 1) w.lock = false; } else if (!S.fireV) w.fill = Math.min(1, w.fill + dt * 0.35); }
+    const ready = w.prep <= 0 && w.rel <= 0 && !w.lock;
+    if (ready && !w.was) { w.was = true; if (i === 0) Snd.fx('ac130_int_rearm_howitzer', undefined, undefined, { gain: 1.0, gap: 0.6, q: true }); else if (i === 1) Snd.fx('ac130_int_rearm_cannon', undefined, undefined, { gain: 1.0, gap: 0.25, q: true }); if (i === 0 && S.weapon === 0) stnCrew('how'); if (i === 1 && S.weapon === 1) stnCrew('can'); }
+    else if (!ready) w.was = false;
+  }
+  S.fireV = S.weapon === 2 && hold && S.canFire(2);
+  if (hold && S.holdWas !== true && S.weapon !== 2) { stnTryFire(); S.holdWas = true; } if (!hold) S.holdWas = false;
+  if (S.weapon === 2 && hold && !S.fireV && S.t - (S.whyT || 0) > 1.5) { S.whyT = S.t; const t = stnWhy(); if (t) stnMsg(t); }
+  stnWeaponUi();
+}
+function stnCrew(kind) {                                                             // one short call when a gun can fire again: about two reloads in three for the howitzer, rarely for the 40 mm, never the same words twice running
+  const S = STN, C = S.crew; if (!S.on) return; const H = ['Ready!', 'Ready to fire!', 'Up!', 'Weapon up!'], L = ['Loaded!'], odds = kind === 'how' ? 0.667 : 0.25;
+  if (!(S.crewForce || Math.random() < odds)) return; const list = kind === 'how' ? H : L; let t = list[Math.floor(Math.random() * list.length)]; if (list.length > 1) { let n = 0; while (t === C.last && n++ < 8) t = list[Math.floor(Math.random() * list.length)]; } if (t === C.last && list.length === 1 && kind === 'can') return;
+  C.last = t; C.n++; C.say.push(t); if (C.say.length > 12) C.say.shift();
+  if (VOICE.caps) captionAdd('Gun crew', t, S.team, false);
+  const ss = window.speechSynthesis; if (VOICE.on && ss && VOICE.vol > 0 && !ss.speaking) { try { const u = new SpeechSynthesisUtterance(t), en = VOICE.voices.filter(v => /^en/i.test(v.lang)); if (en.length) u.voice = en[Math.min(en.length - 1, 2)]; u.lang = (u.voice && u.voice.lang) || 'en-US'; u.pitch = 0.8; u.rate = 1.3; u.volume = clamp(VOICE.vol * 1.15, 0, 1); ss.speak(u); } catch (e) { } }
+}
+
+/* ---------------------------------------------------------------- sound: comms, lock and losing cues */
+function stnSounds(dt) {
+  const S = STN; S.commsT -= dt; S.squelchT -= dt; S.loseT -= dt;
+  if (S.commsT <= 0) { S.commsT = 3 + Math.random() * 6; if (S.t - S.lastShot > 1.2) Snd.fx('ac130_int_comms_click', undefined, undefined, { gain: 0.5, gap: 0.9, q: true }); }
+  if (S.squelchT <= 0) { S.squelchT = 12 + Math.random() * 18; if (S.t - S.lastShot > 1.2) Snd.fx('ac130_int_comms_squelch', undefined, undefined, { gain: 0.5, gap: 4, q: true }); }
+  if (S.state !== 'locked' && S.loseT <= 0) { S.loseT = 3.2; Snd.fx('ac130_int_losing_target', undefined, undefined, { gain: 0.9, gap: 3, q: true }); }
+  S.wantInt -= dt; if (S.wantInt <= 0) { S.wantInt = 2; if (!Snd.have('ac130_int_cabin_loop')) AC.stn.preInt(); }
+}
+
+/* ---------------------------------------------------------------- contacts and lock */
+function stnContacts() {
+  const S = STN, V = S.view, out = [], v3 = _sv1, cx = V.w / 2, cy = V.h / 2; let e = 0, f = 0, un = 0, best = null, bd = 1e9; const tol = ED.phone ? 56 : 44;
+  const add = (kind, ref, x, y, z, team) => {
+    v3.set(x, y, z).project(camera); if (v3.z > 1 || v3.z < -1) return; const sx = (v3.x * 0.5 + 0.5) * V.w, sy = (-v3.y * 0.5 + 0.5) * V.h; if (sx < -20 || sx > V.w + 20 || sy < -20 || sy > V.h + 20) return;
+    const cls = team === null ? 'u' : team === S.team ? 'f' : 'e'; if (cls === 'e') e++; else if (cls === 'f') f++; else un++;
+    const o = { kind, ref, sx, sy, cls, d: Math.hypot(sx - cx, sy - cy), h: kind === 'person' ? 2 : 3 }; out.push(o); if (o.d < tol && o.d < bd && Math.hypot(x - S.ax, z - S.az) < 28) { bd = o.d; best = o; }
+  };
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.vin || q.hoist) continue; add('person', q, q.x, q.y + 1, q.z, teamOf(q)); }
+  for (const v of BVL) { if (v.dead) continue; add('vehicle', v, v.x, v.y + 1.5, v.z, v.team || null); }
+  S.contacts = out; S.cnt.e = e; S.cnt.f = f; S.cnt.u = un;
+  const prev = S.lock ? S.lock.ref : null; S.lock = best; if (best && best.ref !== prev) { S.lockBox.s = 130; if (S.t - S.lockSnd > 1.5) { S.lockSnd = S.t; Snd.fx('ac130_int_lock', undefined, undefined, { gain: 0.8, gap: 1.2, q: true }); } }
+  S.danger = dangerClose(S.team, S.ax, S.az, STN_DC).length;
+}
+function stnTrackToggle() {
+  const S = STN; if (S.trk) { S.trk = null; stnMsg('Tracking off.'); return; }
+  if (!S.lock) { stnMsg('Put the reticle on a person or vehicle first, then press Track target.'); return; }
+  S.trk = { ref: S.lock.ref, kind: S.lock.kind }; stnMsg('Tracking the ' + (S.lock.cls === 'e' ? 'enemy' : S.lock.cls === 'f' ? 'friendly' : 'unknown') + ' ' + S.lock.kind + '.');
+}
+
+/* ---------------------------------------------------------------- drawing: the scene into a target, then the sensor picture on the canvas */
+function stnPostInit() {
+  if (stnR.scene) return; const gl = renderer.getContext(); stnR.half = !!(renderer.capabilities.isWebGL2 && (renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float')));
+  const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+  const fs = [
+    'varying vec2 vUv; uniform sampler2D tDiff; uniform vec2 uTexel; uniform float uMode, uCloud, uTime, uAsp;',
+    'float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
+    'float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }',
+    'float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }',
+    'float heatOf(vec3 c){ return smoothstep(0.55, 0.95, min(c.r, c.b) - 1.6 * c.g); }',
+    'float lumOf(vec3 c){ return dot(c, vec3(0.2126, 0.7152, 0.0722)); }',
+    'void main(){',
+    '  vec3 c = texture2D(tDiff, vUv).rgb; float lum = lumOf(c); vec3 o;',
+    '  if (uMode < 0.5) {',                                                              // thermal, white hot
+    '    float h = heatOf(c); vec2 t2 = uTexel * 2.5; float hh = (heatOf(texture2D(tDiff, vUv + vec2(t2.x, 0.0)).rgb) + heatOf(texture2D(tDiff, vUv - vec2(t2.x, 0.0)).rgb) + heatOf(texture2D(tDiff, vUv + vec2(0.0, t2.y)).rgb) + heatOf(texture2D(tDiff, vUv - vec2(0.0, t2.y)).rgb)) * 0.25;',
+    '    float L = clamp(lum, 0.0, 1.0); float g = 0.10 + 0.26 * sqrt(L);',
+    '    float l1 = lumOf(texture2D(tDiff, vUv + vec2(uTexel.x * 1.5, 0.0)).rgb), l2 = lumOf(texture2D(tDiff, vUv + vec2(0.0, uTexel.y * 1.5)).rgb); g += clamp((abs(lum - l1) + abs(lum - l2)) * 1.4, 0.0, 0.2);',
+    '    float v = mix(g, 0.97, max(h, smoothstep(1.2, 2.6, lum))); v = max(v, 0.42 * hh);',
+    '    float n = fbm(vUv * vec2(5.0, 3.0) * vec2(uAsp, 1.0) + vec2(uTime * 0.03, 0.0)); v += uCloud * 0.075 * smoothstep(0.35, 0.8, n);',
+    '    v += (hash(gl_FragCoord.xy + uTime * 17.0) - 0.5) * 0.035; v *= 1.0 - 0.18 * smoothstep(0.45, 0.9, length((vUv - 0.5) * vec2(uAsp, 1.0)));',
+    '    o = vec3(clamp(v, 0.0, 1.0)); o = pow(o, vec3(2.2));',
+    '  } else if (uMode < 1.5) {',                                                      // night vision, green, grain, dimmed or blanked by cloud
+    '    float v = pow(clamp(lum * 1.9, 0.0, 1.0), 0.62); float n = fbm(vUv * vec2(3.0, 2.0) * vec2(uAsp, 1.0) + vec2(3.1, uTime * 0.02));',
+    '    float blank = smoothstep(0.42, 0.85, uCloud + (n - 0.5) * 0.9) * step(0.3, uCloud); v *= 1.0 - 0.5 * uCloud; v = mix(v, 0.55 + 0.25 * n, blank * 0.9);',
+    '    v += (hash(gl_FragCoord.xy + uTime * 61.0) - 0.5) * 0.26 + (hash(gl_FragCoord.yx * 0.5 + uTime * 13.0) - 0.5) * 0.08;',
+    '    v *= smoothstep(0.78, 0.38, length((vUv - 0.5) * vec2(uAsp, 1.0)) * 1.05); o = pow(vec3(0.12, 1.0, 0.3) * clamp(v, 0.0, 1.0), vec3(2.2));',
+    '  } else {',                                                                       // colour: the normal view, blocked by cloud
+    '    float n = fbm(vUv * vec2(3.0, 2.0) * vec2(uAsp, 1.0) + vec2(1.7, uTime * 0.015)); float block = smoothstep(0.12, 0.9, uCloud + (n - 0.5) * 0.5) * step(0.05, uCloud);',
+    '    o = mix(c, vec3(0.64, 0.66, 0.70) * (0.65 + 0.5 * n), block * 0.96);',
+    '  }',
+    '  gl_FragColor = vec4(o, 1.0);',
+    '  #include <tonemapping_fragment>', '  #include <colorspace_fragment>', '}',
+  ].join('\n');
+  const mk = (tm) => new THREE.ShaderMaterial({ vertexShader: vs, fragmentShader: fs, uniforms: { tDiff: { value: null }, uTexel: { value: new THREE.Vector2(1, 1) }, uMode: { value: 0 }, uCloud: { value: 0 }, uTime: { value: 0 }, uAsp: { value: 1 } }, depthTest: false, depthWrite: false, toneMapped: tm });
+  stnR.mats = { raw: mk(false), tone: mk(true) };
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3)); geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2));
+  stnR.quad = new THREE.Mesh(geo, stnR.mats.raw); stnR.quad.frustumCulled = false; stnR.scene = new THREE.Scene(); stnR.scene.add(stnR.quad); stnR.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  stnR.hot = new THREE.MeshBasicMaterial({ color: 0xff00ff, fog: false, toneMapped: false });
+}
+function stnHotList(root) {                                                          // the meshes of one person or vehicle, remembered for a second
+  let e = stnR.lists.get(root); if (!e || simT - e.t > 1.5) { const l = []; root.traverse(o => { if (o.isMesh && !o.isInstancedMesh) l.push(o); }); e = { l, t: simT }; stnR.lists.set(root, e); } return e.l;
+}
+function stnRender() {
+  const S = STN, V = S.view; stnPostInit();
+  const pr = renderer.getPixelRatio(), sc = ED.phone ? 0.62 : 1; let rw = Math.max(64, Math.round(V.w * pr * sc)), rh = Math.max(64, Math.round(V.h * pr * sc)); const cap = ED.phone ? 760 : 2600; if (rw > cap) { rh = Math.round(rh * cap / rw); rw = cap; }
+  if (!stnR.rt || stnR.rw !== rw || stnR.rh !== rh) { if (stnR.rt) stnR.rt.dispose(); stnR.rt = new THREE.WebGLRenderTarget(rw, rh, { type: stnR.half ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: true, samples: ED.phone ? 0 : 2, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }); if (!stnR.half) stnR.rt.texture.colorSpace = THREE.SRGBColorSpace; stnR.rw = rw; stnR.rh = rh; }
+  const thermal = S.mode === 'thermal', swaps = [];
+  if (thermal) { const add = (root) => { if (!root || !root.visible) return; for (const m of stnHotList(root)) { swaps.push(m, m.material); m.material = stnR.hot; } };
+    for (const q of people) { if (q.state === 'rag' && q.hp <= 0) continue; add(q.obj); } for (const v of BVL) if (!v.dead) add(v.g); for (const a of AIR.list) if (a !== S.u && !a.down) add(a.g); }
+  const fd = scene.fog.density; scene.fog.density = Math.min(fd, thermal ? 0.00025 : S.mode === 'night' ? 0.0007 : 0.0010);
+  const kids = camera.children.filter(c => c.visible); for (const c of kids) c.visible = false; const own = S.u && S.u.g, ownV = own && own.visible; if (own) own.visible = false;               // the operator's own aircraft is not in its own picture
+  const cc = new THREE.Color(), ca = renderer.getClearAlpha(); renderer.getClearColor(cc);
+  renderer.setRenderTarget(stnR.rt); renderer.render(scene, camera); renderer.setRenderTarget(null);
+  for (const c of kids) c.visible = true; if (own) own.visible = ownV; scene.fog.density = fd; for (let i = 0; i < swaps.length; i += 2) swaps[i].material = swaps[i + 1];
+  const m = S.mode === 'colour' ? stnR.mats.tone : stnR.mats.raw, U = m.uniforms; U.tDiff.value = stnR.rt.texture; U.uTexel.value.set(1 / rw, 1 / rh); U.uMode.value = STN_MODES[S.mode].k; U.uCloud.value = S.cloud; U.uTime.value = S.t; U.uAsp.value = V.w / V.h; stnR.quad.material = m;
+  const W = innerWidth, H = innerHeight; renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H); renderer.setClearColor(0x000000, 1); renderer.clear(); renderer.setClearColor(cc, ca);
+  renderer.setScissorTest(true); renderer.setViewport(V.x, H - V.y - V.h, V.w, V.h); renderer.setScissor(V.x, H - V.y - V.h, V.w, V.h); const ac = renderer.autoClear; renderer.autoClear = false; renderer.render(stnR.scene, stnR.cam); renderer.autoClear = ac;
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
+}
+function stnDraw() {
+  const S = STN, V = S.view, cv = stnEl('stnHud'), g = cv.getContext('2d'), d = stnR.dpr || 1; if (!g) return; g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, V.w, V.h);
+  const cx = V.w / 2, cy = V.h / 2, ph = ED.phone, bright = S.mode === 'thermal', ink = bright ? '#101010' : '#000', fg = S.mode === 'night' ? '#b8ffc8' : '#ffffff';
+  const line = (x0, y0, x1, y1, w) => { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineWidth = w + 2.4; g.strokeStyle = ink; g.stroke(); g.lineWidth = w; g.strokeStyle = fg; g.stroke(); };
+  // reticle: long crosshair lines with a gap, small ticks
+  const L = Math.min(V.w, V.h) * 0.42, gap = ph ? 12 : 16; line(cx - L, cy, cx - gap, cy, 1.4); line(cx + gap, cy, cx + L, cy, 1.4); line(cx, cy - L, cx, cy - gap, 1.4); line(cx, cy + gap, cx, cy + L, 1.4);
+  for (let k = 1; k <= 4; k++) { const o = gap + k * (L - gap) / 5; for (const sg of [-1, 1]) { line(cx + sg * o, cy - 4, cx + sg * o, cy + 4, 1); line(cx - 4, cy + sg * o, cx + 4, cy + sg * o, 1); } }
+  // contacts
+  g.font = '600 ' + (ph ? 12 : 13) + 'px Barlow, system-ui, sans-serif'; g.textBaseline = 'middle'; const sorted = S.contacts.slice().sort((a, b) => a.d - b.d); let labelled = 0;
+  for (const c of sorted) {
+    const s = clamp(c.h * 2.4 * Math.min(S.zoom, 8) * 0.9, 9, 22), x = c.sx, y = c.sy; g.lineWidth = 2;
+    if (c.cls === 'e') { g.beginPath(); g.moveTo(x, y - s); g.lineTo(x + s, y); g.lineTo(x, y + s); g.lineTo(x - s, y); g.closePath(); g.strokeStyle = '#ff3b30'; g.lineWidth = 2.4; g.stroke(); }
+    else if (c.cls === 'f') { g.setLineDash([5, 4]); g.strokeStyle = '#ffd60a'; g.lineWidth = 2.2; g.strokeRect(x - s, y - s, s * 2, s * 2); g.setLineDash([]); }
+    else { g.beginPath(); g.arc(x, y, s * 0.8, 0, 6.283); g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.stroke(); }
+    if (labelled < (ph ? 8 : 16)) { labelled++; const t = (c.cls === 'e' ? 'Enemy' : c.cls === 'f' ? 'Friendly' : 'Unknown') + (c.kind === 'vehicle' ? ' vehicle' : ''); g.lineWidth = 3; g.strokeStyle = ink; g.strokeText(t, x + s + 4, y); g.fillStyle = c.cls === 'e' ? '#ff8a80' : c.cls === 'f' ? '#ffe45c' : '#ffffff'; g.fillText(t, x + s + 4, y); }
+  }
+  // the lock box tightens onto the target under the reticle
+  const lb = S.lockBox; if (S.lock && S.state === 'locked') { const tgt = clamp(S.lock.h * 11 * Math.min(S.zoom, 10) ** 0.5, 26, 92); lb.s += (tgt - lb.s) * 0.22; const x = S.lock.sx, y = S.lock.sy, s = lb.s / 2, k = s * 0.45; g.lineWidth = 2.6; g.strokeStyle = S.lock.cls === 'f' ? '#ffd60a' : '#ff3b30'; if (S.lock.cls === 'u') g.strokeStyle = '#ffffff';
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { g.beginPath(); g.moveTo(x + sx * s, y + sy * (s - k)); g.lineTo(x + sx * s, y + sy * s); g.lineTo(x + sx * (s - k), y + sy * s); g.stroke(); }
+    const t = 'Lock: ' + (S.lock.cls === 'e' ? 'Enemy' : S.lock.cls === 'f' ? 'Friendly' : 'Unknown'); g.lineWidth = 3; g.strokeStyle = ink; g.strokeText(t, x - s, y + s + 12); g.fillStyle = '#ffffff'; g.fillText(t, x - s, y + s + 12); }
+  else lb.s = 130;
+  // map overlay (tap to set the point)
+  const mc = stnEl('stnMini'), mg = mc.getContext('2d'), N = mc.width; mg.clearRect(0, 0, N, N); if (stnR.miniBase) mg.drawImage(stnR.miniBase, 0, 0, N, N);
+  const mx = (x) => (x / EXT * 0.5 + 0.5) * N, mz = (z) => (z / EXT * 0.5 + 0.5) * N;
+  if (S.u) { mg.strokeStyle = 'rgba(255,255,255,.55)'; mg.lineWidth = 1; const u = S.u, a0 = u.hd + Math.PI / 2 - STN_LIM, a1 = u.hd + Math.PI / 2 + STN_LIM; mg.beginPath(); mg.moveTo(mx(u.x), mz(u.z)); mg.lineTo(mx(u.x + Math.sin(a0) * 700), mz(u.z + Math.cos(a0) * 700)); mg.moveTo(mx(u.x), mz(u.z)); mg.lineTo(mx(u.x + Math.sin(a1) * 700), mz(u.z + Math.cos(a1) * 700)); mg.stroke(); mg.fillStyle = '#ffffff'; mg.fillRect(mx(u.x) - 3, mz(u.z) - 3, 6, 6); }
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0) continue; const t = teamOf(q); mg.fillStyle = t === null ? '#fff' : t === S.team ? '#ffd60a' : '#ff3b30'; mg.fillRect(mx(q.x) - 1, mz(q.z) - 1, 2.4, 2.4); }
+  mg.strokeStyle = '#ffffff'; mg.lineWidth = 2; mg.beginPath(); mg.arc(mx(S.ax), mz(S.az), 5, 0, 6.283); mg.moveTo(mx(S.ax) - 8, mz(S.az)); mg.lineTo(mx(S.ax) + 8, mz(S.az)); mg.moveTo(mx(S.ax), mz(S.az) - 8); mg.lineTo(mx(S.ax), mz(S.az) + 8); mg.stroke();
+}
+
+/* ---------------------------------------------------------------- readouts and cards (plain text, no timers) */
+function stnWeaponUi() {
+  const S = STN; for (let i = 0; i < 3; i++) {
+    const c = stnEl('stnC' + (i + 1)); if (!c) continue; const w = S.W[i], lab = stnLab(i), sel = S.weapon === i, fill = w.prep > 0 ? 1 - w.prep / SW[i].prep : i === 2 ? w.fill : w.rel > 0 ? 1 - w.rel / (i === 0 ? SW[0].reload : 1.2 + SW[1].reload) : 1;
+    if (c.dataset.sel !== String(sel)) { c.dataset.sel = String(sel); stnEl('stnS' + (i + 1)).setAttribute('aria-pressed', String(sel)); }
+    const l = c.querySelector('.stnLab'); if (l.textContent !== lab) l.textContent = lab; const b = c.querySelector('.stnBar i'); const wd = (clamp(fill, 0, 1) * 100).toFixed(0) + '%'; if (b.style.width !== wd) b.style.width = wd;
+    const f = stnEl('stnF' + (i + 1)); const dis = !sel || lab !== 'Ready' || S.state !== 'locked'; f.setAttribute('aria-disabled', String(dis)); c.dataset.st = lab;
+  }
+}
+function stnDom() {
+  const S = STN, u = S.u; if (!u) return; const set = (id, t) => { const e = stnEl(id); if (e && e.textContent !== t) e.textContent = t; };
+  const cl = S.cloud < 0.12 ? 'clear' : S.cloud < 0.45 ? 'thin cloud' : 'dense cloud';
+  set('stnTL', 'Sensor: ' + STN_MODES[S.mode].n + '\nZoom: x' + S.zoom.toFixed(S.zoom < 10 ? 1 : 0) + '\nCloud: ' + cl + '\nContacts: ' + (S.cnt.e + S.cnt.f + S.cnt.u) + ' (enemy ' + S.cnt.e + ', friendly ' + S.cnt.f + ', unknown ' + S.cnt.u + ')');
+  const b = cmpDeg(S.ax - u.x, S.az - u.z); set('stnTR', 'Grid ' + gridRef(S.ax, S.az) + '\nBearing ' + pad3(b) + ' ' + cmpName(b) + '\nRange ' + Math.round(S.range || 0) + ' m' + (S.trk ? '\nTracking target' : ''));
+  const hd = cmpDeg(Math.sin(u.hd), Math.cos(u.hd)); set('stnSt', 'Orbit left, altitude ' + Math.round(u.y) + ' m, heading ' + pad3(hd));
+  let m = ''; const dc = S.danger ? 'DANGER CLOSE: friendly forces within ' + STN_DC + ' m of the aim point.' : '';
+  if (S.state === 'losing') m = 'Losing target. The point is beyond the gimbal limit.'; else if (S.state === 'broken') m = 'Lock lost. Slew or tap the view to lock again.'; else if (S.msg && S.t - (S.msgT || 0) < 6) m = S.msg;
+  const el = stnEl('stnMsg'), txt = (dc ? dc + (m ? '\n' : '') : '') + m; if (el.textContent !== txt) el.textContent = txt; el.dataset.dc = dc ? '1' : '0'; el.dataset.warn = S.state !== 'locked' ? '1' : '0'; el.hidden = !txt;
+  const tr = stnEl('stnTrack'); if (tr) tr.setAttribute('aria-pressed', String(!!S.trk));
+}
+
+/* ---------------------------------------------------------------- building the controls once */
+function stnBuild() {
+  if (stnBuilt) return; stnBuilt = true; const S = STN, root = $('stn'), cv = stnEl('stnHud');
+  const up = (e) => { if (!S.on) return; if (e.button === 2) S.fireRmb = false; S.ptr.delete(e.pointerId); if (S.drag && S.drag.id === e.pointerId) { const d = S.drag; S.drag = null; if (e.type === 'pointerup' && e.button === 0 && !d.moved) stnClickAt(e.clientX, e.clientY); } if (S.ptr.size < 2) S.pinch = null; };
+  cv.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) { } if (e.pointerType === 'mouse' && e.button === 2) { S.fireRmb = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } return; } S.ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (S.ptr.size === 2) { const [a, b] = [...S.ptr.values()]; S.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: S.zoomT }; S.drag = null; } else if (S.ptr.size === 1) S.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 }; });
+  cv.addEventListener('pointermove', (e) => { if (!S.on) return; const p = S.ptr.get(e.pointerId); if (!p) return; if (S.pinch && S.ptr.size === 2) { p.x = e.clientX; p.y = e.clientY; const [a, b] = [...S.ptr.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (S.pinch.d > 10) S.zoomT = clamp(S.pinch.z * d / S.pinch.d, 1, STN_ZMAX); return; }
+    if (S.drag && S.drag.id === e.pointerId) { const dx = e.clientX - S.drag.x, dy = e.clientY - S.drag.y; S.drag.moved += Math.hypot(dx, dy); if (S.drag.moved > 6) stnDrag(dx, dy); S.drag.x = e.clientX; S.drag.y = e.clientY; p.x = e.clientX; p.y = e.clientY; } });
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { S.fireRmb = false; up(e); }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+  cv.addEventListener('wheel', (e) => { if (!S.on) return; e.preventDefault(); stnZoom(e.deltaY < 0 ? 1.18 : 1 / 1.18); }, { passive: false });
+  const mini = stnEl('stnMini'); mini.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); e.stopPropagation(); const r = mini.getBoundingClientRect(); stnSetAim(((e.clientX - r.left) / r.width * 2 - 1) * EXT, ((e.clientY - r.top) / r.height * 2 - 1) * EXT); });
+  const pad = stnEl('stnPad'), kn = stnEl('stnKnob'); let pid = null; const pm = (e) => { const r = pad.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2 - 10; let dx = (e.clientX - cx) / R, dy = (e.clientY - cy) / R; const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; } S.pad.x = Math.abs(dx) < 0.1 ? 0 : dx; S.pad.y = Math.abs(dy) < 0.1 ? 0 : dy; kn.style.transform = 'translate(' + (dx * R * 0.7).toFixed(0) + 'px,' + (dy * R * 0.7).toFixed(0) + 'px)'; };
+  pad.addEventListener('pointerdown', (e) => { pid = e.pointerId; try { pad.setPointerCapture(e.pointerId); } catch (er) { } e.preventDefault(); pm(e); }); pad.addEventListener('pointermove', (e) => { if (e.pointerId === pid) pm(e); });
+  const pe = (e) => { if (e.pointerId !== pid) return; pid = null; S.pad.x = S.pad.y = 0; kn.style.transform = ''; }; pad.addEventListener('pointerup', pe); pad.addEventListener('pointercancel', pe);
+  const on = (id, fn) => { const b = stnEl(id); if (b) b.addEventListener('click', fn); };
+  on('stnThermal', () => stnSetMode('thermal')); on('stnNight', () => stnSetMode('night')); on('stnColour', () => stnSetMode('colour')); on('stnZoomIn', () => stnZoom(1.6)); on('stnZoomOut', () => stnZoom(1 / 1.6)); on('stnTrack', stnTrackToggle); on('stnLeave', stnLeave);
+  for (let i = 0; i < 3; i++) {
+    on('stnS' + (i + 1), () => stnSelect(i));
+    const f = stnEl('stnF' + (i + 1)); f.addEventListener('pointerdown', (e) => { e.preventDefault(); if (S.weapon !== i) { stnSelect(i); return; } if (i === 2) { S.fireBtn = true; try { f.setPointerCapture(e.pointerId); } catch (er) { } } else stnTryFire(); });
+    const fu = () => { if (i === 2) S.fireBtn = false; }; f.addEventListener('pointerup', fu); f.addEventListener('pointercancel', fu); f.addEventListener('lostpointercapture', fu); f.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+  KEY_ROUTE.unshift(stnKey);
+  addEventListener('keyup', (e) => { if (!S.on) return; const k = e.key.toLowerCase(); S.keys.delete(k); if (k === ' ' || k === 'enter') { S.fireKey = false; e.preventDefault(); } });
+  addEventListener('blur', () => { S.keys.clear(); S.fireKey = false; S.fireBtn = false; S.fireRmb = false; });
+}
+function stnKey(e) {
+  const S = STN; if (!S.on) return; if (e.ctrlKey || e.metaKey || e.altKey) return; const k = e.key.toLowerCase(); keyStop = true;
+  if (k === 'escape') { stnLeave(); e.preventDefault(); return; }
+  if (k === '1' || k === '2' || k === '3') { stnSelect(+k - 1); e.preventDefault(); return; }
+  if (k === ' ' || k === 'enter') { if (!e.repeat) { S.fireKey = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } } e.preventDefault(); return; }
+  if (k === '+' || k === '=' || e.code === 'NumpadAdd') { stnZoom(1.35); e.preventDefault(); return; } if (k === '-' || k === '_' || e.code === 'NumpadSubtract') { stnZoom(1 / 1.35); e.preventDefault(); return; }
+  if (k === 't' && !e.repeat) { stnTrackToggle(); return; } if (k === 'm' && !e.repeat) { stnCycleMode(); return; }
+  if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(k)) { S.keys.add(k); e.preventDefault(); return; }
+}
+stnBuild();
+Object.assign(window.__sc, { STN, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
+/*STN-END*/
 </script>
 
 </body>

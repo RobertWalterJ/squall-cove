@@ -645,6 +645,24 @@
    "phone": {
     "sel": "#ctxReload,#orientOk"
    }
+  },
+  {
+   "id": "gunship-station",
+   "what": "Gunship sensor station: Thermal, Night vision and Colour views, slew and zoom, three weapons (105 mm howitzer, 40 mm cannon, 25 mm Vulcan) aimed at one ground point, track target, leave. Opened from Command > Support > Gunship station, or by deploying as the Gunship operator class",
+   "covers": [
+    "stn|1, 2, 3",
+    "stn|Space, Enter, right button",
+    "stn|Arrow keys, W A S D, drag",
+    "stn|+, -, wheel",
+    "stn|M, T, Esc"
+   ],
+   "desktop": {
+    "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnLeave,#stnMini"
+   },
+   "phone": {
+    "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnLeave,#stnMini,#stnPad",
+    "gesture": "One thumb on the slew pad moves the aim point; a tap in the view or on the small map sets it; pinch zooms; the large Fire buttons fire (hold for the Vulcan); Leave station is always on screen"
+   }
   }
  ],
  "ignoreKeys": {},
