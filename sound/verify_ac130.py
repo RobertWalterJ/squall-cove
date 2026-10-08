@@ -26,7 +26,7 @@ def seam(x):
     k = 64; return db(abs(x[0] - x[-1])) , db(np.max(np.abs(np.diff(np.concatenate([x[-k:], x[:k]])))))
 
 
-files = sorted(glob.glob(os.path.join(d, 'ac130_*.ogg'))); tot = 0; fam = {}
+files = sorted(glob.glob(os.path.join(d, os.environ.get('PFX','ac130_')+'*.ogg'))); tot = 0; fam = {}
 print('%-34s %5s %6s %6s %7s %7s %6s  %s' % ('stem', 'dur', 'peak', 'rms', 'loud400', 'cent', 'KB', 'seam(step, maxdiff dB)'))
 for p in files:
     n = os.path.basename(p)[:-4]; x = load(p); kb = os.path.getsize(p) / 1024; tot += kb
