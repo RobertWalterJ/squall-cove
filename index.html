@@ -5426,12 +5426,19 @@ const TEAMCOL = { blue: 0x2f5d9f, red: 0xc0392b };
 const FXK = ED.phone ? 0.4 : 1, fxN = (n) => Math.max(1, Math.round(n * FXK));
 const WK = { pistol: 'smg', smg: 'smg', rifle: 'rifle', shotgun: 'shot', sniper: 'sniper', carbine: 'rifle', lmg: 'mg', marksman: 'sniper', revolver: 'smg' };
 // TRACER CLASSES: one row per calibre class, tune thickness (w, metres) and length (len, metres) here. v is the stylised speed in m/s.
-const TRK = { smg: { v: 270, len: 3, w: 0.055 }, shot: { v: 240, len: 2.5, w: 0.05 }, rifle: { v: 330, len: 4.5, w: 0.07 }, mg: { v: 300, len: 7, w: 0.1 }, sniper: { v: 700, len: 14, w: 0.11 }, hmg: { v: 340, len: 10, w: 0.11 }, aa: { v: 380, len: 14, w: 0.12 }, cannon: { v: 460, len: 16, w: 0.17 }, naval: { v: 500, len: 20, w: 0.22 } };
+const TRK = { smg: { v: 270, len: 3, w: 0.055 }, shot: { v: 240, len: 2.5, w: 0.05 }, rifle: { v: 330, len: 4.5, w: 0.07 }, mg: { v: 300, len: 7, w: 0.1 }, sniper: { v: 700, len: 14, w: 0.11 }, vulcan: { v: 420, len: 9, w: 0.07 }, hmg: { v: 340, len: 10, w: 0.11 }, aa: { v: 380, len: 14, w: 0.12 }, cannon: { v: 460, len: 16, w: 0.17 }, naval: { v: 500, len: 20, w: 0.22 } };
+const TPAL = {
+  small: [[1, 0.9, 0.4], [1, 1, 0.92], [0.72, 1, 0.62]],                       // rifles, SMGs, shotguns, machine guns: yellow, white, pale green
+  vulcan: [[0.3, 1, 0.38], [0.45, 1, 0.5]],                                    // rotary cannon: green
+  heavy: [[1, 0.22, 0.12], [1, 1, 1], [0.3, 1, 0.4]]                           // anti-aircraft, cannon, naval: red, white and green, alternating
+};
+const TMASS = { small: 0.03, vulcan: 0.16, heavy: 0.5 };                       // chance a round carries a bright mass in the middle of its line
+const trkClass = (k) => (k === 'vulcan' ? 'vulcan' : (k === 'hmg' || k === 'aa' || k === 'cannon' || k === 'naval') ? 'heavy' : 'small');
 const TCOL = { blue: [0.3, 0.62, 1], red: [1, 0.26, 0.12], none: [1, 0.86, 0.45] };
 const tracers = (() => {
-  const N = ED.phone ? 64 : 160, pos = new Float32Array(N * 12), col = new Float32Array(N * 16), idx = new Uint16Array(N * 6), g = new THREE.BufferGeometry();
-  for (let i = 0; i < N; i++) { const b = i * 4; idx.set([b, b + 1, b + 2, b + 2, b + 1, b + 3], i * 6); }
-  const side = new Float32Array(N * 4); for (let i = 0; i < N; i++) side.set([-1, 1, -1, 1], i * 4);                                       // across the streak: edge, middle, edge
+  const N = ED.phone ? 64 : 160, Q = N * 2, pos = new Float32Array(Q * 12), col = new Float32Array(Q * 16), idx = new Uint16Array(Q * 6), g = new THREE.BufferGeometry();
+  for (let i = 0; i < Q; i++) { const b = i * 4; idx.set([b, b + 1, b + 2, b + 2, b + 1, b + 3], i * 6); }
+  const side = new Float32Array(Q * 4); for (let i = 0; i < Q; i++) side.set([-1, 1, -1, 1], i * 4);                                       // across the streak: edge, middle, edge
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 4)); g.setAttribute('aSide', new THREE.BufferAttribute(side, 1)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.setDrawRange(0, 0);
   // ordinary alpha blending, not additive: an additive streak is a pale smear against a bright sky and the team colour is lost. A soft edge and a hot core keep it a glowing line.
   const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: THREE.DoubleSide,
@@ -5439,7 +5446,7 @@ const tracers = (() => {
     fragmentShader: 'varying vec4 vC; varying float vS; void main(){ float e = 1.0 - abs(vS); vec3 c = mix(vC.rgb, vec3(1.0), e * e * 0.5); gl_FragColor = vec4(c, vC.a * smoothstep(0.0, 0.3, e)); }' }));
   m.frustumCulled = false; m.renderOrder = 8; scene.add(m);
   const f = (n) => new Float32Array(n);
-  return { N, pos, col, g, m, i: 0, act: new Uint8Array(N), mode: new Uint8Array(N), sx: f(N), sy: f(N), sz: f(N), ux: f(N), uy: f(N), uz: f(N), D: f(N), t: f(N), v: f(N), len: f(N), w: f(N), r: f(N), gg: f(N), b: f(N), age: f(N), life: f(N), wz: f(N), wd: f(N) };
+  return { N, pos, col, g, m, i: 0, mass: new Uint8Array(N), act: new Uint8Array(N), mode: new Uint8Array(N), sx: f(N), sy: f(N), sz: f(N), ux: f(N), uy: f(N), uz: f(N), D: f(N), t: f(N), v: f(N), len: f(N), w: f(N), r: f(N), gg: f(N), b: f(N), age: f(N), life: f(N), wz: f(N), wd: f(N) };
 })();
 const MZF = { n: 0, max: ED.phone ? 5 : 14, lights: [], li: 0, wzT: -9 }, SUPP = { v: 0 };
 function addTracer(x0, y0, z0, x1, y1, z1, o) {
@@ -5448,7 +5455,7 @@ function addTracer(x0, y0, z0, x1, y1, z1, o) {
   if (o.own) flashLight(x0 + ux * 0.5, y0 + uy * 0.5, z0 + uz * 0.5, 0.9, o.team);
   const far = ED.phone ? 200 : 330; if (Math.hypot(x0 - cp.x, z0 - cp.z) > far && Math.hypot(x1 - cp.x, z1 - cp.z) > far) return;
   if (ED.phone && !o.trail && !o.own && Math.random() < 0.3) return;
-  const T = tracers, i = T.i = (T.i + 1) % T.N, c = TCOL[o.team] || TCOL.none; T.act[i] = 1; T.mode[i] = o.trail ? 1 : 0; T.sx[i] = x0; T.sy[i] = y0; T.sz[i] = z0; T.ux[i] = ux; T.uy[i] = uy; T.uz[i] = uz; T.D[i] = D;
+  const T = tracers, i = T.i = (T.i + 1) % T.N, cl = trkClass(kind), pal = TPAL[cl], c = pal[Math.floor(Math.random() * pal.length)]; T.mass[i] = Math.random() < TMASS[cl] ? 1 : 0; T.act[i] = 1; T.mode[i] = o.trail ? 1 : 0; T.sx[i] = x0; T.sy[i] = y0; T.sz[i] = z0; T.ux[i] = ux; T.uy[i] = uy; T.uz[i] = uz; T.D[i] = D;
   T.t[i] = 0; T.v[i] = K.v; T.len[i] = o.len || K.len; T.w[i] = o.w || K.w; T.r[i] = c[0]; T.gg[i] = c[1]; T.b[i] = c[2]; T.age[i] = 0; T.life[i] = 0.07; T.wz[i] = -1; T.wd[i] = 9;
   if (!o.trail && fp.on && !o.own && D > 6) {                                                              // would this round pass close to the player's head?
     const tt = clamp((cp.x - x0) * ux + (cp.y - y0) * uy + (cp.z - z0) * uz, 0, D), px = x0 + ux * tt - cp.x, py = y0 + uy * tt - cp.y, pz = z0 + uz * tt - cp.z, dm = Math.hypot(px, py, pz);
@@ -5464,10 +5471,18 @@ function updateTracers(dt) {
     const hx = T.sx[i] + T.ux[i] * head, hy = T.sy[i] + T.uy[i] * head, hz = T.sz[i] + T.uz[i] * head, tx = T.sx[i] + T.ux[i] * tail, ty = T.sy[i] + T.uy[i] * tail, tz = T.sz[i] + T.uz[i] * tail;
     const mx = (hx + tx) * 0.5 - cp.x, my = (hy + ty) * 0.5 - cp.y, mz = (hz + tz) * 0.5 - cp.z, dist = Math.hypot(mx, my, mz);
     let sx = T.uy[i] * mz - T.uz[i] * my, sy = T.uz[i] * mx - T.ux[i] * mz, sz = T.ux[i] * my - T.uy[i] * mx; const sl = Math.hypot(sx, sy, sz) || 1, hw = 0.5 * T.w[i] * Math.max(1, dist / 22) / sl; sx *= hw; sy *= hw; sz *= hw;
-    const p = nv * 12, c = nv * 16; nv++;
-    T.pos[p] = hx - sx; T.pos[p + 1] = hy - sy; T.pos[p + 2] = hz - sz; T.pos[p + 3] = hx + sx; T.pos[p + 4] = hy + sy; T.pos[p + 5] = hz + sz; T.pos[p + 6] = tx - sx * 0.5; T.pos[p + 7] = ty - sy * 0.5; T.pos[p + 8] = tz - sz * 0.5; T.pos[p + 9] = tx + sx * 0.5; T.pos[p + 10] = ty + sy * 0.5; T.pos[p + 11] = tz + sz * 0.5;
-    const r = T.r[i], g = T.gg[i], b = T.b[i], hr = r + (1 - r) * 0.45, hg = g + (1 - g) * 0.45, hb = b + (1 - b) * 0.45;
-    T.col.set([hr, hg, hb, a, hr, hg, hb, a, r, g, b, a * 0.55, r, g, b, a * 0.55], c);
+    if (nv >= T.N * 2 - 1) continue;
+    let p = nv * 12, c = nv * 16; nv++;
+    T.pos[p] = hx - sx; T.pos[p + 1] = hy - sy; T.pos[p + 2] = hz - sz; T.pos[p + 3] = hx + sx; T.pos[p + 4] = hy + sy; T.pos[p + 5] = hz + sz; T.pos[p + 6] = tx - sx; T.pos[p + 7] = ty - sy; T.pos[p + 8] = tz - sz; T.pos[p + 9] = tx + sx; T.pos[p + 10] = ty + sy; T.pos[p + 11] = tz + sz;
+    const r = T.r[i], g = T.gg[i], b = T.b[i], hr = r + (1 - r) * 0.35, hg = g + (1 - g) * 0.35, hb = b + (1 - b) * 0.35;
+    T.col.set([hr, hg, hb, a, hr, hg, hb, a, r, g, b, a * 0.8, r, g, b, a * 0.8], c);
+    if (T.mass[i] && nv < T.N * 2) {                                  // a bright mass in the middle of the line: a short, fatter, whiter piece
+      const L = head - tail, mc = (head + tail) * 0.5, m0 = mc + L * 0.14, m1 = mc - L * 0.14, f = 2.6;
+      const ax = T.sx[i] + T.ux[i] * m0, ay = T.sy[i] + T.uy[i] * m0, az = T.sz[i] + T.uz[i] * m0, bx = T.sx[i] + T.ux[i] * m1, by = T.sy[i] + T.uy[i] * m1, bz = T.sz[i] + T.uz[i] * m1;
+      p = nv * 12; c = nv * 16; nv++;
+      T.pos[p] = ax - sx * f; T.pos[p + 1] = ay - sy * f; T.pos[p + 2] = az - sz * f; T.pos[p + 3] = ax + sx * f; T.pos[p + 4] = ay + sy * f; T.pos[p + 5] = az + sz * f; T.pos[p + 6] = bx - sx * f; T.pos[p + 7] = by - sy * f; T.pos[p + 8] = bz - sz * f; T.pos[p + 9] = bx + sx * f; T.pos[p + 10] = by + sy * f; T.pos[p + 11] = bz + sz * f;
+      const wr = r + (1 - r) * 0.6, wg = g + (1 - g) * 0.6, wb = b + (1 - b) * 0.6; T.col.set([wr, wg, wb, a, wr, wg, wb, a, wr, wg, wb, a, wr, wg, wb, a], c);
+    }
   }
   // note: the pool is packed into the first nv quads each frame, so index order never matters
   T.g.setDrawRange(0, nv * 6); T.g.attributes.position.needsUpdate = true; T.g.attributes.aCol.needsUpdate = true; MZF.n = 0;
@@ -5844,7 +5859,7 @@ const gunshipUp = (team) => AIR.list.some(u => u.kind === 'gunship' && u.team ==
 function airFire(u, dt) {
   const gun = u.kind === 'gunship', cob = u.kind === 'cobra', R = gun ? 150 : cob ? 125 : 95; u.fireT -= dt; if (u.fmP) fmAirExtra(u, dt); const e = (u.fmP && fmAirPerson(u, R)) || enemyOf(u.team, u.x, u.z, R); if (!e) return; aimGuns(u, e.x, e.y + 1, e.z, dt);
   if (u.fireT <= 0) { u.fireT = gun ? 0.07 : cob ? 0.09 : 0.11; const hit = Math.random() < (gun ? 0.5 : 0.38) * (e.order || e.fpMoving ? 0.7 : 1) * BKIT.airK, ex = e.x + (hit ? 0 : rnd(-3, 3)), ez = e.z + (hit ? 0 : rnd(-3, 3)), sx = u.x + Math.cos(u.hd) * 2.2, sz = u.z - Math.sin(u.hd) * 2.2;
-    { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez, { k: 'mg', team: u.team }); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
+    { let ox = sx, oy = u.y - 1, oz = sz; const gp = u.guns && u.guns.find(x => !x.how); if (gp) { gp.n.getWorldPosition(_gpv); ox = _gpv.x; oy = _gpv.y; oz = _gpv.z; } addTracer(ox, oy, oz, ex, e.y + 1, ez, { k: gun ? 'vulcan' : 'mg', team: u.team }); } if (Math.random() < 0.25) Snd.fx(gun ? 'veh_mg_burst' : 'wpn_smg_fire_0' + (1 + Math.floor(Math.random() * 3)), u.x, u.z, { gain: gun ? 0.7 : 0.55, y: u.y, far: 2 });
     if (hit) { hurt(e, gun ? 6 : cob ? 7 : 8, null, false, gun ? 'Gunship' : cob ? 'Chin gun' : 'Door gun'); impactFx('person', e, { x: ex, y: e.y + 1, z: ez }, 60); } else impactFx('land', null, { x: ex, y: heightAt(ex, ez), z: ez }, 60); }
   if (gun) { u.shellT -= dt; if (u.shellT <= 0) { u.shellT = 7; const c = people.filter(q => teamOf(q) === otherTeam(u.team) && q.state !== 'rag').sort((a, b) => Math.hypot(a.x - u.x, a.z - u.z) - Math.hypot(b.x - u.x, b.z - u.z))[0]; if (c) { u.shellAim = { x: c.x, y: c.y, z: c.z }; AIR.shells.push({ x: c.x + rnd(-4, 4), z: c.z + rnd(-4, 4), t: 1.6, team: u.team, y0: u.y, ox: u.x, oz: u.z }); Snd.fx('veh_gunship_cannon', u.x, u.z, { gain: 1.1, far: 4, y: u.y }); } } }
   if (cob) { u.shellT -= dt; if (u.shellT <= 0) { u.shellT = 8; AIR.shells.push({ x: e.x + rnd(-2, 2), z: e.z + rnd(-2, 2), t: 0.9, T: 0.9, team: u.team, y0: u.y, ox: u.x, oz: u.z, R: 6, dmg: 95, crater: 1.5, depth: 0.5 }); Snd.fx('veh_gun_fire', u.x, u.z, { gain: 0.9, far: 2, y: u.y }); } }
