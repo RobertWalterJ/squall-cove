@@ -1,0 +1,1639 @@
+{
+ "ac130_howitzer_fire_01": {
+  "id": "ac130_howitzer_fire_01",
+  "file": "audio/ac130_howitzer_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.6,
+  "rmsDb": -23.5,
+  "lufs": -24.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm"
+  ]
+ },
+ "ac130_howitzer_fire_far_01": {
+  "id": "ac130_howitzer_fire_far_01",
+  "file": "audio/ac130_howitzer_fire_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2000,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 6.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.4,
+  "rmsDb": -30.5,
+  "lufs": -31.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "far"
+  ]
+ },
+ "ac130_howitzer_fire_sub_01": {
+  "id": "ac130_howitzer_fire_sub_01",
+  "file": "audio/ac130_howitzer_fire_sub_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.9,
+  "rmsDb": -27.2,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_fire_02": {
+  "id": "ac130_howitzer_fire_02",
+  "file": "audio/ac130_howitzer_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.8,
+  "rmsDb": -23.6,
+  "lufs": -24.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm"
+  ]
+ },
+ "ac130_howitzer_fire_far_02": {
+  "id": "ac130_howitzer_fire_far_02",
+  "file": "audio/ac130_howitzer_fire_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2000,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 6.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.4,
+  "rmsDb": -31.5,
+  "lufs": -33.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "far"
+  ]
+ },
+ "ac130_howitzer_fire_sub_02": {
+  "id": "ac130_howitzer_fire_sub_02",
+  "file": "audio/ac130_howitzer_fire_sub_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -27.8,
+  "lufs": -32.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_fire_03": {
+  "id": "ac130_howitzer_fire_03",
+  "file": "audio/ac130_howitzer_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.2,
+  "rmsDb": -23.8,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm"
+  ]
+ },
+ "ac130_howitzer_fire_far_03": {
+  "id": "ac130_howitzer_fire_far_03",
+  "file": "audio/ac130_howitzer_fire_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2000,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 6.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -31.6,
+  "lufs": -32.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "far"
+  ]
+ },
+ "ac130_howitzer_fire_sub_03": {
+  "id": "ac130_howitzer_fire_sub_03",
+  "file": "audio/ac130_howitzer_fire_sub_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.2,
+  "rmsDb": -27.5,
+  "lufs": -31.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_fire_04": {
+  "id": "ac130_howitzer_fire_04",
+  "file": "audio/ac130_howitzer_fire_04.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.4,
+  "rmsDb": -24.0,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm"
+  ]
+ },
+ "ac130_howitzer_fire_far_04": {
+  "id": "ac130_howitzer_fire_far_04",
+  "file": "audio/ac130_howitzer_fire_far_04.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2000,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 6.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.5,
+  "rmsDb": -30.6,
+  "lufs": -31.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "far"
+  ]
+ },
+ "ac130_howitzer_fire_sub_04": {
+  "id": "ac130_howitzer_fire_sub_04",
+  "file": "audio/ac130_howitzer_fire_sub_04.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1000,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.8,
+  "rmsDb": -27.9,
+  "lufs": -32.5,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_01": {
+  "id": "ac130_howitzer_hit_01",
+  "file": "audio/ac130_howitzer_hit_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.6,
+  "rmsDb": -24.3,
+  "lufs": -25.3,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion"
+  ]
+ },
+ "ac130_howitzer_hit_far_01": {
+  "id": "ac130_howitzer_hit_far_01",
+  "file": "audio/ac130_howitzer_hit_far_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -30.8,
+  "lufs": -31.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_sub_01": {
+  "id": "ac130_howitzer_hit_sub_01",
+  "file": "audio/ac130_howitzer_hit_sub_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -29.1,
+  "lufs": -33.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_02": {
+  "id": "ac130_howitzer_hit_02",
+  "file": "audio/ac130_howitzer_hit_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -24.0,
+  "lufs": -25.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion"
+  ]
+ },
+ "ac130_howitzer_hit_far_02": {
+  "id": "ac130_howitzer_hit_far_02",
+  "file": "audio/ac130_howitzer_hit_far_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.2,
+  "rmsDb": -31.5,
+  "lufs": -32.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_sub_02": {
+  "id": "ac130_howitzer_hit_sub_02",
+  "file": "audio/ac130_howitzer_hit_sub_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.9,
+  "rmsDb": -29.3,
+  "lufs": -33.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_03": {
+  "id": "ac130_howitzer_hit_03",
+  "file": "audio/ac130_howitzer_hit_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.2,
+  "rmsDb": -24.2,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion"
+  ]
+ },
+ "ac130_howitzer_hit_far_03": {
+  "id": "ac130_howitzer_hit_far_03",
+  "file": "audio/ac130_howitzer_hit_far_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.1,
+  "rmsDb": -30.7,
+  "lufs": -32.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_sub_03": {
+  "id": "ac130_howitzer_hit_sub_03",
+  "file": "audio/ac130_howitzer_hit_sub_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.2,
+  "rmsDb": -28.8,
+  "lufs": -32.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_04": {
+  "id": "ac130_howitzer_hit_04",
+  "file": "audio/ac130_howitzer_hit_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.6,
+  "rmsDb": -24.1,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion"
+  ]
+ },
+ "ac130_howitzer_hit_far_04": {
+  "id": "ac130_howitzer_hit_far_04",
+  "file": "audio/ac130_howitzer_hit_far_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 2400,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -31.0,
+  "lufs": -32.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_sub_04": {
+  "id": "ac130_howitzer_hit_sub_04",
+  "file": "audio/ac130_howitzer_hit_sub_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.8,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -28.5,
+  "lufs": -32.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_bofors_shot_01": {
+  "id": "ac130_bofors_shot_01",
+  "file": "audio/ac130_bofors_shot_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 5,
+  "maxDist": 700,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.9,
+  "rmsDb": -22.8,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_shot_far_01": {
+  "id": "ac130_bofors_shot_far_01",
+  "file": "audio/ac130_bofors_shot_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.9,
+  "rmsDb": -30.4,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm",
+   "far"
+  ]
+ },
+ "ac130_bofors_shot_02": {
+  "id": "ac130_bofors_shot_02",
+  "file": "audio/ac130_bofors_shot_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 5,
+  "maxDist": 700,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.7,
+  "rmsDb": -22.8,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_shot_far_02": {
+  "id": "ac130_bofors_shot_far_02",
+  "file": "audio/ac130_bofors_shot_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.1,
+  "rmsDb": -30.4,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm",
+   "far"
+  ]
+ },
+ "ac130_bofors_shot_03": {
+  "id": "ac130_bofors_shot_03",
+  "file": "audio/ac130_bofors_shot_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 5,
+  "maxDist": 700,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.5,
+  "rmsDb": -22.9,
+  "lufs": -23.3,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_shot_far_03": {
+  "id": "ac130_bofors_shot_far_03",
+  "file": "audio/ac130_bofors_shot_far_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1800,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -30.4,
+  "lufs": -31.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm",
+   "far"
+  ]
+ },
+ "ac130_bofors_shot_04": {
+  "id": "ac130_bofors_shot_04",
+  "file": "audio/ac130_bofors_shot_04.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 5,
+  "maxDist": 700,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.2,
+  "rmsDb": -22.8,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_shot_05": {
+  "id": "ac130_bofors_shot_05",
+  "file": "audio/ac130_bofors_shot_05.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 5,
+  "maxDist": 700,
+  "weight": 9,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.9,
+  "rmsDb": -22.9,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_hit_01": {
+  "id": "ac130_bofors_hit_01",
+  "file": "audio/ac130_bofors_hit_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.3,
+  "rmsDb": -23.0,
+  "lufs": -23.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_hit_02": {
+  "id": "ac130_bofors_hit_02",
+  "file": "audio/ac130_bofors_hit_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.5,
+  "rmsDb": -22.8,
+  "lufs": -23.5,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_hit_03": {
+  "id": "ac130_bofors_hit_03",
+  "file": "audio/ac130_bofors_hit_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.7,
+  "rmsDb": -23.0,
+  "lufs": -23.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_bofors_hit_04": {
+  "id": "ac130_bofors_hit_04",
+  "file": "audio/ac130_bofors_hit_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.8,
+  "rmsDb": -22.9,
+  "lufs": -23.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm"
+  ]
+ },
+ "ac130_vulcan_loop_01": {
+  "id": "ac130_vulcan_loop_01",
+  "file": "audio/ac130_vulcan_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.9,
+  "rmsDb": -22.0,
+  "lufs": -22.8,
+  "seamDb": -41.2,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "25mm",
+   "loop"
+  ]
+ },
+ "ac130_vulcan_loop_far_01": {
+  "id": "ac130_vulcan_loop_far_01",
+  "file": "audio/ac130_vulcan_loop_far_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.7,
+  "rmsDb": -22.1,
+  "lufs": -23.0,
+  "seamDb": -38.7,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "25mm",
+   "loop",
+   "far"
+  ]
+ },
+ "ac130_vulcan_loop_02": {
+  "id": "ac130_vulcan_loop_02",
+  "file": "audio/ac130_vulcan_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.9,
+  "rmsDb": -21.9,
+  "lufs": -22.7,
+  "seamDb": -36.4,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "25mm",
+   "loop"
+  ]
+ },
+ "ac130_vulcan_loop_far_02": {
+  "id": "ac130_vulcan_loop_far_02",
+  "file": "audio/ac130_vulcan_loop_far_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.4,
+  "rmsDb": -22.0,
+  "lufs": -22.9,
+  "seamDb": -35.9,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "25mm",
+   "loop",
+   "far"
+  ]
+ },
+ "ac130_vulcan_start_01": {
+  "id": "ac130_vulcan_start_01",
+  "file": "audio/ac130_vulcan_start_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -24.5,
+  "lufs": -25.2,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spinup"
+  ]
+ },
+ "ac130_vulcan_start_far_01": {
+  "id": "ac130_vulcan_start_far_01",
+  "file": "audio/ac130_vulcan_start_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.1,
+  "rmsDb": -27.1,
+  "lufs": -27.9,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spinup",
+   "far"
+  ]
+ },
+ "ac130_vulcan_start_02": {
+  "id": "ac130_vulcan_start_02",
+  "file": "audio/ac130_vulcan_start_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.35,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.5,
+  "rmsDb": -24.9,
+  "lufs": -25.6,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spinup"
+  ]
+ },
+ "ac130_vulcan_start_far_02": {
+  "id": "ac130_vulcan_start_far_02",
+  "file": "audio/ac130_vulcan_start_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.95,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.6,
+  "rmsDb": -27.3,
+  "lufs": -28.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spinup",
+   "far"
+  ]
+ },
+ "ac130_vulcan_end_01": {
+  "id": "ac130_vulcan_end_01",
+  "file": "audio/ac130_vulcan_end_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.7,
+  "rmsDb": -26.3,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spindown"
+  ]
+ },
+ "ac130_vulcan_end_far_01": {
+  "id": "ac130_vulcan_end_far_01",
+  "file": "audio/ac130_vulcan_end_far_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.5,
+  "rmsDb": -29.9,
+  "lufs": -30.7,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spindown",
+   "far"
+  ]
+ },
+ "ac130_vulcan_end_02": {
+  "id": "ac130_vulcan_end_02",
+  "file": "audio/ac130_vulcan_end_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 450,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.9,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -26.3,
+  "lufs": -27.1,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spindown"
+  ]
+ },
+ "ac130_vulcan_end_far_02": {
+  "id": "ac130_vulcan_end_far_02",
+  "file": "audio/ac130_vulcan_end_far_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 2,
+  "maxDist": 1800,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.1,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.6,
+  "rmsDb": -29.9,
+  "lufs": -30.8,
+  "seamDb": null,
+  "tags": [
+   "weapon",
+   "ac130",
+   "vulcan",
+   "spindown",
+   "far"
+  ]
+ },
+ "ac130_prop_loop_01": {
+  "id": "ac130_prop_loop_01",
+  "file": "audio/ac130_prop_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.15
+  ],
+  "variants": 2,
+  "maxDist": 600,
+  "weight": 6,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.1,
+  "rmsDb": -23.4,
+  "lufs": -24.3,
+  "seamDb": -39.8,
+  "tags": [
+   "prop",
+   "ac130",
+   "loop",
+   "four-engine"
+  ]
+ },
+ "ac130_prop_loop_far_01": {
+  "id": "ac130_prop_loop_far_01",
+  "file": "audio/ac130_prop_loop_far_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 0.7,
+  "rate": [
+   0.9,
+   1.15
+  ],
+  "variants": 1,
+  "maxDist": 1800,
+  "weight": 3,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.9,
+  "rmsDb": -23.8,
+  "lufs": -24.7,
+  "seamDb": -39.8,
+  "tags": [
+   "prop",
+   "ac130",
+   "loop",
+   "four-engine",
+   "far"
+  ]
+ },
+ "ac130_prop_loop_02": {
+  "id": "ac130_prop_loop_02",
+  "file": "audio/ac130_prop_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   0.9,
+   1.15
+  ],
+  "variants": 2,
+  "maxDist": 600,
+  "weight": 6,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 8.0,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -23.0,
+  "lufs": -23.9,
+  "seamDb": -43.2,
+  "tags": [
+   "prop",
+   "ac130",
+   "loop",
+   "four-engine"
+  ]
+ },
+ "ac130_creak_01": {
+  "id": "ac130_creak_01",
+  "file": "audio/ac130_creak_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 2.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.5,
+  "rmsDb": -28.1,
+  "lufs": -28.7,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "creak",
+   "airframe"
+  ]
+ },
+ "ac130_creak_02": {
+  "id": "ac130_creak_02",
+  "file": "audio/ac130_creak_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 1.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.9,
+  "rmsDb": -28.6,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "creak",
+   "airframe"
+  ]
+ },
+ "ac130_creak_03": {
+  "id": "ac130_creak_03",
+  "file": "audio/ac130_creak_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 120,
+  "weight": 3,
+  "lazy": true,
+  "group": "aircraft",
+  "dur": 2.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.2,
+  "rmsDb": -29.8,
+  "lufs": -30.4,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "creak",
+   "airframe"
+  ]
+ }
+}

@@ -1,0 +1,398 @@
+{
+ "ac130_howitzer_hit_water_01": {
+  "id": "ac130_howitzer_hit_water_01",
+  "file": "audio/ac130_howitzer_hit_water_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -2.4,
+  "rmsDb": -26.7,
+  "lufs": -27.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water"
+  ]
+ },
+ "ac130_howitzer_hit_water_far_01": {
+  "id": "ac130_howitzer_hit_water_far_01",
+  "file": "audio/ac130_howitzer_hit_water_far_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 7.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.5,
+  "rmsDb": -33.8,
+  "lufs": -35.7,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_water_02": {
+  "id": "ac130_howitzer_hit_water_02",
+  "file": "audio/ac130_howitzer_hit_water_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.4,
+  "rmsDb": -26.9,
+  "lufs": -27.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water"
+  ]
+ },
+ "ac130_howitzer_hit_water_far_02": {
+  "id": "ac130_howitzer_hit_water_far_02",
+  "file": "audio/ac130_howitzer_hit_water_far_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 7.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -13.2,
+  "rmsDb": -34.7,
+  "lufs": -36.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_water_03": {
+  "id": "ac130_howitzer_hit_water_03",
+  "file": "audio/ac130_howitzer_hit_water_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.5,
+  "rmsDb": -26.8,
+  "lufs": -27.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water"
+  ]
+ },
+ "ac130_howitzer_hit_water_far_03": {
+  "id": "ac130_howitzer_hit_water_far_03",
+  "file": "audio/ac130_howitzer_hit_water_far_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 7.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.7,
+  "rmsDb": -34.0,
+  "lufs": -35.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_water_04": {
+  "id": "ac130_howitzer_hit_water_04",
+  "file": "audio/ac130_howitzer_hit_water_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.4,
+  "rmsDb": -26.7,
+  "lufs": -26.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water"
+  ]
+ },
+ "ac130_howitzer_hit_water_far_04": {
+  "id": "ac130_howitzer_hit_water_far_04",
+  "file": "audio/ac130_howitzer_hit_water_far_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 1500,
+  "weight": 7,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 7.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.1,
+  "rmsDb": -33.7,
+  "lufs": -36.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_howitzer_hit_water_sub_01": {
+  "id": "ac130_howitzer_hit_water_sub_01",
+  "file": "audio/ac130_howitzer_hit_water_sub_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -29.4,
+  "lufs": -32.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_water_sub_02": {
+  "id": "ac130_howitzer_hit_water_sub_02",
+  "file": "audio/ac130_howitzer_hit_water_sub_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.1,
+  "rmsDb": -29.5,
+  "lufs": -32.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_water_sub_03": {
+  "id": "ac130_howitzer_hit_water_sub_03",
+  "file": "audio/ac130_howitzer_hit_water_sub_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -9.8,
+  "rmsDb": -29.3,
+  "lufs": -31.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ },
+ "ac130_howitzer_hit_water_sub_04": {
+  "id": "ac130_howitzer_hit_water_sub_04",
+  "file": "audio/ac130_howitzer_hit_water_sub_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.8,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 4,
+  "maxDist": 1200,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 4.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.6,
+  "rmsDb": -29.3,
+  "lufs": -32.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "howitzer",
+   "105mm",
+   "explosion",
+   "water",
+   "sub"
+  ],
+  "meta": {
+   "kind": "sub-layer",
+   "note": "mono 25-90 Hz body to layer under the full stem"
+  }
+ }
+}

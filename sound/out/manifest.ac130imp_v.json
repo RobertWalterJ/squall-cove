@@ -1,0 +1,759 @@
+{
+ "ac130_vulcan_hit_dirt_01": {
+  "id": "ac130_vulcan_hit_dirt_01",
+  "file": "audio/ac130_vulcan_hit_dirt_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.3,
+  "rmsDb": -22.2,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "dirt"
+  ]
+ },
+ "ac130_vulcan_hit_dirt_02": {
+  "id": "ac130_vulcan_hit_dirt_02",
+  "file": "audio/ac130_vulcan_hit_dirt_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.9,
+  "rmsDb": -22.2,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "dirt"
+  ]
+ },
+ "ac130_vulcan_hit_dirt_03": {
+  "id": "ac130_vulcan_hit_dirt_03",
+  "file": "audio/ac130_vulcan_hit_dirt_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.2,
+  "rmsDb": -22.2,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "dirt"
+  ]
+ },
+ "ac130_vulcan_hit_dirt_04": {
+  "id": "ac130_vulcan_hit_dirt_04",
+  "file": "audio/ac130_vulcan_hit_dirt_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.1,
+  "rmsDb": -22.2,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "dirt"
+  ]
+ },
+ "ac130_vulcan_hit_concrete_01": {
+  "id": "ac130_vulcan_hit_concrete_01",
+  "file": "audio/ac130_vulcan_hit_concrete_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.4,
+  "rmsDb": -22.2,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "concrete"
+  ]
+ },
+ "ac130_vulcan_hit_concrete_02": {
+  "id": "ac130_vulcan_hit_concrete_02",
+  "file": "audio/ac130_vulcan_hit_concrete_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.1,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "concrete"
+  ]
+ },
+ "ac130_vulcan_hit_concrete_03": {
+  "id": "ac130_vulcan_hit_concrete_03",
+  "file": "audio/ac130_vulcan_hit_concrete_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.3,
+  "rmsDb": -22.2,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "concrete"
+  ]
+ },
+ "ac130_vulcan_hit_concrete_04": {
+  "id": "ac130_vulcan_hit_concrete_04",
+  "file": "audio/ac130_vulcan_hit_concrete_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.8,
+  "rmsDb": -22.1,
+  "lufs": -21.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "concrete"
+  ]
+ },
+ "ac130_vulcan_hit_metal_01": {
+  "id": "ac130_vulcan_hit_metal_01",
+  "file": "audio/ac130_vulcan_hit_metal_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.36,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.4,
+  "lufs": -21.4,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "metal"
+  ]
+ },
+ "ac130_vulcan_hit_metal_02": {
+  "id": "ac130_vulcan_hit_metal_02",
+  "file": "audio/ac130_vulcan_hit_metal_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.36,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.3,
+  "rmsDb": -22.1,
+  "lufs": -20.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "metal"
+  ]
+ },
+ "ac130_vulcan_hit_metal_03": {
+  "id": "ac130_vulcan_hit_metal_03",
+  "file": "audio/ac130_vulcan_hit_metal_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.36,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.4,
+  "lufs": -21.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "metal"
+  ]
+ },
+ "ac130_vulcan_hit_metal_04": {
+  "id": "ac130_vulcan_hit_metal_04",
+  "file": "audio/ac130_vulcan_hit_metal_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.36,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.6,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "metal"
+  ]
+ },
+ "ac130_vulcan_hit_water_01": {
+  "id": "ac130_vulcan_hit_water_01",
+  "file": "audio/ac130_vulcan_hit_water_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.3,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "water"
+  ]
+ },
+ "ac130_vulcan_hit_water_02": {
+  "id": "ac130_vulcan_hit_water_02",
+  "file": "audio/ac130_vulcan_hit_water_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.7,
+  "lufs": -22.3,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "water"
+  ]
+ },
+ "ac130_vulcan_hit_water_03": {
+  "id": "ac130_vulcan_hit_water_03",
+  "file": "audio/ac130_vulcan_hit_water_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.1,
+  "rmsDb": -22.6,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "water"
+  ]
+ },
+ "ac130_vulcan_hit_water_04": {
+  "id": "ac130_vulcan_hit_water_04",
+  "file": "audio/ac130_vulcan_hit_water_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.3,
+  "rmsDb": -22.3,
+  "lufs": -21.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "water"
+  ]
+ },
+ "ac130_vulcan_hit_person_01": {
+  "id": "ac130_vulcan_hit_person_01",
+  "file": "audio/ac130_vulcan_hit_person_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.7,
+  "rmsDb": -22.2,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "person"
+  ]
+ },
+ "ac130_vulcan_hit_person_02": {
+  "id": "ac130_vulcan_hit_person_02",
+  "file": "audio/ac130_vulcan_hit_person_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.1,
+  "rmsDb": -22.3,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "person"
+  ]
+ },
+ "ac130_vulcan_hit_person_03": {
+  "id": "ac130_vulcan_hit_person_03",
+  "file": "audio/ac130_vulcan_hit_person_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -5.3,
+  "rmsDb": -22.3,
+  "lufs": -23.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "person"
+  ]
+ },
+ "ac130_vulcan_hit_person_04": {
+  "id": "ac130_vulcan_hit_person_04",
+  "file": "audio/ac130_vulcan_hit_person_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 250,
+  "weight": 4,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.1,
+  "rmsDb": -22.2,
+  "lufs": -23.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "person"
+  ]
+ },
+ "ac130_vulcan_stitch_01": {
+  "id": "ac130_vulcan_stitch_01",
+  "file": "audio/ac130_vulcan_stitch_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.6,
+  "rmsDb": -22.6,
+  "lufs": -22.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch"
+  ]
+ },
+ "ac130_vulcan_stitch_far_01": {
+  "id": "ac130_vulcan_stitch_far_01",
+  "file": "audio/ac130_vulcan_stitch_far_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.05,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.2,
+  "rmsDb": -27.2,
+  "lufs": -28.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch",
+   "far"
+  ]
+ },
+ "ac130_vulcan_stitch_02": {
+  "id": "ac130_vulcan_stitch_02",
+  "file": "audio/ac130_vulcan_stitch_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -6.5,
+  "rmsDb": -22.7,
+  "lufs": -22.2,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch"
+  ]
+ },
+ "ac130_vulcan_stitch_far_02": {
+  "id": "ac130_vulcan_stitch_far_02",
+  "file": "audio/ac130_vulcan_stitch_far_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.05,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.0,
+  "rmsDb": -27.6,
+  "lufs": -28.3,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch",
+   "far"
+  ]
+ },
+ "ac130_vulcan_stitch_03": {
+  "id": "ac130_vulcan_stitch_03",
+  "file": "audio/ac130_vulcan_stitch_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 500,
+  "weight": 6,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.15,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -7.1,
+  "rmsDb": -23.1,
+  "lufs": -22.6,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch"
+  ]
+ },
+ "ac130_vulcan_stitch_far_03": {
+  "id": "ac130_vulcan_stitch_far_03",
+  "file": "audio/ac130_vulcan_stitch_far_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 3,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 2.05,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.1,
+  "rmsDb": -27.5,
+  "lufs": -28.3,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "vulcan",
+   "stitch",
+   "far"
+  ]
+ }
+}

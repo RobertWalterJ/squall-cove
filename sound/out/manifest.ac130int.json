@@ -1,0 +1,461 @@
+{
+ "ac130_int_howitzer_fire_01": {
+  "id": "ac130_int_howitzer_fire_01",
+  "file": "audio/ac130_int_howitzer_fire_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 99999,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -8.8,
+  "rmsDb": -27.7,
+  "lufs": -29.0,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "howitzer",
+   "105mm",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 1200,
+    "maxVoices": 3,
+    "preload": true,
+    "note": "replaces the near exterior fire + sub while at the station",
+    "rotate": 3,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_howitzer_fire_02": {
+  "id": "ac130_int_howitzer_fire_02",
+  "file": "audio/ac130_int_howitzer_fire_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 99999,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -10.2,
+  "rmsDb": -27.3,
+  "lufs": -28.5,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "howitzer",
+   "105mm",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 1200,
+    "maxVoices": 3,
+    "preload": true,
+    "note": "replaces the near exterior fire + sub while at the station",
+    "rotate": 3,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_howitzer_fire_03": {
+  "id": "ac130_int_howitzer_fire_03",
+  "file": "audio/ac130_int_howitzer_fire_03.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 3,
+  "maxDist": 99999,
+  "weight": 10,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.5,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.2,
+  "rmsDb": -27.4,
+  "lufs": -28.6,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "howitzer",
+   "105mm",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 1200,
+    "maxVoices": 3,
+    "preload": true,
+    "note": "replaces the near exterior fire + sub while at the station",
+    "rotate": 3,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_start_01": {
+  "id": "ac130_int_vulcan_start_01",
+  "file": "audio/ac130_int_vulcan_start_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 1,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.4,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.9,
+  "rmsDb": -28.5,
+  "lufs": -29.2,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "spinup",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "on trigger press; start the loop at about 1.2 s with a 0.15 s crossfade",
+    "rotate": 1,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_startup_01": {
+  "id": "ac130_int_vulcan_startup_01",
+  "file": "audio/ac130_int_vulcan_startup_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 2,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -27.1,
+  "lufs": -27.8,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "startup",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "short 0.5 s quick start (latch clack plus rising whirr); alternative to vulcan_start for repeated bursts; start the loop at about 0.45 s with a 0.1 s crossfade",
+    "rotate": 2,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_startup_02": {
+  "id": "ac130_int_vulcan_startup_02",
+  "file": "audio/ac130_int_vulcan_startup_02.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 2,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 0.6,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.1,
+  "rmsDb": -27.2,
+  "lufs": -27.9,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "startup",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "short 0.5 s quick start (latch clack plus rising whirr); alternative to vulcan_start for repeated bursts; start the loop at about 0.45 s with a 0.1 s crossfade",
+    "rotate": 2,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_loop_01": {
+  "id": "ac130_int_vulcan_loop_01",
+  "file": "audio/ac130_int_vulcan_loop_01.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 2,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -14.5,
+  "rmsDb": -26.0,
+  "lufs": -26.7,
+  "seamDb": -38.9,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "loop",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "one variant per burst; do not rate-modulate more than 0.97 to 1.03",
+    "rotate": 2,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_loop_02": {
+  "id": "ac130_int_vulcan_loop_02",
+  "file": "audio/ac130_int_vulcan_loop_02.ogg",
+  "bus": "veh",
+  "loop": true,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 2,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.2,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.7,
+  "rmsDb": -26.2,
+  "lufs": -27.0,
+  "seamDb": -43.4,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "loop",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "one variant per burst; do not rate-modulate more than 0.97 to 1.03",
+    "rotate": 2,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_vulcan_end_01": {
+  "id": "ac130_int_vulcan_end_01",
+  "file": "audio/ac130_int_vulcan_end_01.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 1,
+  "maxDist": 99999,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.67,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.2,
+  "rmsDb": -31.0,
+  "lufs": -31.8,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "weapon",
+   "vulcan",
+   "spindown",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 0,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "on release; fade the loop out in 80 to 100 ms",
+    "rotate": 1,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_ready_vulcan": {
+  "id": "ac130_int_ready_vulcan",
+  "file": "audio/ac130_int_ready_vulcan.ogg",
+  "bus": "veh",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.96,
+   1.04
+  ],
+  "variants": 1,
+  "maxDist": 99999,
+  "weight": 5,
+  "lazy": false,
+  "group": "weapons",
+  "dur": 0.068,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -15.5,
+  "rmsDb": -30.3,
+  "lufs": -35.0,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "ready",
+   "vulcan",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 300,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "on selecting the Vulcan",
+    "rotate": 1,
+    "bus": "veh"
+   }
+  }
+ },
+ "ac130_int_select_vulcan": {
+  "id": "ac130_int_select_vulcan",
+  "file": "audio/ac130_int_select_vulcan.ogg",
+  "bus": "ui",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   1.0,
+   1.0
+  ],
+  "variants": 1,
+  "maxDist": 99999,
+  "weight": 3,
+  "lazy": false,
+  "group": "aircraft",
+  "dur": 0.137,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -26.6,
+  "rmsDb": -32.8,
+  "lufs": -34.9,
+  "seamDb": null,
+  "tags": [
+   "ac130",
+   "interior",
+   "beep",
+   "nonspatial"
+  ],
+  "meta": {
+   "kind": "interior",
+   "play": {
+    "gapMs": 150,
+    "maxVoices": 1,
+    "preload": true,
+    "note": "weapon-select tone 3 (G5)",
+    "rotate": 1,
+    "bus": "ui"
+   }
+  }
+ }
+}

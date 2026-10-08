@@ -1,0 +1,215 @@
+{
+ "ac130_bofors_hit_water_01": {
+  "id": "ac130_bofors_hit_water_01",
+  "file": "audio/ac130_bofors_hit_water_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 600,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.4,
+  "rmsDb": -25.2,
+  "lufs": -25.0,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water"
+  ]
+ },
+ "ac130_bofors_hit_water_far_01": {
+  "id": "ac130_bofors_hit_water_far_01",
+  "file": "audio/ac130_bofors_hit_water_far_01.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -11.5,
+  "rmsDb": -31.9,
+  "lufs": -33.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_bofors_hit_water_02": {
+  "id": "ac130_bofors_hit_water_02",
+  "file": "audio/ac130_bofors_hit_water_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 600,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.4,
+  "rmsDb": -25.1,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water"
+  ]
+ },
+ "ac130_bofors_hit_water_far_02": {
+  "id": "ac130_bofors_hit_water_far_02",
+  "file": "audio/ac130_bofors_hit_water_far_02.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.8,
+  "rmsDb": -31.6,
+  "lufs": -32.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_bofors_hit_water_03": {
+  "id": "ac130_bofors_hit_water_03",
+  "file": "audio/ac130_bofors_hit_water_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 600,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -3.7,
+  "rmsDb": -25.1,
+  "lufs": -24.9,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water"
+  ]
+ },
+ "ac130_bofors_hit_water_far_03": {
+  "id": "ac130_bofors_hit_water_far_03",
+  "file": "audio/ac130_bofors_hit_water_far_03.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 0.7,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 3,
+  "maxDist": 1500,
+  "weight": 5,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 3.25,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -12.0,
+  "rmsDb": -31.7,
+  "lufs": -33.1,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water",
+   "far"
+  ]
+ },
+ "ac130_bofors_hit_water_04": {
+  "id": "ac130_bofors_hit_water_04",
+  "file": "audio/ac130_bofors_hit_water_04.ogg",
+  "bus": "mat",
+  "loop": false,
+  "gain": 1.0,
+  "rate": [
+   0.94,
+   1.06
+  ],
+  "variants": 4,
+  "maxDist": 600,
+  "weight": 8,
+  "lazy": true,
+  "group": "weapons",
+  "dur": 1.7,
+  "ch": 1,
+  "sr": 44100,
+  "peakDb": -4.0,
+  "rmsDb": -25.1,
+  "lufs": -24.8,
+  "seamDb": null,
+  "tags": [
+   "impact",
+   "ac130",
+   "bofors",
+   "40mm",
+   "water"
+  ]
+ }
+}
