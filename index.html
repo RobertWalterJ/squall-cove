@@ -156,6 +156,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
  body.ed-phone #stnSt{left:136px;bottom:8px;max-width:calc(100% - 270px)}
 }
 </style>
+
 </head>
 <body>
 <div id="boot" role="dialog" aria-modal="true" aria-labelledby="bootTitle"><div class="bw">
@@ -345,7 +346,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.7 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.8 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -912,7 +913,7 @@ body.ed-phone #tablet #tbTabs button,body.ed-phone #tablet .tbHead button,body.e
 body.ed-phone #bSpawn .card2,body.ed-phone .cards.two .card2{min-height:56px}
 /* one modal at a time: the page tags the body while any sheet is open, and what sits underneath goes quiet, so nothing shows through or can be pressed by mistake */
 body.ed-phone.modal-open :is(#phoneStack,.actions,.tabs,#tray,#trayTog,#cmdBtn,#cmdRow,#selBar,#bHud,#bTip,#legend,#objective,#camPad,#hudOn,#burger,.inst,#fireArm,#sculpt,#placeBtn,#landUndo,#turnBtn,#calmBtn,#selFloat,#feedCol,#bStat,#sqHud,#orientHint,#bvHud){visibility:hidden!important;pointer-events:none!important}
-body.touch.modal-open #fp :is(.fpBtns,.fpTop,#fpStick,#fpLook,#fpTools,.fpPrompt,.fpHint,#sqHud,#sqWheel){visibility:hidden!important;pointer-events:none!important}
+body.touch.modal-open #fp :is(.fpBtns,.fpTop,#fpStick,#fpLook,#fpTools,.fpPrompt,.fpHint,#sqHud,#sqWheel,#compass,#miniMap,#fpMapBtn){visibility:hidden!important;pointer-events:none!important}
 /* start menu on the phone: three short steps, then one Start bar pinned to the bottom with the download size on one line */
 #boot .bdock{display:block}
 html.ed-phone #boot .bdock{position:sticky;bottom:0;z-index:2;margin:18px calc(-16px - env(safe-area-inset-right,0px)) 0 calc(-16px - env(safe-area-inset-left,0px));padding:10px calc(16px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:#0c1a20;border-top:1px solid rgba(201,169,90,.35)}
@@ -982,6 +983,47 @@ body.ed-phone:has(#bHud[hidden]) #phoneStack > :is(#bBtns,#bHint){display:none!i
 body.ed-phone .actions > #burger{display:block!important}
 body.ed-phone.sideopen .actions > #burger,body.ed-phone[data-mode="fp"] .actions > #burger{display:none!important}
 body.ed-phone .actions > #burger{position:static!important;left:auto;top:auto;z-index:auto;border-radius:8px;border-left:1px solid var(--line);padding:8px 10px}
+</style>
+<style id="saCss">
+/* v9.8 situational awareness: overview symbols, the compass strip, the corner map and the Quick map */
+#symCv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:var(--z-under);display:none}
+#symCv.on{display:block}
+#compass{position:absolute;left:50%;top:calc(14px + var(--safe-t));transform:translateX(-50%);width:min(400px,calc(100vw - 560px));min-width:240px;height:44px;pointer-events:none;z-index:var(--z-hud)}
+#compass canvas{display:block;width:100%;height:100%}
+#miniMap{position:absolute;right:12px;top:calc(70px + var(--safe-t));width:150px;height:150px;z-index:var(--z-hud);border-radius:16px;overflow:hidden;border:2px solid rgba(255,255,255,.6);box-shadow:0 2px 10px rgba(0,0,0,.55);background:#2f5f78;cursor:pointer}
+#miniMap[hidden]{display:none}
+#miniMap canvas{display:block;width:100%;height:100%}
+#fpMapBtn{display:none}
+body:not(.touch) .fpHint{box-sizing:border-box;max-width:min(420px,calc(50vw - 226px))}
+#qmap{position:fixed;inset:0;z-index:var(--z-sheet);display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(4,10,14,.55)}
+#qmap[hidden]{display:none}
+#qmap .qmCard{display:flex;flex-direction:column;gap:10px;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;max-width:100%;max-height:100%}
+#qmap .qmSide{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--paper)}
+#qmap .qmSide b{font:700 18px var(--f-display);letter-spacing:.04em;margin-right:auto}
+#qmap .qmSide button{min-height:44px;padding:0 12px}
+#qmap .qmSide p{flex:1 0 100%;margin:0;font:600 14px/1.35 var(--f-body)}
+#qmap canvas{display:block;width:min(88vw,62vh,640px);height:min(88vw,62vh,640px);border-radius:12px;border:1px solid var(--line);align-self:center;touch-action:none}
+body.touch #compass{left:calc(8px + var(--safe-l));right:calc(132px + var(--safe-r));top:calc(48px + var(--safe-t));width:auto;min-width:0;transform:none;height:42px}
+body.touch #miniMap{right:calc(8px + var(--safe-r));top:calc(120px + var(--safe-t));width:96px;height:96px;border-radius:14px}
+body.touch #fpMapBtn{display:grid;position:absolute;right:calc(8px + var(--safe-r));top:calc(224px + var(--safe-t));width:104px;height:48px;min-height:48px;justify-items:center;align-content:center;gap:1px;padding:0;border-radius:12px;background:rgba(12,26,32,.9);border:1.5px solid var(--line);z-index:var(--z-ctl);font:700 15px var(--f-body)}
+body.touch #fpMapBtn .ic{width:18px;height:18px}
+body.touch #bStat{top:calc(92px + var(--safe-t))}
+body.touch #fp #sqHud{top:calc(164px + var(--safe-t))}
+body.touch .fpHint{top:calc(92px + var(--safe-t))}
+body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{top:calc(282px + var(--safe-t))!important}
+@media (orientation:landscape) and (max-height:480px){
+  body.touch #compass{left:calc(292px + var(--safe-l));right:calc(304px + var(--safe-r));top:calc(8px + var(--safe-t));height:40px}
+  body.touch #miniMap{right:calc(128px + var(--safe-r));top:calc(8px + var(--safe-t));width:88px;height:88px}
+  body.touch #fpMapBtn{right:calc(224px + var(--safe-r));top:calc(8px + var(--safe-t));width:56px}
+  body.touch #bStat{top:calc(44px + var(--safe-t))}
+  body.touch #fp #sqHud{top:calc(120px + var(--safe-t))}
+  body.touch .fpHint{top:calc(112px + var(--safe-t))}
+  body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{top:calc(50px + var(--safe-t))!important}
+  #qmap .qmCard{flex-direction:row;align-items:center}
+  #qmap .qmSide{flex-direction:column;align-items:stretch;width:min(200px,36vw)}
+  #qmap .qmSide b{margin-right:0}
+  #qmap canvas{width:min(84vh,56vw,640px);height:min(84vh,56vw,640px)}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -1135,6 +1177,7 @@ body.ed-phone .actions > #burger{position:static!important;left:auto;top:auto;z-
     <button id="bDesel" type="button" hidden>Deselect</button>
     <button id="bHeli" type="button" hidden>Rescue helicopter</button>
     <button id="bFP" type="button" aria-label="Drop into first person (V)">First person</button>
+    <button id="bSym" type="button" aria-pressed="false">Symbols off</button>
     <button id="bMore" type="button">More</button>
     <button id="bMenu" type="button">Menu</button>
     <button id="bLog" type="button" aria-label="Messages">Log<span id="logN"></span></button>
@@ -4643,7 +4686,7 @@ function enterFP(p) {
   fp.on = true; fp.p = p; p.fp = true; p.obj.visible = false; fp.yaw = personWorldYaw(p); fp.pitch = 0; fp.vy = 0; fp.air = false; fp.helm = null;
   if (p.ride) fp.betaPrev = boatYaw(p.ride.boat);
   mode = 'fp'; document.body.dataset.mode = 'fp'; $('fp').hidden = false; $('help').hidden = true; if (p.carry) attachCarry(p.carry.lead === p ? p : p.carry.lead);
-  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm, T opens Command. Esc (press twice if the mouse is captured) or the button leaves.';
+  $('fpHint').textContent = isTouch ? 'Left stick walks. Drag the right side to look. The Map button opens the map.' : 'WASD walk, mouse looks (click first), Shift runs, Space jumps, E uses, G drops, Q jumps overboard, H takes the helm, T opens Command. M opens the map and L the full map. The compass runs along the top, and Shift + M hides the corner map. Esc (press twice if the mouse is captured) or the button leaves.';
   if (!isTouch) { fp.free = false; fp.lockFail = false; lockPointer(); setTimeout(() => { if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = FPAIM_HINT; }, 700); }
   ensureWeapons(); fpSetTool(fp.tool); document.body.classList.remove('sideopen'); toast('First person'); refreshPanel();
 }
@@ -4793,12 +4836,12 @@ function fpCamera(dt, t) {
   const cp = Math.cos(fp.pitch + sp_); camera.lookAt(px + Math.sin(fp.yaw + sy_) * cp, py + Math.sin(fp.pitch + sp_), pz + Math.cos(fp.yaw + sy_) * cp);
 }
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
-document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. Esc or the Leave button returns to the overview.'; });
+document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. M opens the map and L the full map. Esc or the Leave button returns to the overview.'; });
 $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
 let SEEN_MOUSE = false; document.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') SEEN_MOUSE = true; }, { capture: true, passive: true });   // a touch laptop reports a coarse pointer yet has a mouse: believe the mouse once it moves
 const noMouse = () => isTouch && !SEEN_MOUSE;
-const FPAIM_HINT = 'Click the view to aim with the mouse. Esc or the Leave button returns to the overview.';
-document.addEventListener('pointerlockerror', () => { fp.lockFail = true; fp.free = true; if (fp.on && !noMouse()) $('fpHint').textContent = 'The browser would not capture the mouse, so move it over the view to look around. Click the view to try again.'; });
+const FPAIM_HINT = 'Click the view to aim with the mouse. M opens the map, L the full map, Shift + M hides the corner map, and the compass runs along the top. Esc or the Leave button returns to the overview.';
+document.addEventListener('pointerlockerror', () => { fp.lockFail = true; fp.free = true; if (fp.on && !noMouse()) $('fpHint').textContent = 'The browser would not capture the mouse, so move it over the view to look around. Click the view to try again. M opens the map and L the full map.'; });
 // the mouse still aims when the browser will not lock the pointer (a refused request, an overlay that ate the click): after one click on the view, plain mouse movement turns the view
 document.addEventListener('pointerdown', (e) => { if (!fp.on || mode !== 'fp' || e.pointerType !== 'mouse' || fp.locked || (BATTLE.on && BATTLE.down)) return; const t = e.target; if (t && t.closest && t.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help,#stn')) return; fp.free = true; lockPointer(); }, true);
 addEventListener('mousemove', (e) => {
@@ -7515,7 +7558,7 @@ function bvEnter(c, seat) {
   for (const k in fpToolMesh) fpToolMesh[k].visible = false; { const so = $('fpScope'), s2 = $('fpScope2'); if (so) so.style.display = 'none'; if (s2) s2.style.display = 'none'; }
   fp.yaw = c.heli ? c.hd : c.yaw; fp.pitch = -0.14; BV.ly = fp.yaw; BV.lp = fp.pitch; BV.vy = fp.yaw; BV.mt = 0; BV.camMode = 'chase'; p.obj.visible = !!seat.vis;
   if (c.heli) bvHeliBoarded(c, seat); else { c.active = true; if (c.ai && seat.kind === 'driver') bvAIRelease(c, true); }
-  $('fpPrompt').textContent = ''; $('fpHint').textContent = isTouch ? 'Stick drives. Fire button shoots. Use button gets out.' : 'In the ' + bvName(c).toLowerCase() + ': E gets out, V changes the view, X changes seat. The full list is in the Menu under Controls.';
+  $('fpPrompt').textContent = ''; $('fpHint').textContent = isTouch ? 'Stick drives. Fire button shoots. Use button gets out.' : 'In the ' + bvName(c).toLowerCase() + ': E gets out, V changes the view, X changes seat, M opens the map. The full list is in the Menu under Controls.';
   toast('You are the ' + bvSeatName(seat) + ' of the ' + bvName(c).toLowerCase() + '.'); Snd.fx('mat_metal_clang_s', c.x, c.z, { gain: 0.35, y: c.y + 1 }); if (SQD.on && SQD.order.k === 'follow') sqdMount(c); return true;
 }
 function bvLeavePlayer(c, spot) {
@@ -8666,7 +8709,7 @@ function frameStep(now) {
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(...o.pos); camera.lookAt(new THREE.Vector3(...o.look)); }
   const focus = (STN && STN.on) ? STN.focus : mode === 'helm' ? camS.tgt : mode === 'fp' ? camera.position : god.tgt;
   // markers
-  updateRings(t);
+  updateRings(t); if (SA) { try { SA.frame(dt); } catch (e) { if (!SA.err) { SA.err = String(e && e.stack || e); console.error('situational awareness error', e); } } }
   if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size] * CELL); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
   terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt; syncWaveU(); terrainU.uCaus.value = Math.max(0, Math.min(1, sunDir.y * 2.4)) * (1 - 0.75 * wx.rainAmt) * (1 - 0.6 * Math.min(1, sea.amp * 1.2));
@@ -8780,6 +8823,7 @@ const KEYMAP = [
   ['over', 'Esc', 'Stand down fire control, leave the helm, deselect, or open this menu'],
   ['over', 'T', 'Command: fire, support, squad and points', 'h'],
   ['over', 'L', 'Tactical map: the whole battlefield with a grid, range rings, fire data and adjust fire. Drag to pan, wheel or pinch to zoom, tap to mark a target', 'h'],
+  ['over', 'Symbols', 'More, then Symbols: from far away, friends show as a blue rectangle and hostile units as a red diamond, each with a small picture inside (crossed lines infantry, oval armour, dot gun, wings aircraft, waves boat). A letter marks each point. Squads show as one mark with the squad name when you zoom in. Many marks merge into one with a count'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
   ['over', '` (backtick)', 'Cheats: for fun and testing. Switches, spawns, weather and typed codes. Also in Menu, Settings'],
@@ -8815,7 +8859,9 @@ const KEYMAP = [
   ['fp', 'X, Z', 'In a battle: squad follow or hold (X toggles), squad move to the crosshair (Z)'],
   ['fp', 'Hold N, then 1 to 8', 'Squad order ring. Hold N, move the mouse to a slot (or press 1 to 8), let go to give the order: Follow, Move, Attack, Suppress, Take cover, Fall back, Hold, Defend', 'h'],
   ['fp', 'I', 'Ping: mark the spot or enemy under the crosshair. The squad turns to it, and Attack uses it'],
-  ['fp', 'M', 'Squad mounts up in the vehicle beside you, or gets out'],
+  ['fp', 'J', 'Squad mounts up in the vehicle beside you, or gets out'],
+  ['fp', 'M', 'Quick map: a larger view of the corner map, with you, your squad, points and enemies that friends can see. Press M again, Esc or tap outside to close. L is the full tactical map', 'h'],
+  ['fp', 'Shift + M', 'Show or hide the corner map. The compass along the top is always on: it shows your heading, squad, pings, enemies that friends can see, and the nearest points'],
   ['fp', 'U', 'Heal me: the nearest medic comes and patches you up'],
   ['fp', 'K', 'Squad hold fire, or free fire'],
   ['fp', 'E at a ladder', 'Climb a ladder (stand at its foot and face it, or stand at the top to go down). W and S climb, Space jumps off, E lets go. You can look 50 degrees either way and your weapon is put away', 'h'],
@@ -11843,10 +11889,10 @@ function sqdFrame(dt) {                                             // once a fr
   }
   sqdMarks();
 }
-/* ---- keys: N hold for the ring, I ping, M mount or dismount, U heal me, K hold fire or free fire */
+/* ---- keys: N hold for the ring, I ping, J mount or dismount, U heal me, K hold fire or free fire */
 onKey((e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; if (!fp.on || mode !== 'fp' || !BATTLE.on || e.repeat) return; const k = e.key.toLowerCase();
-  if (k === 'n') { sqdWheelOpen(); e.preventDefault(); } else if (k === 'i') sqdPing(); else if (k === 'm') { sqdUiInit(); sqdSet('mount'); } else if (k === 'u') sqdSet('heal'); else if (k === 'k') sqdToggleFire();
+  if (k === 'n') { sqdWheelOpen(); e.preventDefault(); } else if (k === 'i') sqdPing(); else if (k === 'j') { sqdUiInit(); sqdSet('mount'); } else if (k === 'u') sqdSet('heal'); else if (k === 'k') sqdToggleFire();
 });
 addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 'n' && SQD.wheel) sqdWheelClose(true); });
 addEventListener('blur', () => sqdWheelClose(false));
@@ -12956,9 +13002,9 @@ const PH = (() => {
   const body = document.body, modalOpen = () => body.classList.contains('modal-open');
 
   /* ---- one modal at a time. Whatever opens last stays; the rest are closed with their own close routines. The deploy window is never closed by another sheet. */
-  const ML = { open: new Set(), ids: ['tablet', 'bSetup', 'menuSheet', 'help', 'inspector', 'tmap', 'bSpawn', 'side', 'cheatSheet', 'stn'], armed: false };
+  const ML = { open: new Set(), ids: ['tablet', 'bSetup', 'menuSheet', 'help', 'inspector', 'tmap', 'bSpawn', 'side', 'cheatSheet', 'stn', 'qmap'], armed: false };
   const isOpen = (id) => { const e = $(id); if (!e) return false; if (id === 'side') return body.classList.contains('sideopen'); return !e.hidden; };
-  const closers = { tablet: () => toggleTablet(false), bSetup: () => closeSetup(), menuSheet: () => closeMenu(), help: () => { $('help').hidden = true; }, inspector: () => closeInspector(), tmap: () => tmClose(), side: () => setSide(false), cheatSheet: () => { $('cheatSheet').hidden = true; }, bSpawn: () => { $('bSpawn').hidden = true; }, stn: () => stnClose() };
+  const closers = { tablet: () => toggleTablet(false), bSetup: () => closeSetup(), menuSheet: () => closeMenu(), help: () => { $('help').hidden = true; }, inspector: () => closeInspector(), tmap: () => tmClose(), side: () => setSide(false), cheatSheet: () => { $('cheatSheet').hidden = true; }, bSpawn: () => { $('bSpawn').hidden = true; }, stn: () => stnClose(), qmap: () => { if (SA) SA.qmClose(); } };
   const arm = () => { if (!ML.armed) { try { history.pushState({ sc: 1 }, ''); ML.armed = true; } catch (e) { } } };
   function ladderSync() {
     const now = ML.ids.filter(isOpen), fresh = now.filter(i => !ML.open.has(i));
@@ -13400,6 +13446,289 @@ function stnKey(e) {
 stnBuild();
 Object.assign(window.__sc, { STN, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
 /*STN-END*/
+/*SA-START*/
+/* ================================================================ v9.8: see the battle at a glance.
+   1  Symbols in the overview: friends are a blue rectangle, hostile units a red diamond, each with a small picture inside. They are drawn on one overlay canvas (no element per unit), keep one size on the screen, fade away as the camera comes down close, and merge with a count when they crowd.
+   2  A compass strip along the top in first person.   3  A corner map that turns with you, and a larger Quick map on M (L stays the full tactical map). */
+var SA = null;
+(function () {
+  const ph = !!ED.phone, LS = { sym: 'squall-cove-symbols', mini: 'squall-cove-minimap' };
+  const rd = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, wr = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
+  const PHON = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet', 'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform', 'Victor', 'Whiskey', 'Xray', 'Yankee', 'Zulu'];
+  const KP = { air: 5, nav: 4, arm: 3, art: 2, inf: 1 };                                   // when marks merge, the bigger kind shows
+  const S = { symPref: rd(LS.sym), miniPref: rd(LS.mini), list: [], sq: new Map(), syms: [], pts: [], drawn: { blue: 0, red: 0 }, total: { blue: 0, red: 0 }, fade: 0, cap: ph ? 24 : 60, hostile: false, hostT: -9, labels: false,
+    contacts: [], ctT: -9, spT: -9, miT: 0, cmT: 0, qm: false, cmp: { heading: 0, marks: [] }, SZ: ph ? 30 : 22, C: 0, at: null, v: new THREE.Vector3(), cc: null, mc: null, qc: null, sym: null, ssig: '', base: { sig: '', cv: null, t: 0 } };
+  const myTeam = () => BATTLE.team || 'blue';
+  const symOn = () => S.symPref === '1' ? true : S.symPref === '0' ? false : (BATTLE.on || S.hostile);
+  const miniOn = () => S.miniPref !== '0';
+  const headingDeg = () => (Math.atan2(Math.sin(fp.yaw), -Math.cos(fp.yaw)) * 180 / Math.PI + 360) % 360;
+  const brg = (dx, dz) => (Math.atan2(dx, -dz) * 180 / Math.PI + 360) % 360;
+  const dName = (d) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(d / 45) % 8];
+  const p3 = (n) => String(Math.round(n) % 360).padStart(3, '0');
+  const rrect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+  const OWN = { blue: '#4f8ef0', red: '#ef5a48', none: '#a9afb0' };
+  const ptLetter = (i) => String.fromCharCode(65 + (i % 26));
+  const squadName = (key, team) => { const n = +String(key).slice(team.length) || 0; return PHON[n % 26]; };
+
+  /* ---- the symbol atlas: one small picture per side and kind, drawn once at twice the size */
+  function icon(c, kind, r, hostile) {
+    c.strokeStyle = '#fff'; c.fillStyle = '#fff'; c.lineWidth = 1.9; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath();
+    if (kind === 'inf') { c.moveTo(-r, -r * 0.8); c.lineTo(r, r * 0.8); c.moveTo(-r, r * 0.8); c.lineTo(r, -r * 0.8); c.stroke(); }
+    else if (kind === 'arm') { c.ellipse(0, 0, r * 1.05, r * 0.6, 0, 0, 6.283); c.stroke(); }
+    else if (kind === 'art') { c.arc(0, 0, r * 0.42, 0, 6.283); c.fill(); }
+    else if (kind === 'air') { c.moveTo(-r * 1.1, r * 0.35); c.quadraticCurveTo(-r * 0.55, -r * 0.85, 0, r * 0.15); c.quadraticCurveTo(r * 0.55, -r * 0.85, r * 1.1, r * 0.35); c.stroke(); }
+    else { c.moveTo(-r * 1.1, 0); c.quadraticCurveTo(-r * 0.55, -r * 0.75, 0, 0); c.quadraticCurveTo(r * 0.55, r * 0.75, r * 1.1, 0); c.stroke(); c.beginPath(); c.moveTo(-r * 1.1, r * 0.62); c.quadraticCurveTo(-r * 0.55, -r * 0.13, 0, r * 0.62); c.quadraticCurveTo(r * 0.55, r * 1.37, r * 1.1, r * 0.62); c.stroke(); }
+  }
+  function framePath(c, hostile, z) {
+    c.beginPath();
+    if (hostile) { const h = z * 0.84; c.moveTo(0, -h); c.lineTo(h, 0); c.lineTo(0, h); c.lineTo(-h, 0); c.closePath(); }
+    else { const w = z * 0.67, h = z * 0.48; c.rect(-w, -h, w * 2, h * 2); }
+  }
+  function buildAtlas() {
+    const Z = S.SZ, C = Math.ceil(Z * 2.1), K = 2; S.C = C; S.at = {};
+    for (const hostile of [false, true]) for (const kind of ['inf', 'arm', 'art', 'air', 'nav']) {
+      const cv = document.createElement('canvas'); cv.width = cv.height = C * K; const c = cv.getContext('2d'); c.scale(K, K); c.translate(C / 2, C / 2);
+      framePath(c, hostile, Z); c.lineJoin = 'round'; c.lineWidth = 3.8; c.strokeStyle = 'rgba(0,0,0,.6)'; c.stroke(); c.fillStyle = hostile ? '#d63a2a' : '#2c6fd9'; c.fill(); c.lineWidth = 1.6; c.strokeStyle = '#fff'; c.stroke();
+      icon(c, kind, hostile ? Z * 0.3 : Z * 0.3, hostile); S.at[(hostile ? 'h' : 'f') + kind] = cv;
+    }
+  }
+
+  /* ---- who is on the map: people (a squad is one mark at its leader), vehicles, aircraft, boats and emplacements */
+  function collect() {
+    const L = S.list, sm = S.sq, my = myTeam(), selSet = new Set(sel), seen = new Set(); L.length = 0; sm.clear();
+    for (const q of people) {
+      const t = teamOf(q); if (!t || q.vin || q.ride || q.hoist) continue; const b = q.bot; if (b && b.dead) continue; if (q.hp !== undefined && q.hp <= 0) continue;
+      const down = q.state === 'rag', key = b ? (b.psq ? 'P' + t : (b.sq || null)) : null;
+      if (key) { let g = sm.get(key); if (!g) { g = { team: t, key, n: 0, up: 0, lead: null, li: 1e9, any: null, sel: false }; sm.set(key, g); } g.n++; if (!g.any) g.any = q; if (selSet.has(q)) g.sel = true; if (!down) { g.up++; const si = b.sqi || 0; if (si < g.li) { g.li = si; g.lead = q; } } continue; }
+      L.push({ x: q.x, y: q.y + 2, z: q.z, team: t, kind: 'inf', down, sel: selSet.has(q), label: null, n: 1 });
+    }
+    for (const g of sm.values()) { const q = g.lead || g.any; L.push({ x: q.x, y: q.y + 2, z: q.z, team: g.team, kind: 'inf', down: !g.lead, sel: g.sel, label: g.key[0] === 'P' ? 'Your squad' : squadName(g.key, g.team), n: g.n }); }
+    for (const v of BVL) { if (v.dead || v.hp <= 0) continue; seen.add(v); L.push({ x: v.x, y: v.y + 3, z: v.z, team: v.team, kind: v.heli ? 'air' : 'arm', down: false, sel: false, label: null, n: 1 }); }
+    for (const u of AIR.list) { if (u.down || seen.has(u)) continue; if (u.team !== 'blue' && u.team !== 'red') continue; L.push({ x: u.x, y: Math.max(heightAt(u.x, u.z), 0) + 28, z: u.z, team: u.team, kind: 'air', down: false, sel: false, label: null, n: 1 }); }
+    for (const e of AAS) { const t = e.p && e.p.owner; if (!t || e.dead || e.hp <= 0) continue; L.push({ x: e.x, y: Math.max(heightAt(e.x, e.z), 0) + 3, z: e.z, team: t, kind: 'art', down: false, sel: false, label: null, n: 1 }); }
+    for (const bt of boats) { if (bt.sunk) continue; const t = isHostile(bt) ? 'red' : (bt.blue || isCG(bt)) ? 'blue' : null; if (!t) continue; const p = bt.body.position; L.push({ x: p.x, y: 3, z: p.z, team: t, kind: 'nav', down: false, sel: selSet.has(bt), label: null, n: 1 }); }
+    void my;
+  }
+  function project(e) { const v = S.v.set(e.x, e.y, e.z).project(camera); e.ok = v.z < 1 && v.z > -1; e.sx = (v.x + 1) / 2 * innerWidth; e.sy = (1 - v.y) / 2 * innerHeight; }
+  function merge(list, cell) {                                                       // marks that fall in one cell of the screen become one mark with a count
+    const map = new Map(), out = [];
+    for (const e of list) { const k = Math.floor(e.sx / cell) * 4096 + Math.floor(e.sy / cell); const g = map.get(k); if (g) g.push(e); else map.set(k, [e]); }
+    for (const g of map.values()) {
+      if (g.length === 1) { out.push(g[0]); continue; }
+      let n = 0, x = 0, y = 0, sel = false, up = 0, kind = 'inf'; for (const e of g) { n += e.n; x += e.sx * e.n; y += e.sy * e.n; if (e.sel) sel = true; if (!e.down) up++; if (KP[e.kind] > KP[kind]) kind = e.kind; }
+      out.push({ sx: x / n, sy: y / n, team: g[0].team, kind, down: up === 0, sel, label: null, n, merged: true });
+    }
+    return out;
+  }
+  function fitTeam(list) { let cell = S.C * 0.78, out = merge(list, cell), k = 0; while (out.length > S.cap && k++ < 9) { cell *= 1.45; out = merge(list, cell); } return out; }
+
+  /* ---- the overlay canvas */
+  function overlay() {
+    if (S.sym) return S.sym; const cv = document.createElement('canvas'); cv.id = 'symCv'; cv.setAttribute('aria-hidden', 'true'); document.body.appendChild(cv); S.sym = cv; return cv;
+  }
+  function drawSymbols(on) {
+    const cv = overlay();
+    if (!on) { if (cv.classList.contains('on')) { cv.classList.remove('on'); } S.syms.length = 0; S.pts.length = 0; S.drawn.blue = S.drawn.red = 0; return; }
+    const spx = 1.8 * innerHeight / (2 * god.dist * Math.tan(camera.fov * Math.PI / 360)), f = clamp((9 - spx) / 3, 0, 1), fade = f * f * (3 - 2 * f); S.fade = fade; S.spx = spx;      // symbols only once a 1.8 m soldier is 9 px tall or less, full at 6 px
+    if (fade < 0.02) { if (cv.classList.contains('on')) cv.classList.remove('on'); S.syms.length = 0; S.pts.length = 0; S.drawn.blue = S.drawn.red = 0; return; }
+    if (!cv.classList.contains('on')) cv.classList.add('on');
+    if (!S.at) buildAtlas();
+    const dpr = Math.min(ph ? 1.5 : 2, window.devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+    camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+    collect(); const my = myTeam(), byTeam = { blue: [], red: [] }, M = 40;
+    for (const e of S.list) { if (!byTeam[e.team]) continue; project(e); if (!e.ok || e.sx < -M || e.sx > W + M || e.sy < -M || e.sy > H + M) continue; byTeam[e.team].push(e); }
+    S.total.blue = S.total.red = 0; for (const e of S.list) S.total[e.team] += e.n; S.onScreen = { blue: byTeam.blue.reduce((a, e) => a + e.n, 0), red: byTeam.red.reduce((a, e) => a + e.n, 0) };
+    S.syms.length = 0; const marks = [];
+    for (const t of ['blue', 'red']) { const m = fitTeam(byTeam[t]); S.drawn[t] = m.length; for (const e of m) { e.hostile = t !== my; marks.push(e); } }
+    marks.sort((a, b) => a.sy - b.sy);
+    S.labels = fade > 0.5;
+    const Z = S.SZ, C = S.C, font = ph ? 13 : 11.5; c.textAlign = 'center'; c.textBaseline = 'middle';
+    // points first, so units sit on top of them
+    S.pts.length = 0; const pr = ph ? 15 : 12;
+    if (BATTLE.on) BATTLE.points.forEach((p, i) => {
+      const pe = { x: p.x, y: Math.max(heightAt(p.x, p.z), 0) + 6, z: p.z }; project(pe); if (!pe.ok || pe.sx < -M || pe.sx > W + M || pe.sy < -M || pe.sy > H + M) return;
+      const oc = p.owner === 'blue' ? OWN.blue : p.owner === 'red' ? OWN.red : OWN.none, hot = p.nb > 0 && p.nr > 0; c.globalAlpha = fade;
+      c.beginPath(); c.arc(pe.sx, pe.sy, pr, 0, 6.283); c.fillStyle = 'rgba(12,20,24,.82)'; c.fill(); c.lineWidth = hot ? 4 : 3; c.strokeStyle = oc; if (hot) c.setLineDash([4, 3]); c.stroke(); c.setLineDash([]); c.lineWidth = 1.2; c.strokeStyle = '#fff'; c.beginPath(); c.arc(pe.sx, pe.sy, pr + 2.2, 0, 6.283); c.stroke();
+      c.fillStyle = '#fff'; c.font = '700 ' + (pr + 2) + 'px sans-serif'; c.fillText(ptLetter(i), pe.sx, pe.sy + 1);
+      const mine = p.owner === my; if (p.owner) { c.fillStyle = oc; c.strokeStyle = '#fff'; c.lineWidth = 1; if (mine) c.fillRect(pe.sx + pr - 3, pe.sy - pr - 3, 8, 6); else { c.beginPath(); c.moveTo(pe.sx + pr + 1, pe.sy - pr - 5); c.lineTo(pe.sx + pr + 6, pe.sy - pr); c.lineTo(pe.sx + pr + 1, pe.sy - pr + 5); c.lineTo(pe.sx + pr - 4, pe.sy - pr); c.closePath(); c.fill(); } }
+      if (S.labels) { c.font = '700 ' + font + 'px sans-serif'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(p.name, pe.sx, pe.sy + pr + 10); c.fillStyle = '#fff'; c.fillText(p.name, pe.sx, pe.sy + pr + 10); }
+      S.pts.push({ letter: ptLetter(i), name: p.name, owner: p.owner || null, x: pe.sx, y: pe.sy });
+    });
+    c.globalAlpha = 1; let labelled = 0;
+    for (const e of marks) {
+      c.globalAlpha = fade * (e.down ? 0.42 : 1);
+      c.drawImage(S.at[(e.hostile ? 'h' : 'f') + e.kind], e.sx - C / 2, e.sy - C / 2, C, C);
+      if (e.sel) { c.globalAlpha = fade; c.strokeStyle = '#ffd23f'; c.lineWidth = 2.2; c.setLineDash([5, 3]); c.beginPath(); if (e.hostile) { const h = Z * 0.84 + 5; c.moveTo(e.sx, e.sy - h); c.lineTo(e.sx + h, e.sy); c.lineTo(e.sx, e.sy + h); c.lineTo(e.sx - h, e.sy); c.closePath(); } else c.rect(e.sx - Z * 0.67 - 4, e.sy - Z * 0.48 - 4, Z * 1.34 + 8, Z * 0.96 + 8); c.stroke(); c.setLineDash([]); }
+      if (e.n > 1) { const t = String(e.n), w = ph ? 10 : 8; c.globalAlpha = fade; c.font = '700 ' + (ph ? 12 : 10.5) + 'px sans-serif'; const tw = c.measureText(t).width + 6, bx = e.sx + Z * 0.55, by = e.sy - Z * 0.78; c.fillStyle = 'rgba(10,18,22,.92)'; rrect(c, bx - 1, by - w * 0.62, tw, w * 1.25 + 2, 5); c.fill(); c.lineWidth = 1; c.strokeStyle = '#fff'; c.stroke(); c.fillStyle = '#fff'; c.fillText(t, bx - 1 + tw / 2, by + 1); }
+      if (e.label && S.labels && !e.merged && labelled++ < 22) { c.globalAlpha = fade; c.font = '700 ' + font + 'px sans-serif'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.75)'; c.strokeText(e.label, e.sx, e.sy + Z * 0.95 + 4); c.fillStyle = '#fff'; c.fillText(e.label, e.sx, e.sy + Z * 0.95 + 4); }
+      S.syms.push({ side: e.hostile ? 'hostile' : 'friendly', team: e.team, shape: e.hostile ? 'diamond' : 'rect', kind: e.kind, n: e.n, label: e.label || null, sel: !!e.sel, down: !!e.down, merged: !!e.merged, x: e.sx, y: e.sy });
+    }
+    c.globalAlpha = 1;
+  }
+
+  /* ---- contacts: enemies that friends can see right now, or that a spotter reported. Nothing else is shown. */
+  function contacts(ox, oz) {
+    const now = performance.now(); if (now - S.ctT < 350) return S.contacts; S.ctT = now; const out = S.contacts; out.length = 0;
+    if (!BATTLE.on) return out; const team = myTeam(), ot = otherTeam(team);
+    try { if (now - S.spT > 700) { S.spT = now; tmSpotScan(team); } } catch (e) { }
+    let vis; try { vis = tmVis(team); } catch (e) { vis = () => false; }
+    const push = (x, z, k) => { const d = Math.hypot(x - ox, z - oz); if (d < 600) out.push({ x, z, k, d }); };
+    for (const q of people) { if (teamOf(q) !== ot || q.state === 'rag' || q.hp <= 0 || q.vin || (q.bot && q.bot.dead)) continue; if (vis(q)) push(q.x, q.z, 'inf'); }
+    for (const v of BVL) { if (v.dead || v.team !== ot) continue; if (vis(v)) push(v.x, v.z, v.heli ? 'air' : 'arm'); }
+    for (const u of AIR.list) { if (u.down || u.team !== ot || u.bv) continue; if (vis(u)) push(u.x, u.z, 'air'); }
+    out.sort((a, b) => a.d - b.d); if (out.length > 14) out.length = 14; return out;
+  }
+  function origin() { const me = fp.p; if (fp.veh && isFinite(fp.veh.x)) return [fp.veh.x, fp.veh.z]; if (me && isFinite(me.x)) return [me.x, me.z]; return [camera.position.x, camera.position.z]; }
+  function mates() { const o = []; if (!(SQD.on && fp.on)) return o; for (const q of SQD.mates) { if (!q.bot || q.state === 'rag' || !people.includes(q) || q.hp <= 0) continue; o.push(q); } return o; }
+
+  /* ---- the compass strip */
+  function drawCompass() {
+    const cv = S.cc, w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; const dpr = Math.min(ph ? 1.5 : 2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+    const hd = headingDeg(), span = w < 300 ? 100 : 130, ppd = w / span, cx = w / 2, [ox, oz] = origin(), marks = S.cmp.marks; marks.length = 0; S.cmp.heading = hd; S.cmp.w = w;
+    c.fillStyle = 'rgba(10,22,28,.74)'; rrect(c, 0.5, 0.5, w - 1, h - 1, 9); c.fill(); c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,.22)'; c.stroke();
+    c.save(); rrect(c, 1, 1, w - 2, h - 2, 8); c.clip();
+    const sy = Math.round(h * 0.76), tick = h - 3;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let b = Math.floor((hd - span / 2) / 5) * 5; b <= hd + span / 2 + 5; b += 5) {
+      const x = cx + (b - hd) * ppd, bb = ((b % 360) + 360) % 360, major = bb % 45 === 0, mid = bb % 15 === 0, lh = major ? 9 : mid ? 6 : 3.5;
+      c.strokeStyle = major ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.5)'; c.lineWidth = major ? 1.6 : 1; c.beginPath(); c.moveTo(x, tick); c.lineTo(x, tick - lh); c.stroke();
+      if (major) { c.font = '700 ' + (bb % 90 === 0 ? 14 : 12) + 'px sans-serif'; c.fillStyle = bb === 0 ? '#ff8a78' : '#fff'; c.fillText(dName(bb), x, sy - 2); }
+      else if (bb % 30 === 0 && w >= 300) { c.font = '600 9.5px sans-serif'; c.fillStyle = 'rgba(255,255,255,.7)'; c.fillText(p3(bb), x, sy - 2); }
+    }
+    // markers: the squad, a ping, enemies you can see or that friends reported, the nearest points
+    const edge = (d, w2) => clamp(cx + d * ppd, w2, w - w2);
+    const rel = (dx, dz) => { let d = brg(dx, dz) - hd; d = ((d + 540) % 360) - 180; return d; };
+    const mk = (kind, d, draw, clampIt) => { if (!clampIt && Math.abs(d) > span / 2) return; const x = edge(d, 9), off = Math.abs(d) > span / 2; c.globalAlpha = off ? 0.55 : 1; draw(x, sy); c.globalAlpha = 1; marks.push({ k: kind, brg: ((hd + d) % 360 + 360) % 360, off }); };
+    c.lineJoin = 'round';
+    for (const o of OBJ_NEAR(ox, oz)) mk('obj', rel(o.p.x - ox, o.p.z - oz), (x, y) => { c.fillStyle = 'rgba(12,20,24,.9)'; c.beginPath(); c.arc(x, y, 8, 0, 6.283); c.fill(); c.lineWidth = 2.4; c.strokeStyle = o.col; c.stroke(); c.fillStyle = '#fff'; c.font = '700 11px sans-serif'; c.fillText(o.ch, x, y + 0.5); }, true);
+    const lead = SQD.on && fp.on ? sqdLeader() : null;
+    for (const q of mates()) { const d = rel(q.x - ox, q.z - oz); mk(q === lead ? 'leader' : 'squad', d, (x, y) => { c.fillStyle = '#6fa8ff'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); if (q === lead) c.rect(x - 4.5, y - 4.5, 9, 9); else c.arc(x, y, 3.6, 0, 6.283); c.fill(); c.stroke(); }, q === lead); }
+    for (const e of contacts(ox, oz)) mk('enemy', rel(e.x - ox, e.z - oz), (x, y) => { c.fillStyle = '#ff4b3a'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y - 6); c.lineTo(x + 6, y); c.lineTo(x, y + 6); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke(); }, false);
+    if (SQD.ping && SQD.pk && SQD.pk.visible) mk('ping', rel(SQD.ping.x - ox, SQD.ping.z - oz), (x, y) => { c.strokeStyle = '#ffd23f'; c.fillStyle = '#ffd23f'; c.lineWidth = 2.2; c.beginPath(); c.arc(x, y, 6, 0, 6.283); c.stroke(); c.beginPath(); c.arc(x, y, 1.8, 0, 6.283); c.fill(); }, true);
+    c.restore();
+    // the pointer and the heading
+    c.fillStyle = '#ffd23f'; c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx - 5.5, 19); c.lineTo(cx + 5.5, 19); c.lineTo(cx, 25); c.closePath(); c.fill(); c.stroke();
+    c.font = '700 ' + (ph ? 12 : 12.5) + 'px sans-serif'; c.fillStyle = '#ffd23f'; c.textAlign = 'center'; c.fillText(p3(hd) + '  ' + dName(Math.round(hd / 45) * 45 % 360), cx, 11);
+  }
+  function OBJ_NEAR(ox, oz) {                                                       // the nearest three points, by their letters
+    if (!BATTLE.on) return []; const my = myTeam(), r = BATTLE.points.map((p, i) => ({ p, ch: ptLetter(i), d: Math.hypot(p.x - ox, p.z - oz), col: p.owner === 'blue' ? OWN.blue : p.owner === 'red' ? OWN.red : OWN.none }));
+    r.sort((a, b) => a.d - b.d); void my; return r.slice(0, 3);
+  }
+
+  /* ---- the corner map and the Quick map: the same drawing at two sizes */
+  function terrain(c, w, h, cx, cy, sc, ox, oz, yaw) {
+    const cs = Math.cos(yaw), sn = Math.sin(yaw), A = -cs * sc, B = sn * sc, Cc = -sn * sc, D = -cs * sc;
+    c.fillStyle = '#2f5f78'; c.fillRect(0, 0, w, h);
+    const base = TMAP.base && TMAP.key === tmKey() ? TMAP.base : null;
+    if (base) { const st = 2 * EXT / base.width; c.save(); c.imageSmoothingEnabled = true; c.transform(A * st, Cc * st, B * st, D * st, cx + A * (-EXT - ox) + B * (-EXT - oz), cy + Cc * (-EXT - ox) + D * (-EXT - oz)); c.drawImage(base, 0, 0); c.restore(); return true; }
+    // before the real picture is ready: flat green, with blue wherever the ground is below sea level (a coarse sample, redrawn four times a second)
+    c.fillStyle = '#6a8d5c'; c.fillRect(0, 0, w, h); const n = Math.max(14, Math.round(Math.min(w, h) / 9)), cw = w / n, chh = h / n, now = performance.now();
+    const sig = Math.round(ox / 8) + ',' + Math.round(oz / 8) + ',' + Math.round(yaw * 20) + ',' + n;
+    if (S.base.sig !== sig || now - S.base.t > 250) { const g = []; for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const px = (i + 0.5) * cw - cx, py = (j + 0.5) * chh - cy; const dx = (-cs * px - sn * py) / sc + ox, dz = (sn * px - cs * py) / sc + oz; g.push(heightAt(dx, dz) < 0.3); } S.base.g = g; S.base.sig = sig; S.base.t = now; }
+    c.fillStyle = '#3b7392'; for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) if (S.base.g[j * n + i]) c.fillRect(i * cw, j * chh, cw + 0.5, chh + 0.5);
+    return false;
+  }
+  function drawMap(cv, R, big) {
+    const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; const dpr = Math.min(ph ? 1.5 : 2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cx = w / 2, cy = h / 2, sc = Math.min(w, h) / 2 / R, [ox, oz] = origin(), yaw = fp.yaw, cs = Math.cos(yaw), sn = Math.sin(yaw);
+    const P = (x, z) => { const dx = x - ox, dz = z - oz; return [cx + (-cs * dx + sn * dz) * sc, cy + (-sn * dx - cs * dz) * sc]; };
+    const rr = Math.min(w, h) * 0.5, edgeIn = rr - (big ? 12 : 9);
+    c.save(); rrect(c, 0, 0, w, h, big ? 12 : 14); c.clip();
+    terrain(c, w, h, cx, cy, sc, ox, oz, yaw);
+    const my = myTeam(), s1 = big ? 1.5 : 1;
+    // points: the circle you must hold, and a letter chip (pinned to the edge when it is out of range)
+    if (BATTLE.on) BATTLE.points.forEach((p, i) => {
+      const [px, py] = P(p.x, p.z), oc = p.owner === 'blue' ? OWN.blue : p.owner === 'red' ? OWN.red : OWN.none, hot = p.nb > 0 && p.nr > 0, rpx = p.r * sc;
+      if (rpx > 3 && px > -rpx && px < w + rpx && py > -rpx && py < h + rpx) { c.fillStyle = oc + '33'; c.strokeStyle = oc; c.lineWidth = 1.6; if (hot) c.setLineDash([4, 3]); c.beginPath(); c.arc(px, py, rpx, 0, 6.283); c.fill(); c.stroke(); c.setLineDash([]); }
+      let x = px, y = py, off = false; const dx = x - cx, dy = y - cy, m = Math.max(Math.abs(dx), Math.abs(dy)); if (m > edgeIn) { const f = edgeIn / m; x = cx + dx * f; y = cy + dy * f; off = true; }
+      const r = (big ? 10.5 : 8) * (off ? 0.85 : 1); c.fillStyle = 'rgba(12,20,24,.92)'; c.beginPath(); c.arc(x, y, r, 0, 6.283); c.fill(); c.lineWidth = 2; c.strokeStyle = oc; c.stroke(); c.fillStyle = '#fff'; c.font = '700 ' + (r + 2) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ptLetter(i), x, y + 0.5);
+    });
+    // friendly vehicles
+    for (const v of BVL) { if (v.dead || v.team !== my) continue; const [x, y] = P(v.x, v.z); if (x < -8 || x > w + 8 || y < -8 || y > h + 8) continue; const vy = v.heli ? v.hd : v.yaw, fx = Math.sin(vy), fz = Math.cos(vy); c.save(); c.translate(x, y); c.rotate(Math.atan2(-sn * fx - cs * fz, -cs * fx + sn * fz)); c.fillStyle = '#4f8ef0'; c.strokeStyle = '#fff'; c.lineWidth = 1.1; c.beginPath(); c.rect(-4 * s1, -2.8 * s1, 8 * s1, 5.6 * s1); c.fill(); c.stroke(); c.restore(); }
+    // squad, then enemies that friends can see
+    const lead = SQD.on && fp.on ? sqdLeader() : null;
+    for (const q of mates()) { const [x, y] = P(q.x, q.z); if (x < -6 || x > w + 6 || y < -6 || y > h + 6) continue; c.fillStyle = '#6fa8ff'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); if (q === lead) c.rect(x - 4 * s1, y - 4 * s1, 8 * s1, 8 * s1); else c.arc(x, y, 3.2 * s1, 0, 6.283); c.fill(); c.stroke(); }
+    for (const e of contacts(ox, oz)) { const [x, y] = P(e.x, e.z); if (x < -6 || x > w + 6 || y < -6 || y > h + 6) continue; const r = 4.6 * s1; c.fillStyle = '#ff4b3a'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y - r); c.lineTo(x + r, y); c.lineTo(x, y + r); c.lineTo(x - r, y); c.closePath(); c.fill(); c.stroke(); }
+    if (SQD.ping && SQD.pk && SQD.pk.visible) { const [x, y] = P(SQD.ping.x, SQD.ping.z); c.strokeStyle = '#ffd23f'; c.lineWidth = 2.2; c.beginPath(); c.arc(x, y, 6 * s1, 0, 6.283); c.stroke(); c.beginPath(); c.moveTo(x - 9 * s1, y); c.lineTo(x + 9 * s1, y); c.moveTo(x, y - 9 * s1); c.lineTo(x, y + 9 * s1); c.stroke(); }
+    // you: a white arrow with a faint view cone, pointing up
+    c.fillStyle = 'rgba(255,230,120,.16)'; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rr * 0.9, -Math.PI / 2 - 0.5, -Math.PI / 2 + 0.5); c.closePath(); c.fill();
+    c.fillStyle = '#fff'; c.strokeStyle = '#10181b'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx, cy - 8 * s1); c.lineTo(cx + 5.5 * s1, cy + 6 * s1); c.lineTo(cx, cy + 3 * s1); c.lineTo(cx - 5.5 * s1, cy + 6 * s1); c.closePath(); c.fill(); c.stroke();
+    // north
+    { const dx = -sn, dy = cs, m = Math.max(Math.abs(dx), Math.abs(dy)) || 1, f = (rr - 11) / m, nx = cx + dx * f, ny = cy + dy * f; c.fillStyle = 'rgba(10,18,22,.9)'; c.beginPath(); c.arc(nx, ny, big ? 10 : 8.5, 0, 6.283); c.fill(); c.lineWidth = 1.2; c.strokeStyle = '#ff8a78'; c.stroke(); c.fillStyle = '#ff8a78'; c.font = '700 ' + (big ? 13 : 11) + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('N', nx, ny + 0.5); }
+    c.restore();
+  }
+  function ensureBase() { if (TMAP.building) return; const k = tmKey(); if (!TMAP.base || TMAP.key !== k) { TMAP.base = null; tmBuildBase(); } }
+
+  /* ---- the Quick map */
+  function qmOpen() {
+    if (S.qm || mode !== 'fp' || !fp.on) return; if (TMAP.open || !$('tablet').hidden) return; build();
+    if (document.pointerLockElement) { try { document.exitPointerLock(); } catch (e) { } }
+    S.qm = true; $('qmap').hidden = false; ensureBase(); qmPaint(true);
+    const b = $('qmClose'); if (b) b.focus({ preventScroll: true });
+  }
+  function qmClose() {
+    if (!S.qm) return; S.qm = false; $('qmap').hidden = true;
+    if (fp.on && !isTouch && mode === 'fp') lockPointer();                      // the same as closing the full map: take the mouse back
+  }
+  function qmPaint(force) {
+    const now = performance.now(); if (!force && now - S.miT < 110) return; S.miT = now; const cv = S.qc; if (!cv) return;
+    drawMap(cv, ph ? 220 : 320, true); const [ox, oz] = origin(); $('qmGrid').textContent = 'You are at grid ' + gridRef(ox, oz) + ', facing ' + p3(headingDeg()) + ' ' + dName(Math.round(headingDeg() / 45) * 45 % 360) + '. North is marked N.';
+    $('qmToggle').textContent = miniOn() ? 'Hide corner map' : 'Show corner map';
+  }
+  function setMini(on) { S.miniPref = on ? '1' : '0'; wr(LS.mini, S.miniPref); const m = $('miniMap'); if (m) m.hidden = !on; if (S.qm) $('qmToggle').textContent = on ? 'Hide corner map' : 'Show corner map'; if (on) ensureBase(); }
+  function setSym(on) { S.symPref = on ? '1' : '0'; wr(LS.sym, S.symPref); symBtn(); }
+  function symBtn() { const b = $('bSym'); if (!b) return; const on = symOn(); b.textContent = on ? 'Symbols on' : 'Symbols off'; b.setAttribute('aria-pressed', String(on)); }
+
+  /* ---- build the elements once */
+  let built = false;
+  function build() {
+    if (built) return; built = true; const fpEl = $('fp');
+    const cm = document.createElement('div'); cm.id = 'compass'; cm.setAttribute('aria-hidden', 'true'); cm.innerHTML = '<canvas id="compassCv"></canvas>'; fpEl.appendChild(cm); S.cc = cm.firstChild;
+    const mm = document.createElement('div'); mm.id = 'miniMap'; mm.setAttribute('role', 'button'); mm.setAttribute('aria-label', 'Corner map. Press to open the quick map'); mm.innerHTML = '<canvas id="miniCv"></canvas>'; mm.hidden = !miniOn(); fpEl.appendChild(mm); S.mc = mm.firstChild;
+    mm.addEventListener('click', () => qmOpen());
+    const mb = document.createElement('button'); mb.type = 'button'; mb.id = 'fpMapBtn'; mb.innerHTML = ic('map') + 'Map'; mb.addEventListener('click', () => { if (S.qm) qmClose(); else qmOpen(); }); fpEl.appendChild(mb);
+    const q = document.createElement('div'); q.id = 'qmap'; q.hidden = true; q.setAttribute('role', 'dialog'); q.setAttribute('aria-label', 'Quick map');
+    q.innerHTML = '<div class="qmCard"><div class="qmSide"><b>Quick map</b><button type="button" id="qmClose">Close map (M)</button><button type="button" id="qmFull">Full map (L)</button><button type="button" id="qmToggle">Hide corner map</button><p id="qmGrid"></p></div><canvas id="qmCv"></canvas></div>';
+    document.body.appendChild(q); S.qc = $('qmCv');
+    $('qmClose').addEventListener('click', qmClose); $('qmFull').addEventListener('click', () => { qmClose(); tmOpen(); }); $('qmToggle').addEventListener('click', () => setMini(!miniOn()));
+    q.addEventListener('pointerdown', (e) => { if (e.target === q) qmClose(); });
+  }
+  /* ---- once a frame */
+  function frame(dt) {
+    const stn = typeof STN !== 'undefined' && STN && STN.on;
+    const now = performance.now();
+    if (now - S.hostT > 1000) { S.hostT = now; S.hostile = people.some(q => q.side === 'red' && q.state !== 'rag') || boats.some(b => !b.sunk && isHostile(b)); symBtn(); }
+    drawSymbols(symOn() && mode === 'god' && !stn && !document.documentElement.classList.contains('boot'));
+    if (mode === 'fp' && fp.on && !stn) {
+      build(); if (miniOn() || S.qm) ensureBaseOnce();
+      if (now - S.cmT > 33) { S.cmT = now; drawCompass(); }
+      if (!$('miniMap').hidden && now - S.miT > 90) { S.miT = now; drawMap(S.mc, ph ? 110 : 150, false); }
+      if (S.qm) qmPaint(false);
+    } else if (S.qm) qmClose();
+  }
+  let baseAsked = false; function ensureBaseOnce() { if (baseAsked && TMAP.base) return; baseAsked = true; ensureBase(); }
+
+  /* ---- keys: M opens the Quick map (and closes it), Shift + M shows or hides the corner map */
+  KEY_ROUTE.unshift((e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase();
+    if (typeof STN !== 'undefined' && STN && STN.on) return;
+    if (S.qm) { if (k === 'm' || k === 'escape') { if (!e.repeat) qmClose(); e.preventDefault(); keyStop = true; } return; }
+    if (k !== 'm' || e.repeat || mode !== 'fp' || !fp.on || TMAP.open) return;
+    if (!($('help').hidden && $('bSetup').hidden && $('cheatSheet').hidden && $('menuSheet').hidden)) return;
+    e.preventDefault(); keyStop = true; if (e.shiftKey) { build(); setMini(!miniOn()); toast(miniOn() ? 'Corner map shown.' : 'Corner map hidden. Shift + M shows it again.'); } else qmOpen();
+  });
+  addEventListener('DOMContentLoaded', symBtn);
+  { const b = $('bSym'); if (b) b.addEventListener('click', () => { setSym(!symOn()); toast(symOn() ? 'Symbols on.' : 'Symbols off.'); }); }
+  SA = { TMAP, tmKey, S, collect, qmOpen, qmClose, setMini, setSym, symOn, miniOn, headingDeg, brg, drawCompass, drawMap, build, contacts, origin, merge, fitTeam, buildAtlas, drawSymbols, frame, qmPaint };
+  window.__sc.SA = SA;
+})();
+/*SA-END*/
 </script>
 
 </body>

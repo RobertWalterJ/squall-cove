@@ -175,6 +175,35 @@
    }
   },
   {
+   "id": "quick-map",
+   "what": "Quick map (M) and the corner map in first person: you, squad, points and enemies friends can see; Shift + M shows or hides the corner map",
+   "covers": [
+    "fp|M",
+    "fp|Shift + M"
+   ],
+   "desktop": {
+    "sel": "#qmClose,#qmFull,#qmToggle",
+    "gesture": "Press M (again, Esc or a click outside closes it); Shift + M hides the corner map"
+   },
+   "phone": {
+    "sel": "#qmClose,#qmFull,#qmToggle,#fpMapBtn",
+    "gesture": "Tap the Map button or the corner map; the Quick map has Close, Full map and Hide corner map buttons"
+   }
+  },
+  {
+   "id": "overview-symbols",
+   "what": "Overview symbols: blue rectangle for friends, red diamond for hostile units, a letter for each point; the Symbols button is in More",
+   "covers": [
+    "over|Symbols"
+   ],
+   "desktop": {
+    "sel": "#bSym"
+   },
+   "phone": {
+    "sel": "#bSym"
+   }
+  },
+  {
    "id": "battle-watch",
    "what": "In a battle: jump in as a soldier, watch the next one, pick a side",
    "covers": [
@@ -452,17 +481,17 @@
   },
   {
    "id": "squad-orders",
-   "what": "Squad orders: follow, hold, move, attack, defend, ping, mount, heal, hold fire",
+   "what": "Squad orders: follow, hold, move, attack, defend, ping, mount (J), heal, hold fire",
    "covers": [
     "fp|X, Z",
     "fp|Hold N, then 1 to 8",
     "fp|I",
-    "fp|M",
+    "fp|J",
     "fp|U",
     "fp|K"
    ],
    "desktop": {
-    "gesture": "Hold N for the order ring; X, Z, I, M, U, K"
+    "gesture": "Hold N for the order ring; X, Z, I, J, U, K"
    },
    "phone": {
     "sel": "#fpSquad"
