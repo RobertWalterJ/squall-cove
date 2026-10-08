@@ -1,0 +1,14 @@
+{
+ "_note": "Shared base rules that style a phone control without a phone scope. Each is a default or hidden-on-desktop rule that the phone overrides under body.ed-phone / body.touch. Add a reason for every entry.",
+ "selectors": {
+  ".fpTop button": "The Leave first person button is on desktop too; the phone sizes it under body.touch.",
+  ".fpTop": "The Leave first person bar is on desktop too; the phone moves it under body.touch.",
+  "#fpStick::after": "The stick's touch margin is part of the shared first-person markup; body:not(.touch) hides the stick on desktop and the phone resizes it under body.touch.",
+  "#fpLook": "The look pad is shared markup, hidden on desktop by body:not(.touch); the phone resizes it under body.touch.",
+  "#fpStick": "The stick is shared markup, hidden on desktop by body:not(.touch); the phone places it under body.touch.",
+  "#fpKnob": "The stick knob is shared markup, hidden with the stick on desktop.",
+  ".fpBtns": "The touch button group is hidden on desktop by body:not(.touch); the phone lays it out under body.touch.",
+  ".fpBtns button": "The touch buttons are hidden on desktop by body:not(.touch); the phone lays them out under body.touch."
+ },
+ "env": {}
+}

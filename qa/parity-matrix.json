@@ -1,0 +1,655 @@
+{
+ "_note": "Feature parity matrix (EDITION-RULES.md rule 3, MOBILE-UX-PLAN.md 6.4). Every key binding in the code (__sc.KEYMAP rows, id = where|keys) is listed under one capability's covers, or under ignoreKeys with a reason. Every control (button with an id) appears as a desktop.sel or phone.sel, or under ignoreControls with a reason. Each capability has a desktop and a phone side; a missing side needs desktopOnly / phoneOnly / desktopOmit / phoneOmit with a REASON. A phone side may be a selector, or a gesture (words). visible:true means the control must be visible on load (and 48 px or more on the phone).",
+ "capabilities": [
+  {
+   "id": "move-camera",
+   "what": "Pan, orbit and zoom the overview",
+   "covers": [
+    "over|Drag",
+    "over|W A S D, Q E, Z X, keypad + and -",
+    "over|Wheel, [ and ]"
+   ],
+   "desktop": {
+    "sel": "#cmIn"
+   },
+   "phone": {
+    "sel": "#cmIn",
+    "gesture": "One finger drags the map, two fingers pinch to zoom and twist to turn"
+   }
+  },
+  {
+   "id": "camera-pad",
+   "what": "On-screen camera buttons (zoom, turn, tilt, top view, reset)",
+   "covers": [],
+   "desktop": {
+    "sel": "#cmOut,#cmL,#cmR,#cmU,#cmD,#cmTop,#cmReset"
+   },
+   "phone": {
+    "sel": "#cmTop,#cmReset"
+   }
+  },
+  {
+   "id": "select",
+   "what": "Select a boat or person; empty ground deselects",
+   "covers": [
+    "over|Click"
+   ],
+   "desktop": {
+    "sel": "#bDesel"
+   },
+   "phone": {
+    "sel": "#bDesel",
+    "gesture": "Tap a boat or person; tap empty ground to deselect"
+   }
+  },
+  {
+   "id": "send-order",
+   "what": "Send the selection somewhere (sail, walk, board, carry)",
+   "covers": [
+    "over|Right click",
+    "help|People"
+   ],
+   "desktop": {
+    "gesture": "Right click the destination"
+   },
+   "phone": {
+    "gesture": "With something selected, tap the destination"
+   }
+  },
+  {
+   "id": "box-select",
+   "what": "Select a group with a box",
+   "covers": [
+    "over|Shift + drag"
+   ],
+   "desktop": {
+    "sel": "#bZoom"
+   },
+   "phone": {
+    "sel": "#bZoom",
+    "gesture": "Touch and hold empty ground, then drag a box"
+   }
+  },
+  {
+   "id": "tools",
+   "what": "Tools: Select, Place, Land, Sky",
+   "covers": [
+    "over|1 to 4",
+    "help|Place",
+    "help|Land",
+    "help|Sky"
+   ],
+   "desktop": {
+    "sel": "#tL,#tR,#trayTog"
+   },
+   "phone": {
+    "sel": "#tL,#tR,#trayTog"
+   }
+  },
+  {
+   "id": "menu",
+   "what": "Menu (Esc on desktop)",
+   "covers": [
+    "over|Esc"
+   ],
+   "desktop": {
+    "sel": "#bMenu",
+    "visible": true
+   },
+   "phone": {
+    "sel": "#bMenu",
+    "visible": true
+   }
+  },
+  {
+   "id": "messages",
+   "what": "Message log",
+   "covers": [],
+   "desktop": {
+    "sel": "#bLog",
+    "visible": true
+   },
+   "phone": {
+    "sel": "#bLog",
+    "visible": true
+   }
+  },
+  {
+   "id": "side-pane",
+   "what": "Side pane (Place, Events, Live, Map, Battle, Play)",
+   "covers": [
+    "over|P"
+   ],
+   "desktop": {
+    "sel": "#burger,#sClose"
+   },
+   "phone": {
+    "sel": "#bMore,#sClose",
+    "visible": true
+   }
+  },
+  {
+   "id": "command",
+   "what": "Command: fire, support, squad and points",
+   "covers": [
+    "over|T",
+    "fp|T",
+    "tab|Fire",
+    "tab|Support",
+    "tab|Squad"
+   ],
+   "desktop": {
+    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire"
+   },
+   "phone": {
+    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire"
+   }
+  },
+  {
+   "id": "fire-mission",
+   "what": "Mark a target, pick guns, Fire for effect, Cease fire",
+   "covers": [
+    "tab|Fire mission"
+   ],
+   "desktop": {
+    "sel": "#tmCmd"
+   },
+   "phone": {
+    "sel": "#tmRings",
+    "gesture": "Tap the map to mark. The big Fire for effect and Cease fire buttons stay pinned under the panel"
+   }
+  },
+  {
+   "id": "tactical-map",
+   "what": "Tactical map with grid, range rings, fire data, adjust fire",
+   "covers": [
+    "over|L",
+    "fp|L",
+    "tab|Map"
+   ],
+   "desktop": {
+    "sel": "#tmBtn,#tmX,#tmFit,#tmSay"
+   },
+   "phone": {
+    "sel": "#tmBtn,#tmX,#tmFit,#tmSay"
+   }
+  },
+  {
+   "id": "battle-watch",
+   "what": "In a battle: jump in as a soldier, watch the next one, pick a side",
+   "covers": [
+    "over|J, K"
+   ],
+   "desktop": {
+    "sel": "#bJump,#bSpec,#bSideBtn"
+   },
+   "phone": {
+    "sel": "#bJump,#bSpec,#bSideBtn"
+   }
+  },
+  {
+   "id": "battle-setup",
+   "what": "Pick a map and begin a battle",
+   "covers": [],
+   "desktop": {
+    "sel": "#mBattle,#bsClose,#bsRead,#objEnd"
+   },
+   "phone": {
+    "sel": "#mBattle,#bsClose,#bsRead,#objEnd"
+   }
+  },
+  {
+   "id": "cheats",
+   "what": "Cheats panel",
+   "covers": [
+    "over|` (backtick)",
+    "fp|` (backtick)"
+   ],
+   "desktop": {
+    "sel": "#mCheats,#chClose"
+   },
+   "phoneOmit": "Hidden on the phone edition so the Menu stays short. The code ignores the key and the button is not shown."
+  },
+  {
+   "id": "enter-fp",
+   "what": "Drop into first person as the selected person (nearest soldier in a battle)",
+   "covers": [
+    "over|V"
+   ],
+   "desktop": {
+    "sel": "#bFP"
+   },
+   "phone": {
+    "sel": "#bFP,#bJoin"
+   }
+  },
+  {
+   "id": "helm",
+   "what": "Take the helm of a boat, steer, throttle, autopilot, right the boat",
+   "covers": [
+    "over|H",
+    "over|N",
+    "boat|W A S D",
+    "boat|T",
+    "boat|X",
+    "boat|H",
+    "boat|Mouse wheel"
+   ],
+   "desktop": {
+    "sel": "#bMode,#bBoat,#bRight,#sOut,#sIn,#sAuto"
+   },
+   "phone": {
+    "sel": "#bMode,#bBoat,#bRight,#sOut,#sIn,#sAuto"
+   }
+  },
+  {
+   "id": "boat-gunnery",
+   "what": "Boat gunnery and fire mode (click a ship to engage it)",
+   "covers": [
+    "over|F, B",
+    "boat|G"
+   ],
+   "desktop": {
+    "gesture": "F then click a ship; G at the helm"
+   },
+   "phoneOmit": "Boat gunnery is driven from Command on the phone (fire missions use the boats' guns), so there is no separate fire mode button."
+  },
+  {
+   "id": "cargo",
+   "what": "Drop cargo, clear cargo, drop what people carry",
+   "covers": [
+    "over|R, Shift + C",
+    "over|G",
+    "fp|G"
+   ],
+   "desktop": {
+    "sel": "#bDrop,#fpDrop"
+   },
+   "phone": {
+    "sel": "#bDrop,#fpDrop"
+   }
+  },
+  {
+   "id": "remove",
+   "what": "Remove the selected boat or person",
+   "covers": [
+    "over|Delete"
+   ],
+   "desktop": {
+    "sel": "#bDel,#bDelP,#bTopple"
+   },
+   "phone": {
+    "sel": "#bDel,#bDelP,#bTopple"
+   }
+  },
+  {
+   "id": "selection-extras",
+   "what": "Anchor, follow, zoom to selection, recenter, rescue helicopter, call-in buttons",
+   "covers": [],
+   "desktop": {
+    "sel": "#bStop,#bFollow,#bCenter,#bHeli,#mHeli,#mBomber"
+   },
+   "phone": {
+    "sel": "#bStop,#bFollow,#bCenter,#bHeli,#mHeli,#mBomber"
+   }
+  },
+  {
+   "id": "vehicles-help",
+   "what": "Vehicles: board, drive, change seat, get out",
+   "covers": [
+    "help|Vehicles",
+    "veh|E",
+    "veh|W S, A D",
+    "veh|Left button",
+    "veh|V",
+    "veh|X",
+    "veh|F"
+   ],
+   "desktop": {
+    "sel": "#fpUse"
+   },
+   "phone": {
+    "sel": "#fpUse,#fpJump",
+    "gesture": "Left stick drives, Fire shoots, Use gets in and out, Jump is the handbrake"
+   }
+  },
+  {
+   "id": "vehicle-look",
+   "what": "Look around from a vehicle",
+   "covers": [
+    "veh|Mouse"
+   ],
+   "desktop": {
+    "gesture": "Mouse"
+   },
+   "phone": {
+    "gesture": "Drag the right side of the screen"
+   }
+  },
+  {
+   "id": "vehicle-boost",
+   "what": "Handbrake and boost in a car or truck",
+   "covers": [
+    "veh|Space, Shift"
+   ],
+   "desktop": {
+    "gesture": "Space and Shift"
+   },
+   "phone": {
+    "sel": "#fpJump"
+   }
+  },
+  {
+   "id": "helicopter-fly",
+   "what": "Fly a helicopter: pitch, bank, turn, climb, door guns",
+   "covers": [
+    "veh|Helicopter: W S, A D, Q E",
+    "veh|Helicopter: 1, 2, 3"
+   ],
+   "desktop": {
+    "sel": "#fpHUp,#fpHDn,#fpHL,#fpHR"
+   },
+   "phoneOmit": "Piloting is desktop only (owner decision 2026-10-07). On the phone you ride on and leave only: the pilot seat is not offered and the climb and turn buttons are not shown."
+  },
+  {
+   "id": "fp-move-look",
+   "what": "Walk, look, run, jump, crouch, prone",
+   "covers": [
+    "fp|W A S D, mouse",
+    "fp|Shift",
+    "fp|Space",
+    "fp|C, P"
+   ],
+   "desktop": {
+    "sel": "#fpJump,#fpStance"
+   },
+   "phone": {
+    "sel": "#fpJump,#fpStance",
+    "gesture": "Left stick walks (push far to run), drag the right side to look"
+   }
+  },
+  {
+   "id": "fp-fire",
+   "what": "Fire, aim and zoom, hold for automatic fire",
+   "covers": [
+    "fp|Left button",
+    "fp|Right button"
+   ],
+   "desktop": {
+    "sel": "#fpFire,#fpZoom"
+   },
+   "phone": {
+    "sel": "#fpFire,#fpZoom"
+   }
+  },
+  {
+   "id": "fp-tools",
+   "what": "Pick a tool or weapon; reload",
+   "covers": [
+    "fp|1 to 9, 0, minus",
+    "fp|Mouse wheel",
+    "fp|R"
+   ],
+   "desktop": {
+    "sel": "#fpReload"
+   },
+   "phone": {
+    "sel": "#fpReload",
+    "gesture": "Tap a chip in the tools row"
+   }
+  },
+  {
+   "id": "fp-use",
+   "what": "Use: pick up, board, climb, man a gun, revive",
+   "covers": [
+    "fp|E",
+    "fp|E at a ladder"
+   ],
+   "desktop": {
+    "sel": "#fpUse"
+   },
+   "phone": {
+    "sel": "#fpUse"
+   }
+  },
+  {
+   "id": "fp-overboard",
+   "what": "Jump overboard",
+   "covers": [
+    "fp|Q"
+   ],
+   "desktop": {
+    "gesture": "Press the Q key"
+   },
+   "phone": {
+    "sel": "#fpUse",
+    "gesture": "Use jumps overboard when you are at the rail"
+   }
+  },
+  {
+   "id": "fp-helm",
+   "what": "Take the helm from first person",
+   "covers": [
+    "fp|H"
+   ],
+   "desktop": {
+    "sel": "#fpHelm"
+   },
+   "phone": {
+    "sel": "#fpHelm"
+   }
+  },
+  {
+   "id": "fp-engineer",
+   "what": "Set down a sandbag corner",
+   "covers": [
+    "fp|F"
+   ],
+   "desktopOnly": "Engineer tools are desktop only on the phone edition: the class set is 4 on the phone.",
+   "desktop": {
+    "gesture": "Press the F key"
+   }
+  },
+  {
+   "id": "squad-orders",
+   "what": "Squad orders: follow, hold, move, attack, defend, ping, mount, heal, hold fire",
+   "covers": [
+    "fp|X, Z",
+    "fp|Hold N, then 1 to 8",
+    "fp|I",
+    "fp|M",
+    "fp|U",
+    "fp|K"
+   ],
+   "desktop": {
+    "gesture": "Hold N for the order ring; X, Z, I, M, U, K"
+   },
+   "phone": {
+    "sel": "#fpSquad"
+   }
+  },
+  {
+   "id": "detonate",
+   "what": "Detonate placed charges",
+   "covers": [
+    "fp|B"
+   ],
+   "desktopOnly": "Placed charges are an engineer tool, desktop only on the phone edition.",
+   "desktop": {
+    "gesture": "Press the B key"
+   }
+  },
+  {
+   "id": "swap-soldier",
+   "what": "Swap to the nearest friendly soldier",
+   "covers": [
+    "fp|Y"
+   ],
+   "desktop": {
+    "gesture": "Press the Y key"
+   },
+   "phone": {
+    "sel": "#bJump",
+    "gesture": "Overview, then Jump in picks the nearest soldier"
+   }
+  },
+  {
+   "id": "leave-fp",
+   "what": "Back to the overview",
+   "covers": [
+    "fp|V",
+    "fp|Esc, Tab, O"
+   ],
+   "desktop": {
+    "sel": "#fpExit"
+   },
+   "phone": {
+    "sel": "#fpExit"
+   }
+  },
+  {
+   "id": "fp-command",
+   "what": "Open Command from first person",
+   "covers": [],
+   "desktop": {
+    "sel": "#fpTab"
+   },
+   "phone": {
+    "sel": "#fpTab"
+   }
+  },
+  {
+   "id": "sculpt",
+   "what": "Land sculpting: sculpt, undo, turn",
+   "covers": [],
+   "desktop": {
+    "sel": "#sculpt,#placeBtn,#landUndo,#turnBtn"
+   },
+   "phone": {
+    "sel": "#sculpt,#placeBtn,#landUndo,#turnBtn"
+   }
+  },
+  {
+   "id": "calm",
+   "what": "Calm all weather and disasters",
+   "covers": [],
+   "desktop": {
+    "sel": "#calmBtn"
+   },
+   "phone": {
+    "sel": "#calmBtn"
+   }
+  },
+  {
+   "id": "save-load",
+   "what": "Save, load, new world, start menu, scenarios, things to try",
+   "covers": [],
+   "desktop": {
+    "sel": "#mSave,#mLoad,#mNew,#mStart,#mMap,#mScen,#mTry"
+   },
+   "phone": {
+    "sel": "#mSave,#mLoad,#mNew,#mStart,#mMap,#mScen,#mTry"
+   }
+  },
+  {
+   "id": "who-and-what",
+   "what": "People, fleets and cove report lists",
+   "covers": [],
+   "desktop": {
+    "sel": "#mPeople,#mFleet,#mReport"
+   },
+   "phone": {
+    "sel": "#mPeople,#mFleet,#mReport"
+   }
+  },
+  {
+   "id": "settings",
+   "what": "Settings: sandbox, quality, colours, easy read, voices, captions, hide buttons",
+   "covers": [],
+   "desktop": {
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+   },
+   "phone": {
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+   }
+  },
+  {
+   "id": "touch-settings",
+   "what": "Tilt aiming, sensitivity, vibration, smoothness",
+   "covers": [],
+   "desktopOmit": "Touch settings are hidden on a mouse and keyboard desktop (they show on any touch screen).",
+   "phone": {
+    "sel": "#mGyro,#mVib,#mPerf"
+   }
+  },
+  {
+   "id": "help",
+   "what": "Help, controls list, read aloud",
+   "covers": [],
+   "desktop": {
+    "sel": "#bHelp,#mCtl,#mRead,#bRead,#go,#introCtl"
+   },
+   "phone": {
+    "sel": "#bHelp,#mCtl,#mRead,#bRead,#go,#introCtl"
+   }
+  },
+  {
+   "id": "install",
+   "what": "Install the app",
+   "covers": [],
+   "desktop": {
+    "sel": "#bInstall,#bInstall2,#bInstallTop"
+   },
+   "phone": {
+    "sel": "#bInstall,#bInstall2,#bInstallTop"
+   }
+  },
+  {
+   "id": "start-menu",
+   "what": "Start menu: edition switch, Start, Continue",
+   "covers": [],
+   "desktop": {
+    "sel": "#bEdSw,#bGo,#bContinue"
+   },
+   "phone": {
+    "sel": "#bEdSw,#bGo,#bContinue"
+   }
+  },
+  {
+   "id": "deploy-and-over",
+   "what": "Deploy window, end screen, tips, selection float, inspector",
+   "covers": [],
+   "desktop": {
+    "sel": "#bOver,#bTipX,#selFloat,#iClose,#iRemove"
+   },
+   "phone": {
+    "sel": "#bOver,#bTipX,#selFloat,#iClose,#iRemove"
+   }
+  },
+  {
+   "id": "menu-close",
+   "what": "Close the Menu",
+   "covers": [],
+   "desktop": {
+    "sel": "#mClose"
+   },
+   "phone": {
+    "sel": "#mClose"
+   }
+  },
+  {
+   "id": "resilience",
+   "what": "Lost-graphics card and the first-person orientation hint",
+   "covers": [],
+   "desktopOmit": "Both cards only appear on the phone edition (the orientation hint is a suggestion for first person; the card appears if the phone takes the graphics away).",
+   "phone": {
+    "sel": "#ctxReload,#orientOk"
+   }
+  }
+ ],
+ "ignoreKeys": {},
+ "ignoreControls": {},
+ "manifestPin": {
+  "start_url": "./"
+ }
+}

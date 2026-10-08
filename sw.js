@@ -3,13 +3,13 @@
    squall-cove-assets-aN heavy, rarely changing files (assets/ and audio/). NOT replaced on a release, so a
                          release downloads about 1.5 MB, not 18 to 46 MB. Bump ASSETS only if an asset file
                          changes its CONTENT under the same name (this re-downloads everything once). */
-const VERSION = 'v9.3.0';      // v9.3.0: stable asset cache split out (releases no longer re-download assets); phone edition. v9.2.0: static start menu, Lemnos real maps, cheats panel.
+const VERSION = 'v9.4.0';      // v9.4.0: phone edition push-ready (layout ladder, 48 px targets, tilt aim, wake lock, haptics, lost-graphics recovery, governor, touch tactical map). v9.3.0: stable asset cache split out (releases no longer re-download assets); phone edition. v9.2.0: static start menu, Lemnos real maps, cheats panel.
 const ASSETS = 'a1';
 const CACHE = 'squall-cove-' + VERSION;
 const ACACHE = 'squall-cove-assets-' + ASSETS;
 const MINE = /^squall-cove-(v[\d.]+|assets-a[\d.]+)$/;
 const isAsset = (p) => /\/squall-cove\/(assets|audio)\//.test(p);
-self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {})).then(() => caches.open(ACACHE)).then(c => c.addAll(['assets/map_lemnos_myrina_thumb.jpg', 'assets/map_lemnos_mudros_thumb.jpg', 'assets/map_lemnos_airport_thumb.jpg']).catch(() => {}))); });
+self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', 'index.html', 'icon-192.png', 'icon-512.png']).catch(() => {})).then(() => caches.open(ACACHE)).then(c => Promise.all(['assets/map_lemnos_myrina_thumb.jpg', 'assets/map_lemnos_mudros_thumb.jpg', 'assets/map_lemnos_airport_thumb.jpg'].map(u => c.match(u).then(h => h || c.add(u)).catch(() => {}))))); });      // thumbs are fetched once, never again on a release
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     const ks = (await caches.keys()).filter(k => MINE.test(k));

@@ -1,0 +1,437 @@
+[
+ {
+  "profile": "landscape",
+  "states": [
+   {
+    "name": "sandbox",
+    "file": "landscape_01_sandbox.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "sandbox_selected",
+    "file": "landscape_02_sandbox_selected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "sandbox_deselected",
+    "file": "landscape_03_sandbox_deselected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "menu",
+    "file": "landscape_04_menu.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "menu_closed",
+    "file": "landscape_05_menu_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "log",
+    "file": "landscape_06_log.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "log_closed",
+    "file": "landscape_07_log_closed.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "help",
+    "file": "landscape_08_help.png",
+    "modal": "help",
+    "modals": [
+     "help"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "help_closed",
+    "file": "landscape_09_help_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pane",
+    "file": "landscape_10_side_pane.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_closed",
+    "file": "landscape_11_side_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_sandbox",
+    "file": "landscape_12_command_sandbox.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [
+     "BUTTON [178,342 51x42]",
+     "BUTTON [235,342 52x42]",
+     "BUTTON [293,342 48x42]"
+    ],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "setup",
+    "file": "landscape_13_setup.png",
+    "modal": "bSetup",
+    "modals": [
+     "bSetup"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "battle",
+    "file": "landscape_14_battle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_fire",
+    "file": "landscape_15_command_fire.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [
+     "BUTTON [178,342 51x42]",
+     "BUTTON [235,342 52x42]",
+     "BUTTON [293,342 48x42]"
+    ],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_map",
+    "file": "landscape_16_command_map.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_support",
+    "file": "landscape_17_command_support.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [
+     "wrow [114,337 616x47]"
+    ],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_points",
+    "file": "landscape_18_command_points.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [
+     "wrow [114,364 452x20]",
+     "pl [572,364 76x20]",
+     "pl [654,364 76x20]"
+    ],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map",
+    "file": "landscape_19_tactical_map.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "BUTTON under btn-p",
+     "BUTTON under btn-p",
+     "BUTTON under btn-p",
+     "BUTTON under btn-d"
+    ],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map_pick",
+    "file": "landscape_20_tactical_map_pick.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "BUTTON under btn-p",
+     "BUTTON under btn-p",
+     "BUTTON under btn-p",
+     "BUTTON under btn-d"
+    ],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map_closed",
+    "file": "landscape_21_tactical_map_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "battle_overview",
+    "file": "landscape_22_battle_overview.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pick",
+    "file": "landscape_23_side_pick.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pick_closed",
+    "file": "landscape_24_side_pick_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp",
+    "file": "landscape_25_fp.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp_squad_ring",
+    "file": "landscape_26_fp_squad_ring.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "m:Alex [431,157 23x23] x sq [420,145 76x52]",
+     "m:Alex [431,157 23x23] x SPAN:Mount [440,172 36x14]",
+     "s [486,107 84x65] x sq [420,145 76x52]",
+     "s [486,231 84x65] x sq [420,195 76x52]",
+     "s [274,231 84x65] x sq [348,195 76x52]",
+     "s [274,107 84x65] x sq [348,145 76x52]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp_scoped",
+    "file": "landscape_27_fp_scoped.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp_menu",
+    "file": "landscape_28_fp_menu.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "deploy",
+    "file": "landscape_29_deploy.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [
+     "card2 [62,364 356x30]",
+     "card2 [426,364 356x30]"
+    ],
+    "clipped": [],
+    "covered": [
+     "card2 under dpRow",
+     "card2 under dpRow",
+     "card2 under btn-p",
+     "card2 under BUTTON"
+    ],
+    "hscroll": false
+   },
+   {
+    "name": "end",
+    "file": "landscape_30_end.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "startmenu",
+    "file": "landscape_31_startmenu.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "bmap under bGo",
+     "bmap under bGo"
+    ],
+    "hscroll": false
+   },
+   {
+    "name": "startmenu_scrolled",
+    "file": "landscape_32_startmenu_scrolled.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "bmap under bGo",
+     "bmap under bGo"
+    ],
+    "hscroll": false
+   }
+  ],
+  "fails": []
+ }
+]

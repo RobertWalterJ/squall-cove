@@ -1,0 +1,423 @@
+[
+ {
+  "profile": "portrait",
+  "states": [
+   {
+    "name": "sandbox",
+    "file": "portrait_01_sandbox.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "sandbox_selected",
+    "file": "portrait_02_sandbox_selected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "sandbox_deselected",
+    "file": "portrait_03_sandbox_deselected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "menu",
+    "file": "portrait_04_menu.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "menu_closed",
+    "file": "portrait_05_menu_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "log",
+    "file": "portrait_06_log.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "log_closed",
+    "file": "portrait_07_log_closed.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "help",
+    "file": "portrait_08_help.png",
+    "modal": "help",
+    "modals": [
+     "help"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "help_closed",
+    "file": "portrait_09_help_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pane",
+    "file": "portrait_10_side_pane.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_closed",
+    "file": "portrait_11_side_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_sandbox",
+    "file": "portrait_12_command_sandbox.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "setup",
+    "file": "portrait_13_setup.png",
+    "modal": "bSetup",
+    "modals": [
+     "bSetup"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "battle",
+    "file": "portrait_14_battle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_fire",
+    "file": "portrait_15_command_fire.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_map",
+    "file": "portrait_16_command_map.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_support",
+    "file": "portrait_17_command_support.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "command_points",
+    "file": "portrait_18_command_points.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map",
+    "file": "portrait_19_tactical_map.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map_pick",
+    "file": "portrait_20_tactical_map_pick.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "tactical_map_closed",
+    "file": "portrait_21_tactical_map_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "battle_overview",
+    "file": "portrait_22_battle_overview.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pick",
+    "file": "portrait_23_side_pick.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "side_pick_closed",
+    "file": "portrait_24_side_pick_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp",
+    "file": "portrait_25_fp.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "B:Alex [211,136 27x17] x SPAN:Helicopter ove [211,136 99x36]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp_squad_ring",
+    "file": "portrait_26_fp_squad_ring.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "BUTTON [14,552 56x56] x s [53,495 84x65]",
+     "BUTTON [78,552 56x56] x s [53,495 84x65]",
+     "BUTTON [142,552 56x56] x s [153,536 84x65]",
+     "BUTTON [142,552 56x56] x SPAN:Take cover [163,565 63x15]",
+     "BUTTON [142,552 56x56] x k:5 [192,581 7x14]",
+     "n:Pistol [153,584 33x19] x s [153,536 84x65]",
+     "BUTTON [206,552 74x56] x s [253,495 84x65]",
+     "BUTTON [206,552 74x56] x s [153,536 84x65]",
+     "BUTTON [206,552 74x56] x SPAN:Take cover [163,565 63x15]",
+     "n:Grenades [215,584 56x19] x s [153,536 84x65]",
+     "c:Tap an order [143,338 104x17] x orientHint [160,228 222x127]",
+     "c:Tap an order [143,338 104x17] x orientOk [171,298 200x48]",
+     "s [153,256 84x65] x orientHint [160,228 222x127]",
+     "s [153,256 84x65] x SPAN:First person i [171,237 200x55]",
+     "s [153,256 84x65] x orientOk [171,298 200x48]",
+     "SPAN:Follow [176,285 38x15] x orientHint [160,228 222x127]",
+     "SPAN:Follow [176,285 38x15] x SPAN:First person i [171,237 200x55]",
+     "k:1 [192,301 7x14] x orientHint [160,228 222x127]",
+     "k:1 [192,301 7x14] x orientOk [171,298 200x48]",
+     "s [253,297 84x65] x orientHint [160,228 222x127]",
+     "s [253,297 84x65] x orientOk [171,298 200x48]",
+     "SPAN:Move [280,326 30x15] x orientHint [160,228 222x127]",
+     "SPAN:Move [280,326 30x15] x orientOk [171,298 200x48]",
+     "k:2 [291,342 7x14] x orientHint [160,228 222x127]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "BUTTON under s",
+     "s under SPAN",
+     "s under orientOk"
+    ],
+    "hscroll": false
+   },
+   {
+    "name": "fp_scoped",
+    "file": "portrait_27_fp_scoped.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "fp_menu",
+    "file": "portrait_28_fp_menu.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "deploy",
+    "file": "portrait_29_deploy.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "end",
+    "file": "portrait_30_end.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "startmenu",
+    "file": "portrait_31_startmenu.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   },
+   {
+    "name": "startmenu_scrolled",
+    "file": "portrait_32_startmenu_scrolled.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false
+   }
+  ],
+  "fails": []
+ }
+]

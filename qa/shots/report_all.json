@@ -1,0 +1,2055 @@
+[
+ {
+  "profile": "portrait",
+  "states": [
+   {
+    "name": "sandbox",
+    "file": "portrait_01_sandbox.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bMore [304,68 70x48] gap 6",
+     "bMore [304,68 70x48] | bMenu [304,122 70x48] gap 6",
+     "bMenu [304,122 70x48] | bLog [304,176 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "sandbox_selected",
+    "file": "portrait_02_sandbox_selected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bMore [304,68 70x48] gap 6",
+     "bMore [304,68 70x48] | bMenu [304,122 70x48] gap 6",
+     "bMenu [304,122 70x48] | bLog [304,176 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "sandbox_deselected",
+    "file": "portrait_03_sandbox_deselected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bMore [304,68 70x48] gap 6",
+     "bMore [304,68 70x48] | bMenu [304,122 70x48] gap 6",
+     "bMenu [304,122 70x48] | bLog [304,176 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "menu",
+    "file": "portrait_04_menu.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "menu_closed",
+    "file": "portrait_05_menu_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bMore [304,68 70x48] gap 6",
+     "bMore [304,68 70x48] | bMenu [304,122 70x48] gap 6",
+     "bMenu [304,122 70x48] | bLog [304,176 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "log",
+    "file": "portrait_06_log.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "log_closed",
+    "file": "portrait_07_log_closed.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help",
+    "file": "portrait_08_help.png",
+    "modal": "help",
+    "modals": [
+     "help"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help_closed",
+    "file": "portrait_09_help_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bMore [304,68 70x48] gap 6",
+     "bMore [304,68 70x48] | bMenu [304,122 70x48] gap 6",
+     "bMenu [304,122 70x48] | bLog [304,176 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_pane",
+    "file": "portrait_10_side_pane.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_closed",
+    "file": "portrait_11_side_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_place",
+    "file": "portrait_12_tool_place.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_land",
+    "file": "portrait_13_tool_land.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_sky",
+    "file": "portrait_14_tool_sky.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_select",
+    "file": "portrait_15_tool_select.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "helm",
+    "file": "portrait_16_helm.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "bMode [8,603 83x48] | bBoat [97,603 86x48] gap 6",
+     "bBoat [97,603 86x48] | bFP [189,603 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "helm_left",
+    "file": "portrait_17_helm_left.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "inspector",
+    "file": "portrait_18_inspector.png",
+    "modal": "inspector",
+    "modals": [
+     "inspector"
+    ],
+    "overlaps": [],
+    "small": [
+     "iClose [323,389 55x44]",
+     "BUTTON [12,587 65x44]",
+     "BUTTON [82,587 63x44]",
+     "BUTTON [151,587 87x44]",
+     "BUTTON [244,587 58x44]",
+     "BUTTON [12,637 49x44]",
+     "BUTTON [67,637 52x44]",
+     "iRemove [318,612 60x44]"
+    ],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [12,587 65x44] | BUTTON [82,587 63x44] gap 6",
+     "BUTTON [12,587 65x44] | BUTTON [12,637 49x44] gap 6",
+     "BUTTON [82,587 63x44] | BUTTON [151,587 87x44] gap 6",
+     "BUTTON [82,587 63x44] | BUTTON [67,637 52x44] gap 6",
+     "BUTTON [151,587 87x44] | BUTTON [244,587 58x44] gap 6",
+     "BUTTON [12,637 49x44] | BUTTON [67,637 52x44] gap 6"
+    ]
+   },
+   {
+    "name": "inspector_closed",
+    "file": "portrait_19_inspector_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "BUTTON [87,780 52x48] | BUTTON [146,780 49x48] gap 6",
+     "BUTTON [146,780 49x48] | BUTTON [201,780 48x48] gap 6",
+     "BUTTON [201,780 48x48] | BUTTON [255,780 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_sandbox",
+    "file": "portrait_20_command_sandbox.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,89 113x48] | BUTTON [139,89 113x48] gap 6",
+     "BUTTON [139,89 113x48] | BUTTON [257,89 113x48] gap 6"
+    ]
+   },
+   {
+    "name": "setup",
+    "file": "portrait_21_setup.png",
+    "modal": "bSetup",
+    "modals": [
+     "bSetup"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "battle",
+    "file": "portrait_22_battle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "bBoat [8,670 86x48] | bCenter [100,670 82x48] gap 6",
+     "bSideBtn [8,726 133x48] | bTab [147,726 132x48] gap 6",
+     "bSideBtn [8,726 133x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | tmBtn [285,726 97x48] gap 6",
+     "bTab [147,726 132x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | bSpec [189,780 193x48] gap 6",
+     "tmBtn [285,726 97x48] | bSpec [189,780 193x48] gap 6",
+     "bJump [8,780 175x48] | bSpec [189,780 193x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_fire",
+    "file": "portrait_23_command_fire.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,89 83x48] | BUTTON [109,89 83x48] gap 6",
+     "BUTTON [109,89 83x48] | BUTTON [198,89 83x48] gap 6",
+     "BUTTON [198,89 83x48] | BUTTON [287,89 83x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_map",
+    "file": "portrait_24_command_map.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,323 83x48] | BUTTON [109,323 83x48] gap 6",
+     "BUTTON [109,323 83x48] | BUTTON [198,323 83x48] gap 6",
+     "BUTTON [198,323 83x48] | BUTTON [287,323 83x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_support",
+    "file": "portrait_25_command_support.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,89 83x48] | BUTTON [109,89 83x48] gap 6",
+     "BUTTON [109,89 83x48] | BUTTON [198,89 83x48] gap 6",
+     "BUTTON [198,89 83x48] | BUTTON [287,89 83x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_points",
+    "file": "portrait_26_command_points.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,89 83x48] | BUTTON [109,89 83x48] gap 6",
+     "BUTTON [109,89 83x48] | BUTTON [198,89 83x48] gap 6",
+     "BUTTON [198,89 83x48] | BUTTON [287,89 83x48] gap 6"
+    ]
+   },
+   {
+    "name": "tactical_map",
+    "file": "portrait_27_tactical_map.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_pick",
+    "file": "portrait_28_tactical_map_pick.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_closed",
+    "file": "portrait_29_tactical_map_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "bBoat [8,670 86x48] | bCenter [100,670 82x48] gap 6",
+     "bSideBtn [8,726 133x48] | bTab [147,726 132x48] gap 6",
+     "bSideBtn [8,726 133x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | tmBtn [285,726 97x48] gap 6",
+     "bTab [147,726 132x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | bSpec [189,780 193x48] gap 6",
+     "tmBtn [285,726 97x48] | bSpec [189,780 193x48] gap 6",
+     "bJump [8,780 175x48] | bSpec [189,780 193x48] gap 6"
+    ]
+   },
+   {
+    "name": "battle_overview",
+    "file": "portrait_30_battle_overview.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "bBoat [8,670 86x48] | bCenter [100,670 82x48] gap 6",
+     "bSideBtn [8,726 133x48] | bTab [147,726 132x48] gap 6",
+     "bSideBtn [8,726 133x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | tmBtn [285,726 97x48] gap 6",
+     "bTab [147,726 132x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | bSpec [189,780 193x48] gap 6",
+     "tmBtn [285,726 97x48] | bSpec [189,780 193x48] gap 6",
+     "bJump [8,780 175x48] | bSpec [189,780 193x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_pick",
+    "file": "portrait_31_side_pick.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_pick_closed",
+    "file": "portrait_32_side_pick_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [304,14 70x48] | bInstallTop [304,68 70x48] gap 6",
+     "bInstallTop [304,68 70x48] | bMore [304,122 70x48] gap 6",
+     "bMore [304,122 70x48] | bMenu [304,176 70x48] gap 6",
+     "bMenu [304,176 70x48] | bLog [304,230 70x48] gap 6",
+     "bBoat [8,670 86x48] | bCenter [100,670 82x48] gap 6",
+     "bSideBtn [8,726 133x48] | bTab [147,726 132x48] gap 6",
+     "bSideBtn [8,726 133x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | tmBtn [285,726 97x48] gap 6",
+     "bTab [147,726 132x48] | bJump [8,780 175x48] gap 6",
+     "bTab [147,726 132x48] | bSpec [189,780 193x48] gap 6",
+     "tmBtn [285,726 97x48] | bSpec [189,780 193x48] gap 6",
+     "bJump [8,780 175x48] | bSpec [189,780 193x48] gap 6"
+    ]
+   },
+   {
+    "name": "fp",
+    "file": "portrait_33_fp.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_squad_ring",
+    "file": "portrait_34_fp_squad_ring.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "s [253,297 84x65] | sq [199,366 76x52] gap 4",
+     "s [53,297 84x65] | sq [115,366 76x52] gap 4"
+    ]
+   },
+   {
+    "name": "fp_vehicle",
+    "file": "portrait_35_fp_vehicle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "DIV:Rifle 25 / 25 [8,92 150x20] x bvHud [56,88 278x124]",
+     "DIV:Rifle 25 / 25 [8,92 150x20] x big:Jeep · 0 km/h [70,98 250x27]",
+     "fpTab [278,64 104x48] x bvHud [56,88 278x124]",
+     "fpTab [278,64 104x48] x big:Jeep · 0 km/h [70,98 250x27]",
+     "hd:Squad: follow  [8,124 150x14] x bvHud [56,88 278x124]",
+     "SPAN:Alex [42,146 25x15] x bvHud [56,88 278x124]",
+     "I:Mounted [102,146 49x15] x bvHud [56,88 278x124]",
+     "I:Mounted [102,146 49x15] x DIV:Hull 100% · Ma [70,145 250x21]",
+     "SPAN:Ben [42,179 22x15] x bvHud [56,88 278x124]",
+     "I:Moving [111,179 40x15] x bvHud [56,88 278x124]",
+     "I:Moving [111,179 40x15] x SMALL:Stick drives,  [70,166 250x36]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_scoped",
+    "file": "portrait_36_fp_scoped.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_menu",
+    "file": "portrait_37_fp_menu.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [20,89 65x48] | BUTTON [91,89 65x48] gap 6",
+     "BUTTON [91,89 65x48] | BUTTON [162,89 65x48] gap 6",
+     "BUTTON [162,89 65x48] | BUTTON [234,89 65x48] gap 6",
+     "BUTTON [234,89 65x48] | BUTTON [305,89 65x48] gap 6"
+    ]
+   },
+   {
+    "name": "deploy",
+    "file": "portrait_38_deploy.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "end",
+    "file": "portrait_39_end.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "startmenu",
+    "file": "portrait_40_startmenu.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "startmenu_scrolled",
+    "file": "portrait_41_startmenu_scrolled.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   }
+  ],
+  "fails": []
+ },
+ {
+  "profile": "landscape",
+  "states": [
+   {
+    "name": "sandbox",
+    "file": "landscape_01_sandbox.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bMore [760,66 68x48] gap 4",
+     "bMore [760,66 68x48] | bMenu [760,118 68x48] gap 4",
+     "bMenu [760,118 68x48] | bLog [760,170 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bTopple [8,151 68x48] | bDelP [82,151 119x48] gap 6",
+     "bDelP [82,151 119x48] | bDesel [207,151 80x48] gap 6",
+     "bDesel [207,151 80x48] | bHeli [293,151 135x48] gap 6",
+     "bHeli [293,151 135x48] | bFP [434,151 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "sandbox_selected",
+    "file": "landscape_02_sandbox_selected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bMore [760,66 68x48] gap 4",
+     "bMore [760,66 68x48] | bMenu [760,118 68x48] gap 4",
+     "bMenu [760,118 68x48] | bLog [760,170 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bMode [8,151 112x48] | bStop [126,151 71x48] gap 6",
+     "bStop [126,151 71x48] | bDel [202,151 105x48] gap 6",
+     "bDel [202,151 105x48] | bDesel [314,151 80x48] gap 6",
+     "bDesel [314,151 80x48] | bFP [400,151 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "sandbox_deselected",
+    "file": "landscape_03_sandbox_deselected.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bMore [760,66 68x48] gap 4",
+     "bMore [760,66 68x48] | bMenu [760,118 68x48] gap 4",
+     "bMenu [760,118 68x48] | bLog [760,170 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "menu",
+    "file": "landscape_04_menu.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "menu_closed",
+    "file": "landscape_05_menu_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bMore [760,66 68x48] gap 4",
+     "bMore [760,66 68x48] | bMenu [760,118 68x48] gap 4",
+     "bMenu [760,118 68x48] | bLog [760,170 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "log",
+    "file": "landscape_06_log.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "log_closed",
+    "file": "landscape_07_log_closed.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help",
+    "file": "landscape_08_help.png",
+    "modal": "help",
+    "modals": [
+     "help"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help_closed",
+    "file": "landscape_09_help_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bMore [760,66 68x48] gap 4",
+     "bMore [760,66 68x48] | bMenu [760,118 68x48] gap 4",
+     "bMenu [760,118 68x48] | bLog [760,170 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_pane",
+    "file": "landscape_10_side_pane.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,220 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,164 100x48] | bBoat [114,164 86x48] gap 6",
+     "bBoat [114,164 86x48] | bCenter [206,164 82x48] gap 6",
+     "bCenter [206,164 82x48] | bFP [295,164 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_closed",
+    "file": "landscape_11_side_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,220 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,164 100x48] | bBoat [114,164 86x48] gap 6",
+     "bBoat [114,164 86x48] | bCenter [206,164 82x48] gap 6",
+     "bCenter [206,164 82x48] | bFP [295,164 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_place",
+    "file": "landscape_12_tool_place.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "bLog [760,222 68x48] x chip [562,261 245x48]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,213 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,157 100x48] | bBoat [114,157 86x48] gap 6",
+     "bBoat [114,157 86x48] | bCenter [206,157 82x48] gap 6",
+     "bCenter [206,157 82x48] | bFP [295,157 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_land",
+    "file": "landscape_13_tool_land.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "sculpt [736,147 92x92] x bMore [760,118 68x48]",
+     "sculpt [736,147 92x92] x bMenu [760,170 68x48]",
+     "sculpt [736,147 92x92] x bLog [760,222 68x48]",
+     "bLog [760,222 68x48] x chip [762,261 70x48]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [
+     "bMenu under sculpt"
+    ],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,205 100x48] | bBoat [114,205 86x48] gap 6",
+     "bBoat [114,205 86x48] | bCenter [206,205 82x48] gap 6",
+     "bCenter [206,205 82x48] | bFP [295,205 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_sky",
+    "file": "landscape_14_tool_sky.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "bLog [760,222 68x48] x chip [562,261 245x48]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,213 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,157 100x48] | bBoat [114,157 86x48] gap 6",
+     "bBoat [114,157 86x48] | bCenter [206,157 82x48] gap 6",
+     "bCenter [206,157 82x48] | bFP [295,157 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "tool_select",
+    "file": "landscape_15_tool_select.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,220 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,164 100x48] | bBoat [114,164 86x48] gap 6",
+     "bBoat [114,164 86x48] | bCenter [206,164 82x48] gap 6",
+     "bCenter [206,164 82x48] | bFP [295,164 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "helm",
+    "file": "landscape_16_helm.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "bLog [760,222 68x48] x chip [709,253 112x54]",
+     "bLog [760,222 68x48] x nm:Ingot pallet [747,262 64x14]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bMenu [760,170 68x48] | cmdBtn [632,205 128x48] gap 0",
+     "bLog [760,222 68x48] | cmdBtn [632,205 128x48] gap 0",
+     "bMode [8,149 83x48] | bBoat [97,149 86x48] gap 6",
+     "bBoat [97,149 86x48] | bFP [189,149 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "helm_left",
+    "file": "landscape_17_helm_left.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,220 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,164 100x48] | bBoat [114,164 86x48] gap 6",
+     "bBoat [114,164 86x48] | bCenter [206,164 82x48] gap 6",
+     "bCenter [206,164 82x48] | bFP [295,164 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "inspector",
+    "file": "landscape_18_inspector.png",
+    "modal": "inspector",
+    "modals": [
+     "inspector"
+    ],
+    "overlaps": [],
+    "small": [
+     "BUTTON [192,137 65x44]",
+     "BUTTON [263,137 63x44]",
+     "BUTTON [332,137 87x44]",
+     "BUTTON [424,137 58x44]",
+     "BUTTON [488,137 49x44]",
+     "BUTTON [192,187 52x44]",
+     "iRemove [583,162 69x44]"
+    ],
+    "clipped": [
+     "INPUT [294,-6 286x30]"
+    ],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [192,137 65x44] | BUTTON [263,137 63x44] gap 6",
+     "BUTTON [192,137 65x44] | BUTTON [192,187 52x44] gap 6",
+     "BUTTON [263,137 63x44] | BUTTON [332,137 87x44] gap 6",
+     "BUTTON [332,137 87x44] | BUTTON [424,137 58x44] gap 6",
+     "BUTTON [424,137 58x44] | BUTTON [488,137 49x44] gap 6"
+    ]
+   },
+   {
+    "name": "inspector_closed",
+    "file": "landscape_19_inspector_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bLog [760,222 68x48] | cmdBtn [632,220 128x48] gap 0",
+     "BUTTON [315,328 51x48] | BUTTON [373,328 48x48] gap 6",
+     "BUTTON [373,328 48x48] | BUTTON [427,328 48x48] gap 6",
+     "BUTTON [427,328 48x48] | BUTTON [481,328 48x48] gap 6",
+     "bJoin [8,164 100x48] | bBoat [114,164 86x48] gap 6",
+     "bBoat [114,164 86x48] | bCenter [206,164 82x48] gap 6",
+     "bCenter [206,164 82x48] | bFP [295,164 100x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_sandbox",
+    "file": "landscape_20_command_sandbox.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,67 201x48] | BUTTON [321,67 201x48] gap 6",
+     "BUTTON [321,67 201x48] | BUTTON [529,67 201x48] gap 6"
+    ]
+   },
+   {
+    "name": "setup",
+    "file": "landscape_21_setup.png",
+    "modal": "bSetup",
+    "modals": [
+     "bSetup"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "battle",
+    "file": "landscape_22_battle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bBoat [8,270 86x48] | bCenter [100,270 82x48] gap 6",
+     "bSideBtn [8,326 155x48] | bTab [169,326 154x48] gap 6",
+     "bTab [169,326 154x48] | tmBtn [328,326 118x48] gap 6",
+     "tmBtn [328,326 118x48] | bJump [452,326 142x48] gap 6",
+     "bJump [452,326 142x48] | bSpec [600,326 160x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_fire",
+    "file": "landscape_23_command_fire.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,67 150x48] | BUTTON [270,67 150x48] gap 6",
+     "BUTTON [270,67 150x48] | BUTTON [425,67 150x48] gap 6",
+     "BUTTON [425,67 150x48] | BUTTON [581,67 150x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_map",
+    "file": "landscape_24_command_map.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,110 150x48] | BUTTON [270,110 150x48] gap 6",
+     "BUTTON [270,110 150x48] | BUTTON [425,110 150x48] gap 6",
+     "BUTTON [425,110 150x48] | BUTTON [581,110 150x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_support",
+    "file": "landscape_25_command_support.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,67 150x48] | BUTTON [270,67 150x48] gap 6",
+     "BUTTON [270,67 150x48] | BUTTON [425,67 150x48] gap 6",
+     "BUTTON [425,67 150x48] | BUTTON [581,67 150x48] gap 6"
+    ]
+   },
+   {
+    "name": "command_points",
+    "file": "landscape_26_command_points.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,67 150x48] | BUTTON [270,67 150x48] gap 6",
+     "BUTTON [270,67 150x48] | BUTTON [425,67 150x48] gap 6",
+     "BUTTON [425,67 150x48] | BUTTON [581,67 150x48] gap 6"
+    ]
+   },
+   {
+    "name": "tactical_map",
+    "file": "landscape_27_tactical_map.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_pick",
+    "file": "landscape_28_tactical_map_pick.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_closed",
+    "file": "landscape_29_tactical_map_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bBoat [8,270 86x48] | bCenter [100,270 82x48] gap 6",
+     "bSideBtn [8,326 155x48] | bTab [169,326 154x48] gap 6",
+     "bTab [169,326 154x48] | tmBtn [328,326 118x48] gap 6",
+     "tmBtn [328,326 118x48] | bJump [452,326 142x48] gap 6",
+     "bJump [452,326 142x48] | bSpec [600,326 160x48] gap 6"
+    ]
+   },
+   {
+    "name": "battle_overview",
+    "file": "landscape_30_battle_overview.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bBoat [8,270 86x48] | bCenter [100,270 82x48] gap 6",
+     "bSideBtn [8,326 155x48] | bTab [169,326 154x48] gap 6",
+     "bTab [169,326 154x48] | tmBtn [328,326 118x48] gap 6",
+     "tmBtn [328,326 118x48] | bJump [452,326 142x48] gap 6",
+     "bJump [452,326 142x48] | bSpec [600,326 160x48] gap 6"
+    ]
+   },
+   {
+    "name": "side_pick",
+    "file": "landscape_31_side_pick.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_pick_closed",
+    "file": "landscape_32_side_pick_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "burger [760,14 68x48] | bInstallTop [760,66 68x48] gap 4",
+     "bInstallTop [760,66 68x48] | bMore [760,118 68x48] gap 4",
+     "bMore [760,118 68x48] | bMenu [760,170 68x48] gap 4",
+     "bMenu [760,170 68x48] | bLog [760,222 68x48] gap 4",
+     "bBoat [8,270 86x48] | bCenter [100,270 82x48] gap 6",
+     "bSideBtn [8,326 155x48] | bTab [169,326 154x48] gap 6",
+     "bTab [169,326 154x48] | tmBtn [328,326 118x48] gap 6",
+     "tmBtn [328,326 118x48] | bJump [452,326 142x48] gap 6",
+     "bJump [452,326 142x48] | bSpec [600,326 160x48] gap 6"
+    ]
+   },
+   {
+    "name": "fp",
+    "file": "landscape_33_fp.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_squad_ring",
+    "file": "landscape_34_fp_squad_ring.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_vehicle",
+    "file": "landscape_35_fp_vehicle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_scoped",
+    "file": "landscape_36_fp_scoped.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_menu",
+    "file": "landscape_37_fp_menu.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": [
+     "BUTTON [114,67 118x48] | BUTTON [238,67 118x48] gap 6",
+     "BUTTON [238,67 118x48] | BUTTON [363,67 118x48] gap 6",
+     "BUTTON [363,67 118x48] | BUTTON [487,67 118x48] gap 6",
+     "BUTTON [487,67 118x48] | BUTTON [612,67 118x48] gap 6"
+    ]
+   },
+   {
+    "name": "deploy",
+    "file": "landscape_38_deploy.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "end",
+    "file": "landscape_39_end.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "startmenu",
+    "file": "landscape_40_startmenu.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "startmenu_scrolled",
+    "file": "landscape_41_startmenu_scrolled.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   }
+  ],
+  "fails": []
+ },
+ {
+  "profile": "desktop",
+  "states": [
+   {
+    "name": "sandbox",
+    "file": "desktop_01_sandbox.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "sandbox_selected",
+    "file": "desktop_02_sandbox_selected.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "sandbox_deselected",
+    "file": "desktop_03_sandbox_deselected.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "menu",
+    "file": "desktop_04_menu.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet",
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "menu_closed",
+    "file": "desktop_05_menu_closed.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "log",
+    "file": "desktop_06_log.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet",
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "log_closed",
+    "file": "desktop_07_log_closed.png",
+    "modal": "menuSheet",
+    "modals": [
+     "menuSheet",
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help",
+    "file": "desktop_08_help.png",
+    "modal": "help",
+    "modals": [
+     "help",
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "help_closed",
+    "file": "desktop_09_help_closed.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_pane",
+    "file": "desktop_10_side_pane.png",
+    "modal": "side",
+    "modals": [
+     "side"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_closed",
+    "file": "desktop_11_side_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tool_place",
+    "file": "desktop_12_tool_place.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tool_land",
+    "file": "desktop_13_tool_land.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tool_sky",
+    "file": "desktop_14_tool_sky.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tool_select",
+    "file": "desktop_15_tool_select.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "helm",
+    "file": "desktop_16_helm.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "helm_left",
+    "file": "desktop_17_helm_left.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "inspector",
+    "file": "desktop_18_inspector.png",
+    "modal": "inspector",
+    "modals": [
+     "inspector"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "inspector_closed",
+    "file": "desktop_19_inspector_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "command_sandbox",
+    "file": "desktop_20_command_sandbox.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "setup",
+    "file": "desktop_21_setup.png",
+    "modal": "bSetup",
+    "modals": [
+     "bSetup"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "battle",
+    "file": "desktop_22_battle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "command_fire",
+    "file": "desktop_23_command_fire.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "command_map",
+    "file": "desktop_24_command_map.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "command_support",
+    "file": "desktop_25_command_support.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "command_points",
+    "file": "desktop_26_command_points.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map",
+    "file": "desktop_27_tactical_map.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_pick",
+    "file": "desktop_28_tactical_map_pick.png",
+    "modal": "tmap",
+    "modals": [
+     "tmap"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "tactical_map_closed",
+    "file": "desktop_29_tactical_map_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "battle_overview",
+    "file": "desktop_30_battle_overview.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_pick",
+    "file": "desktop_31_side_pick.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "side_pick_closed",
+    "file": "desktop_32_side_pick_closed.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp",
+    "file": "desktop_33_fp.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_vehicle",
+    "file": "desktop_34_fp_vehicle.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [
+     "BUTTON [567,779 59x67] x bvHud [395,734 611x106]",
+     "BUTTON [567,779 59x67] x DIV:Hull 100% · Ma [409,791 583x21]",
+     "BUTTON [567,779 59x67] x SMALL:W S drive · A  [409,812 583x18]",
+     "n:Hands [578,824 37x15] x bvHud [395,734 611x106]",
+     "BUTTON [632,779 56x67] x bvHud [395,734 611x106]",
+     "BUTTON [632,779 56x67] x DIV:Hull 100% · Ma [409,791 583x21]",
+     "BUTTON [632,779 56x67] x SMALL:W S drive · A  [409,812 583x18]",
+     "k:1 [656,809 7x15] x bvHud [395,734 611x106]",
+     "k:1 [656,809 7x15] x SMALL:W S drive · A  [409,812 583x18]",
+     "n:Rifle [646,825 27x14] x bvHud [395,734 611x106]",
+     "BUTTON [694,779 56x67] x bvHud [395,734 611x106]",
+     "BUTTON [694,779 56x67] x DIV:Hull 100% · Ma [409,791 583x21]",
+     "BUTTON [694,779 56x67] x SMALL:W S drive · A  [409,812 583x18]",
+     "k:2 [718,809 7x15] x bvHud [395,734 611x106]",
+     "k:2 [718,809 7x15] x SMALL:W S drive · A  [409,812 583x18]",
+     "n:Pistol [705,825 33x14] x bvHud [395,734 611x106]",
+     "BUTTON [756,779 78x67] x bvHud [395,734 611x106]",
+     "BUTTON [756,779 78x67] x DIV:Hull 100% · Ma [409,791 583x21]",
+     "BUTTON [756,779 78x67] x SMALL:W S drive · A  [409,812 583x18]",
+     "k:3 [791,809 7x15] x bvHud [395,734 611x106]",
+     "k:3 [791,809 7x15] x SMALL:W S drive · A  [409,812 583x18]",
+     "n:Grenades [767,825 56x14] x bvHud [395,734 611x106]"
+    ],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_scoped",
+    "file": "desktop_35_fp_scoped.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "fp_menu",
+    "file": "desktop_36_fp_menu.png",
+    "modal": "tablet",
+    "modals": [
+     "tablet"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "deploy",
+    "file": "desktop_37_deploy.png",
+    "modal": null,
+    "modals": [],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   },
+   {
+    "name": "end",
+    "file": "desktop_38_end.png",
+    "modal": "bSpawn",
+    "modals": [
+     "bSpawn"
+    ],
+    "overlaps": [],
+    "small": [],
+    "clipped": [],
+    "covered": [],
+    "hscroll": false,
+    "tight": []
+   }
+  ],
+  "fails": [
+   "harness: Error: {\"code\":-32000,\"message\":\"Not attached to an active page\"}\n    at ws.onmessage (file:///C:/Users/Robert%20Walter-Joseph/Code%20Projects/squall-cove-large/qa/harness.mjs:43:96)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:14387:14)\n    at #onMessage (node:internal/deps/undici/undici:15710:9)\n    at Object.onMessage (node:internal/deps/undici/undici:15417:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:14391:15)\n    at node:internal/deps/undici/undici:15119:21\n    at node:internal/deps/undici/undici:14899:11\n    at afterWrite (node:internal/streams/writable:708:5)"
+  ]
+ }
+]

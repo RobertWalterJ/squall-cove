@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 <style id="bootcss">
-#boot{display:none;position:fixed;inset:0;z-index:100;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(165deg,#12323d 0%,#0c1a20 55%,#16241f 100%);color:#f1ece2;font:500 16px/1.45 Barlow,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+#boot{display:none;position:fixed;inset:0;z-index:var(--z-boot);overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(165deg,#12323d 0%,#0c1a20 55%,#16241f 100%);color:#f1ece2;font:500 16px/1.45 Barlow,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
 html.boot #boot{display:block}
 html.boot body>*:not(#boot):not(script):not(svg):not(style):not(link):not(title){visibility:hidden!important;pointer-events:none!important}
 html.boot #phoneStack,html.boot #cmdBtn,html.boot #burger,html.boot #cheatChip,html.boot #intro,html.boot .hud,html.boot canvas{display:none!important}
@@ -123,9 +123,9 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
 <button type="button" data-opt="quality" aria-pressed="true"><b>Quality: high</b><small>Low is lighter on a phone.</small></button>
 <button type="button" data-opt="voices" aria-pressed="true"><b>Squad voices: on</b><small>Spoken calls in a battle.</small></button>
 </div>
-<p class="bsize" id="bSizeT" aria-live="polite">Download size about 11 MB</p>
+<div class="bdock"><p class="bsize" id="bSizeT" aria-live="polite">Download size about 11 MB</p>
 <button type="button" class="bgo" id="bGo">Start</button>
-<p class="berr" id="bErr" hidden></p>
+<p class="berr" id="bErr" hidden></p></div>
 <p class="bfoot">Nothing downloads until you press the button. Sizes are estimates, less if this device has played before.<br>Real-map data: (c) OpenStreetMap contributors, ODbL 1.0. Terrain: Mapzen terrain tiles (SRTM, GMTED, NED). <span id="bVer"></span></p>
 </div></div>
 <script>
@@ -256,7 +256,7 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.3 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.4 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -268,6 +268,18 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
 <style>
 /* Layout: full-bleed 3D sea; instruments pinned top-left, actions top-right, cargo tray and helm along the bottom edge. Single dusk look, deliberately one theme. */
 :root{
+  /* STACKING LADDER (one place, lowest to highest; every z-index in this file uses one of these tokens).
+     under    : overlay canvases inside the world (rings, labels)
+     hud      : read-only readouts (legend, objective, ticket status, health, squad list)
+     ctl      : controls you press (dock, selection bar, Command button, first-person buttons, Menu column)
+     feed     : the ONE toast lane (notes, kill feed, tips)
+     pane     : the side pane, its tab, banners that sit over controls
+     fx       : hit markers and vehicle gauges, over the controls but under every sheet
+     sheet    : every modal sheet (Command, Deploy, Help, Inspector). One open at a time on the phone.
+     menu     : the Menu sheet and the cheat chip
+     sheet-top: Battle setup and cheats; the tactical map is +1
+     intro, loading, boot : first-visit card, loading card, start menu */
+  --z-under:3; --z-hud:4; --z-ctl:6; --z-feed:7; --z-pane:8; --z-fx:9; --z-sheet:20; --z-menu:30; --z-sheet-top:35; --z-intro:40; --z-loading:90; --z-boot:100;
   --ink:#0c1a20;
   --panel:rgba(12,26,32,.95);
   --line:rgba(241,236,226,.16);
@@ -281,6 +293,8 @@ html.ed-phone #boot .bmaps{grid-template-columns:1fr}
   --gap:10px;
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -309,12 +323,12 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 .actions{position:absolute;top:calc(12px + var(--safe-t));right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:calc(100dvh - 196px - var(--safe-t) - var(--safe-b));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(227,169,72,.45) transparent;padding:2px 4px 2px 2px}
 #bRight{background:var(--signal);border-color:var(--signal)}
 
- #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(var(--bh,140px) + 22px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;touch-action:none;z-index:5;box-shadow:0 4px 18px #0008}
-#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(var(--bh,140px) + 30px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);z-index:5}
-#objective{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 84px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:4}
+ #sculpt,#placeBtn{position:fixed;right:16px;bottom:calc(var(--bh,140px) + 22px + var(--safe-b));width:92px;height:92px;border-radius:50%;background:rgba(227,169,72,.88);color:#10201f;border:2px solid #fff3;font:700 17px var(--f-display);letter-spacing:.06em;touch-action:none;z-index:var(--z-ctl);box-shadow:0 4px 18px #0008}
+#landUndo,#turnBtn{position:fixed;right:118px;bottom:calc(var(--bh,140px) + 30px + var(--safe-b));min-width:64px;min-height:64px;border-radius:50%;background:rgba(12,26,32,.85);color:var(--paper);border:1.5px solid var(--line);font:600 14px var(--f-display);z-index:var(--z-ctl)}
+#objective{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 84px + var(--safe-b));max-width:min(58vw,360px);display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 14px;font:600 14px/1.25 var(--f-display);letter-spacing:.04em;z-index:var(--z-hud)}
 #objective button{min-height:36px;padding:6px 12px}
-#calmBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 68px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;z-index:5;box-shadow:0 4px 18px #0008}
-#legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 10px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:4;pointer-events:none}
+#calmBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 68px + var(--safe-b));min-height:56px;min-width:110px;padding:8px 18px;background:rgba(184,64,44,.92);color:#fff;border:2px solid #ffffff55;border-radius:14px;font:700 17px var(--f-display);letter-spacing:.05em;z-index:var(--z-ctl);box-shadow:0 4px 18px #0008}
+#legend{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 10px + var(--safe-b));max-width:min(92vw,420px);padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font:500 13px/1.3 var(--f-mono);text-align:center;z-index:var(--z-hud);pointer-events:none}
 /* a calm interface: the picture is the star, controls appear when they are needed */
 body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
 body.ui-min.noinst .inst{display:none}
@@ -323,11 +337,11 @@ body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(
 body.ui-min #bMode:disabled{display:none}
 body.ui-min.tray-idle .tray{display:none}
 #trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
-#hudOn{position:fixed;top:12px;right:12px;z-index:6;opacity:.55;min-height:40px}
+#hudOn{position:fixed;top:12px;right:12px;z-index:var(--z-ctl);opacity:.55;min-height:40px}
 body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camPad,body.hud-off #calmBtn,body.hud-off #legend,body.hud-off #objective,body.hud-off #sculpt,body.hud-off #landUndo,body.hud-off #placeBtn,body.hud-off #turnBtn{display:none!important}
-#camPad{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,52px);gap:6px;z-index:4;touch-action:none}
+#camPad{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,52px);gap:6px;z-index:var(--z-hud);touch-action:none}
 #camPad button{min-width:52px;min-height:46px;padding:4px 6px;font-size:13px;background:rgba(12,26,32,.82);touch-action:none}
-#menuSheet{position:fixed;inset:0;z-index:30;overflow-y:auto}
+#menuSheet{position:fixed;inset:0;z-index:var(--z-menu);overflow-y:auto}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mgrid small{display:block;font:500 11px var(--f-mono);color:var(--muted);text-transform:none;letter-spacing:0;margin-top:3px}
 .mgrid button{min-height:52px}
@@ -357,10 +371,10 @@ body.hud-off .inst,body.hud-off .actions,body.hud-off .bottom,body.hud-off #camP
 .pad button{min-width:58px;height:58px;font-size:15px;padding-inline:10px}
 .pad .big{font-size:22px}
 @media (pointer:coarse){ body[data-mode="helm"] .helm{display:flex} }
-#selFloat{position:fixed;left:16px;bottom:calc(var(--bh,140px) + 24px + var(--safe-b));min-height:52px;padding:0 20px;border-radius:26px;background:rgba(214,75,44,.92);color:#fff;border:2px solid #fff3;font:700 15px var(--f-display);letter-spacing:.06em;z-index:6;box-shadow:0 4px 16px #0008}
+#selFloat{position:fixed;left:16px;bottom:calc(var(--bh,140px) + 24px + var(--safe-b));min-height:52px;padding:0 20px;border-radius:26px;background:rgba(214,75,44,.92);color:#fff;border:2px solid #fff3;font:700 15px var(--f-display);letter-spacing:.06em;z-index:var(--z-ctl);box-shadow:0 4px 16px #0008}
 #cats{padding-bottom:2px}
 #cats .chip{padding:7px 12px}#cats .chip .nm{font-size:13px}
-#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 24px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:9px;z-index:12}
+#inspector{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 24px + var(--safe-b));width:min(94vw,460px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:9px;z-index:calc(var(--z-sheet) + 1)}
 #inspector .ihead{display:flex;align-items:center;gap:10px}#inspector .ihead b{font:600 17px/1 var(--f-display);letter-spacing:.06em;}
 #inspector #iNote{flex:1;font:500 11.5px/1.35 var(--f-mono);color:var(--brass)}
 #inspector .irow{display:grid;grid-template-columns:92px 1fr 66px;gap:8px;align-items:center;font:500 13px var(--f-body)}
@@ -381,7 +395,7 @@ button:disabled{opacity:.45;cursor:default}
 #bStop,#bDel,#bTopple,#bDelP{background:var(--panel)}
 #bMode{background:var(--brass);color:var(--ink);border-color:var(--brass)}
 
-.help{position:absolute;inset:0;display:flex;padding:16px;background:rgba(6,14,18,.45);overflow-y:auto;overscroll-behavior:contain}
+.help{position:absolute;inset:0;z-index:var(--z-sheet);display:flex;padding:16px;background:rgba(6,14,18,.45);overflow-y:auto;overscroll-behavior:contain}
 .help .card{margin:auto}
 .card{box-sizing:border-box;min-width:0;background:rgba(12,26,32,.97);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;max-width:430px;width:100%;display:grid;gap:14px}
 .card h1{margin:0;font:700 34px/1 var(--f-display);letter-spacing:.04em;text-wrap:balance}
@@ -421,7 +435,7 @@ button:disabled{opacity:.45;cursor:default}
   .tabs{padding:3px}.tabs button{padding:6px 10px;font-size:13px}
   .chip{padding:5px 9px}
 }
-#dropTag{position:fixed;z-index:6;pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
+#dropTag{position:fixed;z-index:var(--z-ctl);pointer-events:none;transform:translate(0,0);background:var(--panel);border:1px solid #7cc4e8;color:#cfeaf7;border-radius:8px;padding:5px 9px;font:600 14px var(--f-display);letter-spacing:.05em;white-space:nowrap}
 @media (pointer:coarse){button,.chip,.tabs button{min-height:44px}.chip .dn,.mrow span,.mgrid small{font-size:13px}}
 /* the side pane takes its own strip of the window: everything else lays out in what is left, so nothing runs underneath it */
 @media (min-width:700px){
@@ -433,14 +447,14 @@ button:disabled{opacity:.45;cursor:default}
   body.sideopen #legend,body.sideopen #inspector{left:calc(50% + var(--sideW) / 2)}
   body.sideopen #feedCol{left:calc(var(--sideW) + 12px)}
 }
-#bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:center}
+#bHud{position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:var(--z-ctl);pointer-events:none;display:flex;flex-direction:column;align-items:center}
 body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
 #bBtns{display:flex;gap:8px;justify-content:center;margin-top:8px;pointer-events:auto;flex-wrap:wrap}
 #bBtns button{min-height:44px;padding:0 14px;font-size:16px;display:inline-flex;align-items:center;gap:8px}
 #bBtns #bTab{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:700}
 #bHint{margin:8px auto 0;width:max-content;max-width:min(92vw,440px);text-align:center;font:500 15px/1.35 var(--f-body);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;pointer-events:none}
 #bHint:empty{display:none}
-#tablet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(580px,96vw);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden;z-index:9;background:var(--panel);border:1px solid var(--brass);border-radius:14px;color:var(--paper)}
+#tablet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(580px,96vw);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden;z-index:var(--z-sheet);background:var(--panel);border:1px solid var(--brass);border-radius:14px;color:var(--paper)}
 #tablet .tbHead{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font:700 21px var(--f-display);letter-spacing:.01em}
 #tablet .tbHead b{flex:1}
 #tablet .tbHead button{min-height:44px;padding:0 14px}
@@ -465,10 +479,10 @@ body.sideopen #bHud{left:calc(50% + min(332px,90vw) / 2)}
 .prw .wrow{margin:0;grid-template-columns:28px 1fr}
 .prw button.pl{min-width:76px;min-height:56px}
 body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe-t))}
-#fireArm{position:fixed;left:50%;bottom:calc(var(--bh,140px) + 66px + var(--safe-b));transform:translateX(-50%);z-index:8;background:#8e2a1a;color:#fff;padding:8px 16px;border-radius:999px;font:600 15px var(--f-body);pointer-events:none;max-width:94vw;text-align:center}
-#cheatChip{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:30;padding:3px 12px;border-radius:999px;background:rgba(214,75,44,.92);color:#fff;font:600 13px var(--f-body);pointer-events:none}
+#fireArm{position:fixed;left:50%;bottom:calc(var(--bh,140px) + 66px + var(--safe-b));transform:translateX(-50%);z-index:var(--z-pane);background:#8e2a1a;color:#fff;padding:8px 16px;border-radius:999px;font:600 15px var(--f-body);pointer-events:none;max-width:94vw;text-align:center}
+#cheatChip{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:var(--z-menu);padding:3px 12px;border-radius:999px;background:rgba(214,75,44,.92);color:#fff;font:600 13px var(--f-body);pointer-events:none}
 #cheatChip[hidden]{display:none}
-#intro{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;overflow:auto}
+#intro{position:fixed;inset:0;z-index:var(--z-intro);display:grid;place-items:center;padding:16px;overflow:auto}
 #intro .introBg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(10,30,40,.8),rgba(4,10,14,.96))}
 #intro .introCard{position:relative;width:min(760px,100%);text-align:center;color:#f1ece2}
 #intro .introMark{font:700 clamp(40px,9vw,84px)/1 var(--f-display);letter-spacing:.06em;text-shadow:0 4px 30px rgba(0,0,0,.6)}
@@ -487,7 +501,7 @@ body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe
 body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
 body[data-mode="fp"] #bHud{top:calc(72px + var(--safe-t))}
 body[data-mode="fp"] #bBtns,body[data-mode="fp"] #bHint{display:none}
-#feedCol{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 140px + var(--safe-b));width:min(320px,calc(100vw - 24px));max-height:calc(100dvh - var(--bh,140px) - 320px);display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:7;pointer-events:none;overflow:hidden}
+#feedCol{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 140px + var(--safe-b));width:min(320px,calc(100vw - 24px));max-height:calc(100dvh - var(--bh,140px) - 320px);display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:var(--z-feed);pointer-events:none;overflow:hidden}
 body[data-mode="fp"] #feedCol{bottom:calc(118px + var(--safe-b))}
 body[data-mode="fp"].touch #feedCol{bottom:calc(250px + var(--safe-b))}
 #sideFeed,#killFeed,#notes{display:grid;gap:5px;justify-items:start}
@@ -496,14 +510,14 @@ body.battle #killFeed{display:grid}
 #sideFeed div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:500 14px/1.35 var(--f-body);color:var(--paper);opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s}
 #sideFeed div.on{opacity:1;transform:none}
 #killFeed div{background:var(--panel);border-radius:6px;padding:3px 8px;font:500 13px/1.3 var(--f-body);color:var(--paper)}#killFeed i{opacity:.75;font-style:normal}
-#bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:6;pointer-events:none;font:700 17px var(--f-body);color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:190px}
+#bStat{position:fixed;left:18px;bottom:calc(20px + var(--safe-b));z-index:var(--z-hud);pointer-events:none;font:700 17px var(--f-body);color:#fff;text-shadow:0 1px 3px #000;display:grid;gap:6px;min-width:190px}
 body.touch #bStat{bottom:calc(168px + var(--safe-b))}
 #bStat .hp{height:12px;background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:6px;overflow:hidden}#bStat .hp b{display:block;width:100%;height:100%;background:#d64b2c;transform-origin:0 50%}
 #bStat .hpn{font:600 15px var(--f-body)}
-#bHurt{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(214,40,20,.7) 100%);will-change:opacity}
-#hitm{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:9;opacity:0}#hitm.on{opacity:1}
+#bHurt{position:fixed;inset:0;pointer-events:none;z-index:var(--z-hud);opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(214,40,20,.7) 100%);will-change:opacity}
+#hitm{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:var(--z-fx);opacity:0}#hitm.on{opacity:1}
 #hitm i{position:absolute;left:12px;top:-2px;width:2px;height:30px;background:#fff;box-shadow:0 0 3px #000;transform:rotate(45deg)}#hitm i+i{transform:rotate(-45deg)}#hitm.k i{background:#ff2a1d;width:3px}
-#bSpawn{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:12;background:var(--panel);border:1px solid var(--brass);border-radius:14px;padding:16px 16px 14px;display:grid;gap:12px;width:min(580px,94vw);max-height:calc(100dvh - 24px);overflow:auto;text-align:left}
+#bSpawn{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:calc(var(--z-sheet) + 2);background:var(--panel);border:1px solid var(--brass);border-radius:14px;padding:16px 16px 14px;display:grid;gap:12px;width:min(580px,94vw);max-height:calc(100dvh - 24px);overflow:auto;text-align:left}
 #bSpawn h3{margin:0;font:700 24px var(--f-display)}#bSpawn p{margin:0;color:var(--muted);font:500 15px/1.4 var(--f-body)}
 #bSpawn .plist{display:grid;gap:6px}
 #bSpawn .sg h3{font:700 18px var(--f-display)}
@@ -515,9 +529,9 @@ body.touch #bStat{bottom:calc(168px + var(--safe-b))}
 #bSpawn .endRow{display:flex;gap:8px;flex-wrap:wrap}
 #bSpawn .endRow button,#bSpawn .dpRow button{flex:1 1 140px;min-height:52px}
 #bSpawn .dpRow{display:flex;gap:8px;flex-wrap:wrap}
-#burger{position:fixed;left:0;top:calc(50% - 24px);z-index:7;border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
+#burger{position:fixed;left:0;top:calc(50% - 24px);z-index:var(--z-pane);border-radius:0 10px 10px 0;padding:14px 12px 14px 10px;border-left:none}
 body.sideopen #burger{display:none}
-#side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:8;background:rgba(10,22,28,.98);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s}
+#side{position:fixed;left:0;top:0;bottom:0;width:min(332px,90vw);z-index:var(--z-pane);background:rgba(10,22,28,.98);border-right:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(-104%);transition:transform .2s}
 #side.open{transform:none}
 .sHead{display:flex;gap:6px;align-items:center;padding:calc(8px + var(--safe-t)) 8px 8px;border-bottom:1px solid var(--line)}
 .sHead{align-items:flex-start}.sTabs{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 0;min-width:0}.sTabs button{flex:1 1 auto;min-width:0;padding:9px 8px}#sClose{flex:none}
@@ -537,7 +551,7 @@ body.sideopen #burger{display:none}
 body.sideopen .inst{left:calc(min(332px,90vw) + 10px)}
 body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
 #fpFire{min-height:64px;background:rgba(214,75,44,.7)}
-#marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:4}
+#marquee{position:fixed;border:1.5px dashed var(--brass);background:rgba(227,169,72,.12);pointer-events:none;z-index:var(--z-hud)}
 #bJoin,#bDrop{background:var(--panel)}
 #fp{position:absolute;inset:0;pointer-events:none}
 #fp > *{pointer-events:auto}
@@ -549,7 +563,7 @@ body[data-mode="fp"] #burger,body[data-mode="fp"] #side{display:none}
 .fpPrompt:empty{display:none}
 body.touch .fpPrompt{bottom:calc(230px + var(--safe-b));max-width:84vw;pointer-events:none;font-size:14px;padding:6px 10px}
 .fpHint{position:absolute;left:14px;top:calc(12px + var(--safe-t));max-width:min(60vw,420px);font:500 12.5px/1.45 var(--f-mono);color:var(--paper);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;pointer-events:none}
-.fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px;z-index:5}
+.fpTop{position:absolute;top:calc(12px + var(--safe-t));right:12px;z-index:var(--z-ctl)}
 .fpTop button{min-height:46px;padding:0 16px;font-weight:700}
 #fpStick::after{content:"";position:absolute;inset:-46px}
 #fpLook{position:absolute;right:0;top:0;bottom:0;width:62%;touch-action:none;background:transparent}
@@ -560,7 +574,7 @@ body.touch .fpPrompt{bottom:calc(230px + var(--safe-b));max-width:84vw;pointer-e
 body:not(.touch) #fpStick,body:not(.touch) #fpLook,body:not(.touch) .fpBtns{display:none}
 body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] .inst{display:none}
 [hidden]{display:none!important}
-.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--ink);z-index:5;transition:opacity .6s}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--ink);z-index:var(--z-loading);transition:opacity .6s}
 .loading.done{opacity:0;pointer-events:none}
 .lcard{display:grid;gap:10px;min-width:220px;font:500 14px var(--f-body);color:var(--muted)}
 .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
@@ -571,12 +585,12 @@ body[data-mode="fp"] .actions,body[data-mode="fp"] .bottom,body[data-mode="fp"] 
 .btn-d{background:#8e2a1a!important;color:#fff!important;border-color:#c0452c!important}
 button{transition:transform .12s}button:active:not(:disabled){transform:scale(.97)}
 button[aria-pressed="true"],button[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--brass)}
-#cmdBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 10px);z-index:6;min-height:48px;padding:0 18px;display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:700;background:var(--brass);color:var(--ink);border-color:var(--brass)}
+#cmdBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 10px);z-index:var(--z-ctl);min-height:48px;padding:0 18px;display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:700;background:var(--brass);color:var(--ink);border-color:var(--brass)}
 body[data-mode="fp"] #cmdBtn{bottom:calc(14px + var(--safe-b));min-height:44px}
 body.battle[data-mode="god"] #cmdBtn,body[data-mode="fp"].touch #cmdBtn,body.hud-off #cmdBtn,body.battle[data-mode="god"] #bFP,body.battle[data-mode="god"] #bJoin,body:has(#help:not([hidden])) #cmdBtn,body:has(.loading:not(.done)) #cmdBtn{display:none}
 body:has(#sculpt:not([hidden])) #cmdBtn,body:has(#placeBtn:not([hidden])) #cmdBtn{bottom:calc(var(--bh,140px) + 124px)}
 body:has(#sculpt:not([hidden])) #calmBtn,body:has(#placeBtn:not([hidden])) #calmBtn{bottom:calc(var(--bh,140px) + 186px + var(--safe-b))}
-.sheet{position:fixed;inset:0;z-index:35;display:flex;padding:12px;background:rgba(4,10,14,.88);overflow-y:auto;overscroll-behavior:contain}
+.sheet{position:fixed;inset:0;z-index:var(--z-sheet-top);display:flex;padding:12px;background:rgba(4,10,14,.88);overflow-y:auto;overscroll-behavior:contain}
 .sc{margin:auto;width:min(720px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;color:var(--paper)}
 .sc .sh{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
 .sc .sh h2{margin:0;flex:1;font:700 24px var(--f-display);letter-spacing:.01em}
@@ -599,10 +613,10 @@ body:has(#sculpt:not([hidden])) #calmBtn,body:has(#placeBtn:not([hidden])) #calm
 .sc .sRange{margin:6px 0}.sc .sRange label{font:600 15px var(--f-body);letter-spacing:0;color:var(--paper)}
 .sc input[type=range],#tablet input[type=range]{width:100%;height:32px;accent-color:#e3a948}
 .rd{display:none!important}html[data-text="easy"] .rd{display:inline-flex!important}
-#bTip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 120px + var(--safe-b));z-index:7;display:flex;align-items:center;gap:10px;max-width:min(94vw,580px);background:var(--panel);border:1px solid var(--brass);border-radius:12px;padding:8px 8px 8px 14px;font:500 15px/1.45 var(--f-body)}
+#bTip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bh,140px) + 120px + var(--safe-b));z-index:var(--z-feed);display:flex;align-items:center;gap:10px;max-width:min(94vw,580px);background:var(--panel);border:1px solid var(--brass);border-radius:12px;padding:8px 8px 8px 14px;font:500 15px/1.45 var(--f-body)}
 #bTip b{color:var(--brass);font-weight:700}
 #bTip button{min-height:44px;padding:0 14px;flex:none}
-#fpTools{position:absolute;bottom:calc(14px + var(--safe-b));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;max-width:min(96vw,780px);overflow-x:auto;scrollbar-width:none}
+#fpTools{position:absolute;bottom:calc(14px + var(--safe-b));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:var(--z-ctl);max-width:min(96vw,780px);overflow-x:auto;scrollbar-width:none}
 body.touch #fpTools{bottom:auto;top:calc(12px + var(--safe-t));left:12px;transform:none;max-width:calc(100vw - 150px)}
 #fpTools button{min-height:52px;min-width:56px;padding:6px 10px;display:grid;justify-items:center;gap:1px;flex:none}
 #fpTools button .k{font:600 12px var(--f-mono);color:var(--brass);min-height:14px}
@@ -631,7 +645,7 @@ html[data-text="easy"] :is(#tablet .wrow,.card2){line-height:1.55}
    top right  = .actions column (Edit, More, Menu, Log)      bottom = #phoneStack (a flex column, so items stack, never overlap)
    FP         = tools row + Exit + Command on top, thumb clusters at the bottom corners, one toast lane at the top right. */
 #phoneStack{display:none}
-body.ed-phone #phoneStack{position:fixed;left:8px;right:8px;bottom:calc(var(--bh,140px) + var(--safe-b));z-index:6;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:6px;pointer-events:none;max-height:calc(100dvh - 190px - var(--safe-t))}
+body.ed-phone #phoneStack{position:fixed;left:8px;right:8px;bottom:calc(var(--bh,140px) + var(--safe-b));z-index:var(--z-ctl);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:6px;pointer-events:none;max-height:calc(100dvh - 190px - var(--safe-t))}
 body.ed-phone #phoneStack > *{pointer-events:auto;position:static!important;inset:auto!important;transform:none!important;margin:0!important;width:auto!important;max-width:none!important;box-sizing:border-box}
 body.ed-phone #phoneStack > #feedCol{pointer-events:none;max-height:96px;overflow:hidden;flex:0 1 auto;min-height:0}
 body.ed-phone #feedCol > :not(#killFeed){max-height:none}
@@ -695,57 +709,70 @@ body.ed-phone #bSpawn{padding:12px 12px 10px;gap:10px}
 body.ed-phone #mCheats{display:none}
 body.ed-phone #cheatChip{display:none}
 /* every control a fingertip can reach: 44px at least */
-body.ed-phone #trayTog,body.ed-phone #objective button,body.ed-phone #inspector .ifoot button,body.ed-phone #inspector .ihead button,body.ed-phone .mback,body.ed-phone #hudOn,body.ed-phone #tmap .tmSide .tbOpt button,body.ed-phone .tbOpt button{min-height:44px}
+body.ed-phone #trayTog,body.ed-phone #objective button,body.ed-phone #inspector .ifoot button,body.ed-phone #inspector .ihead button,body.ed-phone .mback,body.ed-phone #hudOn,body.ed-phone #tmap .tmSide .tbOpt button,body.ed-phone .tbOpt button{min-height:48px}
 
-/* ---------------------------------------------------------------- touch first person */
-body.touch .fpTop{display:flex;flex-direction:column;gap:6px;align-items:flex-end;right:8px;top:calc(8px + var(--safe-t));z-index:6}
-body.touch .fpTop button{min-height:46px;min-width:96px;padding:0 12px;font-size:16px;font-weight:700}
+/* ---------------------------------------------------------------- touch first person
+   One plan for both turns of the phone. Left thumb: stick, with Jump and Stance clear of its reach. Right thumb: look pad, Fire, Use, Squad, Reload, Zoom.
+   Top-left stack: ticket bar, health and ammo, squad list. Top-right: Leave and Command, then the one toast lane. Tools row sits low and clear of both thumbs.
+   Every control is 56 px (Fire 112 x 72), gaps are 8 px, and nothing sits in the centre 20 percent. Portrait is playable; landscape is the intended posture. */
+body.touch{--fp-edge:14px;--fp-b:18px}
+body.touch .fpTop{display:flex;flex-direction:column;gap:8px;align-items:flex-end;right:calc(8px + var(--safe-r));top:calc(8px + var(--safe-t));z-index:var(--z-ctl)}
+body.touch .fpTop button{min-height:48px;min-width:104px;padding:0 12px;font-size:16px;font-weight:700}
 body.touch #fpTab{background:var(--brass);color:var(--ink);border-color:var(--brass)}
 html[data-theme="red"] body.touch #fpTab,html[data-theme="green"] body.touch #fpTab{color:#020a04}
-body.touch #fpTools{top:calc(8px + var(--safe-t));left:8px;max-width:calc(100vw - 124px)}
 body.touch #fpLook{width:66%}
-body.touch #fpStick::after{inset:-28px}
+body.touch #fpStick{left:calc(var(--fp-edge) + var(--safe-l));bottom:calc(var(--fp-b) + var(--safe-b))}
+body.touch #fpStick::after{inset:-14px}
 body.touch .fpBtns{display:contents}
-body.touch .fpBtns button{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;min-width:0;min-height:0;width:52px;height:52px;padding:0;font:600 12px/1.1 var(--f-body);letter-spacing:0;border-radius:14px;background:rgba(12,26,32,.86);border:1.5px solid var(--line);z-index:5;touch-action:none}
+body.touch .fpBtns button{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;min-width:0;min-height:0;width:56px;height:56px;padding:0;font:600 13px/1.1 var(--f-body);letter-spacing:0;border-radius:14px;background:rgba(12,26,32,.86);border:1.5px solid var(--line);z-index:var(--z-ctl);touch-action:none}
 body.touch .fpBtns button .ic{width:20px;height:20px}
 body.touch .fpBtns button[hidden]{display:none}
-body.touch #fpFire{right:14px;bottom:calc(28px + var(--safe-b));width:104px;height:72px;border-radius:36px;font:700 18px var(--f-display);background:rgba(214,75,44,.86);border-color:rgba(255,255,255,.35)}
-body.touch #fpUse{right:14px;bottom:calc(108px + var(--safe-b));width:104px}
-body.touch #fpSquad{right:14px;bottom:calc(168px + var(--safe-b));width:104px;display:none}
-body.touch #fpReload{right:130px;bottom:calc(28px + var(--safe-b));display:none}
-body.touch #fpZoom{right:130px;bottom:calc(86px + var(--safe-b));display:none}
-body.touch #fpHelm{right:130px;bottom:calc(144px + var(--safe-b))}
-body.touch #fpDrop{right:190px;bottom:calc(144px + var(--safe-b))}
-body.touch #fpJump{left:150px;bottom:calc(28px + var(--safe-b))}
-body.touch #fpStance{left:150px;bottom:calc(86px + var(--safe-b))}
-body.touch #fpHDn{right:130px;bottom:calc(28px + var(--safe-b));display:none}
-body.touch #fpHUp{right:130px;bottom:calc(86px + var(--safe-b));display:none}
-body.touch #fpHL{left:150px;bottom:calc(28px + var(--safe-b));display:none}
-body.touch #fpHR{left:150px;bottom:calc(86px + var(--safe-b));display:none}
+/* right thumb: Fire at the corner, Use and Squad stacked above it, Reload and Zoom one column in */
+body.touch #fpFire{right:calc(var(--fp-edge) + var(--safe-r));bottom:calc(var(--fp-b) + var(--safe-b));width:112px;height:72px;border-radius:36px;font:700 19px var(--f-display);background:rgba(214,75,44,.9);border-color:rgba(255,255,255,.35)}
+body.touch #fpUse{right:calc(var(--fp-edge) + var(--safe-r));bottom:calc(98px + var(--safe-b));width:112px}
+body.touch #fpSquad{right:calc(var(--fp-edge) + var(--safe-r));bottom:calc(162px + var(--safe-b));width:112px;display:none}
+body.touch #fpReload{right:calc(134px + var(--safe-r));bottom:calc(var(--fp-b) + var(--safe-b));display:none}
+body.touch #fpZoom{right:calc(134px + var(--safe-r));bottom:calc(82px + var(--safe-b));display:none}
+body.touch #fpHelm{right:calc(134px + var(--safe-r));bottom:calc(146px + var(--safe-b))}
+body.touch #fpDrop{right:calc(134px + var(--safe-r));bottom:calc(210px + var(--safe-b))}
+body.touch #fpHDn{right:calc(134px + var(--safe-r));bottom:calc(var(--fp-b) + var(--safe-b));display:none}
+body.touch #fpHUp{right:calc(134px + var(--safe-r));bottom:calc(82px + var(--safe-b));display:none}
+/* left thumb: portrait puts Jump and Stance in a row above the stick, so the stick keeps its whole reach */
+body.touch #fpJump,body.touch #fpHL{left:calc(var(--fp-edge) + var(--safe-l));bottom:calc(158px + var(--safe-b))}
+body.touch #fpStance,body.touch #fpHR{left:calc(var(--fp-edge) + 64px + var(--safe-l));bottom:calc(158px + var(--safe-b))}
+body.touch #fpHL,body.touch #fpHR{display:none}
 body.touch #fp.tu-reload #fpReload,body.touch #fp.tu-zoom #fpZoom,body.touch #fp.tu-squad #fpSquad{display:grid}
 body.touch #fp.tu-heli #fpHDn,body.touch #fp.tu-heli #fpHUp,body.touch #fp.tu-heli #fpHL,body.touch #fp.tu-heli #fpHR{display:grid}
 body.touch #fp.tu-heli #fpJump,body.touch #fp.tu-veh #fpStance,body.touch #fp.tu-heli #fpStance{display:none}
 body.touch .fpBtns button.on{border-color:var(--brass);color:var(--brass);box-shadow:inset 0 0 0 2px var(--brass)}
-body.touch .fpPrompt{bottom:calc(250px + var(--safe-b));max-width:calc(100vw - 24px)}
-body.touch #bStat{left:14px;bottom:calc(168px + var(--safe-b));min-width:150px}
-body.touch[data-mode="fp"] #bHud{top:calc(78px + var(--safe-t));left:8px;transform:none;align-items:flex-start;max-width:calc(100vw - 124px)}
-body.touch[data-mode="fp"] #bTick{padding:4px 8px;gap:6px;font-size:13px}
-body.touch[data-mode="fp"] #bTick .bPts i{width:10px;height:10px}
+/* tools row: above the Jump row in portrait, bottom centre in landscape. Chips are 56 px and the row scrolls sideways if a kit has many tools */
+body.touch #fpTools{bottom:calc(236px + var(--safe-b));top:auto;left:calc(var(--fp-edge) + var(--safe-l));right:calc(var(--fp-edge) + var(--safe-r));transform:none;max-width:none;gap:8px;z-index:var(--z-ctl);justify-content:flex-start}
+body.touch #fpTools button{min-height:56px;min-width:56px;padding:4px 8px;border-radius:12px;background:rgba(12,26,32,.86)}
+body.touch #fpTools button .ic{width:22px;height:22px}
+body.touch #fpTools button .k{display:none}
+body.touch .fpPrompt{bottom:calc(304px + var(--safe-b));max-width:calc(100vw - 24px);font-size:15px;padding:6px 10px}
+/* top-left stack, portrait: ticket bar 8, health and ammo 48, squad list 124. The hint (sandbox only) takes the ticket bar's place */
+body.touch[data-mode="fp"] #bHud{top:calc(8px + var(--safe-t));left:calc(8px + var(--safe-l));transform:none;align-items:flex-start;max-width:calc(100vw - 132px - var(--safe-l) - var(--safe-r))}
+body.touch[data-mode="fp"] #bTick{padding:4px 8px;gap:5px;font-size:12px;white-space:nowrap}
+body.touch[data-mode="fp"] #bTick .bPts i{width:9px;height:9px}
 body.touch[data-mode="fp"] #bTick .bPts{gap:3px;flex-wrap:nowrap}
-body.touch .fpHint{top:calc(78px + var(--safe-t));max-width:calc(100vw - 124px)}
-body.touch #sqHud{top:calc(124px + var(--safe-t));width:140px}
-body.touch #sqWheel .s{width:84px;min-height:52px;margin:-26px 0 0 -42px;font-size:12px}
-body.touch #sqWheel .c{top:-70px;min-width:0;width:104px;font-size:14px}
-body.touch #fp:has(#sqWheel:not([hidden])) .fpPrompt{display:none}
+body.touch #bStat{left:calc(8px + var(--safe-l));top:calc(48px + var(--safe-t));bottom:auto;min-width:150px;max-width:calc(100vw - 132px - var(--safe-l) - var(--safe-r))}
+body.touch .fpHint{top:calc(8px + var(--safe-t));left:calc(8px + var(--safe-l));max-width:calc(100vw - 132px - var(--safe-l) - var(--safe-r))}
+body.touch #fp #sqHud{top:calc(124px + var(--safe-t));left:calc(8px + var(--safe-l));width:150px;max-height:calc(100dvh - 124px - 240px - var(--safe-t) - var(--safe-b));overflow:hidden}
+body.touch #fp #sqHud .r{padding:3px 6px;min-width:0}
+body.touch #fp #sqHud .nm{min-width:0;overflow:hidden;white-space:nowrap}
+body.touch #sqWheel .s{width:84px;min-height:52px;margin:-26px 0 0 -42px;font-size:13px}
+body.touch #sqWheel .c{top:-76px;min-width:0;width:104px;font-size:14px}
+body.touch:has(#sqWheel:not([hidden])) :is(#fpTools,.fpPrompt,.fpHint,#orientHint,#feedCol){visibility:hidden!important}
 body.ed-phone.sideopen .actions,body.ed-phone.sideopen #phoneStack{display:none}
-body.touch #sqWheel .sq{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;width:68px;height:44px;margin:0;padding:2px;border-radius:10px;font:600 12px/1.1 var(--f-body);background:var(--panel);border:1.5px solid var(--line);color:var(--paper);pointer-events:auto}
+body.touch #sqWheel .sq{position:absolute;display:grid;justify-items:center;align-content:center;gap:1px;width:76px;height:52px;margin:0;padding:2px;border-radius:10px;font:600 13px/1.1 var(--f-body);background:var(--panel);border:1.5px solid var(--line);color:var(--paper);pointer-events:auto}
 body.touch #sqWheel .sq .ic{width:16px;height:16px}
-/* one toast lane for first person: top right, under Command */
-body.touch[data-mode="fp"] #feedCol{left:auto;right:8px;top:calc(116px + var(--safe-t));bottom:auto;width:min(210px,calc(100vw - 180px));max-height:96px;align-items:flex-end}
+/* the one toast lane for first person: top right, under Leave and Command (portrait) */
+body.touch[data-mode="fp"] #feedCol{left:auto;right:calc(8px + var(--safe-r));top:calc(124px + var(--safe-t));bottom:auto;width:min(210px,calc(100vw - 190px));max-height:96px;align-items:flex-end}
 body.touch[data-mode="fp"] #feedCol > *{justify-items:end}
 body.ed-phone[data-mode="fp"] #phoneStack{display:contents}
 body.ed-phone[data-mode="fp"] #phoneStack > :not(#feedCol){display:none!important}
-body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;left:auto!important;right:8px!important;top:calc(116px + var(--safe-t))!important;bottom:auto!important;width:min(210px,calc(100vw - 180px))!important}
+body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;left:auto!important;right:calc(8px + var(--safe-r))!important;top:calc(124px + var(--safe-t))!important;bottom:auto!important;width:min(210px,calc(100vw - 190px))!important}
 
 @media (orientation:landscape) and (max-height:480px){
   body.ed-phone .sheet{padding:6px}
@@ -753,11 +780,11 @@ body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;le
   body.ed-phone .sc .sh{padding:6px 12px}body.ed-phone .sc .sh h2{font-size:20px}
   body.ed-phone .sc .sb{padding:8px 12px;gap:12px}
   body.ed-phone .sc .sf{padding:8px 12px;flex-wrap:nowrap}
-  body.ed-phone .sc .sf button{flex:1 1 0;min-height:44px}
-  body.ed-phone .sc .sf .big{flex:2 1 0;min-height:44px;font-size:18px}
+  body.ed-phone .sc .sf button{flex:1 1 0;min-height:48px}
+  body.ed-phone .sc .sf .big{flex:2 1 0;min-height:48px;font-size:18px}
   body.ed-phone #tablet{max-height:calc(100dvh - 12px);width:min(640px,96vw)}
-  body.ed-phone #tablet .tbHead{padding:4px 12px;font-size:19px}body.ed-phone #tablet .tbHead button{min-height:44px}
-  body.ed-phone #tbTabs{padding:4px 12px}body.ed-phone #tbTabs button{min-height:44px}
+  body.ed-phone #tablet .tbHead{padding:4px 12px;font-size:19px}body.ed-phone #tablet .tbHead button{min-height:48px}
+  body.ed-phone #tbTabs{padding:4px 12px}body.ed-phone #tbTabs button{min-height:48px}
   body.ed-phone .tbOpts{position:static!important}
   body.ed-phone #bSpawn{max-height:calc(100dvh - 12px);width:min(720px,96vw);padding:10px 12px 8px;gap:8px}
   body.ed-phone #bSpawn h3{font-size:20px}
@@ -770,14 +797,95 @@ body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;le
   body.ed-phone .inst{max-width:calc(100vw - 108px)}
   body.ed-phone #phoneStack > #feedCol{max-height:60px}
   body.ed-phone:has(#sculpt:not([hidden])) #phoneStack,body.ed-phone:has(#placeBtn:not([hidden])) #phoneStack{bottom:calc(var(--bh,140px) + var(--safe-b));right:230px}
-  body.touch .fpPrompt{bottom:calc(100px + var(--safe-b));max-width:min(54vw,420px)}
-  body.touch #bStat{left:214px;bottom:calc(24px + var(--safe-b))}
+  /* first person, landscape: Jump and Stance sit beside the stick (clear of its reach), tools bottom centre, stats top left, toasts top centre */
+  body.touch #fpJump,body.touch #fpHL{left:calc(var(--fp-edge) + 148px + var(--safe-l));bottom:calc(var(--fp-b) + var(--safe-b))}
+  body.touch #fpStance,body.touch #fpHR{left:calc(var(--fp-edge) + 148px + var(--safe-l));bottom:calc(82px + var(--safe-b))}
+  body.touch #fpTools{bottom:calc(var(--fp-b) + var(--safe-b));left:50%;right:auto;transform:translateX(-50%);max-width:min(400px,calc(100vw - 480px))}
+  body.touch .fpPrompt{bottom:calc(86px + var(--safe-b));max-width:min(44vw,360px)}
+  body.touch #bStat{left:calc(8px + var(--safe-l));top:calc(44px + var(--safe-t))}
+  body.touch .fpHint{top:calc(112px + var(--safe-t))}
   body.touch #sqWheel .c{display:none}
-  body.touch #sqHud{left:14px;right:auto;top:calc(104px + var(--safe-t));gap:2px}
-  body.touch #sqHud .r{padding:2px 6px;font-size:12px}
-  body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{left:300px!important;right:auto!important;top:calc(80px + var(--safe-t))!important;align-items:flex-start;width:min(240px,34vw)!important}
+  body.touch #fp #sqHud{left:calc(8px + var(--safe-l));top:calc(120px + var(--safe-t));gap:2px;max-height:calc(100dvh - 120px - 156px - var(--safe-t) - var(--safe-b))}
+  body.touch #fp #sqHud .r{padding:2px 6px;font-size:12px}
+  body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{left:296px!important;right:auto!important;top:calc(8px + var(--safe-t))!important;align-items:flex-start;width:min(260px,calc(100vw - 296px - 128px))!important}
   body.touch[data-mode="fp"] #feedCol > *{justify-items:start}
   #boot .bed{margin-bottom:2px}
+}
+/* ---------------------------------------------------------------- phone shell, round two: targets, one modal at a time, tactical map, start menu, hints */
+/* every control is 48 px or more on both sides, so a fingertip lands (rule 4 in EDITION-RULES.md) */
+body.ed-phone button,body.ed-phone [role="button"],body.ed-phone summary,body.ed-phone select{min-height:48px}
+body.ed-phone button,body.ed-phone [role="button"]{min-width:48px}
+body.ed-phone .chip.mini{min-width:48px}
+body.ed-phone .actions > button{min-height:48px}
+body.ed-phone #trayTog{min-height:48px;padding:5px 18px}
+body.ed-phone #tablet #tbTabs button,body.ed-phone #tablet .tbHead button,body.ed-phone #tablet .tbOpt button,body.ed-phone .mtabs button,body.ed-phone .mback,body.ed-phone #bSetup .sf button,body.ed-phone #bSetup .sh button,body.ed-phone #bSetup .chips button,body.ed-phone #bSpawn button{min-height:48px}
+body.ed-phone #bSpawn .card2,body.ed-phone .cards.two .card2{min-height:56px}
+/* one modal at a time: the page tags the body while any sheet is open, and what sits underneath goes quiet, so nothing shows through or can be pressed by mistake */
+body.ed-phone.modal-open :is(#phoneStack,.actions,.tabs,#tray,#trayTog,#cmdBtn,#cmdRow,#selBar,#bHud,#bTip,#legend,#objective,#camPad,#hudOn,#burger,.inst,#fireArm,#sculpt,#placeBtn,#landUndo,#turnBtn,#calmBtn,#selFloat,#feedCol,#bStat,#sqHud,#orientHint,#bvHud){visibility:hidden!important;pointer-events:none!important}
+body.touch.modal-open #fp :is(.fpBtns,.fpTop,#fpStick,#fpLook,#fpTools,.fpPrompt,.fpHint,#sqHud,#sqWheel){visibility:hidden!important;pointer-events:none!important}
+/* start menu on the phone: three short steps, then one Start bar pinned to the bottom with the download size on one line */
+#boot .bdock{display:block}
+html.ed-phone #boot .bdock{position:sticky;bottom:0;z-index:2;margin:18px calc(-16px - env(safe-area-inset-right,0px)) 0 calc(-16px - env(safe-area-inset-left,0px));padding:10px calc(16px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:#0c1a20;border-top:1px solid rgba(201,169,90,.35)}
+html.ed-phone #boot .bsize{margin:0 0 8px;font-size:15px;font-weight:600;text-align:center;color:#e8cf8a}
+html.ed-phone #boot .bgo{min-height:56px;font-size:24px}
+html.ed-phone #boot .bmap{grid-template-columns:104px 1fr;gap:0;align-items:stretch}
+html.ed-phone #boot .bmap .bsw{height:auto;min-height:96px}
+html.ed-phone #boot .bmap .bt{padding:8px 12px}
+html.ed-phone #boot .bopts{grid-template-columns:repeat(2,1fr)}
+html.ed-phone #boot .bopts button{min-height:56px;padding:8px 12px}
+html.ed-phone #boot .bopts small:not([data-osz]){display:none}
+html.ed-phone #boot .bed button{min-height:48px}
+html.ed-phone #boot .bchips{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+html.ed-phone #boot .bchips button{min-height:48px}
+@media (orientation:landscape) and (max-height:480px){
+  html.ed-phone #boot .bmap .bsw{min-height:72px}
+  html.ed-phone #boot .bmap .bt small{display:none}
+}
+/* tactical map on the phone: Close first, the map fills, the hint is a strip under the map and never on it, Fire and Cease fire are pinned at the foot of the panel */
+body.ed-phone #tmap .tmHead{padding:6px calc(8px + var(--safe-r)) 6px calc(8px + var(--safe-l));gap:8px;flex-wrap:nowrap;align-items:center}
+body.ed-phone #tmap .tmHead b{font-size:19px;min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.ed-phone #tmap .tmHead .tmRd,body.ed-phone #tmap #tmCmd{display:none}
+body.ed-phone #tmap #tmX{order:-1}
+body.ed-phone #tmap .tmHead button{min-height:48px;padding:0 12px}
+body.ed-phone #tmap .tmCv{display:flex;flex-direction:column}
+body.ed-phone #tmap canvas{position:static;flex:1 1 0;min-height:0;width:100%;height:auto}
+body.ed-phone #tmap .tmNote{position:static;max-width:none;border-radius:0;flex:none;padding:6px 12px;background:var(--panel);font-size:14px;border-top:1px solid var(--line)}
+body.ed-phone #tmap .tmSide{padding:6px 12px 0;position:relative}
+body.ed-phone #tmap .tmSide .tbOpt button,body.ed-phone #tmap .tmSide button{min-height:48px}
+body.ed-phone #tmap .tmGo{position:sticky;bottom:0;z-index:2;margin:8px -12px 0;padding:8px 12px calc(8px + var(--safe-b));background:var(--panel);border-top:1px solid var(--line);grid-template-columns:3fr 2fr}
+body.ed-phone #tmap .tmGo button{min-height:56px;font-size:19px}
+@media (max-width:760px),(max-aspect-ratio:1/1){body.ed-phone #tmap .tmSide{height:46%}}
+/* the first-person orientation hint: suggests landscape, never forces it, and can be dismissed for good */
+#orientHint{display:none}
+@media (orientation:portrait){
+  body.ed-phone[data-mode="fp"] #orientHint:not([hidden]){display:grid;position:fixed;right:calc(8px + var(--safe-r));top:calc(228px + var(--safe-t));width:min(210px,calc(100vw - 190px));gap:6px;padding:8px 10px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font:600 14px/1.3 var(--f-body);color:var(--paper);z-index:var(--z-feed)}
+  body.ed-phone #orientHint button{min-height:48px}
+}
+#ctxCard{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);width:min(340px,calc(100vw - 32px));display:grid;gap:10px;padding:16px;border-radius:14px;background:var(--panel);border:1px solid var(--line);z-index:var(--z-menu);color:var(--paper);font:500 16px/1.4 var(--f-body)}
+#ctxCard[hidden]{display:none}
+#ctxCard b{font:700 20px var(--f-display);letter-spacing:.03em}
+#ctxCard button{min-height:48px}
+.mtouchset{margin-top:14px}.mtouchset[hidden]{display:none}.mtouchset .mrange{display:grid;gap:6px;padding:10px 2px 4px}.mtouchset input[type=range]{width:100%;min-height:32px}
+/* in a battle the phone shows Command, Map and Squad orders, not the sandbox dock: Place, Land and Sky stay in the sandbox */
+body.ed-phone.battle[data-mode="god"] .bottom{display:none}
+body.ed-phone #phoneStack > #fireArm:not([hidden]){display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:4px 4px 4px 14px;pointer-events:auto}
+body.ed-phone #fireArm button{flex:none;min-height:48px;padding:0 18px;background:var(--panel);color:var(--paper);border:1px solid var(--line);border-radius:10px;font:700 16px var(--f-body)}
+/* gaps between neighbouring controls are 8 px or more */
+body.ed-phone :is(.actions,.tabs,#selBar,#selBar .grp,#tbTabs,.mtabs,.tbOpt,.chips,#bBtns,#cmdRow,.endRow,.dpRow,#iPresets,.ifoot,.ihead,.sf,.tmGo,.tbHead,#fpTools,#tmap .tmHead,.mgrid,.cards,.bchips){gap:8px}
+body.ed-phone #inspector :is(button,.chip){min-height:48px;min-width:48px}
+body.ed-phone #inspector #iPresets{flex-wrap:wrap;gap:8px}
+body.ed-phone #inspector{max-height:calc(100dvh - var(--bh,140px) - 40px - var(--safe-b) - var(--safe-t,0px));overflow-y:auto;overscroll-behavior:contain}
+@media (orientation:landscape){body.ed-phone #inspector{bottom:auto;top:max(8px,var(--safe-t,0px));max-height:calc(100dvh - 16px - var(--safe-b));width:min(70vw,460px)}}
+/* vehicle gauge on touch: top left under the ticket bar, narrow enough to stay clear of Leave and Command; health, ammo and squad list step aside while you ride */
+body.touch #bvHud{left:calc(8px + var(--safe-l));top:calc(48px + var(--safe-t));bottom:auto;transform:none;min-width:0;width:calc(100vw - 132px - var(--safe-l) - var(--safe-r));max-width:300px;text-align:left;box-sizing:border-box}
+body.touch:has(#fp.tu-veh) :is(#bStat,#sqHud){visibility:hidden!important}
+/* landscape sandbox: the Edit, More, Menu, Log buttons become a row across the top right, so they never meet the dock, the sculpt button or the selection bar */
+@media (orientation:landscape) and (max-height:480px){
+  body.ed-phone .actions{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;max-width:min(56vw,460px);max-height:none;overflow:visible}
+  body.ed-phone .actions > button,body.ed-phone .actions #burger{position:static}
+  body.ed-phone .inst{max-width:calc(100vw - min(56vw,460px) - 36px)}
+  body.ed-phone #bHud,body.ed-phone.battle[data-mode="god"] #bHud{max-width:calc(100vw - min(56vw,460px) - 24px)}
+  body.ed-phone #phoneStack{right:8px}
 }
 body.hud-off #phoneStack{display:none}
 body.ed-phone:has(#bHud[hidden]) #phoneStack > :is(#bBtns,#bHint){display:none!important}
@@ -4351,7 +4459,7 @@ function updateCombat(dt, t) {
   updateHpBars();
 }
 /* ---- health bars over damaged or selected boats */
-const hpBars = new Map(); const hpHost = document.createElement('div'); hpHost.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden'; document.body.appendChild(hpHost);
+const hpBars = new Map(); const hpHost = document.createElement('div'); hpHost.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:var(--z-under);overflow:hidden'; document.body.appendChild(hpHost);
 function updateHpBars() {
   const s = { x: 0, y: 0, ok: false };
   for (const bt of boats) {
@@ -5853,7 +5961,7 @@ function fireAt(kind, pt) {                                         // the fire 
   pts.forEach((p, i) => setTimeout(() => fireOne(kind, p, m, team), i * (kind === 'lightning' ? 180 : 380))); return true;
 }
 function targetPoint() { if (TAB.aim === 'marker') return FIRE.marker || null; if (TAB.aim === 'hot') { const hs = hotSpot(tabletSide()); return hs ? { x: hs.x, z: hs.z } : null; } return fp.on ? aimPoint() : null; }
-function setFire(kind) { FIRE.armed = kind; const el = $('fireArm'); if (el) { el.hidden = !kind; el.textContent = kind ? 'Armed: ' + ({ flechette: 'flechette strike', mark: 'target marker', cluster: 'cluster bomb', incendiary: 'incendiary bomb', smoke: 'smoke screen', shock: 'shockwave', lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', mortar: 'mortar rounds', arty: 'artillery', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' }[kind]) + '. Tap the map to fire. Esc stands down.' : ''; } }
+function setFire(kind) { FIRE.armed = kind; const el = $('fireArm'); if (el) { el.hidden = !kind; el.textContent = ''; if (kind) { const sp = document.createElement('span'); sp.textContent = 'Armed: ' + ({ flechette: 'flechette strike', mark: 'target marker', cluster: 'cluster bomb', incendiary: 'incendiary bomb', smoke: 'smoke screen', shock: 'shockwave', lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', mortar: 'mortar rounds', arty: 'artillery', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' }[kind]) + '. Tap the map to fire.' + (ED.phone ? '' : ' Esc stands down.'); el.append(sp); if (ED.phone) { const cb = document.createElement('button'); cb.type = 'button'; cb.id = 'fireCancel'; cb.textContent = 'Cancel'; cb.addEventListener('click', () => setFire(null)); el.append(cb); } } } }
 function nadeAt(x, y, z, vx, vy, vz, t, team, smoke) { const m = new THREE.Mesh(nadeGeo, nadeMat); scene.add(m); NADES.push({ x, y, z, vx, vy, vz, t, team, mesh: m, smoke: !!smoke }); }
 function throwNadeAt(q, tx, tz) { q.thT = 0.9; setTimeout(() => { if (q.state !== 'rag') throwNadeNow(q, tx, tz); }, 420); }
 function throwNadeNow(q, tx, tz) { const T = 1.5, y0 = q.y + 1.5, ty = heightAt(tx, tz) + 0.2; nadeAt(q.x, y0, q.z, (tx - q.x) / T, (ty - y0 + 0.5 * 9.8 * T * T) / T, (tz - q.z) / T, T + 0.5, teamOf(q)); }
@@ -6893,6 +7001,7 @@ function bvTryEnter() {
 }
 function bvEnter(c, seat) {
   const p = fp.p; if (!p || !seat) return false;
+  if (ED.phone && c.heli && seat.kind !== 'pass') { const alt = c.seats.find(z => z.kind === 'pass' && (!z.q || z.q === p)); if (!alt) { toast('Flying the helicopter is on the desktop edition. You can ride when a seat is free.'); return false; } seat = alt; }
   if (seat.q && seat.q !== p) { const old = seat.q; _bvO.rear = false; bvExitSpot(c, 1, _bvO); bvUnboard(c, old, _bvO); if (old.bot) { old.bot.crew = null; old.bot.cmdUntil = 0; } if (c.ai) bvAIRelease(c, true); }
   if (!bvBoard(c, p, seat)) return false; p.fp = true; p.fpMoving = false; if (c.heli) c.pilotSeat = c.seats[0];
   fp.veh = c; fp.vseat = seat; fp.vx = fp.vz = 0; fp.air = false; fp.stance = 0; fp.zoom = false; fp.fireHeld = false; fp.vhb = 0; fp.vy = 0; if (p.stag) p.stag = 0;
@@ -6961,7 +7070,7 @@ function bvHudUpdate(dt) {
   if (html !== BV.hudSig) { BV.hudSig = html; h.innerHTML = html; } h.hidden = false;
 }
 function bvHudInit() {
-  if (BV.hud) return; const st = document.createElement('style'); st.textContent = '#bvHud{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9;min-width:250px;max-width:92vw;padding:10px 14px;border-radius:12px;background:rgba(18,22,26,.78);color:#f1ece2;font:600 15px/1.4 system-ui,sans-serif;pointer-events:none;text-align:center}#bvHud .hp{height:8px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin:6px 0}#bvHud .hp b{display:block;height:100%;transform-origin:left}#bvHud small{display:block;opacity:.8;font-weight:500;font-size:13px}#bvHud .big{font-size:19px}.touch #bvHud{bottom:auto;top:88px}';
+  if (BV.hud) return; const st = document.createElement('style'); st.textContent = '#bvHud{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:var(--z-fx);min-width:250px;max-width:92vw;padding:10px 14px;border-radius:12px;background:rgba(18,22,26,.78);color:#f1ece2;font:600 15px/1.4 system-ui,sans-serif;pointer-events:none;text-align:center}#bvHud .hp{height:8px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin:6px 0}#bvHud .hp b{display:block;height:100%;transform-origin:left}#bvHud small{display:block;opacity:.8;font-weight:500;font-size:13px}#bvHud .big{font-size:19px}.touch #bvHud{bottom:auto;top:88px}';
   document.head.appendChild(st); const h = document.createElement('div'); h.id = 'bvHud'; h.hidden = true; h.setAttribute('role', 'status'); document.body.appendChild(h); BV.hud = h;
 }
 
@@ -7909,10 +8018,25 @@ $('bZoom').addEventListener('click', () => {
 });
 $('bDrop').addEventListener('click', () => { selPeople().forEach(p => { if (p.carry) dropCarry(p); }); refreshPanel(); });
 $('bJoin').addEventListener('click', () => enterFP(selPerson || null));
+/* quality governor (phone): resolution first, then the 30 fps floor. Modes: auto (steps by itself), saver (1.0 and 30 fps), best (1.5 and 60 fps). Desktop never uses it. */
+const GOV = { perf: 'auto', dpr: 1.5, max: 1.5, min: 0.75, cap: 0, lastF: 0, acc: 0, n: 0, win: 0, cool: 0, capT: 0, lowBat: false, steps: [] };
+const govMode = () => (GOV.perf === 'auto' && GOV.lowBat) ? 'saver' : GOV.perf;
+function govDpr() { return Math.min(devicePixelRatio || 1, GOV.dpr); }
+function govApply() { if (!ED.phone) return; const m = govMode(); if (m === 'saver') { GOV.dpr = 1.0; GOV.cap = 30; } else if (m === 'best') { GOV.dpr = GOV.max; GOV.cap = 0; } renderer.setPixelRatio(govDpr()); resize(); }
+function govFrame(now) {                                          // true when this frame should be skipped to hold the cap; also feeds the auto steps
+  if (GOV.cap && now - GOV.lastF < 1000 / GOV.cap - 4) return true;
+  const d = now - GOV.lastF; GOV.lastF = now; if (d <= 0 || d > 250) return false;                  // ignore stalls such as a tab switch
+  GOV.acc += d; GOV.n++; GOV.win += d; if (GOV.win < 2000) return false;
+  const avg = GOV.acc / Math.max(1, GOV.n); GOV.win = GOV.acc = GOV.n = 0; if (govMode() !== 'auto') return false;
+  if (avg > 24) { GOV.cool = 0; if (GOV.dpr > GOV.min + 1e-6) { GOV.dpr = Math.max(GOV.min, GOV.dpr - 0.25); GOV.steps.push('dpr ' + GOV.dpr); govApply(); } else if (!GOV.cap) { GOV.cap = 30; GOV.capT = now; GOV.steps.push('cap 30'); } }
+  else if (avg < 15 && !GOV.cap) { GOV.cool += 2; if (GOV.cool >= 10 && GOV.dpr < Math.min(GOV.max, devicePixelRatio || 1) - 1e-6) { GOV.cool = 0; GOV.dpr = Math.min(GOV.max, GOV.dpr + 0.25); GOV.steps.push('dpr ' + GOV.dpr); govApply(); } }
+  else if (GOV.cap && now - GOV.capT > 90000) { GOV.cap = 0; GOV.cool = 0; GOV.steps.push('cap off'); }          // try 60 again after a long calm spell
+  return false;
+}
 function setQuality(q) {
   quality = q; try { localStorage.setItem('sc-quality', q); } catch (e) {}
   $('bQual').textContent = 'Quality: ' + (q === 'high' ? 'High' : 'Low');
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, ED.phone ? 1.5 : q === 'high' ? 2.5 : 2));    // phones render at up to 2x so edges stay crisp; Low only trims shadows and trees
+  renderer.setPixelRatio(ED.phone ? govDpr() : Math.min(devicePixelRatio || 1, q === 'high' ? 2.5 : 2));    // phones follow the governor (1.5 at most); Low only trims shadows and trees
   sunLight.shadow.mapSize.set(q === 'high' ? 2048 : 1024, q === 'high' ? 2048 : 1024);
   if (sunLight.shadow.map) { sunLight.shadow.map.dispose(); sunLight.shadow.map = null; }
   terrainMat.defines.TRIPLANAR = q === 'high' ? 'true' : 'false'; terrainMat.needsUpdate = true;
@@ -7979,7 +8103,7 @@ function syncMesh(obj, body) { obj.position.copy(body.interpolatedPosition); obj
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const PF = window.__pf = {}; const PFT = (n, f) => { const a = performance.now(); f(); PF[n] = (PF[n] || 0) + performance.now() - a; };
 let frameErrN = 0;
-function frame(now) { try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
+function frame(now) { if (ED.phone && govFrame(now)) { requestAnimationFrame(frame); return; } try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
 function frameStep(now) {
   const dt = clamp((now - last) / 1000, 0, 0.05) * (CHEAT.slow ? 0.3 : 1); last = now;
   const bt = boats[activeIdx] || boats[0];
@@ -11164,7 +11288,7 @@ function sqdMarkFrame(dt) {
 /* ---- the squad list top left, the callsign chevrons above heads, and the order ring */
 function sqdUiInit() {
   const fpEl = document.getElementById('fp'); if (!fpEl || SQD.hudEl) return;
-  const st = document.createElement('style'); st.textContent = '#sqHud{position:absolute;left:14px;top:calc(124px + var(--safe-t));display:grid;gap:4px;pointer-events:none;z-index:4;width:178px}body.touch #sqHud{top:calc(112px + var(--safe-t));width:150px}#sqHud .r{display:grid;grid-template-columns:20px 1fr;gap:1px 7px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font:600 13px/1.15 var(--f-body);color:var(--paper)}#sqHud .r.dn{opacity:.55}#sqHud .r .ic{width:18px;height:18px;grid-row:1/3}#sqHud .nm{display:flex;justify-content:space-between;gap:6px}#sqHud .nm i{font-style:normal;font-weight:500;opacity:.85}#sqHud .hb{height:5px;background:rgba(0,0,0,.55);border-radius:3px;overflow:hidden;grid-column:2}#sqHud .hb b{display:block;height:100%;background:#6fcf7a;transform-origin:0 50%}#sqHud .hd{font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);padding:0 2px}'
+  const st = document.createElement('style'); st.textContent = '#sqHud{position:absolute;left:14px;top:calc(124px + var(--safe-t));display:grid;gap:4px;pointer-events:none;z-index:var(--z-hud);width:178px}body.touch #sqHud{top:calc(112px + var(--safe-t));width:150px}#sqHud .r{display:grid;grid-template-columns:20px 1fr;gap:1px 7px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font:600 13px/1.15 var(--f-body);color:var(--paper)}#sqHud .r.dn{opacity:.55}#sqHud .r .ic{width:18px;height:18px;grid-row:1/3}#sqHud .nm{display:flex;justify-content:space-between;gap:6px}#sqHud .nm i{font-style:normal;font-weight:500;opacity:.85}#sqHud .hb{height:5px;background:rgba(0,0,0,.55);border-radius:3px;overflow:hidden;grid-column:2}#sqHud .hb b{display:block;height:100%;background:#6fcf7a;transform-origin:0 50%}#sqHud .hd{font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);padding:0 2px}'
     + '#sqMarks{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}#sqMarks .m{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;justify-items:center;font:700 12px var(--f-body);color:#fff;text-shadow:0 1px 3px #000}#sqMarks .m:after{content:"";width:0;height:0;border:6px solid transparent;border-top:8px solid var(--c,#7db2ff);border-bottom:0;margin-top:1px}#sqMarks .m.dn{opacity:.45}'
     + '#sqWheel{position:absolute;left:50%;top:50%;width:0;height:0;z-index:8;pointer-events:none}#sqWheel .c{position:absolute;transform:translate(-50%,-50%);min-width:150px;text-align:center;font:700 15px var(--f-display);letter-spacing:.04em;text-shadow:0 1px 4px #000;color:var(--brass)}#sqWheel .s{position:absolute;width:112px;min-height:56px;margin:-28px 0 0 -56px;display:grid;justify-items:center;align-content:center;gap:1px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:4px;font:600 13px/1.15 var(--f-body);color:var(--paper);text-align:center}#sqWheel .s .ic{width:22px;height:22px}#sqWheel .s .k{font:600 11px var(--f-mono);color:var(--brass)}#sqWheel .s.on{border-color:var(--brass);background:rgba(60,48,20,.96);transform:scale(1.1)}body.touch #sqWheel .s{pointer-events:auto}'
     + '#killFeed .vc,#sideFeed .vc{display:inline-flex;align-items:center;gap:5px}#sideFeed .vc svg{width:13px;height:13px;flex:none;opacity:.8}';
@@ -11174,12 +11298,12 @@ function sqdUiInit() {
   const wh = document.createElement('div'); wh.id = 'sqWheel'; wh.hidden = true; fpEl.appendChild(wh); SQD.wheelEl = wh;
   const c = document.createElement('div'); c.className = 'c'; c.textContent = 'Squad orders'; wh.appendChild(c); SQD.wheelC = c;
   SQD_RING.forEach((id, i) => { const od = SQD_ORD.find(x => x[0] === id), a = -Math.PI / 2 + i * Math.PI / 4, b = document.createElement('button'); b.type = 'button'; b.className = 's'; b.dataset.a = a; b.style.left = Math.cos(a) * 150 + 'px'; b.style.top = Math.sin(a) * 118 + 'px'; b.innerHTML = ic(od[3]) + '<span></span><span class="k">' + (i + 1) + '</span>'; b.children[1].textContent = od[1].replace(' to my crosshair', '').replace(' this point', '').replace(' me', ''); b.addEventListener('click', () => { sqdWheelClose(true, i); }); wh.appendChild(b); });
-  if (isTouch) { const tl = [['Ping', 'marker', () => sqdPing(), -36, -24], ['Mount', 'door', () => sqdSet('mount'), 36, -24], ['Heal', 'cross', () => sqdSet('heal'), -36, 26], ['Hold fire', 'bunker', () => sqdToggleFire(), 36, 26]];
+  if (isTouch) { const tl = [['Ping', 'marker', () => sqdPing(), -42, -30], ['Mount', 'door', () => sqdSet('mount'), 42, -30], ['Heal', 'cross', () => sqdSet('heal'), -42, 30], ['Hold fire', 'bunker', () => sqdToggleFire(), 42, 30]];
     for (const [nm, icn, fn, x, y] of tl) { const b = document.createElement('button'); b.type = 'button'; b.className = 'sq'; b.style.left = x + 'px'; b.style.top = y + 'px'; b.style.transform = 'translate(-50%,-50%)'; b.innerHTML = ic(icn) + '<span>' + nm + '</span>'; b.addEventListener('click', () => { fn(); sqdWheelClose(false); }); if (nm === 'Hold fire') SQD.hfBtn = b; wh.appendChild(b); } }
   SQD.v3 = new THREE.Vector3();
 }
 function sqdWheelFit() {                                          // slices keep clear of the screen edges on a narrow phone
-  if (!SQD.wheelEl) return; const rx = clamp(innerWidth / 2 - 54, 100, 150), ry = clamp(innerHeight / 2 - 150, 88, 118);
+  if (!SQD.wheelEl) return; const rx = isTouch ? clamp(innerWidth / 2 - 54, 100, 170) : clamp(innerWidth / 2 - 54, 100, 150), ry = isTouch ? clamp(innerHeight / 2 - 40, 88, 140) : clamp(innerHeight / 2 - 150, 88, 118);        // touch: the four helpers sit in a 2 x 2 block in the middle, so the ring is wider and taller to clear it
   SQD.wheelEl.querySelectorAll('.s').forEach((b) => { const a = +b.dataset.a; b.style.left = Math.cos(a) * rx + 'px'; b.style.top = Math.sin(a) * ry + 'px'; });
   if (SQD.hfBtn) SQD.hfBtn.children[1].textContent = SQD.hf ? 'Free fire' : 'Hold fire';
 }
@@ -12144,7 +12268,7 @@ function tmBuildBase() {
 /* ---- the sheet itself */
 function tmInit() {
   if (TMAP.el) return; const st = document.createElement('style');
-  st.textContent = '#tmap{position:fixed;inset:0;z-index:36;background:#081014;display:flex;flex-direction:column;color:var(--paper)}#tmap .tmHead{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel)}#tmap .tmHead b{font:700 22px var(--f-display);flex:1;min-width:120px}#tmap .tmHead button{min-height:44px;padding:0 14px}#tmap .tmHead .tmRd{font:600 14px var(--f-mono);color:var(--muted)}'
+  st.textContent = '#tmap{position:fixed;inset:0;z-index:calc(var(--z-sheet-top) + 1);background:#081014;display:flex;flex-direction:column;color:var(--paper)}#tmap .tmHead{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--panel)}#tmap .tmHead b{font:700 22px var(--f-display);flex:1;min-width:120px}#tmap .tmHead button{min-height:44px;padding:0 14px}#tmap .tmHead .tmRd{font:600 14px var(--f-mono);color:var(--muted)}'
     + '#tmap .tmBody{flex:1;min-height:0;display:flex}#tmap .tmCv{position:relative;flex:1;min-width:0;touch-action:none;background:#0a1a22}#tmap canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}#tmap .tmNote{position:absolute;left:10px;bottom:10px;max-width:70%;padding:6px 10px;border-radius:8px;background:rgba(8,16,20,.78);font:500 13.5px/1.4 var(--f-body);color:var(--muted);pointer-events:none}'
     + '#tmap .tmSide{width:min(380px,44vw);overflow:auto;border-left:1px solid var(--line);padding:6px 12px 16px;background:var(--panel)}#tmap .tmSide .tbOpt button{min-height:40px}#tmap .tmDanger{margin:8px 0;padding:10px 12px;border-radius:8px;background:#5a1a12;border:1px solid #c0452c;font:600 15px/1.35 var(--f-body)}#tmap .tmCard{margin:6px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.05);font:500 14px/1.45 var(--f-body)}#tmap .tmCard b{font-weight:700}'
     + '#tmap .tmSw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}#tmap .tmGo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}#tmap .tmGo button{min-height:52px;font-size:17px}@media (max-width:760px),(max-aspect-ratio:1/1){#tmap .tmBody{flex-direction:column}#tmap .tmSide{width:auto;height:48%;border-left:0;border-top:1px solid var(--line)}}';
@@ -12297,6 +12421,7 @@ function tmPanel() {
   const fb = mkB(dcl2.length ? 'Fire anyway' : 'Fire for effect', dcl2.length ? 'btn-d' : 'btn-p', () => tmFire()); const cb = mkB('Cease fire', 'btn-d', () => { const had = !!FMS.m && FMS.m.state === 'active'; fmCease(); if (!had) { toast('Cease fire.'); fmSay('fm_cease'); } TMAP.psig = ''; tmTick(); }); go.append(fb, cb); el.append(go);
   const gm = document.createElement('div'); gm.className = 'tbOpt'; gm.append(mkB('Fire mission list', '', () => { tmClose(); openCommand('fire'); }), mkB('Clear marker', '', () => { fmClearMarker(); TMAP.aim = null; TMAP.psig = ''; tmTick(); })); el.append(gm);
   note('Pieces fire only when crewed and in range. A mortar pit or a howitzer swings to the bearing, raises its barrel, loads and fires. Shells fly real arcs: watch the flight time before you adjust.');
+  if (ED.phone) el.append(go);                                       // phone: Fire and Cease fire stay pinned at the foot of the panel
   el.scrollTop = keep;
 }
 KEY_ROUTE.unshift((e) => {
@@ -12317,6 +12442,106 @@ const fmVehAim = fmSafe(fmVehAim0, undefined);
 const fmSig = fmSafe(fmSig0, '');
 const fmRenderPanel = fmSafe(fmRenderPanel0, undefined);
 if (!isTouch) flareInit(); tmInit();
+/* ================================================================ phone and touch: one modal at a time, the Back button, wake lock, haptics, tilt aiming, smoothness setting, lost-graphics recovery, orientation hint.
+   Everything here is gated by ED.phone or isTouch, so the desktop edition behaves exactly as before. Nothing in it shows a timer or a countdown. */
+const PH = (() => {
+  const lg = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, ls = (k, v) => { try { localStorage.setItem(k, String(v)); } catch (e) { } };
+  const S = { vib: lg('squall-cove-vibrate') !== '0', gyro: lg('squall-cove-gyro') === '1', gyroK: 1.0, perf: 'auto' };
+  { const k = parseFloat(lg('squall-cove-gyro-k')); if (k >= 0.2 && k <= 2) S.gyroK = k; const p = lg('squall-cove-perf'); if (p === 'auto' || p === 'saver' || p === 'best') S.perf = p; }
+  { const g = new URLSearchParams(location.search).get('gov'); if (g === 'best' || g === 'saver' || g === 'auto') S.perf = g; }          // ?gov= is a test hook: it overrides the saved choice for this visit only
+  GOV.perf = S.perf; if (ED.phone && S.perf !== 'auto') govApply();
+  const body = document.body, modalOpen = () => body.classList.contains('modal-open');
+
+  /* ---- one modal at a time. Whatever opens last stays; the rest are closed with their own close routines. The deploy window is never closed by another sheet. */
+  const ML = { open: new Set(), ids: ['tablet', 'bSetup', 'menuSheet', 'help', 'inspector', 'tmap', 'bSpawn', 'side', 'cheatSheet'], armed: false };
+  const isOpen = (id) => { const e = $(id); if (!e) return false; if (id === 'side') return body.classList.contains('sideopen'); return !e.hidden; };
+  const closers = { tablet: () => toggleTablet(false), bSetup: () => closeSetup(), menuSheet: () => closeMenu(), help: () => { $('help').hidden = true; }, inspector: () => closeInspector(), tmap: () => tmClose(), side: () => setSide(false), cheatSheet: () => { $('cheatSheet').hidden = true; }, bSpawn: () => { $('bSpawn').hidden = true; } };
+  const arm = () => { if (!ML.armed) { try { history.pushState({ sc: 1 }, ''); ML.armed = true; } catch (e) { } } };
+  function ladderSync() {
+    const now = ML.ids.filter(isOpen), fresh = now.filter(i => !ML.open.has(i));
+    if (fresh.length && now.length > 1) { const keep = fresh[fresh.length - 1]; for (const id of now) { if (id === keep || (id === 'bSpawn' && keep !== 'bSpawn')) continue; try { closers[id](); } catch (e) { } } }
+    const after = ML.ids.filter(isOpen); ML.open = new Set(after); body.classList.toggle('modal-open', after.length > 0); if (fresh.length && after.length) arm();
+  }
+  if (ED.phone) { const mo = new MutationObserver(ladderSync); for (const id of ML.ids) { const e = $(id); if (e) mo.observe(e, { attributes: true, attributeFilter: id === 'side' ? ['class'] : ['hidden'] }); } mo.observe(body, { attributes: true, attributeFilter: ['class'] }); }
+  /* the Back button: closes the top sheet first; in play it opens the Menu instead of leaving the game; otherwise the next press leaves as usual */
+  const inPlay = () => mode === 'fp' || mode === 'helm' || BATTLE.on;
+  addEventListener('popstate', () => {
+    if (!ED.phone || !ML.armed) return; ML.armed = false;
+    const top = ML.ids.slice().reverse().find(isOpen); if (top) { try { closers[top](); } catch (e) { } return; }
+    if (inPlay()) { const m = $('bMenu'); if (m) m.click(); }
+  });
+
+  /* ---- keep the screen awake while you play (battle, first person, helm); let go when a sheet is open or the page is hidden */
+  const WL = { s: null };
+  async function wlAcq() { if (WL.s || !('wakeLock' in navigator) || document.hidden) return; try { const s = await navigator.wakeLock.request('screen'); WL.s = s; s.addEventListener('release', () => { if (WL.s === s) WL.s = null; }); } catch (e) { } }
+  function wlRel() { const s = WL.s; WL.s = null; try { s && s.release(); } catch (e) { } }
+  const playing = () => inPlay() && !modalOpen() && !document.hidden;
+
+  /* ---- haptics: short and rare. One pulse per 120 ms at most. Off in Settings. */
+  let vibT = 0;
+  function vib(p) { if (!S.vib || !navigator.vibrate || REDUCE_MOTION) return; const n = performance.now(); if (n - vibT < 120) return; vibT = n; try { navigator.vibrate(p); } catch (e) { } }
+  if (ED.phone) document.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse' && e.target && e.target.closest && e.target.closest('button')) vib(8); }, true);
+  if (ED.phone || isTouch) {
+    { const f0 = hitMarker; hitMarker = function (kill) { const r = f0.apply(this, arguments); vib(kill ? 20 : 10); return r; }; }
+    { const f0 = hurt; hurt = function (q) { const r = f0.apply(this, arguments); if (fp.on && fp.p && q === fp.p && arguments[1] > 0) vib(arguments[1] > 40 ? [60, 40, 60] : 30); return r; }; }
+    { const f0 = tmFire; tmFire = function () { vib(25); return f0.apply(this, arguments); }; }
+  }
+
+  /* ---- tilt aiming (opt-in, off by default). Turn the phone to turn the view. Low gain, with a dead zone, and not while a sheet is open. */
+  function gyroMotion(e) {
+    if (!S.gyro || !fp.on || SQD.wheel || modalOpen()) return; const r = e.rotationRate; if (!r) return;
+    const ang = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : ((+window.orientation || 0) + 360) % 360, b = r.beta || 0, g = r.gamma || 0;
+    let yaw, pit; if (ang === 90) { yaw = b; pit = g; } else if (ang === 270) { yaw = -b; pit = -g; } else if (ang === 180) { yaw = -g; pit = b; } else { yaw = g; pit = -b; }
+    if (Math.abs(yaw) < 1.5) yaw = 0; if (Math.abs(pit) < 1.5) pit = 0; if (!yaw && !pit) return;
+    let iv = e.interval || 16; if (iv < 1) iv *= 1000; const k = 0.6 * S.gyroK * Math.PI / 180 * Math.min(0.05, iv / 1000);
+    fp.yaw += yaw * k; fp.pitch = clamp(fp.pitch + pit * k, -1.45, 1.45);
+  }
+  addEventListener('devicemotion', gyroMotion);
+  async function gyroSet(on) {
+    if (on && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') { try { if ((await DeviceMotionEvent.requestPermission()) !== 'granted') { toast('Tilt aiming needs permission to read motion.'); return; } } catch (e) { toast('Tilt aiming could not start on this device.'); return; } }
+    S.gyro = on; ls('squall-cove-gyro', on ? '1' : '0'); paintSet();
+  }
+
+  /* ---- settings: tilt aiming and its sensitivity, vibration, smoothness. Shown on touch devices. */
+  const PERF_NAME = { auto: 'Auto', saver: 'Battery saver', best: 'Best looking' };
+  function paintSet() {
+    const g = $('mGyro'); if (!g) return;
+    g.innerHTML = '<b></b><small>Turn your phone to aim in first person. Off until you turn it on.</small>'; g.firstChild.textContent = 'Aim by tilting: ' + (S.gyro ? 'on' : 'off'); g.setAttribute('aria-pressed', String(S.gyro));
+    $('mVib').textContent = 'Vibration: ' + (S.vib ? 'on' : 'off'); $('mVib').setAttribute('aria-pressed', String(S.vib));
+    $('mPerf').innerHTML = '<b></b><small>Auto lowers detail by itself to keep play smooth.</small>'; $('mPerf').firstChild.textContent = 'Smoothness: ' + PERF_NAME[S.perf];
+    $('mGyroK').value = S.gyroK; $('mGyroKv').textContent = S.gyroK.toFixed(1);
+  }
+  function buildSet() {
+    const tab = document.querySelector('.mtab[data-mt="settings"]'); if (!tab || $('mGyro')) return;
+    const box = document.createElement('div'); box.className = 'mtouchset'; box.hidden = !(ED.phone || isTouch);
+    box.innerHTML = '<div class="mhead">Touch and phone</div><div class="mgrid"><button id="mGyro" type="button"></button><button id="mVib" type="button"></button><button id="mPerf" type="button"></button></div><div class="mrange"><label for="mGyroK">Tilt sensitivity: <b id="mGyroKv"></b></label><input id="mGyroK" type="range" min="0.2" max="2" step="0.1" value="1"></div>';
+    tab.append(box); paintSet();
+    $('mGyro').addEventListener('click', () => gyroSet(!S.gyro));
+    $('mVib').addEventListener('click', () => { S.vib = !S.vib; ls('squall-cove-vibrate', S.vib ? '1' : '0'); paintSet(); if (S.vib) vib(15); });
+    $('mPerf').addEventListener('click', () => { S.perf = S.perf === 'auto' ? 'saver' : S.perf === 'saver' ? 'best' : 'auto'; ls('squall-cove-perf', S.perf); GOV.perf = S.perf; if (S.perf === 'auto') { GOV.dpr = GOV.max; GOV.cap = 0; } govApply(); paintSet(); toast('Smoothness: ' + PERF_NAME[S.perf]); });
+    $('mGyroK').addEventListener('input', () => { S.gyroK = parseFloat($('mGyroK').value) || 1; ls('squall-cove-gyro-k', S.gyroK); $('mGyroKv').textContent = S.gyroK.toFixed(1); });
+  }
+  buildSet();
+  if (ED.phone && navigator.getBattery) navigator.getBattery().then((bt) => { const f = () => { const low = !bt.charging && bt.level < 0.2; if (low !== GOV.lowBat) { GOV.lowBat = low; govApply(); if (low) toast('Battery is low. Battery saver is on to save power.'); } }; bt.addEventListener('levelchange', f); bt.addEventListener('chargingchange', f); f(); }).catch(() => { });
+
+  /* ---- if the phone takes the graphics away (low memory, background), say so plainly, let the page recover, and offer a reload */
+  const cx = document.createElement('div'); cx.id = 'ctxCard'; cx.hidden = true; cx.setAttribute('role', 'alert');
+  cx.innerHTML = '<b>The picture was interrupted</b><span>Your phone paused the graphics. It usually comes back by itself. Your cove was saved a moment ago.</span><button type="button" id="ctxReload">Reload the game</button>'; document.body.append(cx);
+  $('ctxReload').addEventListener('click', () => location.reload());
+  const ctx = { lost: false, n: 0 };
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); ctx.lost = true; ctx.n++; cx.hidden = false; try { if (!noAutosave) saveWorld('auto', true); } catch (er) { } }, false);
+  canvas.addEventListener('webglcontextrestored', () => { ctx.lost = false; cx.hidden = true; GOV.lastF = 0; try { resize(); } catch (er) { } }, false);
+
+  /* ---- a suggestion, never a lock: first person is best sideways */
+  const oh = document.createElement('div'); oh.id = 'orientHint'; oh.hidden = true; oh.innerHTML = '<span>First person is best sideways. Turn your phone to landscape. Portrait still works.</span><button type="button" id="orientOk">Got it</button>'; document.body.append(oh);
+  let orientOff = lg('squall-cove-orient') === '1';
+  $('orientOk').addEventListener('click', () => { orientOff = true; ls('squall-cove-orient', '1'); oh.hidden = true; });
+  const orientSync = () => { oh.hidden = !(ED.phone && !orientOff && fp.on && !modalOpen()); };
+  const tick = () => { if (ED.phone || isTouch) { if (playing()) wlAcq(); else wlRel(); } orientSync(); };
+  setInterval(tick, 1200); document.addEventListener('visibilitychange', tick);
+  return { S, ML, GOV, WL, ctx, vib, ladderSync, orientSync, gyroMotion, gyroSet, tick, buildSet, paintSet };
+})();
+Object.assign(window.__sc, { PH, GOV, govApply, govFrame });
 Object.assign(window.__sc, { EMP2, RIGDEF, emp2Make, ensureEmplace2, rigAim, rigMuzzle, PSPEC, solveBall, pieceSolve, pieceOrder, pieceFromCall, updatePiece, SHELLS, SHELLT, shellLaunch, FLARE, flareStart, FMS, FMIS: FMS, MISSION: () => FMS.m, fmMark, fmEnumerate, fmExecute, fmCease, fmFinish, fmStart, fmDetect, fmClearMarker, FMV, TMAP, tmOpen, tmClose, tmBuildBase, GUNS, gunScan, gunState, gunFire, fireData, dangerClose, tmFire, tmShift, gridRef, cmpDeg, addHowitzer, addMortar, empDress, EMP_DECK });
 Object.assign(window.__sc, { BOOT, LP, loadRealMap, REALMAPS, realPlanBuildings, realRoads, goMap, toStartMenu, bootBattle, runBootPlan, layRealMap, get REAL() { return REAL; }, get REAL_B() { return REAL_B; }, get REALC() { return REALC; } });
 </script>
