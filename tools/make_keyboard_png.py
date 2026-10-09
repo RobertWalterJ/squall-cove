@@ -21,7 +21,7 @@ MODES = {
  'overview': ('Overview (god mode)', {
   'w': (1, 'Pan up'), 'a': (1, 'Pan left'), 's': (1, 'Pan down'), 'd': (1, 'Pan right'), 'q': (1, 'Turn left'), 'e': (1, 'Turn right'),
   'z': (1, 'Zoom out'), 'x': (1, 'Zoom in'), '1': (5, 'Select tool'), '2': (5, 'Place tool'), '3': (5, 'Land tool'), '4': (5, 'Sky tool'),
-  'esc': (6, 'Stand down / menu'), 't': (4, 'Command'), 'l': (4, 'Tactical map'), 'j': (2, 'Jump in'), 'k': (2, 'Watch next'),
+  'esc': (6, 'Stand down / menu'), 't': (4, 'Command'), 'l': (4, 'Tactical map'), 'j': (2, 'Jump in'), 'k': (2, 'Watch next'), 'o': (2, 'Gunship station'),
   'p': (6, 'Side pane'), '`': (6, 'Cheats'), 'v': (1, 'Drop into first person'), 'h': (1, 'Take the helm'), 'n': (1, 'Next boat'),
   'r': (2, 'Rain crates'), 'f': (2, 'Fire mode'), 'b': (4, 'Box-select mode'), 'g': (2, 'Drop carried'), 'del': (6, 'Remove selected'),
   '[': (6, 'Drop height down'), ']': (6, 'Drop size up'), '5': (3, 'Recall group 5'), '6': (3, 'Recall group 6'), '7': (3, 'Recall group 7'),
@@ -36,9 +36,10 @@ MODES = {
   '`': (6, 'Cheats'), '1': (5, 'Tool 1'), '2': (5, 'Tool 2'), '3': (5, 'Tool 3'), '4': (5, 'Tool 4'), '5': (5, 'Tool 5'), '6': (5, 'Tool 6'),
   '7': (5, 'Tool 7'), '8': (5, 'Tool 8 / squad order 8'), '9': (5, 'Tool 9'), '0': (5, 'Grenade'), '-': (5, 'Charge')}),
  'station': ('Gunship station', {
-  '1': (2, 'Howitzer (ready-up ~2 s). Wheel up: next gun'), '2': (2, '40 mm cannon (~1 s). Wheel down: previous gun'), '3': (2, 'Vulcan (instant)'), 'space': (2, 'Fire (also left mouse button)'), 'enter': (2, 'Fire active weapon'),
-  'w': (1, 'Slew up (the mouse aims too)'), 'a': (1, 'Slew left'), 's': (1, 'Slew down'), 'd': (1, 'Slew right'), 'q': (4, 'Zoom out (Shift + wheel too)'), 'e': (4, 'Zoom in'), '[': (4, 'Zoom out'), ']': (4, 'Zoom in'),
-  '-': (4, 'Zoom out (keypad -)'), '=': (4, 'Zoom in (+ or keypad +)'), 't': (3, 'Track target'), 'm': (3, 'Change sensor'), 'c': (3, 'Free or recapture the cursor'), ',': (3, 'Mouse slower'), '.': (3, 'Mouse faster'), 'esc': (6, 'Leave station, release the mouse')}),
+  '1': (2, 'Howitzer (ready-up ~2 s)'), '2': (2, '40 mm cannon (~1 s, 15 rounds)'), '3': (2, 'Vulcan (instant; right mouse fires it any time)'), 'space': (2, 'Fire chosen gun (also left mouse button)'), 'enter': (2, 'Fire chosen gun'),
+  'w': (1, 'Slew up (the mouse aims too)'), 'a': (1, 'Slew left'), 's': (1, 'Slew down'), 'd': (1, 'Slew right'), 'q': (2, 'Swap howitzer / 40 mm'), 'e': (4, 'Zoom in (wheel up too)'), '[': (4, 'Zoom out (wheel down too)'), ']': (4, 'Zoom in'),
+  '-': (4, 'Zoom out (keypad -)'), '=': (4, 'Zoom in (+ or keypad +)'), '4': (5, 'Thermal'), '5': (5, 'Night vision'), '6': (5, 'Colour'), '7': (5, 'Night colour green / white'), 'v': (5, 'Next view'), 'shift': (4, 'Hold: aim finer'),
+  't': (3, 'Track target / release lock (hold the mouse still on a target to lock and follow it; move the mouse to release)'), 'm': (3, 'Change sensor'), 'c': (3, 'Free or recapture the cursor (buttons clickable)'), ',': (3, 'Mouse slower'), '.': (3, 'Mouse faster'), 'esc': (6, 'Leave station, release the mouse')}),
 }
 ROWS = [['esc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'del'], ['tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'],
         ['caps', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", 'enter'], ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'shift'], ['ctrl', 'alt', 'space', 'alt', 'ctrl']]

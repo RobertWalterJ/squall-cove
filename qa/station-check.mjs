@@ -55,7 +55,7 @@ try {
   num.ready = { howitzer: 2.0, cannon: 1.0, vulcan: 0.12 };
 
   // ---- 5 fire: the shells and rounds land on the aim point; danger close; immunity
-  const o5 = await J(`const S = __sc.STN, u = S.u, sc = __sc; const out = {}; const set = () => { u.hd = Math.atan2(S.ax - u.x, S.az - u.z) - Math.PI / 2; };
+  const o5 = await J(`const S = __sc.STN, u = S.u, sc = __sc; const out = {}; S.noLock = true; const set = () => { u.hd = Math.atan2(S.ax - u.x, S.az - u.z) - Math.PI / 2; };
     // a quiet spot: no people near
     const free = (x, z) => sc.people.every(q => Math.hypot(q.x - x, q.z - z) > 120); let found = null; for (let r = 0; r < 800 && !found; r++) { const x = (Math.random() * 2 - 1) * 300, z = (Math.random() * 2 - 1) * 300; if (sc.heightAt(x, z) > 1 && free(x, z)) found = [x, z]; }
     if (!found) { return { err: 'no quiet ground' }; } sc.stnSetAim(found[0], found[1]); set(); for (let i = 0; i < 40; i++) { set(); sc.stnStep(0.1); } out.state = S.state; out.aim = [Math.round(S.ax), Math.round(S.az)]; out.danger0 = S.danger;
@@ -111,10 +111,11 @@ try {
   ok('Night colour button: Green to White to Green, said in words, remembered, and sent to the shader', ph.exists && ph.afterClick === 'white' && /White/.test(ph.label) && /white/.test(ph.aria) && ph.stored === 'white' && ph.uPhosWhite === 1 && ph.back === 'green' && /Green/.test(ph.labelBack) && ph.storedBack === 'green' && ph.uPhosGreen === 0 && ph.err === 0, ph);
   await b.ev("__sc.renderer.render = () => {}; 1");
 
-  // ---- 8c v9.9.3 mouse-first station: the mouse aims, the wheel changes gun, the left button fires, Esc gives the mouse back
+  // ---- 8c v9.9.3 mouse-first station: the mouse aims, the wheel zooms, the left button fires the chosen gun, the right button the Vulcan, Esc gives the mouse back
   {
     const pre = `const sc = __sc, S = sc.STN, u = S.u, cv = document.getElementById('stnHud'); const face = () => { u.hd = Math.atan2(S.ax - u.x, S.az - u.z) - Math.PI / 2; }; const mm = (dx, dy, el) => (el || cv).dispatchEvent(new MouseEvent('mousemove', { movementX: dx, movementY: dy, bubbles: true })); const lab = (i) => document.getElementById('stnC' + (i + 1)).querySelector('.stnLab').textContent;
       const rc = () => { const a = window.__a0 || [S.ax, S.az]; window.__a0 = a; S.state = 'locked'; S.outT = 0; sc.stnSetAim(a[0], a[1]); S.zoom = S.zoomT = 1; face(); for (let i = 0; i < 30; i++) sc.stnStep(0.1); };
+      const isolate = () => { const sv = { p: sc.people.splice(0), v: sc.BVL.splice(0), b: sc.boats.splice(0) }; return () => { sc.people.length = 0; sv.p.forEach(x => sc.people.push(x)); sc.BVL.length = 0; sv.v.forEach(x => sc.BVL.push(x)); sc.boats.length = 0; sv.b.forEach(x => sc.boats.push(x)); }; };
       const ndc = (x, z, y) => { const v = new sc.THREE.Vector3(x, y === undefined ? S.ay : y, z).project(sc.camera); return v; };`;
     const m0 = await J(pre + `window.__a0 = [S.ax, S.az]; rc(); S.locked = false; S.plFail = true; S.free = false; S.prec = false;
       const A = [S.ax, S.az, S.ay]; mm(40, 0); sc.stnStep(0.02); const p1 = ndc(A[0], A[1], A[2]); const moved1 = Math.hypot(S.ax - A[0], S.az - A[1]);
@@ -126,14 +127,14 @@ try {
       out.z1 = +run(1).toFixed(3); out.z8 = +run(8).toFixed(3); out.z24 = +run(24).toFixed(3); rc();
       const a0 = [S.ax, S.az]; mm(50, 0); const norm = Math.hypot(S.ax - a0[0], S.az - a0[1]); rc(); S.prec = true; const a1 = [S.ax, S.az]; mm(50, 0); const slow = Math.hypot(S.ax - a1[0], S.az - a1[1]); S.prec = false; out.norm = +norm.toFixed(3); out.slow = +slow.toFixed(3); return out;`);
     ok('mouse speed scales with zoom (slower when zoomed in)', m1.z8 < m1.z1 * 0.4 && m1.z24 < m1.z8 * 0.6, m1);
-    ok('right button held is a slow, precise aim', m1.slow > 0 && m1.slow < m1.norm * 0.45, m1);
+    ok('holding Shift is a slow, precise aim (about 0.3x)', m1.slow > 0 && m1.slow < m1.norm * 0.45, m1);
     const m2 = await J(pre + `rc(); const out = {}; const A = [S.ax, S.az];
       S.locked = true; S.free = false; mm(30, 0, document.body); out.lockedBodyMoves = Math.hypot(S.ax - A[0], S.az - A[1]) > 0.2;
       S.locked = false; S.free = false; S.plFail = true; rc(); const B = [S.ax, S.az]; mm(30, 0, document.body); out.unlockedOffViewIgnored = Math.hypot(S.ax - B[0], S.az - B[1]) < 0.001;
       S.free = true; rc(); const C = [S.ax, S.az]; mm(30, 0, cv); out.freeCursorIgnored = Math.hypot(S.ax - C[0], S.az - C[1]) < 0.001; S.hudT = 0; sc.stnStep(0.02); out.hintFree = document.getElementById('stnHint').textContent; S.free = false;
       S.locked = true; S.hudT = 0; sc.stnStep(0.02); out.hintLocked = document.getElementById('stnHint').textContent; S.locked = false; S.hudT = 0; sc.stnStep(0.02); out.hintUnlocked = document.getElementById('stnHint').textContent; return out;`);
     ok('mouse: captured moves aim anywhere; not captured only over the view; a freed cursor does not slew', m2.lockedBodyMoves && m2.unlockedOffViewIgnored && m2.freeCursorIgnored, m2);
-    ok('hints say what the mouse does (captured, not captured, cursor free), no em dashes', /Mouse aims/.test(m2.hintLocked) && /Left button fires/.test(m2.hintLocked) && /Wheel or 1 2 3/.test(m2.hintLocked) && /Shift \+ wheel/.test(m2.hintLocked) && /Click the view to aim with the mouse/.test(m2.hintUnlocked) && /Cursor free/.test(m2.hintFree) && !/—/.test(m2.hintLocked + m2.hintUnlocked + m2.hintFree), m2);
+    ok('hints say what the mouse does (captured, not captured, cursor free), no em dashes', /Mouse aims/.test(m2.hintLocked) && /Left mouse fires/.test(m2.hintLocked) && /right mouse fires the Vulcan/.test(m2.hintLocked) && /Wheel zooms/.test(m2.hintLocked) && /C frees the cursor for the buttons/.test(m2.hintLocked) && /lock and follow/.test(m2.hintLocked) && /Click the view to aim with the mouse/.test(m2.hintUnlocked) && /Cursor free/.test(m2.hintFree) && !/—/.test(m2.hintLocked + m2.hintUnlocked + m2.hintFree), m2);
     const lim = await J(pre + `rc(); S.locked = true; S.free = false; face(); S.state = 'locked'; S.outT = 0; for (let i = 0; i < 30; i++) { mm(400, 0); sc.stnStep(0.1); } const Lb = u.hd + Math.PI / 2, cb = Math.atan2(S.cd.x, S.cd.z); const camOff = Math.abs(Math.atan2(Math.sin(cb - Lb), Math.cos(cb - Lb))) * 57.3;
       for (let i = 0; i < 30; i++) { mm(-400, -400); sc.stnStep(0.1); } const cb2 = Math.atan2(S.cd.x, S.cd.z), camOff2 = Math.abs(Math.atan2(Math.sin(cb2 - Lb), Math.cos(cb2 - Lb))) * 57.3;
       return { camOff: +camOff.toFixed(1), camOff2: +camOff2.toFixed(1), limit: +(sc.STN_LIM * 57.3).toFixed(1), state: S.state };`);
@@ -142,21 +143,75 @@ try {
     // keys 1 2 3
     const k1 = await J(pre + `const out = []; for (const k of ['2', '3', '1']) { window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); out.push([S.weapon, lab(S.weapon)]); } return out;`);
     ok('keys 1, 2, 3 choose the howitzer, the 40 mm and the Vulcan, each showing Getting ready', k1[0][0] === 1 && k1[1][0] === 2 && k1[2][0] === 0 && k1[0][1] === 'Getting ready' && k1[2][1] === 'Getting ready', k1);
-    // wheel
-    await b.ev("(() => { __sc.stnSelect(0); return 1; })()");
-    const wh = []; const wev = (dy, shift, n) => `for (let i = 0; i < ${n || 1}; i++) cv.dispatchEvent(new WheelEvent('wheel', { deltaY: ${dy}, shiftKey: ${!!shift}, bubbles: true, cancelable: true }));`;
-    for (const [name, dy, want] of [['up', -100, 1], ['up', -100, 2], ['up wraps', -100, 0], ['down wraps', 100, 2], ['down', 100, 1]]) {
-      await sleep(260); wh.push([name, await J(pre + wev(dy) + `return [S.weapon, lab(S.weapon)];`), want]);
-    }
-    ok('wheel up goes to the next gun and down to the previous, wrapping at both ends, with Getting ready', wh.every(w => w[1][0] === w[2]) && wh[0][1][1] === 'Getting ready' && wh[2][1][1] === 'Getting ready', wh);
-    await sleep(260); const deb1 = await J(pre + `const a = S.weapon; ` + wev(-100, false, 3) + ` return [a, S.weapon];`);
-    ok('debounce: three wheel notches in one burst move one gun, not three', (deb1[1] - deb1[0] + 3) % 3 === 1, deb1);
-    await sleep(500); const deb2 = await J(pre + `const a = S.weapon; ` + wev(-6, false, 10) + ` return [a, S.weapon];`);
-    ok('debounce: a touchpad flick (ten small events) moves one gun, not several', (deb2[1] - deb2[0] + 3) % 3 === 1, deb2);
-    await sleep(300); const zw = await J(pre + `const w0 = S.weapon, z0 = S.zoomT; ` + wev(-100, true) + ` const z1 = S.zoomT; ` + wev(100, true) + ` return { sameWeapon: S.weapon === w0, up: +(z1 / z0).toFixed(2), back: +(S.zoomT / z0).toFixed(2) };`);
-    ok('Shift + wheel zooms (wheel up zooms in) and does not change gun', zw.sameWeapon && zw.up > 1.1 && zw.back < zw.up, zw);
-    const zk = await J(pre + `const out = {}; for (const [k, c] of [[']', 'in'], ['[', 'out'], ['e', 'in'], ['q', 'out']]) { const z0 = S.zoomT; window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); out[k] = S.zoomT > z0 ? 'in' : S.zoomT < z0 ? 'out' : 'none'; out[k + 'ok'] = out[k] === c; } return out;`);
-    ok('zoom keys: ] and E zoom in, [ and Q zoom out', zk[']ok'] && zk['[ok'] && zk.eok && zk.qok, zk);
+    // wheel zooms, Q swaps, right button = Vulcan
+    await b.ev("(() => { __sc.stnSelect(0); const S = __sc.STN; S.zoom = S.zoomT = 1; return 1; })()");
+    const wev = (dy, n) => `for (let i = 0; i < ${n || 1}; i++) cv.dispatchEvent(new WheelEvent('wheel', { deltaY: ${dy}, bubbles: true, cancelable: true }));`;
+    const zw = await J(pre + `const w0 = S.weapon, z0 = S.zoomT; ` + wev(-100) + ` const z1 = S.zoomT; ` + wev(100) + ` const z2 = S.zoomT; ` + wev(100) + ` const z3 = S.zoomT; ` + wev(-6, 10) + ` return { sameWeapon: S.weapon === w0, up: +(z1 / z0).toFixed(3), back: +(z2 / z1).toFixed(3), clamp: z3, small: +(S.zoomT / z3).toFixed(3) };`);
+    ok('wheel zooms: one notch up is one step in, one notch down one step out, never changes gun', zw.sameWeapon && Math.abs(zw.up - 1.18) < 0.03 && Math.abs(zw.back - 1 / 1.18) < 0.03, zw);
+    ok('a touchpad flick (ten small events) zooms a little, smoothly', zw.small > 1.02 && zw.small < 1.3, zw);
+    await b.ev("(() => { const S = __sc.STN; S.zoom = S.zoomT = 1; return 1; })()");
+    const zk = await J(pre + `const out = {}; for (const [k, c] of [[']', 'in'], ['[', 'out'], ['e', 'in']]) { const z0 = S.zoomT; window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); out[k] = S.zoomT > z0 ? 'in' : S.zoomT < z0 ? 'out' : 'none'; out[k + 'ok'] = out[k] === c; } return out;`);
+    ok('zoom keys: ] and E zoom in, [ zooms out', zk[']ok'] && zk['[ok'] && zk.eok, zk);
+    const qs = await J(pre + `sc.stnSelect(0); const out = [S.weapon]; for (let i = 0; i < 3; i++) { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' })); out.push([S.weapon, lab(S.weapon)]); } sc.stnSelect(2); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' })); out.push(S.weapon); const z = S.zoomT; return { out, zoomKept: S.zoomT === z };`);
+    ok('Q swaps between the howitzer and the 40 mm (each with Getting ready); from the Vulcan it goes to the howitzer', qs.out[1][0] === 1 && qs.out[2][0] === 0 && qs.out[3][0] === 1 && qs.out[1][1] === 'Getting ready' && qs.out[4] === 0, qs);
+    const shf = await J(pre + `rc(); S.prec = false; window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' })); const on = S.prec; window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift' })); return { on, off: !S.prec };`);
+    ok('holding Shift turns slow aim on, releasing it turns it off', shf.on && shf.off, shf);
+    // every station control has a key and works while the pointer is captured
+    const kk = await J(pre + `S.locked = true; S.free = false; const out = {}; cv.requestPointerLock = () => undefined; const key = (k) => window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); const gt = (id) => document.getElementById(id).getAttribute('aria-pressed');
+      key('4'); out.k4 = S.mode; key('5'); out.k5 = S.mode; key('6'); out.k6 = S.mode; key('4'); key('v'); out.v1 = S.mode; key('v'); out.v2 = S.mode; key('v'); out.v3 = S.mode;
+      key('4'); const ph0 = S.phos; key('7'); out.phosSwitchedToNight = S.mode === 'night' && S.phos !== ph0; key('7'); out.phosBack = S.phos === ph0; key('4');
+      const z0 = S.zoomT; key(']'); out.zin = S.zoomT > z0; key('['); out.zout = Math.abs(S.zoomT - z0) < 1e-6;
+      key('c'); out.freed = S.free; out.freeBtn = gt('stnFree'); key('c'); out.recaptured = !S.free; S.locked = false;
+      out.labels = ['stnThermal', 'stnNight', 'stnColour', 'stnPhos', 'stnZoomOut', 'stnZoomIn', 'stnTrack', 'stnFree', 'stnLeave'].map(id => document.getElementById(id).textContent.replace(/\\s+/g, ' ').trim());
+      out.cards = ['stnS1', 'stnS2', 'stnS3'].map(id => document.getElementById(id).textContent.replace(/\\s+/g, ' ').trim()); out.legend = document.getElementById('stnKeys').textContent;
+      const r = (id) => document.getElementById(id).getBoundingClientRect(), L = r('stnKeys'), M = r('stnMini'), TR = r('stnTR'), H = r('stnHint'), SV = r('stnView'); out.legendBox = { w: Math.round(L.width), h: Math.round(L.height), overlapMini: L.right > M.left && L.bottom > M.top && L.left < M.right, overlapHint: L.top < H.bottom && L.bottom > H.top && H.height > 0, inside: L.left >= SV.left && L.right <= SV.right && L.bottom <= SV.bottom };
+      return out;`);
+    ok('keys 4 5 6 pick Thermal, Night, Colour; V steps through the views; 7 flips the night colour and selects Night; [ ] zoom; C frees and recaptures', kk.k4 === 'thermal' && kk.k5 === 'night' && kk.k6 === 'colour' && kk.v1 === 'night' && kk.v2 === 'colour' && kk.v3 === 'thermal' && kk.phosSwitchedToNight && kk.phosBack && kk.zin && kk.zout && kk.freed && kk.freeBtn === 'true' && kk.recaptured, kk);
+    ok('every button label prints its key', /Thermal \(4\)/.test(kk.labels[0]) && /Night \(5\)/.test(kk.labels[1]) && /Colour \(6\)/.test(kk.labels[2]) && /\(7\)/.test(kk.labels[3]) && /Zoom - \(\[\)/.test(kk.labels[4]) && /Zoom \+ \(\]\)/.test(kk.labels[5]) && /\(T\)/.test(kk.labels[6]) && /Free cursor \(C\)/.test(kk.labels[7]) && /Leave station \(Esc\)/.test(kk.labels[8]) && /\(1\)/.test(kk.cards[0]) && /\(2\)/.test(kk.cards[1]) && /\(3 or right mouse\)/.test(kk.cards[2]), kk);
+    ok('the key legend strip is on screen inside the view without covering the map or the hint', /Esc Leave/.test(kk.legend) && kk.legendBox.h > 0 && kk.legendBox.inside && !kk.legendBox.overlapMini && !kk.legendBox.overlapHint, kk.legendBox);
+    // lock and follow: hold the mouse still on a target; it follows; a real mouse move lets go
+    const lk = await J(pre + `rc(); S.locked = false; S.plFail = true; S.free = false; S.noLock = false; S.mvAcc = 0; const out = {}; const back = isolate(); const q = sc.makePerson(3, S.ax, S.az); sc.people.length = 0; sc.people.push(q); q.y = sc.standY(q.x, q.z); q.ag = q.ag || {}; q.ag.pause = 1e9;
+      const settle = (n) => { for (let i = 0; i < (n || 14); i++) { S.mvAcc = 0; sc.stnStep(0.05); q.x = q.x0 === undefined ? q.x : q.x; } };
+      const near = () => Math.hypot(S.ax - q.x, S.az - q.z);
+      sc.stnStep(0.05); out.beforeStill = !S.trk; for (let i = 0; i < 8; i++) { S.mvAcc = 8; sc.stnStep(0.05); } out.notWhileMoving = !S.trk; S.mvAcc = 0; settle(14);
+      out.locked = !!(S.trk && S.trk.auto && S.trk.ref === q); out.kind = S.trk && S.trk.kind; out.msg = S.msg; S.hudT = 0; sc.stnStep(0.02); out.hud = document.getElementById('stnTR').textContent;
+      const x0 = q.x; for (let i = 0; i < 20; i++) { q.x += 1; sc.stnStep(0.05); } out.moved = +(q.x - x0).toFixed(1); out.followErr = +near().toFixed(2); out.stillLocked = !!S.trk;
+      mm(3, 0); sc.stnStep(0.02); out.smallIgnored = !!S.trk && near() < 1.5;
+      S.mvAcc = 0; mm(40, 0); out.flickReleased = !S.trk; out.relMsg = S.msg;
+      q.x = S.ax; q.z = S.az; S.mvAcc = 0; S.noLock = false; settle(16); out.relocked = !!S.trk; window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' })); out.tReleased = !S.trk; settle(16); out.noRelockUntilMove = !S.trk;
+      mm(20, 0); S.mvAcc = 0; q.x = S.ax; q.z = S.az; settle(16); out.relocked2 = !!S.trk; q.hp = 0; sc.stnStep(0.05); out.diedReleased = !S.trk; out.diedMsg = S.msg; back();
+      return out;`);
+    ok('holding the mouse still on a target locks it ("Locked: person" on the HUD) and not while the mouse is moving', lk.beforeStill && lk.notWhileMoving && lk.locked && lk.kind === 'person' && /Locked: person/.test(lk.msg) && /Locked: person/.test(lk.hud), lk);
+    ok('the lock follows the target as it moves 20 m, and a tiny mouse move is ignored', lk.moved >= 19 && lk.followErr < 2 && lk.stillLocked && lk.smallIgnored, lk);
+    ok('a deliberate mouse move releases the lock ("Lock released"), T releases it and it does not grab again until the mouse moves', lk.flickReleased && /Lock released/.test(lk.relMsg) && lk.tReleased && lk.noRelockUntilMove, lk);
+    ok('the lock lets go when the target dies', lk.relocked && lk.relocked2 && lk.diedReleased && /gone/.test(lk.diedMsg), lk);
+    // the camera rests where the mouse leaves it: no snap, no spring, no drift (owner report: it jerked toward nothing when the mouse stopped)
+    const rest = await J(pre + `const out = { after: [], still: [], orbit: [] }; const back = isolate(); S.locked = true; S.free = false; S.noLock = true; S.trk = null; window.__a0 = [S.ax, S.az];
+      const pxOff = () => { const v = ndc(S.ax, S.az, S.ay); return Math.hypot(v.x * S.view.w / 2, v.y * S.view.h / 2); };
+      for (const z of [1, 4, 12, 24]) { rc(); S.zoom = S.zoomT = z; face(); for (let i = 0; i < 4; i++) sc.stnStep(0.05);
+        mm(25, -15); sc.stnStep(0.016); const p1 = pxOff(); mm(-40, 30); sc.stnStep(0.016); const p2 = pxOff(); out.after.push([z, +Math.max(p1, p2).toFixed(2)]);
+        const a0 = [S.ax, S.az], c0 = S.cd.clone(); for (let i = 0; i < 60; i++) sc.stnStep(0.05); out.still.push([z, +Math.hypot(S.ax - a0[0], S.az - a0[1]).toFixed(4), +(c0.angleTo(S.cd) * 57.3).toFixed(4)]);
+        rc(); S.zoom = S.zoomT = z; face(); for (let i = 0; i < 4; i++) sc.stnStep(0.05); const o0 = [S.ax, S.az]; let worst = 0, st = new Set(); for (let i = 0; i < 60; i++) { sc.updateAir(0.05); sc.stnStep(0.05); worst = Math.max(worst, pxOff()); st.add(S.state); } out.orbit.push([z, +worst.toFixed(2), +Math.hypot(S.ax - o0[0], S.az - o0[1]).toFixed(4), [...st].join()]); }
+      back(); return out;`);
+    ok('after any mouse move the aim point is exactly at the centre on the very next frame at x1, x4, x12 and x24 (no easing, no spring-back)', rest.after.every(r => r[1] < 0.6), rest.after);
+    ok('with no input for 3 simulated seconds the aim point and the camera direction do not move at all', rest.still.every(r => r[1] < 1e-6 && r[2] < 0.001), rest.still);
+    ok('while the aircraft orbits for 3 s the aim point stays on the centre pixel at every zoom and never moves', rest.orbit.every(r => r[1] < 1.0 && r[2] < 1e-6 && r[3] === 'locked'), rest.orbit);
+    // tracking: T takes the nearest target near the reticle, keeps it centred while it moves 60 m and while the aircraft orbits, survives it stopping, lets go only by the rules
+    const trk = await J(pre + `const out = {}; S.locked = true; S.free = false; S.noLock = true; const vehSave = sc.BVL.slice(); const back = isolate(); const keyT = () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+      const pxOff = (tg, up) => { const v = ndc(tg.x, tg.z, sc.heightAt(tg.x, tg.z) + up); return Math.hypot(v.x * S.view.w / 2, v.y * S.view.h / 2); };
+      { let f = null; for (let r = 0; r < 2000 && !f; r++) { const x = (Math.random() * 2 - 1) * 250, z = (Math.random() * 2 - 1) * 250; if (sc.heightAt(x, z) > 3 && sc.standY(x, z) > 3) f = [x, z]; } if (f) window.__a0 = f; out.land = !!f; }
+      rc(); S.zoom = S.zoomT = 12; face(); for (let i = 0; i < 4; i++) sc.stnStep(0.05); S.trk = null; keyT(); out.noTarget = [!S.trk, S.msg];
+      for (const kind of ['person', 'vehicle']) { const up = kind === 'person' ? 1 : 1.5; rc(); S.zoom = S.zoomT = 12; face(); S.trk = null; S.noLock = true; let tg;
+        if (kind === 'person') { tg = sc.makePerson(3, S.ax, S.az); sc.people.length = 0; sc.people.push(tg); tg.y = sc.standY(tg.x, tg.z); tg.ag = tg.ag || {}; tg.ag.pause = 1e9; } else { sc.people.length = 0; tg = vehSave.find(v => !v.dead); if (tg) { sc.BVL.length = 0; sc.BVL.push(tg); } if (tg) { tg.x = S.ax; tg.z = S.az; tg.y = sc.standY(tg.x, tg.z); } }
+        if (!tg) { out[kind] = 'none'; continue; } for (let i = 0; i < 4; i++) sc.stnStep(0.05); keyT(); out[kind + 'Dbg'] = [S.lock && S.lock.kind, S.contacts.length, S.msg, S.state, Math.round(S.zoom), +ndc(tg.x, tg.z, tg.y + 1).x.toFixed(4), +ndc(tg.x, tg.z, tg.y + 1).y.toFixed(4)]; out[kind + 'Acq'] = !!S.trk && S.trk.ref === tg && S.trk.kind === kind;
+        let worst = 0, x0 = tg.x, z0 = tg.z, states = new Set(); for (let i = 0; i < 120; i++) { tg.x += 0.5; tg.z += 0.15; tg.y = sc.standY(tg.x, tg.z); sc.updateAir(0.05); sc.stnStep(0.05); worst = Math.max(worst, pxOff(tg, up)); states.add(S.state); }
+        out[kind + 'Moved'] = +Math.hypot(tg.x - x0, tg.z - z0).toFixed(1); out[kind + 'Px'] = +worst.toFixed(2); out[kind + 'States'] = [...states].join(); out[kind + 'Held'] = !!S.trk;
+        for (let i = 0; i < 40; i++) { sc.updateAir(0.05); sc.stnStep(0.05); } out[kind + 'StopKept'] = !!S.trk && pxOff(tg, up) < 3; mm(2, 1); out[kind + 'TinyOk'] = !!S.trk; S.mvAcc = 0; mm(60, 0); out[kind + 'Flick'] = !S.trk; }
+      back(); return out;`);
+    ok('T with nothing near the reticle says No target to track', trk.noTarget[0] && /No target to track/.test(trk.noTarget[1]), trk.noTarget);
+    ok('T takes a person and a vehicle near the reticle', trk.personAcq && trk.vehicleAcq, trk);
+    ok('the tracked person and vehicle stay within 4 px of the screen centre at x12 while they move 60 m and the aircraft orbits', trk.personMoved > 50 && trk.personPx <= 4 && trk.vehicleMoved > 50 && trk.vehiclePx <= 4 && trk.personHeld && trk.vehicleHeld, { personPx: trk.personPx, vehiclePx: trk.vehiclePx, moved: [trk.personMoved, trk.vehicleMoved], states: [trk.personStates, trk.vehicleStates] });
+    ok('the lock survives the target stopping, ignores a 2 px mouse nudge, and a 60 px flick releases it', trk.personStopKept && trk.vehicleStopKept && trk.personTinyOk && trk.vehicleTinyOk && trk.personFlick && trk.vehicleFlick, trk);
     // left button fires
     await b.ev("(() => { const S = __sc.STN; S.zoom = S.zoomT = 1; return 1; })()");
     const lf = await J(pre + `const pd = (btn) => cv.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', pointerId: 11, button: btn, buttons: btn === 0 ? 1 : 2, bubbles: true, cancelable: true })); const pu = (btn) => cv.dispatchEvent(new PointerEvent('pointerup', { pointerType: 'mouse', pointerId: 11, button: btn, buttons: 0, bubbles: true, cancelable: true }));
@@ -165,9 +220,10 @@ try {
       rdy(0); const h0 = S.shots.how; pd(0); out.howitzerFired = S.shots.how === h0 + 1; pu(0);
       rdy(1); const c1 = S.shots.can; pd(0); for (let k = 0; k < 400; k++) sc.stnStep(0.02); out.cannonRepeats = S.shots.can - c1; pu(0);
       rdy(2); pd(0); sc.stnStep(0.02); out.vulcanOn = S.fireV; for (let k = 0; k < 10; k++) sc.stnStep(0.02); out.vulcanStill = S.fireV; pu(0); sc.stnStep(0.02); out.vulcanOff = !S.fireV;
-      rdy(1); const c2 = S.shots.can; pd(2); out.rmbHeld = S.prec; out.rmbNoFire = S.shots.can === c2 && !S.fireRmb; pu(2); out.rmbUp = !S.prec; return out;`);
+      rdy(0); const c2 = S.shots.can, h2 = S.shots.how; pd(2); sc.stnStep(0.02); out.rmbVulcan = S.fireV && S.weapon === 0 && S.fireRmb; for (let k = 0; k < 20; k++) sc.stnStep(0.02); out.rmbKeeps = S.fireV; out.rmbNoOther = S.shots.can === c2 && S.shots.how === h2; pu(2); sc.stnStep(0.02); out.rmbUp = !S.fireV && !S.fireRmb;
+      rdy(1); pd(0); out.leftChosen = S.shots.can > c2; pu(0); rdy(2); const c3 = S.shots.can; pd(0); sc.stnStep(0.02); out.left3Vulcan = S.fireV; pu(0); out.left3NoCannon = S.shots.can === c3; return out;`);
     ok('left button fires the active gun: 40 mm, howitzer; hold repeats the 40 mm bursts and runs the Vulcan; releasing stops', lf.cannonFired && lf.lmb && lf.lmbUp && lf.howitzerFired && lf.cannonRepeats >= 2 && lf.vulcanOn && lf.vulcanStill && lf.vulcanOff, lf);
-    ok('right button is slow aim only (held on, released off, never fires)', lf.rmbHeld && lf.rmbNoFire && lf.rmbUp, lf);
+    ok('right button fires the Vulcan at any time (howitzer chosen), held keeps it on, released stops, fires nothing else; left fires the chosen gun, and with 3 chosen the Vulcan', lf.rmbVulcan && lf.rmbKeeps && lf.rmbNoOther && lf.rmbUp && lf.leftChosen && lf.left3Vulcan && lf.left3NoCannon, lf);
     // first click captures
     const fc = await J(pre + `const pd = (btn) => cv.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', pointerId: 12, button: btn, bubbles: true, cancelable: true })); sc.stnSelect(1); for (let k = 0; k < 400; k++) sc.stnStep(0.02);
       S.locked = false; S.plFail = false; S.free = false; const c0 = S.shots.can; let asked = 0; const orig = cv.requestPointerLock; cv.requestPointerLock = function () { asked++; return undefined; }; pd(0); cv.requestPointerLock = orig; return { asked, fired: S.shots.can - c0, lmb: S.fireLmb };`);

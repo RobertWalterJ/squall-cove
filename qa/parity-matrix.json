@@ -682,18 +682,46 @@
     "stn|Mouse",
     "stn|Left button, Space, Enter",
     "stn|Right button (hold)",
-    "stn|1, 2, 3, wheel",
-    "stn|Shift + wheel, + -, [ ], Q E",
+    "stn|1, 2, 3, Q",
+    "stn|4, 5, 6, 7, V",
+    "stn|Hold still to lock",
+    "stn|Wheel, + -, [ ], E",
     "stn|Arrow keys, W A S D",
     "stn|Shift + click, C, comma, period",
     "stn|M, T, Esc"
    ],
    "desktop": {
-    "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnPhos,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnLeave,#stnMini"
+    "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnPhos,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnFree,#stnLeave,#stnMini"
    },
    "phone": {
     "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnPhos,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnLeave,#stnMini,#stnPad",
     "gesture": "One thumb on the slew pad moves the aim point; a tap in the view or on the small map sets it; pinch zooms; the large Fire buttons fire (hold for the Vulcan); Leave station is always on screen"
+   }
+  }
+  ,
+  {
+   "id": "gunship-overview",
+   "what": "Gunship button on the overview (and the O key): opens the station for your side's gunship, calling one in if none is up (respects the battle cooldown); also works in the sandbox with no battle, orbiting the centre of the view or the selected person. Leaving returns the overview camera exactly where it was",
+   "covers": [
+    "over|O"
+   ],
+   "desktop": {
+    "sel": "#bGun,#bGunB"
+   },
+   "phone": {
+    "sel": "#bGun,#bGunB",
+    "gesture": "Gunship button next to Jump in (battle) or in the selection row beside First person (sandbox), 48 px tall"
+   }
+  },
+  {
+   "id": "clear-battlefield",
+   "what": "Clear battlefield: removes soldiers, vehicles, aircraft, guns, structures, wrecks, mines, points and the battle screen so the overview is a plain sandbox again; Clear everything or Keep survivors (survivors become ordinary people); undo once",
+   "covers": [],
+   "desktop": {
+    "gesture": "End screen button Clear battlefield, and Clear battlefield in the side pane Battle tab, which also shows Undo clear battlefield afterwards"
+   },
+   "phone": {
+    "gesture": "Same: the Clear battlefield button on the end screen, and in the Edit menu Battle tab with Undo clear battlefield; the dialog buttons are 52 px tall"
    }
   }
  ],

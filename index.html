@@ -98,7 +98,12 @@ body.stn-on #feedCol{z-index:calc(var(--z-menu) + 1);top:calc(116px + var(--safe
 #stnMsg[data-dc="1"]{background:#8a0f0a;border-color:#fff}
 #stnMsg[hidden]{display:none}
 #stnSt{position:absolute;left:10px;bottom:10px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 14px var(--f-mono);pointer-events:none}
-#stnHint{position:absolute;left:10px;right:152px;bottom:50px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 13px/1.35 var(--f-body);pointer-events:none}
+#stnKeys{position:absolute;left:10px;right:152px;bottom:46px;padding:3px 10px;border-radius:8px;background:rgba(8,12,12,.78);color:#e8efe6;font:600 12px/1.3 var(--f-body);pointer-events:none;max-height:34px;overflow:hidden}
+body.touch #stnKeys,body.touch #stnBar .k,body.touch #stnFree,body.touch #stnC1 .k,body.touch #stnC2 .k,body.touch #stnC3 .k,body.touch .stnBtn{display:none}
+body.ed-phone #stnKeys,body.ed-phone #stnBar .k,body.ed-phone #stnFree,body.ed-phone .stnBtn{display:none}
+#stnBar .k{font-style:normal;opacity:.9}
+.stnBtn{display:block;font:600 11px var(--f-body);opacity:.85}
+#stnHint{position:absolute;left:10px;right:152px;bottom:86px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 13px/1.35 var(--f-body);pointer-events:none}
 body.ed-phone #stnHint{display:none}
 #stnMini{position:absolute;right:10px;bottom:10px;width:132px;height:132px;border:2px solid #f1f5f0;border-radius:8px;background:#000;touch-action:none;cursor:pointer}
 #stnPad{display:none;position:absolute;left:14px;bottom:56px;width:132px;height:132px;border-radius:50%;border:2px solid #f1f5f0;background:rgba(8,12,12,.55);touch-action:none;align-items:center;justify-content:center}
@@ -348,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.3 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.4 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -425,7 +430,7 @@ dd{margin:0;font:500 13px/1.25 var(--f-mono);font-variant-numeric:tabular-nums;w
 body.ui-min .inst .brand,body.ui-min .inst #rose{display:none}
 body.ui-min.noinst .inst{display:none}
 body.ui-min .inst dl > div:nth-child(2){display:none}
-body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli):not(#bFP){display:none}
+body.ui-min .actions:not(.open) > button:not(#bLog):not(#bMenu):not(#bMore):not(#bMode):not(#bDesel):not(#bHeli):not(#bFP):not(#bGun){display:none}
 body.ui-min #bMode:disabled{display:none}
 body.ui-min.tray-idle .tray{display:none}
 #trayTog{justify-self:center;min-height:36px;padding:5px 16px;font-size:13px;background:rgba(12,26,32,.7)}
@@ -593,6 +598,8 @@ body[data-mode="fp"] #fireArm{bottom:auto !important;top:calc(120px + var(--safe
 body[data-mode="god"].battle #bHud{top:calc(60px + var(--safe-t))}
 body[data-mode="fp"] #bHud{top:calc(72px + var(--safe-t))}
 body[data-mode="fp"] #bBtns,body[data-mode="fp"] #bHint{display:none}
+body:not([data-mode="god"]) :is(#bGun,#bGunB),body.stn-on :is(#bGun,#bGunB){display:none!important}
+#bGun .ic,#bGunB .ic{width:18px;height:18px;vertical-align:-3px;margin-right:6px}
 #feedCol{position:fixed;left:12px;bottom:calc(var(--bh,140px) + 140px + var(--safe-b));width:min(320px,calc(100vw - 24px));max-height:calc(100dvh - var(--bh,140px) - 320px);display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:var(--z-feed);pointer-events:none;overflow:hidden}
 body[data-mode="fp"] #feedCol{bottom:calc(118px + var(--safe-b))}
 body[data-mode="fp"].touch #feedCol{bottom:calc(250px + var(--safe-b))}
@@ -680,7 +687,7 @@ button{transition:transform .12s}button:active:not(:disabled){transform:scale(.9
 button[aria-pressed="true"],button[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--brass)}
 #cmdBtn{position:fixed;right:12px;bottom:calc(var(--bh,140px) + 10px);z-index:var(--z-ctl);min-height:48px;padding:0 18px;display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:700;background:var(--brass);color:var(--ink);border-color:var(--brass)}
 body[data-mode="fp"] #cmdBtn{bottom:calc(14px + var(--safe-b));min-height:44px}
-body.battle[data-mode="god"] #cmdBtn,body[data-mode="fp"].touch #cmdBtn,body.hud-off #cmdBtn,body.battle[data-mode="god"] #bFP,body.battle[data-mode="god"] #bJoin,body:has(#help:not([hidden])) #cmdBtn,body:has(.loading:not(.done)) #cmdBtn{display:none}
+body.battle[data-mode="god"] #cmdBtn,body[data-mode="fp"].touch #cmdBtn,body.hud-off #cmdBtn,body.battle[data-mode="god"] #bFP,body.battle[data-mode="god"] #bGun,body.battle[data-mode="god"] #bJoin,body:has(#help:not([hidden])) #cmdBtn,body:has(.loading:not(.done)) #cmdBtn{display:none}
 body:has(#sculpt:not([hidden])) #cmdBtn,body:has(#placeBtn:not([hidden])) #cmdBtn{bottom:calc(var(--bh,140px) + 124px)}
 body:has(#sculpt:not([hidden])) #calmBtn,body:has(#placeBtn:not([hidden])) #calmBtn{bottom:calc(var(--bh,140px) + 186px + var(--safe-b))}
 .sheet{position:fixed;inset:0;z-index:var(--z-sheet-top);display:flex;padding:12px;background:rgba(4,10,14,.88);overflow-y:auto;overscroll-behavior:contain}
@@ -762,7 +769,7 @@ body.ed-phone #selBar > *{flex:none}
 body.ed-phone #selBar .grp{display:flex;flex-wrap:nowrap;gap:6px}
 body.ed-phone #selBar .grp:not(:has(button:not([hidden]))){display:none}
 body.ed-phone #selBar button{min-height:48px;padding:0 14px;font-size:16px;white-space:nowrap}
-body.ed-phone.ui-min:not(:has(.actions.open)) #selBar > button:not(#bMode):not(#bDesel):not(#bHeli):not(#bFP){display:none}
+body.ed-phone.ui-min:not(:has(.actions.open)) #selBar > button:not(#bMode):not(#bDesel):not(#bHeli):not(#bFP):not(#bGun){display:none}
 body.ed-phone #selBar > button[hidden]{display:none}
 body.ed-phone #cmdRow{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;pointer-events:none}
 body.ed-phone #cmdRow > *{pointer-events:auto;position:static!important;inset:auto!important;margin:0!important}
@@ -1084,7 +1091,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
 <div id="fpScope" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 31vmin,#000 32vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.75)"></div></div>
 <div id="tablet" hidden role="dialog" aria-label="Command"><div class="tbHead"><b>Command</b><button type="button" class="rd" id="tbRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="tbClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div id="tbTabs" role="tablist" aria-label="Command sections"></div><div id="tbBody"></div></div>
 <div id="fireArm" hidden></div>
-<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bSideBtn" title="Pick which side you play">Side</button><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bSideBtn" title="Pick which side you play">Side</button><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bGunB" title="Gunship station (O)"><svg class="ic" aria-hidden="true"><use href="#i-jet"/></svg>Gunship</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <div id="feedCol"><div id="killFeed"></div><div id="sideFeed"></div><div id="notes" role="status" aria-live="polite"></div></div>
 <button id="cmdBtn" type="button" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button>
 <div id="bTip" hidden role="note"><span id="bTipTxt"></span><button type="button" id="bTipX">Got it</button></div>
@@ -1144,11 +1151,11 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
 <div id="stn" hidden role="dialog" aria-label="Gunship sensor station">
-<div id="stnView"><canvas id="stnHud" aria-hidden="true"></canvas><div id="stnTL"></div><div id="stnTR"></div><div id="stnMsg" role="status" aria-live="polite" hidden></div><div id="stnSt"></div><div id="stnHint"></div><canvas id="stnMini" width="144" height="144" role="img" aria-label="Map. Tap it to move the aim point."></canvas><div id="stnPad" aria-label="Slew pad. Drag with your thumb to move the aim point."><i id="stnKnob"></i></div></div>
-<div id="stnCards"><div class="stnCard" id="stnC1" data-sel="true"><button type="button" class="stnSel" id="stnS1" aria-pressed="true"><b>105 mm howitzer</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF1" aria-disabled="true">Fire</button></div>
-<div class="stnCard" id="stnC2" data-sel="false"><button type="button" class="stnSel" id="stnS2" aria-pressed="false"><b>40 mm cannon</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF2" aria-disabled="true">Fire</button></div>
-<div class="stnCard" id="stnC3" data-sel="false"><button type="button" class="stnSel" id="stnS3" aria-pressed="false"><b>25 mm Vulcan</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF3" aria-disabled="true">Hold to fire</button></div></div>
-<div id="stnBar"><button type="button" id="stnThermal" aria-pressed="true"><b>Thermal</b><small>Sees through cloud</small></button><button type="button" id="stnNight" aria-pressed="false"><b>Night</b><small>Clouds can block this</small></button><button type="button" id="stnPhos" aria-label="Night vision colour: green. Press to change to white."><b>Night: Green</b><small>Change night colour</small></button><button type="button" id="stnColour" aria-pressed="false"><b>Colour</b><small>Clouds can block this</small></button><button type="button" id="stnZoomOut">Zoom -</button><button type="button" id="stnZoomIn">Zoom +</button><button type="button" id="stnTrack" aria-pressed="false">Track target</button><button type="button" id="stnLeave">Leave station</button></div>
+<div id="stnView"><canvas id="stnHud" aria-hidden="true"></canvas><div id="stnTL"></div><div id="stnTR"></div><div id="stnMsg" role="status" aria-live="polite" hidden></div><div id="stnSt"></div><div id="stnHint"></div><div id="stnKeys">1 Howitzer, 2 40 mm, 3 Vulcan, Q swap guns | Left mouse fires the chosen gun, right mouse fires the Vulcan | Wheel, [ ] zoom | 4 Thermal, 5 Night, 6 Colour, 7 Night colour, V next view | T Track, C Free cursor, Shift aim finer, Esc Leave</div><canvas id="stnMini" width="144" height="144" role="img" aria-label="Map. Tap it to move the aim point."></canvas><div id="stnPad" aria-label="Slew pad. Drag with your thumb to move the aim point."><i id="stnKnob"></i></div></div>
+<div id="stnCards"><div class="stnCard" id="stnC1" data-sel="true"><button type="button" class="stnSel" id="stnS1" aria-pressed="true"><b>105 mm howitzer<i class="k"> (1)</i></b><span class="stnLab">Ready</span><small class="stnBtn"></small></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF1" aria-disabled="true">Fire</button></div>
+<div class="stnCard" id="stnC2" data-sel="false"><button type="button" class="stnSel" id="stnS2" aria-pressed="false"><b>40 mm cannon<i class="k"> (2)</i></b><span class="stnLab">Ready</span><small class="stnBtn"></small></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF2" aria-disabled="true">Fire</button></div>
+<div class="stnCard" id="stnC3" data-sel="false"><button type="button" class="stnSel" id="stnS3" aria-pressed="false"><b>25 mm Vulcan<i class="k"> (3 or right mouse)</i></b><span class="stnLab">Ready</span><small class="stnBtn"></small></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF3" aria-disabled="true">Hold to fire</button></div></div>
+<div id="stnBar"><button type="button" id="stnThermal" aria-pressed="true"><b>Thermal<i class="k"> (4)</i></b><small>Sees through cloud</small></button><button type="button" id="stnNight" aria-pressed="false"><b>Night<i class="k"> (5)</i></b><small>Clouds can block this</small></button><button type="button" id="stnPhos" aria-label="Night vision colour: green. Press to change to white."><b>Night: Green</b><small>Change night colour<i class="k"> (7)</i></small></button><button type="button" id="stnColour" aria-pressed="false"><b>Colour<i class="k"> (6)</i></b><small>Clouds can block this</small></button><button type="button" id="stnZoomOut">Zoom -<i class="k"> ([)</i></button><button type="button" id="stnZoomIn">Zoom +<i class="k"> (])</i></button><button type="button" id="stnTrack" aria-pressed="false">Track target<i class="k"> (T)</i></button><button type="button" id="stnFree" aria-pressed="false">Free cursor<i class="k"> (C)</i></button><button type="button" id="stnLeave">Leave station<i class="k"> (Esc)</i></button></div>
 </div>
 <canvas id="c" tabindex="0" aria-label="Squall Cove, a 3D harbour sandbox seen from above"></canvas>
 <div id="tint" aria-hidden="true"></div>
@@ -1179,6 +1186,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
     <button id="bDesel" type="button" hidden>Deselect</button>
     <button id="bHeli" type="button" hidden>Rescue helicopter</button>
     <button id="bFP" type="button" aria-label="Drop into first person (V)">First person</button>
+    <button id="bGun" type="button" aria-label="Open the gunship station (O)"><svg class="ic" aria-hidden="true"><use href="#i-jet"/></svg>Gunship</button>
     <button id="bSym" type="button" aria-pressed="false">Symbols off</button>
     <button id="bMore" type="button">More</button>
     <button id="bMenu" type="button">Menu</button>
@@ -1283,9 +1291,9 @@ if (ED.phone) {                                                    // one flex c
   const acts = document.querySelector('.actions'), g = (id) => document.getElementById(id);
   const stack = document.createElement('div'); stack.id = 'phoneStack';
   const sel = document.createElement('div'); sel.id = 'selBar'; sel.setAttribute('role', 'toolbar'); sel.setAttribute('aria-label', 'Selection actions');
-  for (const id of ['bMode', 'bJoin', 'bBoat', 'bZoom', 'bCenter', 'bFollow']) sel.append(g(id));
+  for (const id of ['bFP', 'bGun', 'bMode', 'bJoin', 'bBoat', 'bZoom', 'bCenter', 'bFollow']) sel.append(g(id));            // First person and Gunship lead the row so both are on screen without scrolling
   for (const gr of acts.querySelectorAll(':scope > .grp')) sel.append(gr);
-  for (const id of ['bDesel', 'bHeli', 'bFP', 'bRight']) sel.append(g(id));
+  for (const id of ['bDesel', 'bHeli', 'bRight']) sel.append(g(id));            // First person and Gunship come first so both are on screen without scrolling the row
   const row = document.createElement('div'); row.id = 'cmdRow'; row.append(g('calmBtn'), g('cmdBtn'));
   stack.append(g('feedCol'), g('bTip'), g('objective'), g('legend'), g('fireArm'), g('bHint'), sel, g('bBtns'), row);
   document.body.append(stack); acts.prepend(g('burger'));
@@ -5038,6 +5046,7 @@ function renderSide() {
     const n = document.createElement('div'); n.className = 'sNote';
     if (!BATTLE.on) { n.textContent = 'Fight for capture points on the Port and mountains, Urban port or Desert maps. Nothing starts until you press Begin.'; sBody.append(n); const b = mkB('Battle setup', 'sItem btn-p', () => openBattleSetup()); b.insertAdjacentHTML('afterbegin', ic('flag')); sBody.append(b); }
     else { n.textContent = 'Tickets: Port ' + BATTLE.tickets.blue + ', ' + BATTLE.redKind + ' ' + BATTLE.tickets.red + '. Knock-outs ' + BATTLE.kills.blue + ' to ' + BATTLE.kills.red + '.'; sBody.append(n); const b = mkB('Command', 'sItem btn-p', () => openCommand('fire')); b.insertAdjacentHTML('afterbegin', ic('command')); sBody.append(b); sBody.append(mkB('Capture points and plan', 'sItem', () => openCommand('points'))); sBody.append(mkB('Stop the battle', 'sItem', () => { battleStop(); renderSide(); })); sBody.append(mkB('Battle setup', 'sItem', () => openBattleSetup())); }
+    sBody.append(mkB('Clear battlefield', 'sItem', () => clearDialog(), { id: 'bClearTab' })); if (CLR.undo && !BATTLE.on) sBody.append(mkB('Undo clear battlefield', 'sItem', () => { clearUndo(); renderSide(); }, { id: 'bClearUndo' }));
   } else if (sideTab === 'live') {
     const chips = document.createElement('div'); chips.className = 'sChips'; for (const [id, n] of [['all', 'All'], ['people', 'People'], ['boats', 'Boats'], ['vehicles', 'Vehicles'], ['things', 'Things']]) chips.append(mkB(n, '', () => { liveF = id; liveSig = ''; renderSide(); }, { 'aria-pressed': String(liveF === id) })); sBody.append(chips);
     const head = document.createElement('div'); head.className = 'sNote'; head.id = 'sCount'; sBody.append(head); const list = document.createElement('div'); list.id = 'sLive'; sBody.append(list); liveSig = ''; fillLive();
@@ -5114,7 +5123,7 @@ function liveBe(i) { const r = liveRows[i]; if (r && r.k === 'person' && mode ==
 function liveDel(i) { const r = liveRows[i]; if (!r) return; if (r.k === 'person') removePerson(r.ref); else if (r.k === 'boat') removeBoat(r.ref); else if (r.k === 'veh') removeVehicle(r.ref); else if (r.k === 'things') { const o = r.ref.find(q => !q.gone); if (o) { removeObj(o); updateCount(); } } liveSig = ''; fillLive(); }
 $('bFP').addEventListener('click', dropIn); $('burger').addEventListener('click', () => setSide(true)); $('sClose').addEventListener('click', () => setSide(false));
 sideEl.addEventListener('keydown', (e) => e.stopPropagation());
-setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'battle') { const sg = BATTLE.on ? BATTLE.tickets.blue + '/' + BATTLE.tickets.red + BATTLE.points.map(p => p.owner || '-').join('') : 'off'; if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
+setInterval(() => { if (sideOpen && sideTab === 'live') fillLive(); else if (sideOpen && sideTab === 'battle') { const sg = BATTLE.on ? BATTLE.tickets.blue + '/' + BATTLE.tickets.red + BATTLE.points.map(p => p.owner || '-').join('') : 'off' + (CLR.undo ? 'u' : ''); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } else if (sideOpen && sideTab === 'map') { const sg = sites.map(q => q.kind + (q.owner || '') + q.stage + (q.done ? 'd' : '') + q.planted + (q.stock ? JSON.stringify(q.stock) : '')).join('|'); if (sg !== sideMapSig) { sideMapSig = sg; renderSide(); } } }, 900); let sideMapSig = '';
 setTimeout(() => { let o = false; try { const v = localStorage.getItem('squall-cove-side'); o = v === '1' || (v === null && !isTouch && innerWidth >= 1000); } catch (e) { } if (o) setSide(true); else { sideEl.inert = true; sideEl.setAttribute('aria-hidden', 'true'); } }, 400);
 onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 'v' && fp.veh) { e.preventDefault(); } else if (k === 'v' && (mode === 'god' || mode === 'fp')) { e.preventDefault(); dropIn(); } else if (k === 'p' && mode === 'god' && $('help').hidden) setSide(!sideOpen); });
 
@@ -5775,9 +5784,9 @@ function makeFlag(def) {
 }
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
-  if (!isBattleMap()) { offerBattleMaps(); return; }
+  if (!isBattleMap()) { offerBattleMaps(); return; } if (CLR) CLR.undo = null;
   ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } try { voxPreload('sq'); } catch (e) { } battleStop(true); BATTLE.on = true; BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
-  for (const q of people.slice()) if (!q.bot && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
+  for (const q of people.slice()) if (!q.bot && !q.keepOnStart && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   BATTLE.points = BM().points.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); kitStart(gen);
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
   document.body.classList.add('battle'); $('bHud').hidden = false; battleHud(true); toast('Battle on the ' + BM().name + ': Port against the ' + BATTLE.redKind + '. Capture the points. Knock-outs only.');
@@ -5785,10 +5794,10 @@ function battleStart() {
 }
 function layCover() {
   const itm = (id) => BUILD.find(b => b.id === id); BATTLE.coverStart = props.length;
-  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2 || groundAt(x, z) < 0.3 || footBlocked(x, z, 1.4)) return; const sv = buildRot; buildRot = r; place(it, { x, z }); buildRot = sv; };
+  const putc = (id, x, z, r) => { const it = itm(id); if (!it || !D.glb.props2 || groundAt(x, z) < 0.3 || footBlocked(x, z, 1.4)) return; const sv = buildRot, n0 = props.length; buildRot = r; place(it, { x, z }); if (props.length > n0) props[props.length - 1].bcover = true; buildRot = sv; };
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
-function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= BATTLE.coverStart; i--) { const pr = props[i]; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
+function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= 0; i--) { const pr = props[i]; if (!pr.bcover) continue; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
 function battleStop(quiet) { try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); clearTracers(); lfClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0; try { acReset(); } catch (er) { }
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
@@ -6625,6 +6634,7 @@ function renderTablet() {
     } else {
       head('Help on the way', 'heli'); note('Calls for the sandbox. In a battle this tab lists the support for your side.');
       wrow('heli', heli.on ? 'Recall rescue helicopter' : 'Call rescue helicopter', 'lifts people off roofs and wrecks', null, () => { callHeli(); renderTablet(); }); wrow('para', bomber.on ? 'Recall water bomber' : 'Call water bomber', 'scoops from the sea and drops on fires', null, () => { callBomber(true); renderTablet(); });
+      wrow('scope', 'Gunship station', 'calls a gunship over the view, then opens its sensor view', null, () => { toggleTablet(false); gunshipFromOverview(true); });
       wrow('scope', 'Gunship station', stnPick(team) ? 'sensor view and the three guns of the gunship' : 'calls a gunship, then opens its sensor view', null, () => { toggleTablet(false); stnOpenFor(team); });
     }
   } else if (tbTab === 'squad') {
@@ -6705,6 +6715,72 @@ function endScreen() {                                              // the round
   btn('Play again', () => { const t = BATTLE.team; so.hidden = true; if (fp.on) exitFP(); battleStart(); if (t) playBattle(t); }, 'btn-p');
   btn('Change map', () => { so.hidden = true; if (fp.on) exitFP(); battleStop(true); openBattleSetup(); });
   btn('Back to overview', () => { so.hidden = true; if (fp.on) exitFP(); BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); });
+  btn('Clear battlefield', () => { if (fp.on) exitFP(); clearDialog(); }); row.lastChild.id = 'bClearEnd';
+}
+/* ================================================================ Clear the battlefield, and the gunship button on the overview.
+   Clear: one plain button (end screen and Battle tab) that removes the combatants and everything the battle made, so the overview is an ordinary sandbox again. Terrain, boats, weather and anything the player built stay. Undoable once from the Battle tab. */
+var CLR = { undo: null };
+const isCombatant = (q) => !!(q.bot || q.botSaved || q.role === 'You' || q.fromHostile);
+function clearCensus() {
+  const sol = people.filter(isCombatant);
+  return { soldiers: sol.length, alive: sol.filter(q => q.state !== 'rag' && q.hp > 0).length, vehicles: BVL.length, air: AIR.list.length, guns: STRUCT.length + AAS.length, points: BATTLE.points.length, loose: LOOSE.length + LIFE.wrecks.length + LIFE.decals.length + NADES.length + BOMBS.length + CHARGES.length };
+}
+function clearSnap() {
+  const live = people.filter(q => q.bot && q.state !== 'rag' && q.hp > 0);
+  return { bm: BM(), red: BATTLE.redKind, tix: { ...BATTLE.tickets }, tix0: BATTLE.tix0, kills: { ...BATTLE.kills }, t: BATTLE.t, pts: BATTLE.points.map(p => ({ name: p.name, owner: p.owner, prog: p.prog })), bots: live.map(q => ({ team: q.bot.team, x: q.x, z: q.z, hp: q.hp })) };
+}
+function clearBattlefield(keep) {
+  const was = BATTLE.on, snap = was ? clearSnap() : null, n0 = people.length;
+  if (STN.on) stnClose(); if (!$('tablet').hidden) toggleTablet(false); if (TMAP.open) tmClose(); setFire(null); if (fp.on || fp.veh) exitFP();
+  const surv = [];
+  if (keep) for (const q of people) {                                  // survivors become ordinary sandbox people: unarmed, no side, no orders
+    if (!isCombatant(q) || q.state === 'rag' || q.hp <= 0) continue;
+    if (q.bot) { try { sqdUnbind(q); } catch (e) { } if (q.bot.wmesh) q.obj.remove(q.bot.wmesh); q.bot = null; }
+    disarmPerson(q); q.botSaved = null; q.roleSaved = null; q.role = 'Tourist'; q.side = null; q.fromHostile = false; q.hp = Math.max(60, q.hp);
+    if (q.ag) { q.ag.pause = 0; q.ag.intent = ''; q.ag.goal = null; q.ag.myOrder = null; q.ag.think = 0; }
+    q.wasSurv = true; surv.push(q);
+  }
+  battleStop(true);                                                    // soldiers (bots), squads, vehicles, aircraft, guns and crews, structures, mines, wrecks, shells, fire missions, points, voices and the HUD
+  for (const q of people.slice()) if (isCombatant(q) && !surv.includes(q)) removePerson(q);          // the player's own soldier and any non-bot combatant
+  for (const q of surv) { q.vin = null; q.vseat = null; q.hoist = null; q.obj.visible = true; q.state = q.state === 'rag' ? 'idle' : q.state; if (!q.ride) q.y = standY(q.x, q.z); }
+  for (const l of LOOSE) scene.remove(l.m); LOOSE.length = 0;          // dropped weapons
+  for (const t of burning) t.burn = Math.min(t.burn, 1);               // trees the battle set alight burn out in a moment
+  BATTLE.over = false; BATTLE.won = null; BATTLE.team = null; BATTLE.spec = null; BATTLE.down = false; BATTLE.t = 0; BATTLE.tickets = { blue: BATTLE.tix0 || 80, red: BATTLE.tix0 || 80 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.plan = {}; BATTLE.sqObj = {};
+  FIRE.team = null; CMD.cd.blue = CMD.cd.red = 0; TMAP.mark = null; TMAP.aim = null; try { renderKillFeed(); } catch (e) { } { const sf = $('sideFeed'); if (sf) sf.textContent = ''; } for (const id of ['bSpawn', 'bStat', 'bTip']) { const e = $(id); if (e) e.hidden = true; } { const bh = $('bHurt'); if (bh) bh.className = ''; }
+  bHudSig.t = bHudSig.s = bHudSig.h = bHudSig.x = ''; bHudSig.o = null;
+  document.body.classList.remove('battle'); god.follow = null; god.fly = null; updateCount(); refreshPanel(); renderTray(true);
+  CLR.undo = snap; if (sideOpen) renderSide();
+  toast(keep ? 'Battlefield cleared. ' + surv.length + (surv.length === 1 ? ' survivor is' : ' survivors are') + ' now ordinary people.' + (snap ? ' Undo is in the Battle tab.' : '') : 'Battlefield cleared.' + (snap ? ' Undo is in the Battle tab.' : ''));
+  return { removed: n0 - people.length, survivors: surv.length };
+}
+function clearUndo() {
+  const d = CLR.undo; if (!d) { toast('Nothing to undo.'); return false; } CLR.undo = null;
+  if (BATTLE.on) { toast('A battle is already running.'); return false; } if (!isBattleMap() || BM() !== d.bm) { toast('The map has changed, so the battle cannot come back.'); return false; }
+  for (const q of people) if (!q.wasSurv && !isCombatant(q)) q.keepOnStart = true;          // people the player placed since the clear stay; survivors go back to being soldiers
+  battleStart(); for (const q of people) q.keepOnStart = false; BATTLE.redKind = d.red; BATTLE.tix0 = d.tix0; BATTLE.tickets = { ...d.tix }; BATTLE.kills = { ...d.kills }; BATTLE.t = d.t;
+  for (const s of d.pts) { const p = BATTLE.points.find(x => x.name === s.name); if (p) { p.owner = s.owner; p.prog = s.prog; paintFlag(p); } }
+  for (const team of ['blue', 'red']) { const mine = d.bots.filter(b => b.team === team), now = people.filter(q => q.bot && q.bot.team === team); for (let i = 0; i < mine.length && i < now.length; i++) { const q = now[i]; q.x = mine[i].x; q.z = mine[i].z; q.y = standY(q.x, q.z); q.hp = mine[i].hp; } }
+  bHudSig.t = ''; battleHud(true); if (sideOpen) renderSide(); toast('Battle restored.'); return true;
+}
+function clearDialog() {
+  const c = clearCensus(), any = c.soldiers + c.vehicles + c.air + c.guns + c.points + c.loose; if (!any && !BATTLE.on) { toast('The battlefield is already clear.'); return; }
+  if (document.pointerLockElement) document.exitPointerLock(); const so = $('bSpawn'); so.hidden = false; so.textContent = '';
+  const h = document.createElement('h3'); h.textContent = 'Clear the battlefield'; const p = document.createElement('p');
+  p.textContent = 'This removes the soldiers (' + c.soldiers + '), vehicles (' + c.vehicles + '), aircraft (' + c.air + '), guns and structures (' + c.guns + '), points, wrecks, mines and the battle screen. The terrain, your boats, your buildings and the weather stay. You can undo it once from the Battle tab.';
+  const p2 = document.createElement('p'); p2.textContent = 'Keep survivors turns the soldiers still standing (' + c.alive + ') into ordinary people with no weapons.'; so.append(h, p, p2);
+  const row = document.createElement('div'); row.className = 'endRow'; so.append(row);
+  const btn = (txt, id, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; b.id = id; if (cls) b.className = cls; b.textContent = txt; b.addEventListener('click', fn); row.append(b); };
+  btn('Clear everything', 'clrAll', () => { so.hidden = true; clearBattlefield(false); }, 'btn-p'); btn('Keep survivors', 'clrKeep', () => { so.hidden = true; clearBattlefield(true); }); btn('Cancel', 'clrCancel', () => { so.hidden = true; if (BATTLE.on && BATTLE.over) endScreen(); });
+  const f = $('clrCancel'); if (f) f.focus({ preventScroll: true });
+}
+function gunshipFromOverview(fromPanel) {                              // the Gunship button and the O key: the side's gunship if one is up, else call one in, then its sensor station
+  if (STN.on) return false; if (mode !== 'god') { toast('Go back to the overview first.'); return false; }
+  if (BATTLE.over) { toast('The battle is over. Clear the battlefield or play again first.'); return false; }
+  const team = BATTLE.on ? (BATTLE.team || FIRE.team || 'blue') : 'blue';
+  if (BATTLE.on && !stnPick(team) && !CHEAT.free && AIR.cd[team].gs > 0) { toast('The gunship is not ready yet. Your side has to wait before calling it again.'); return false; }
+  const s0 = sel[0]; let at = null; if (s0) { if (Number.isFinite(s0.x) && Number.isFinite(s0.z)) at = { x: s0.x, z: s0.z }; else if (s0.body && s0.body.position) at = { x: s0.body.position.x, z: s0.body.position.z }; }
+  const ov = { x: god.tgt.x, y: god.tgt.y, z: god.tgt.z, yaw: god.yaw, dist: god.dist, tilt: god.tilt, top: god.top, follow: god.follow, fly: god.fly };
+  if (!stnOpenFor(team, { at })) return false; STN.ov = ov; return true;
 }
 const bHudSig = { t: '', s: '', h: '', o: null, x: '' };
 function objectiveHint() {                                          // one plain line for the battle HUD: what to do next
@@ -8017,7 +8093,7 @@ function specNext(dir) {
 }
 function specUpdate(dt) { const q = BATTLE.spec; if (!q) return; if (!people.includes(q) || fp.on) { BATTLE.spec = null; return; } const k = 1 - Math.exp(-dt * 4); god.tgt.x += (q.x - god.tgt.x) * k; god.tgt.z += (q.z - god.tgt.z) * k; god.tgt.y = q.y; god.yaw += (wrap(q.heading + Math.PI - god.yaw)) * k * 0.5; }
 $('bOver').addEventListener('click', () => { BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); toast('Overview'); battleHud(); });
-onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); else if (k === 'o') gunshipFromOverview(); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
@@ -8835,6 +8911,7 @@ const KEYMAP = [
   ['over', '` (backtick)', 'Cheats: for fun and testing. Switches, spawns, weather and typed codes. Also in Menu, Settings'],
   ['over', 'V', 'Drop into first person as the selected person (in a battle, the nearest soldier)', 'hp'],
   ['over', 'J, K', 'In a battle: take over the nearest soldier, watch the next one'],
+  ['over', 'O', 'Gunship station: the sensor view and three guns of the gunship of your side, calling one in if none is up (also works in the sandbox). Esc leaves'],
   ['over', 'H', 'Take the helm of the selected boat, or back to the overview', 'h'],
   ['over', 'N', 'Next boat'],
   ['over', 'R, Shift + C', 'Rain crates, clear all cargo'],
@@ -8895,12 +8972,14 @@ const KEYMAP = [
   ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
   ['stn', 'Mouse', 'Gunship station: the mouse aims. The pointer is captured when the station opens or on your first click, and moving the mouse slews the camera, slower when you are zoomed in. If the browser refuses to capture it, click the view and moving the mouse over the view still slews'],
   ['stn', 'Left button, Space, Enter', 'Gunship station: fire the chosen gun. Hold for the Vulcan and for repeating 40 mm bursts'],
-  ['stn', 'Right button (hold)', 'Gunship station: slow, precise aim while you hold it'],
-  ['stn', '1, 2, 3, wheel', 'Gunship station: choose the 105 mm howitzer, the 40 mm cannon or the 25 mm Vulcan. The mouse wheel cycles them (wheel up next, wheel down previous). A short "Getting ready" follows each switch'],
-  ['stn', 'Shift + wheel, + -, [ ], Q E', 'Gunship station: zoom in and out, up to x24'],
+  ['stn', 'Right button (hold)', 'Gunship station: fire the 25 mm Vulcan at any time, whichever gun is chosen (hold to keep firing)'],
+  ['stn', '1, 2, 3, Q', 'Gunship station: choose the 105 mm howitzer (1), the 40 mm cannon (2) or the 25 mm Vulcan (3, so the left button fires it too). Q swaps between the howitzer and the 40 mm. A short Getting ready follows each switch'],
+  ['stn', '4, 5, 6, 7, V', 'Gunship station: 4 Thermal, 5 Night vision, 6 Colour, 7 switches Night vision between green and white (and selects Night if it is not on), V steps through the three views'],
+  ['stn', 'Hold still to lock', 'Gunship station: hold the mouse still with a person, vehicle, boat or aircraft at the reticle to lock on and follow it (Locked: shown). Move the mouse more than a few pixels, press T or Esc, or lose the target to let go. The guns lead a moving target a little'],
+  ['stn', 'Wheel, + -, [ ], E', 'Gunship station: the wheel zooms (up in, down out); + - [ ] and E zoom too, up to x24'],
   ['stn', 'Arrow keys, W A S D', 'Gunship station: slew the camera with the keyboard (the mouse does the same)'],
-  ['stn', 'Shift + click, C, comma, period', 'Gunship station: Shift + click moves the aim point to the cursor when the cursor is free. C frees or recaptures the cursor so you can click the small map and the buttons. Comma and period change the mouse speed'],
-  ['stn', 'M, T, Esc', 'Gunship station: change sensor (Thermal, Night vision, Colour), track the unit under the reticle, leave the station and release the mouse'],
+  ['stn', 'Shift + click, C, comma, period', 'Gunship station: hold Shift to aim at about a third of the speed. Shift + click moves the aim point to the cursor when the cursor is free. C frees or recaptures the cursor so you can click the small map and the buttons. Comma and period change the mouse speed'],
+  ['stn', 'M, T, Esc', 'Gunship station: M also steps the sensor, T tracks or releases the unit under the reticle, Esc leaves the station and releases the mouse'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Fire mission', 'Marking a target opens a fire mission. The Fire tab lists what could fire on it (mortar pits, howitzers, vehicles, aircraft, your squad, snipers, anti-armour teams, gun nests). Tick any number and press Execute. Cease fire stops them. A destroyed person or vehicle clears the marker by itself. Ground cover fire carries on until you cease it'],
   ['tab', 'Map', 'Opens the tactical map (also the L key). Range rings, fire data (bearing, elevation, flight time, spread), danger close warning, shell types and adjust fire'],
@@ -11584,7 +11663,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
+window.__sc = { BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -11622,7 +11701,7 @@ $('cmdBtn').addEventListener('click', () => { if ($('tablet').hidden) openComman
 $('bSideBtn').addEventListener('click', () => sidePicker((t) => { battleHud(true); })); $('bTab').addEventListener('click', () => openCommand('fire')); $('fpTab').addEventListener('click', () => openCommand('fire'));
 $('mFire').addEventListener('click', () => { closeMenu(); openCommand('fire'); });
 $('mBattle').addEventListener('click', () => { closeMenu(); openBattleSetup(); });
-$('bJump').addEventListener('click', () => { jumpIn(); battleHud(); }); $('bSpec').addEventListener('click', () => { specNext(1); battleHud(); }); $('bOver').addEventListener('click', () => battleHud());
+$('bJump').addEventListener('click', () => { jumpIn(); battleHud(); }); $('bGunB').addEventListener('click', () => gunshipFromOverview()); $('bGun').addEventListener('click', () => gunshipFromOverview()); $('bSpec').addEventListener('click', () => { specNext(1); battleHud(); }); $('bOver').addEventListener('click', () => battleHud());
 /* the one-time hint on the first tap of the overview in a battle: no timer, it stays until dismissed */
 let btipSeen = false; try { btipSeen = localStorage.getItem('squall-cove-btip') === '1'; } catch (e) { }
 $('bTipX').addEventListener('click', () => { btipSeen = true; $('bTip').hidden = true; try { localStorage.setItem('squall-cove-btip', '1'); } catch (e) { } });
@@ -13131,15 +13210,15 @@ Object.assign(window.__sc, { BOOT, LP, loadRealMap, REALMAPS, realPlanBuildings,
    The scene is drawn from that camera into a render target (smaller on the phone) and a post pass makes it Thermal, Night vision or Colour. Three weapons all aim at the same point.
    Nothing here shows a countdown or a timer. Not auditioned, not played on a phone: see QA-LOG.md. */
 const STN_LIM = 65 * D2R, STN_FOV = 34, STN_ZMAX = 24, STN_DC = 90;
-const SW = [{ id: 'how', name: '105 mm howitzer', prep: 2.0, reload: 7.0 }, { id: 'can', name: '40 mm cannon', prep: 1.0, reload: 2.2 }, { id: 'vul', name: '25 mm Vulcan', prep: 0.12, reload: 0 }];
+const SW = [{ id: 'how', name: '105 mm howitzer', prep: 2.0, reload: 7.0 }, { id: 'can', name: '40 mm cannon', prep: 1.0, reload: 2.2, mag: 15, burst: 3 }, { id: 'vul', name: '25 mm Vulcan', prep: 0.12, reload: 0 }];
 const STN_MODES = { thermal: { n: 'Thermal (white hot)', hint: 'Sees through cloud', k: 0 }, night: { n: 'Night vision', hint: 'Clouds can block this', k: 1 }, colour: { n: 'Colour', hint: 'Clouds can block this', k: 2 } };
 var STN = {
   on: false, team: null, u: null, op: false, t: 0, mode: 'thermal', phos: 'green', zoom: 1, zoomT: 1, ax: 0, ay: 0, az: 0, state: 'locked', outT: 0, off: 0, rel: 0, relB: 0, elB: 0, easeT: 0, cd: new THREE.Vector3(0, -0.6, 0.8).normalize(),
   gun: null, focus: new THREE.Vector3(), view: { x: 0, y: 0, w: 1, h: 1 }, keys: new Set(), pad: { x: 0, y: 0 }, drag: null, ptr: new Map(), pinch: null, fireBtn: false, fireKey: false, fireRmb: false, fireV: false, fireLmb: false, prec: false, locked: false, plFail: false, free: false, wheelT: 0, wheelS: 0, sensI: 2, hint: '',
   weapon: 0, W: SW.map(() => ({ prep: 0, rel: 0, fill: 1, lock: false, was: true })), lock: null, lockBox: { x: 0, y: 0, s: 120, id: 0 }, trk: null, contacts: [], cnt: { e: 0, f: 0, u: 0 }, cloud: 0, cloudT: 0,
   why: '', msg: '', saved: null, hidden: [], hudT: 0, commsT: 4, squelchT: 18, lastShot: -9, loseT: 0, lockSnd: 0, danger: 0, shots: { how: 0, can: 0, vul: 0 }, crew: { n: 0, last: '', say: [] }, wantInt: 0, stats: { frames: 0 },
-  tg() { if (!this.on || this.state !== 'locked') return null; const l = this.lock; if (l && l.ref && Math.hypot(l.ref.x - this.ax, l.ref.z - this.az) < 12 && (l.kind === 'person' ? (l.ref.state !== 'rag' && l.ref.hp > 0) : !l.ref.dead)) return { type: l.kind, ref: l.ref, x: l.ref.x, y: (l.ref.y || 0) + (l.kind === 'person' ? 1 : 1.5), z: l.ref.z }; return { type: 'ground', x: this.ax, y: this.ay, z: this.az, area: true }; },
-  canFire(i) { const w = this.W[i]; return !!this.on && this.weapon === i && w.prep <= 0 && w.rel <= 0 && !w.lock && this.state === 'locked' && !!this.u && !this.u.down; },
+  tg() { if (!this.on || this.state !== 'locked') return null; const l = this.lock; if (l && stnAlive(l.ref, l.kind)) { const p = stnPos(l.ref, l.kind); if (p && Math.hypot(p.x - this.ax, p.z - this.az) < (this.trk ? 400 : 12)) { const tv = this.trk && this.tv && isFinite(this.tv.x) && isFinite(this.tv.z) ? this.tv : null, lt = (this.fireV || this.weapon !== 0) ? 0.3 : clamp((this.range || 0) / 320, 1.4, 2.6), x = p.x + (tv ? tv.x * lt : 0), z = p.z + (tv ? tv.z * lt : 0); if (l.kind === 'person' || l.kind === 'vehicle') return { type: l.kind, ref: l.ref, x, y: (l.ref.y || 0) + (l.kind === 'person' ? 1 : 1.5), z }; return { type: 'ground', x, y: Math.max(heightAt(x, z), 0), z, area: true }; } } return { type: 'ground', x: this.ax, y: this.ay, z: this.az, area: true }; },
+  canFire(i) { const w = this.W[i]; return !!this.on && (this.weapon === i || (i === 2 && this.fireRmb)) && w.prep <= 0 && w.rel <= 0 && !w.lock && this.state === 'locked' && !!this.u && !this.u.down; },
   drainV(dt) { const w = this.W[2]; w.fill = Math.max(0, w.fill - dt * 0.2); if (w.fill <= 0.001) { w.lock = true; w.fill = 0; } },
 };
 const stnEl = (id) => document.getElementById(id);
@@ -13151,7 +13230,7 @@ function stnPick(team) { return AIR.list.find(a => a.kind === 'gunship' && a.tea
 const S0op = (o) => !!(o && o.op);
 function stnOpenFor(team, o) {
   o = o || {}; if (STN.on) return true; if (BATTLE.over) return false; team = team || BATTLE.team || 'blue';
-  let u = stnPick(team); const hot = hotSpot(team), st0 = fp.on && S0op(o) ? (hot || { x: fp.p.x, z: fp.p.z }) : (!fp.on && Math.abs(god.tgt.x) < EXT && Math.abs(god.tgt.z) < EXT ? { x: god.tgt.x, z: god.tgt.z } : (hot || { x: 0, z: 0 }));
+  let u = stnPick(team); const hot = hotSpot(team), st0 = o.at ? { x: o.at.x, z: o.at.z } : fp.on && S0op(o) ? (hot || { x: fp.p.x, z: fp.p.z }) : (!fp.on && Math.abs(god.tgt.x) < EXT && Math.abs(god.tgt.z) < EXT ? { x: god.tgt.x, z: god.tgt.z } : (hot || { x: 0, z: 0 }));
   if (!u) {
     if (BATTLE.on && !o.free && !CHEAT.free && AIR.cd[team].gs > 0) { toast('The gunship is not ready yet.'); return false; }
     ensureAir(); const c = { x: st0.x, z: st0.z }; u = airSpawn(team, 'gunship', c); if (!u) { toast('No gunship could be called.'); return false; }
@@ -13169,7 +13248,7 @@ function stnOpenFor(team, o) {
   S.focus.set(S.ax, S.ay, S.az); S.cd.set(0, -0.6, 0.8).normalize(); S.easeT = 1.2; S.wantInt = 0;
   Snd.setStation(true); AC.stn.stop(u); AC.stn.preInt(); acSafe(acPre); try { voxPreload('crew'); } catch (e) { } S.crewPlan = undefined; S.crewKeepT = 0;
   Snd.fx('ac130_int_select_howitzer', undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_howitzer', undefined, undefined, { gain: 1.1, gap: 1.0, q: true });
-  stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Move the mouse to slew. Left button fires. Wheel or 1 2 3 choose the gun. Esc leaves.');
+  stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Move the mouse to slew. Left button fires the chosen gun, right button the Vulcan, wheel zooms, Q swaps howitzer and 40 mm. Esc leaves.');
   return true;
 }
 function stnClose(why) {
@@ -13180,6 +13259,7 @@ function stnClose(why) {
   document.body.classList.remove('stn-on'); $('stn').hidden = true; Snd.setStation(false); S.keys.clear(); S.fireBtn = S.fireKey = S.fireRmb = S.fireV = S.fireLmb = S.prec = false; S.locked = false; S.free = false; S.ptr.clear(); S.drag = null; S.pinch = null; S.trk = null; S.u = null;
   try { renderer.setRenderTarget(null); renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight); if (stnR.rt) { stnR.rt.dispose(); stnR.rt = null; } } catch (e) { }                      // the sensor picture's target is given back to the graphics card
   keys.clear(); if (hudLocked) setTimeout(() => { if (fp.on && !isTouch && mode === 'fp' && !STN.on && !document.pointerLockElement) lockPointer(); }, 80); else if (fp.on && !isTouch && mode === 'fp') lockPointer(); if (why) toast(why);
+  if (S.ov) { const o = S.ov; S.ov = null; if (mode === 'god') { god.tgt.set(o.x, o.y, o.z); god.yaw = o.yaw; god.dist = o.dist; god.tilt = o.tilt; god.top = o.top; god.follow = o.follow; god.fly = o.fly; } }              // back to the overview exactly where it was
 }
 function stnLockReq() {                                                              // capture the mouse for the station, like first person; if the browser refuses, moving the mouse over the view still slews
   const S = STN; if (isTouch || !S.on) return; const h = stnEl('stnHud'); S.free = false;
@@ -13191,9 +13271,9 @@ function stnSens(step) {
   stnMsg('Mouse speed: ' + STN_SENSN[S.sensI] + '.');
 }
 function stnMouse(dx, dy) {                                                          // the mouse aims: moving right looks right, up looks up. The distance on the ground per pixel already shrinks with zoom, so a zoomed view is slower; the right button held makes it finer still
-  const S = STN; if (!S.on || (!dx && !dy)) return; const k = STN_SENS[S.sensI] * (S.prec ? 0.3 : 1); stnDrag(-dx * k, -dy * k);
+  const S = STN; if (!S.on || (!dx && !dy)) return; if (!stnNoteMove(Math.hypot(dx, dy))) return; const k = STN_SENS[S.sensI] * (S.prec ? 0.3 : 1); stnDrag(-dx * k, -dy * k);
 }
-function stnWheelStep(dir) { const S = STN; if (!S.on) return; stnSelect((S.weapon + (dir > 0 ? 1 : 2)) % 3); }   // wheel up is the next gun, wheel down the previous, wrapping
+function stnSwap() { const S = STN; if (!S.on) return; stnSelect(S.weapon === 0 ? 1 : 0); }          // Q: the howitzer and the 40 mm cannon trade places (from the Vulcan it goes to the howitzer)
 function stnLeave() { stnClose(); }
 function stnMsg(t) { STN.msg = t; STN.msgT = STN.t; }
 
@@ -13218,6 +13298,8 @@ function stnSetPhos(p, quiet) {                                                 
   const b = stnEl('stnPhos'), w = STN.phos === 'white'; if (b) { const t = b.querySelector('b'); if (t) t.textContent = 'Night: ' + (w ? 'White' : 'Green'); b.setAttribute('aria-label', 'Night vision colour: ' + STN.phos + '. Press to change to ' + (w ? 'green' : 'white') + '.'); }
   if (!quiet) stnMsg('Night vision colour: ' + (w ? 'White phosphor' : 'Green phosphor') + '.');
 }
+function stnPhosKey() { stnSetPhos(STN.phos === 'white' ? 'green' : 'white'); if (STN.mode !== 'night') stnSetMode('night', true); }
+function stnFreeToggle() { const S = STN; if (!S.on) return; if (S.free) stnLockReq(); else { S.free = true; if (document.pointerLockElement === stnEl('stnHud')) { try { document.exitPointerLock(); } catch (er) { } } stnMsg('Cursor free. Click any button, or click the view or press C to aim with the mouse again.'); } const fb = stnEl('stnFree'); if (fb) fb.setAttribute('aria-pressed', String(!!S.free)); }
 function stnCycleMode() { const k = Object.keys(STN_MODES); stnSetMode(k[(k.indexOf(STN.mode) + 1) % k.length]); }
 function stnZoom(f) { STN.zoomT = clamp(STN.zoomT * f, 1, STN_ZMAX); }
 
@@ -13227,17 +13309,18 @@ function stnGround(px, py, pz, dx, dy, dz) {
   return { x: clamp(px + dx * t, -EXT, EXT), z: clamp(pz + dz * t, -EXT, EXT), t };
 }
 const _sv1 = new THREE.Vector3();
-function stnSetAim(x, z) {
-  const S = STN; S.ax = clamp(x, -EXT * 0.97, EXT * 0.97); S.az = clamp(z, -EXT * 0.97, EXT * 0.97); S.ay = Math.max(heightAt(S.ax, S.az), 0); S.trk = null;
-  if (S.state === 'broken') { S.state = 'locked'; S.outT = 0; } else if (S.state === 'losing') S.outT = Math.min(S.outT, 3); S.easeT = 1.2;
+function stnSetAim(x, z, ease) {
+  const S = STN, was = S.state; S.ax = clamp(x, -EXT * 0.97, EXT * 0.97); S.az = clamp(z, -EXT * 0.97, EXT * 0.97); S.ay = Math.max(heightAt(S.ax, S.az), 0); S.trk = null;
+  if (S.state === 'broken') { S.state = 'locked'; S.outT = 0; } else if (S.state === 'losing') S.outT = Math.min(S.outT, 3);
+  if (was !== 'locked' || ease === true) S.easeT = 1.2;                    // only a real jump (a click, the small map, a lock coming back) eases; the mouse, a drag and the keys move the view rigidly and it rests where they leave it
 }
 function stnClickAt(cx, cy) {                                                         // a click or tap in the view sets the point where the ray meets the ground
   const S = STN, V = S.view, nx = ((cx - V.x) / V.w) * 2 - 1, ny = -(((cy - V.y) / V.h) * 2 - 1); _sv1.set(nx, ny, 0.5).unproject(camera).sub(camera.position).normalize();
-  const g = stnGround(camera.position.x, camera.position.y, camera.position.z, _sv1.x, _sv1.y, _sv1.z); if (g) { stnSetAim(g.x, g.z); Snd.fx('ac130_int_select_cannon', undefined, undefined, { gain: 0.6, gap: 0.1, q: true }); }
+  const g = stnGround(camera.position.x, camera.position.y, camera.position.z, _sv1.x, _sv1.y, _sv1.z); if (g) { stnSetAim(g.x, g.z, true); Snd.fx('ac130_int_select_cannon', undefined, undefined, { gain: 0.6, gap: 0.1, q: true }); }
 }
 function stnSlew(dt) {
   const S = STN, K = S.keys; let sx = (K.has('d') || K.has('arrowright') ? 1 : 0) - (K.has('a') || K.has('arrowleft') ? 1 : 0), sy = (K.has('w') || K.has('arrowup') ? 1 : 0) - (K.has('s') || K.has('arrowdown') ? 1 : 0);
-  sx += S.pad.x; sy -= S.pad.y; sx = clamp(sx, -1, 1); sy = clamp(sy, -1, 1); if (!sx && !sy) return;
+  sx += S.pad.x; sy -= S.pad.y; sx = clamp(sx, -1, 1); sy = clamp(sy, -1, 1); if (!sx && !sy) return; if (S.trk) stnLockOff(S.trk.auto ? 'Lock released.' : 'Tracking off.', false);
   const rg = Math.max(100, Math.hypot(S.ax - camera.position.x, S.ay - camera.position.y, S.az - camera.position.z)), half = rg * Math.tan(camera.fov * D2R / 2) * camera.aspect, sp = Math.max(3, half * 0.7);
   const cx = S.cd.x, cz = S.cd.z, fl = Math.hypot(cx, cz) || 1, fx = cx / fl, fz = cz / fl, rx = -fz, rz = fx;                         // screen up and right laid flat on the ground
   stnSetAim(S.ax + (rx * sx + fx * sy) * sp * dt, S.az + (rz * sx + fz * sy) * sp * dt);
@@ -13258,7 +13341,7 @@ function stnStep(dt) {                                                          
   S.zoom += (S.zoomT - S.zoom) * (1 - Math.exp(-dt * 7)); if (Math.abs(S.zoomT - S.zoom) < 0.002) S.zoom = S.zoomT;
   const fov = 2 * Math.atan(Math.tan(STN_FOV * D2R / 2) / S.zoom) / D2R, V = S.view;
   const lx = Math.cos(u.hd), lz = -Math.sin(u.hd), px = u.x + lx * 3.2, py = u.y - 3, pz = u.z + lz * 3.2;
-  if (S.trk) { const q = S.trk.ref; if (S.trk.kind === 'person' ? (q.state === 'rag' || q.hp <= 0 || !people.includes(q)) : (q.dead || !BVL.includes(q))) { S.trk = null; stnMsg('Tracked target lost.'); } else { S.ax = q.x; S.az = q.z; S.ay = Math.max(heightAt(q.x, q.z), 0); } }
+  if (S.trk && S.state === 'broken') stnLockOff('Lock lost: the target left the gimbal limit.', true); if (S.trk) { const q = S.trk.ref, kd = S.trk.kind; if (!stnAlive(q, kd)) { stnLockOff(S.trk.auto ? 'Lock released: the target is gone.' : 'Tracked target lost.', true); } else { const p = stnPos(q, kd), tv = S.tv; if (tv && dt > 0) { const k = Math.min(1, dt * 3); tv.x += ((p.x - tv.px) / dt - tv.x) * k; tv.z += ((p.z - tv.pz) / dt - tv.z) * k; tv.px = p.x; tv.pz = p.z; } S.ax = p.x; S.az = p.z; S.ay = Math.max(heightAt(p.x, p.z), 0) + (kd === 'person' ? 1 : kd === 'vehicle' ? 1.5 : kd === 'boat' ? 2 : 0); } }
   stnSlew(dt);
   const dx = S.ax - px, dz = S.az - pz, dy = S.ay - py, hz = Math.hypot(dx, dz) || 1, bear = Math.atan2(dx, dz), Lb = u.hd + Math.PI / 2, rel = wrap(bear - Lb), off = Math.abs(rel), el = Math.atan2(dy, hz);
   S.rel = rel; S.off = off; S.range = Math.hypot(dx, dy, dz);
@@ -13278,24 +13361,24 @@ function stnStep(dt) {                                                          
   camera.position.set(px, py, pz); camera.fov = fov; camera.aspect = V.w / V.h; camera.near = 15; camera.far = 4200; camera.up.set(0, 1, 0); camera.updateProjectionMatrix(); camera.lookAt(px + S.cd.x * 100, py + S.cd.y * 100, pz + S.cd.z * 100); camera.updateMatrixWorld(true);
   S.focus.set(S.ax, S.ay, S.az);
   S.cloudT -= dt; if (S.cloudT <= 0) { S.cloudT = 0.5; let cc = 0; try { cc = csample(CC, S.ax, S.az); } catch (e) { } S.cloud = Math.max(clamp(cc / 2.4, 0, 1), wx.rainAmt * 0.6, [0, 0.45, 0.85][wx.fog] || 0, (dis && dis.hurricane > 0) ? 0.9 : 0); }
-  stnWeapons(dt); stnSounds(dt); stnContacts();
+  stnWeapons(dt); stnSounds(dt); stnContacts(dt);
   S.hudT -= dt; if (S.hudT <= 0) { S.hudT = 0.12; stnDom(); } stnDraw();
 }
 
 /* ---------------------------------------------------------------- weapons: ready-up, reload, fire */
-const stnLab = (i) => { const w = STN.W[i]; return w.prep > 0 ? 'Getting ready' : (w.rel > 0 || w.lock) ? 'Reloading' : 'Ready'; };
+const stnLab = (i) => { const w = STN.W[i]; return w.prep > 0 ? 'Getting ready' : (i === 1 && w.rel > 0 && !w.empty) ? 'Firing' : (w.rel > 0 || w.lock) ? 'Reloading' : 'Ready'; };
 function stnSelect(i) {
   const S = STN; if (!S.on || i === S.weapon) return; S.weapon = i; const w = S.W[i], d = SW[i]; w.prep = d.prep; w.was = false; S.fireV = false; if (S.u) AC.stn.stop(S.u);
   const nm = ['howitzer', 'cannon', 'vulcan'][i]; Snd.fx('ac130_int_select_' + nm, undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_' + nm, undefined, undefined, { gain: 1.1, gap: i === 2 ? 0.3 : 1.0, q: true });
   stnMsg('Selected: ' + d.name + '.'); stnWeaponUi();
 }
-function stnWhy() { const S = STN; if (S.state === 'losing') return 'Cannot fire: the target is outside the gimbal limit. Turn back or slew the point.'; if (S.state === 'broken') return 'Cannot fire: lock lost. Slew or tap the view to lock again.'; const w = S.W[S.weapon]; if (w.prep > 0) return SW[S.weapon].name + ' is getting ready.'; if (w.rel > 0 || w.lock) return SW[S.weapon].name + ' is reloading.'; return ''; }
+function stnWhy(gi) { const S = STN; if (S.state === 'losing') return 'Cannot fire: the target is outside the gimbal limit. Turn back or slew the point.'; if (S.state === 'broken') return 'Cannot fire: lock lost. Slew or tap the view to lock again.'; const wi = gi === undefined ? S.weapon : gi, w = S.W[wi]; if (w.prep > 0) return SW[wi].name + ' is getting ready.'; if (w.rel > 0 || w.lock) return SW[wi].name + ' is ' + (wi === 1 && !w.empty ? 'still firing.' : 'reloading.'); return ''; }
 function stnTryFire() {                                                              // one press: howitzer (one shell) or 40 mm (a string of three)
   const S = STN; if (!S.on) return false; const i = S.weapon;
   if (!S.canFire(i)) { const t = stnWhy(); if (t) stnMsg(t); return false; }
   const tg = S.tg(); if (!tg) return false;
   if (i === 0) { S.W[0].rel = SW[0].reload; S.W[0].was = false; AC.stn.how(S.u, tg); S.lastShot = S.t; S.shots.how++; stnHowSeq(); }
-  else if (i === 1) { S.W[1].rel = 1.2 + SW[1].reload; S.W[1].was = false; AC.stn.cannon(S.u, 3); S.lastShot = S.t; S.shots.can++; }
+  else if (i === 1) { const w = S.W[1], have = w.ammo === undefined ? SW[1].mag : w.ammo, n = Math.min(SW[1].burst, have); w.ammo = have - n; w.empty = w.ammo <= 0; w.rel = 1.2 + (w.empty ? SW[1].reload : 0); w.quiet = !w.empty; w.was = false; if (w.empty) w.ammo = SW[1].mag; AC.stn.cannon(S.u, n); S.lastShot = S.t; S.shots.can++; }              // 15 rounds in five bursts of three, then one reload (it used to be three rounds, then a 3.4 s reload every time)
   return true;
 }
 function stnHowSeq() {                                                               // the loader after each shell: hoist, ram, breech, then the re-armed click when it is ready
@@ -13303,17 +13386,17 @@ function stnHowSeq() {                                                          
   const go = (t, st) => AC.later(t, () => { if (STN.on) Snd.fx(st, undefined, undefined, { gain: 1.0, gap: 0.5, q: true }); }); go(1.0, 'ac130_int_howitzer_hoist'); go(2.5, 'ac130_int_howitzer_ram'); go(3.5, 'ac130_int_howitzer_breech');
 }
 function stnWeapons(dt) {
-  const S = STN, hold = S.fireBtn || S.fireKey || S.fireRmb || S.fireLmb;
+  const S = STN, hold = S.fireBtn || S.fireKey || S.fireLmb, rm = S.fireRmb;
   for (let i = 0; i < 3; i++) {
     const w = S.W[i], d = SW[i]; if (w.prep > 0) w.prep = Math.max(0, w.prep - dt); if (w.rel > 0) w.rel = Math.max(0, w.rel - dt);
     if (i === 2) { if (w.lock) { w.fill = Math.min(1, w.fill + dt * 0.25); if (w.fill >= 1) w.lock = false; } else if (!S.fireV) w.fill = Math.min(1, w.fill + dt * 0.35); }
     const ready = w.prep <= 0 && w.rel <= 0 && !w.lock;
-    if (ready && !w.was) { w.was = true; if (i === 0) Snd.fx('ac130_int_rearm_howitzer', undefined, undefined, { gain: 1.0, gap: 0.6, q: true }); else if (i === 1) Snd.fx('ac130_int_rearm_cannon', undefined, undefined, { gain: 1.0, gap: 0.25, q: true }); if (i === 0 && S.weapon === 0) stnCrew('how'); if (i === 1 && S.weapon === 1) stnCrew('can'); }
+    if (ready && !w.was) { w.was = true; if (i === 1 && w.quiet) w.quiet = false; else { if (i === 1) w.empty = false; if (i === 0) Snd.fx('ac130_int_rearm_howitzer', undefined, undefined, { gain: 1.0, gap: 0.6, q: true }); else if (i === 1) Snd.fx('ac130_int_rearm_cannon', undefined, undefined, { gain: 1.0, gap: 0.25, q: true }); if (i === 0 && S.weapon === 0) stnCrew('how'); if (i === 1 && S.weapon === 1) stnCrew('can'); } }
     else if (!ready) w.was = false;
   }
-  S.fireV = S.weapon === 2 && hold && S.canFire(2);
+  S.fireV = ((S.weapon === 2 && hold) || rm) && S.canFire(2);
   if (hold && S.weapon !== 2 && (S.holdWas !== true || (S.weapon === 1 && S.canFire(1)))) { stnTryFire(); S.holdWas = true; } if (!hold) S.holdWas = false;
-  if (S.weapon === 2 && hold && !S.fireV && S.t - (S.whyT || 0) > 1.5) { S.whyT = S.t; const t = stnWhy(); if (t) stnMsg(t); }
+  if (((S.weapon === 2 && hold) || rm) && !S.fireV && S.t - (S.whyT || 0) > 1.5) { S.whyT = S.t; const t = stnWhy(2); if (t) stnMsg(t); }
   stnWeaponUi();
 }
 const CREWTXT = { up: 'Up!', weaponup: 'Weapon up!', ready: 'Ready!', readytofire: 'Ready to fire!', gunready: 'Gun ready!', roundup: 'Round up!', shotout: 'Shot out!', standingby: 'Standing by!', loaded: 'Loaded!', reloading: 'Reloading!' };
@@ -13342,23 +13425,44 @@ function stnSounds(dt) {
 }
 
 /* ---------------------------------------------------------------- contacts and lock */
-function stnContacts() {
-  const S = STN, V = S.view, out = [], v3 = _sv1, cx = V.w / 2, cy = V.h / 2; let e = 0, f = 0, un = 0, best = null, bd = 1e9; const tol = ED.phone ? 56 : 44;
-  const add = (kind, ref, x, y, z, team) => {
+function stnPos(r, kind) { return kind === 'boat' ? { x: r.body.position.x, y: r.body.position.y, z: r.body.position.z } : { x: r.x, y: r.y || 0, z: r.z }; }
+function stnAlive(r, kind) {
+  if (!r) return false; if (kind === 'person') return people.includes(r) && r.state !== 'rag' && !(r.hp <= 0); if (kind === 'vehicle') return !r.dead && BVL.includes(r);
+  if (kind === 'boat') return !r.sunk && boats.includes(r); if (kind === 'aircraft') return !r.down && AIR.list.includes(r) && r !== STN.u; return false;
+}
+function stnLockOff(why, hold) {                                                     // the automatic lock lets go (a deliberate mouse move, the target gone, T); hold: do not grab it again until the mouse has moved
+  const S = STN; if (!S.trk) return; const auto = S.trk.auto; S.trk = null; S.tv = null; S.candT = 0; if (hold) S.noLock = true; stnMsg(why || (auto ? 'Lock released.' : 'Tracking off.'));
+}
+function stnNoteMove(px) {                                                           // mouse, finger or key travel: small drifts are forgiven, a flick or a steady move releases the lock
+  const S = STN; S.mvAcc = (S.mvAcc || 0) + px; if (px > 0.5 && S.mvAcc > 6) S.noLock = false;
+  if (S.trk) { if (S.mvAcc > 16) { stnLockOff(S.trk.auto ? 'Lock released.' : 'Tracking off.', false); return true; } return false; } return true;
+}
+function stnContacts(dt) {
+  const S = STN, V = S.view, out = [], v3 = _sv1, cx = V.w / 2, cy = V.h / 2; let e = 0, f = 0, un = 0, best = null, bs = 1e9, mine = null; dt = dt || 0.016;
+  const tol = Math.max(ED.phone ? 30 : 20, 0.025 * V.h * (1 + 0.35 * Math.log(Math.max(1, S.zoom))));        // about 2.5 percent of the view height, wider when zoomed in
+  const add = (kind, ref, x, y, z, team, moving) => {
     v3.set(x, y, z).project(camera); if (v3.z > 1 || v3.z < -1) return; const sx = (v3.x * 0.5 + 0.5) * V.w, sy = (-v3.y * 0.5 + 0.5) * V.h; if (sx < -20 || sx > V.w + 20 || sy < -20 || sy > V.h + 20) return;
     const cls = team === null ? 'u' : team === S.team ? 'f' : 'e'; if (cls === 'e') e++; else if (cls === 'f') f++; else un++;
-    const o = { kind, ref, sx, sy, cls, d: Math.hypot(sx - cx, sy - cy), h: kind === 'person' ? 2 : 3 }; out.push(o); if (o.d < tol && o.d < bd && Math.hypot(x - S.ax, z - S.az) < 28) { bd = o.d; best = o; }
+    const o = { kind, ref, sx, sy, cls, d: Math.hypot(sx - cx, sy - cy), h: kind === 'person' ? 2 : 3 }; out.push(o); if (S.trk && S.trk.ref === ref) mine = o;
+    const score = o.d - (cls === 'e' ? 4 : 0) - (moving ? 3 : 0) - (kind === 'vehicle' ? 1 : 0);          // nearest to the reticle wins; hostile, moving and vehicles break ties
+    if (o.d < tol && score < bs && (kind === 'aircraft' ? cls === 'e' : Math.hypot(x - S.ax, z - S.az) < 40)) { bs = score; best = o; }
   };
-  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.vin || q.hoist) continue; add('person', q, q.x, q.y + 1, q.z, teamOf(q)); }
-  for (const v of BVL) { if (v.dead) continue; add('vehicle', v, v.x, v.y + 1.5, v.z, v.team || null); }
+  for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.vin || q.hoist) continue; add('person', q, q.x, q.y + 1, q.z, teamOf(q), !!q.moving || (q.fpMoving === true) || (q.ag && q.ag.goal)); }
+  for (const v of BVL) { if (v.dead) continue; add('vehicle', v, v.x, v.y + 1.5, v.z, v.team || null, Math.abs(v.speed || 0) > 0.5); }
+  for (const b of boats) { if (b.sunk) continue; const p = b.body.position; add('boat', b, p.x, p.y + 2, p.z, null, true); }
+  for (const a of AIR.list) { if (a.down || a === S.u || a.bv) continue; add('aircraft', a, a.x, a.y, a.z, a.team === S.team ? S.team : a.team || null, true); }
   S.contacts = out; S.cnt.e = e; S.cnt.f = f; S.cnt.u = un;
-  const prev = S.lock ? S.lock.ref : null; S.lock = best; if (best && best.ref !== prev) { S.lockBox.s = 130; if (S.t - S.lockSnd > 1.5) { S.lockSnd = S.t; Snd.fx('ac130_int_lock', undefined, undefined, { gain: 0.8, gap: 1.2, q: true }); } }
+  S.mvAcc = Math.max(0, (S.mvAcc || 0) - dt * 60);
+  if (S.trk) { if (S.trk.auto && !mine) { /* off screen: the follow code decides */ } best = mine || best; }
+  const prev = S.lock ? S.lock.ref : null; S.lock = best; if (best && best.ref !== prev) S.lockBox.s = 130;
+  if (S.trk && S.trk.auto && mine) mine.h *= 0.8;                                                            // the box tightens onto what it holds
+  if (!S.trk && best && best.ref === prev && !S.noLock && S.mvAcc < 4 && S.state === 'locked' ) { S.candT = (S.candT || 0) + dt; if (S.candT >= 0.3) { S.trk = { ref: best.ref, kind: best.kind, auto: true }; { const p0 = stnPos(best.ref, best.kind); S.tv = { x: 0, z: 0, px: p0.x, pz: p0.z }; } S.candT = 0; stnMsg('Locked: ' + best.kind + '.'); Snd.fx('ac130_int_lock', undefined, undefined, { gain: 0.8, gap: 1.2, q: true }); } } else if (!S.trk) S.candT = 0;
   S.danger = dangerClose(S.team, S.ax, S.az, STN_DC).length;
 }
 function stnTrackToggle() {
-  const S = STN; if (S.trk) { S.trk = null; stnMsg('Tracking off.'); return; }
-  if (!S.lock) { stnMsg('Put the reticle on a person or vehicle first, then press Track target.'); return; }
-  S.trk = { ref: S.lock.ref, kind: S.lock.kind }; stnMsg('Tracking the ' + (S.lock.cls === 'e' ? 'enemy' : S.lock.cls === 'f' ? 'friendly' : 'unknown') + ' ' + S.lock.kind + '.');
+  const S = STN; if (S.trk) { stnLockOff(S.trk.auto ? 'Lock released.' : 'Tracking off.', true); return; }
+  if (!S.lock) { stnMsg('No target to track.'); return; }
+  S.trk = { ref: S.lock.ref, kind: S.lock.kind, auto: false }; { const p0 = stnPos(S.lock.ref, S.lock.kind); S.tv = { x: 0, z: 0, px: p0.x, pz: p0.z }; } stnMsg('Tracking the ' + (S.lock.cls === 'e' ? 'enemy' : S.lock.cls === 'f' ? 'friendly' : 'unknown') + ' ' + S.lock.kind + '.');
 }
 
 /* ---------------------------------------------------------------- drawing: the scene into a target, then the sensor picture on the canvas */
@@ -13469,6 +13573,7 @@ function stnWeaponUi() {
     const c = stnEl('stnC' + (i + 1)); if (!c) continue; const w = S.W[i], lab = stnLab(i), sel = S.weapon === i, fill = w.prep > 0 ? 1 - w.prep / SW[i].prep : i === 2 ? w.fill : w.rel > 0 ? 1 - w.rel / (i === 0 ? SW[0].reload : 1.2 + SW[1].reload) : 1;
     if (c.dataset.sel !== String(sel)) { c.dataset.sel = String(sel); stnEl('stnS' + (i + 1)).setAttribute('aria-pressed', String(sel)); }
     const l = c.querySelector('.stnLab'); if (l.textContent !== lab) l.textContent = lab; const b = c.querySelector('.stnBar i'); const wd = (clamp(fill, 0, 1) * 100).toFixed(0) + '%'; if (b.style.width !== wd) b.style.width = wd;
+    const bt = c.querySelector('.stnBtn'); if (bt) { const tx = (sel ? 'Left mouse' : '') + (i === 2 ? (sel ? ' and ' : '') + 'Right mouse' : ''); if (bt.textContent !== tx) bt.textContent = tx; }
     const f = stnEl('stnF' + (i + 1)); const dis = !sel || lab !== 'Ready' || S.state !== 'locked'; f.setAttribute('aria-disabled', String(dis)); c.dataset.st = lab;
   }
 }
@@ -13476,38 +13581,35 @@ function stnDom() {
   const S = STN, u = S.u; if (!u) return; const set = (id, t) => { const e = stnEl(id); if (e && e.textContent !== t) e.textContent = t; };
   const cl = S.cloud < 0.12 ? 'clear' : S.cloud < 0.45 ? 'thin cloud' : 'dense cloud';
   set('stnTL', 'Sensor: ' + STN_MODES[S.mode].n + '\nZoom: x' + S.zoom.toFixed(S.zoom < 10 ? 1 : 0) + '\nCloud: ' + cl + '\nContacts: ' + (S.cnt.e + S.cnt.f + S.cnt.u) + ' (enemy ' + S.cnt.e + ', friendly ' + S.cnt.f + ', unknown ' + S.cnt.u + ')');
-  const b = cmpDeg(S.ax - u.x, S.az - u.z); set('stnTR', 'Grid ' + gridRef(S.ax, S.az) + '\nBearing ' + pad3(b) + ' ' + cmpName(b) + '\nRange ' + Math.round(S.range || 0) + ' m' + (S.trk ? '\nTracking target' : ''));
+  const b = cmpDeg(S.ax - u.x, S.az - u.z); set('stnTR', 'Grid ' + gridRef(S.ax, S.az) + '\nBearing ' + pad3(b) + ' ' + cmpName(b) + '\nRange ' + Math.round(S.range || 0) + ' m' + (S.trk ? (S.trk.auto ? '\nLocked: ' + S.trk.kind : '\nTracking target') : ''));
   const hd = cmpDeg(Math.sin(u.hd), Math.cos(u.hd)); set('stnSt', 'Orbit left, altitude ' + Math.round(u.y) + ' m, heading ' + pad3(hd));
   let m = ''; const dc = S.danger ? 'DANGER CLOSE: friendly forces within ' + STN_DC + ' m of the aim point.' : '';
   if (S.state === 'losing') m = 'Losing target. The point is beyond the gimbal limit.'; else if (S.state === 'broken') m = 'Lock lost. Slew or tap the view to lock again.'; else if (S.msg && S.t - (S.msgT || 0) < 6) m = S.msg;
   const el = stnEl('stnMsg'), txt = (dc ? dc + (m ? '\n' : '') : '') + m; if (el.textContent !== txt) el.textContent = txt; el.dataset.dc = dc ? '1' : '0'; el.dataset.warn = S.state !== 'locked' ? '1' : '0'; el.hidden = !txt;
   const tr = stnEl('stnTrack'); if (tr) tr.setAttribute('aria-pressed', String(!!S.trk));
-  const hint = S.free ? 'Cursor free: click a button or the small map, or Shift + click the view to move the aim point. Click the view or press C to aim with the mouse again.' : S.locked ? 'Mouse aims. Left button fires (hold for the Vulcan and the 40 mm). Right button held: slow aim. Wheel or 1 2 3 choose the gun. Shift + wheel, + -, [ ] or Q E zoom. T tracks. C frees the cursor. Esc leaves.' : 'Click the view to aim with the mouse. Moving the mouse over the view still slews. Left button fires, wheel or 1 2 3 choose the gun, Shift + wheel zooms, Esc leaves.';
+  const hint = S.free ? 'Cursor free: click a button or the small map, or Shift + click the view to move the aim point. Click the view or press C to aim with the mouse again.' : S.locked ? 'Mouse aims, hold Shift to aim finer. Left mouse fires the chosen gun (hold for the 40 mm), right mouse fires the Vulcan. Wheel zooms. 1 2 3 choose a gun, Q swaps howitzer and 40 mm. T tracks. Hold still on a target to lock and follow it. C frees the cursor for the buttons. Esc leaves.' : 'Click the view to aim with the mouse. Moving the mouse over the view still slews. Left mouse fires the chosen gun, right mouse fires the Vulcan, wheel zooms, Q swaps guns, Esc leaves.';
   if (S.hint !== hint) { S.hint = hint; const he = stnEl('stnHint'); if (he) he.textContent = hint; }
 }
 
 /* ---------------------------------------------------------------- building the controls once */
 function stnBuild() {
   if (stnBuilt) return; stnBuilt = true; const S = STN, root = $('stn'), cv = stnEl('stnHud');
-  const up = (e) => { if (!S.on) return; if (e.pointerType === 'mouse') { if (e.button === 0) S.fireLmb = false; if (e.button === 2) S.prec = false; return; } S.ptr.delete(e.pointerId); if (S.drag && S.drag.id === e.pointerId) { const d = S.drag; S.drag = null; if (e.type === 'pointerup' && e.button === 0 && !d.moved) stnClickAt(e.clientX, e.clientY); } if (S.ptr.size < 2) S.pinch = null; };
+  const up = (e) => { if (!S.on) return; if (e.pointerType === 'mouse') { if (e.button === 0) S.fireLmb = false; if (e.button === 2) S.fireRmb = false; return; } S.ptr.delete(e.pointerId); if (S.drag && S.drag.id === e.pointerId) { const d = S.drag; S.drag = null; if (e.type === 'pointerup' && e.button === 0 && !d.moved) stnClickAt(e.clientX, e.clientY); } if (S.ptr.size < 2) S.pinch = null; };
   cv.addEventListener('pointerdown', (e) => {
     if (!S.on) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) { }
     if (e.pointerType === 'mouse') {                                                                      // the mouse aims by moving; the buttons fire
-      if (e.button === 2) { S.prec = true; return; } if (e.button !== 0) return;
+      if (e.button === 2) { S.fireRmb = true; return; } if (e.button !== 0) return;
       if (e.shiftKey && !S.locked) { stnClickAt(e.clientX, e.clientY); return; }                         // Shift + click puts the aim point at the cursor (when the cursor is free)
       if (!S.locked && !S.plFail && !isTouch) { stnLockReq(); return; }                                  // the first click only captures the mouse, like first person
       S.fireLmb = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } return;
     }
     S.ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (S.ptr.size === 2) { const [a, b] = [...S.ptr.values()]; S.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: S.zoomT }; S.drag = null; } else if (S.ptr.size === 1) S.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 }; });
   cv.addEventListener('pointermove', (e) => { if (!S.on || e.pointerType === 'mouse') return; const p = S.ptr.get(e.pointerId); if (!p) return; if (S.pinch && S.ptr.size === 2) { p.x = e.clientX; p.y = e.clientY; const [a, b] = [...S.ptr.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (S.pinch.d > 10) S.zoomT = clamp(S.pinch.z * d / S.pinch.d, 1, STN_ZMAX); return; }
-    if (S.drag && S.drag.id === e.pointerId) { const dx = e.clientX - S.drag.x, dy = e.clientY - S.drag.y; S.drag.moved += Math.hypot(dx, dy); if (S.drag.moved > 6) stnDrag(dx, dy); S.drag.x = e.clientX; S.drag.y = e.clientY; p.x = e.clientX; p.y = e.clientY; } });
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { S.fireRmb = S.fireLmb = S.prec = false; up(e); }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
-  root.addEventListener('wheel', (e) => {                                                                // the wheel changes gun; Shift + wheel zooms
-    if (!S.on) return; e.preventDefault(); const d = e.deltaY || e.deltaX; if (!d) return;
-    if (e.shiftKey) { stnZoom(d < 0 ? 1.18 : 1 / 1.18); return; }
-    const now = performance.now(), notch = Math.abs(d) >= 50, quiet = now - S.wheelT > 250;
-    if (notch ? now - S.wheelS > 120 : quiet) { S.wheelS = now; stnWheelStep(d < 0 ? 1 : -1); }                 // one step per notch; a touchpad flick (many small events) gives one step only
-    S.wheelT = now; }, { passive: false });
+    if (S.drag && S.drag.id === e.pointerId) { const dx = e.clientX - S.drag.x, dy = e.clientY - S.drag.y; S.drag.moved += Math.hypot(dx, dy); if (S.drag.moved > 6 && stnNoteMove(Math.hypot(dx, dy))) stnDrag(dx, dy); S.drag.x = e.clientX; S.drag.y = e.clientY; p.x = e.clientX; p.y = e.clientY; } });
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { S.fireRmb = S.fireLmb = false; up(e); }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+  root.addEventListener('wheel', (e) => {                                                                // the wheel zooms: up in, down out; one notch is one step (x1.18) and a touchpad's small events add up smoothly
+    if (!S.on) return; e.preventDefault(); const d = e.deltaY || e.deltaX; if (!d) return; const m = e.deltaMode === 1 ? 33 : 1;
+    stnZoom(Math.exp(-clamp(d * m, -240, 240) * 0.00165)); }, { passive: false });
   addEventListener('mousemove', (e) => {                                                                 // locked: every move aims. Not locked (the browser said no): moving over the view still aims
     if (!S.on || (!e.movementX && !e.movementY)) return; if (!S.locked && (S.free || e.target !== cv)) return; stnMouse(e.movementX, e.movementY); });
   document.addEventListener('pointerlockchange', () => {
@@ -13515,12 +13617,12 @@ function stnBuild() {
     if (S.locked) { S.plFail = false; S.free = false; } else if (was && !S.free && document.hasFocus()) stnLeave(); });                // Esc (the browser eats the key and releases the mouse) leaves the station, and the soldier or the overview takes the mouse back on the next click
   document.addEventListener('pointerlockerror', () => { if (!S.on) return; S.plFail = true; S.locked = false; stnMsg('Click the view to aim with the mouse.'); });
   try { const v = parseInt(localStorage.getItem('squall-cove-stn-sens'), 10); if (v >= 0 && v < STN_SENS.length) S.sensI = v; } catch (e) { }
-  const mini = stnEl('stnMini'); mini.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); e.stopPropagation(); const r = mini.getBoundingClientRect(); stnSetAim(((e.clientX - r.left) / r.width * 2 - 1) * EXT, ((e.clientY - r.top) / r.height * 2 - 1) * EXT); });
+  const mini = stnEl('stnMini'); mini.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); e.stopPropagation(); const r = mini.getBoundingClientRect(); stnSetAim(((e.clientX - r.left) / r.width * 2 - 1) * EXT, ((e.clientY - r.top) / r.height * 2 - 1) * EXT, true); });
   const pad = stnEl('stnPad'), kn = stnEl('stnKnob'); let pid = null; const pm = (e) => { const r = pad.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2 - 10; let dx = (e.clientX - cx) / R, dy = (e.clientY - cy) / R; const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; } S.pad.x = Math.abs(dx) < 0.1 ? 0 : dx; S.pad.y = Math.abs(dy) < 0.1 ? 0 : dy; kn.style.transform = 'translate(' + (dx * R * 0.7).toFixed(0) + 'px,' + (dy * R * 0.7).toFixed(0) + 'px)'; };
   pad.addEventListener('pointerdown', (e) => { pid = e.pointerId; try { pad.setPointerCapture(e.pointerId); } catch (er) { } e.preventDefault(); pm(e); }); pad.addEventListener('pointermove', (e) => { if (e.pointerId === pid) pm(e); });
   const pe = (e) => { if (e.pointerId !== pid) return; pid = null; S.pad.x = S.pad.y = 0; kn.style.transform = ''; }; pad.addEventListener('pointerup', pe); pad.addEventListener('pointercancel', pe);
   const on = (id, fn) => { const b = stnEl(id); if (b) b.addEventListener('click', fn); };
-  on('stnThermal', () => stnSetMode('thermal')); on('stnNight', () => stnSetMode('night')); on('stnPhos', () => { stnSetPhos(STN.phos === 'white' ? 'green' : 'white'); if (STN.mode !== 'night') stnSetMode('night', true); }); on('stnColour', () => stnSetMode('colour')); on('stnZoomIn', () => stnZoom(1.6)); on('stnZoomOut', () => stnZoom(1 / 1.6)); on('stnTrack', stnTrackToggle); on('stnLeave', stnLeave);
+  on('stnThermal', () => stnSetMode('thermal')); on('stnNight', () => stnSetMode('night')); on('stnPhos', () => { stnSetPhos(STN.phos === 'white' ? 'green' : 'white'); if (STN.mode !== 'night') stnSetMode('night', true); }); on('stnColour', () => stnSetMode('colour')); on('stnZoomIn', () => stnZoom(1.6)); on('stnZoomOut', () => stnZoom(1 / 1.6)); on('stnTrack', stnTrackToggle); on('stnLeave', stnLeave); on('stnFree', stnFreeToggle);
   for (let i = 0; i < 3; i++) {
     on('stnS' + (i + 1), () => stnSelect(i));
     const f = stnEl('stnF' + (i + 1)); f.addEventListener('pointerdown', (e) => { e.preventDefault(); if (S.weapon !== i) { stnSelect(i); return; } if (i === 2) { S.fireBtn = true; try { f.setPointerCapture(e.pointerId); } catch (er) { } } else stnTryFire(); });
@@ -13528,7 +13630,7 @@ function stnBuild() {
   }
   try { stnSetPhos(localStorage.getItem('squall-cove-stn-phos') === 'white' ? 'white' : 'green', true); } catch (e) { stnSetPhos('green', true); }
   KEY_ROUTE.unshift(stnKey);
-  addEventListener('keyup', (e) => { if (!S.on) return; const k = e.key.toLowerCase(); S.keys.delete(k); if (k === ' ' || k === 'enter') { S.fireKey = false; e.preventDefault(); } });
+  addEventListener('keyup', (e) => { if (!S.on) return; const k = e.key.toLowerCase(); S.keys.delete(k); if (k === 'shift') S.prec = false; if (k === ' ' || k === 'enter') { S.fireKey = false; e.preventDefault(); } });
   addEventListener('blur', () => { S.keys.clear(); S.fireKey = false; S.fireBtn = false; S.fireRmb = false; S.fireLmb = false; S.prec = false; });
 }
 function stnKey(e) {
@@ -13536,14 +13638,20 @@ function stnKey(e) {
   if (k === 'escape') { stnLeave(); e.preventDefault(); return; }
   if (k === '1' || k === '2' || k === '3') { stnSelect(+k - 1); e.preventDefault(); return; }
   if (k === ' ' || k === 'enter') { if (!e.repeat) { S.fireKey = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } } e.preventDefault(); return; }
-  if (k === '+' || k === '=' || k === ']' || k === 'e' || e.code === 'NumpadAdd') { stnZoom(1.35); e.preventDefault(); return; } if (k === '-' || k === '_' || k === '[' || k === 'q' || e.code === 'NumpadSubtract') { stnZoom(1 / 1.35); e.preventDefault(); return; }
+  if (k === 'q' && !e.repeat) { stnSwap(); e.preventDefault(); return; }
+  if (!e.repeat && (k === '4' || k === '5' || k === '6')) { stnSetMode(['thermal', 'night', 'colour'][+k - 4]); e.preventDefault(); return; }
+  if (!e.repeat && k === '7') { stnPhosKey(); e.preventDefault(); return; }
+  if (!e.repeat && k === 'v') { stnCycleMode(); e.preventDefault(); return; }
+  if (k === 'shift') { S.prec = true; return; }
+  if (k === '+' || k === '=' || k === ']' || k === 'e' || e.code === 'NumpadAdd') { stnZoom(1.35); e.preventDefault(); return; } if (k === '-' || k === '_' || k === '[' || e.code === 'NumpadSubtract') { stnZoom(1 / 1.35); e.preventDefault(); return; }
   if (k === ',' || k === '<') { stnSens(-1); e.preventDefault(); return; } if (k === '.' || k === '>') { stnSens(1); e.preventDefault(); return; }
-  if (k === 'c' && !e.repeat) { if (S.free) stnLockReq(); else { S.free = true; if (document.pointerLockElement === stnEl('stnHud')) { try { document.exitPointerLock(); } catch (er) { } } stnMsg('Cursor free. Click the view or press C to aim with the mouse again.'); } e.preventDefault(); return; }
+  if (k === 'c' && !e.repeat) { stnFreeToggle(); e.preventDefault(); return; }
   if (k === 't' && !e.repeat) { stnTrackToggle(); return; } if (k === 'm' && !e.repeat) { stnCycleMode(); return; }
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(k)) { S.keys.add(k); e.preventDefault(); return; }
 }
 stnBuild();
-Object.assign(window.__sc, { stnMouse, stnWheelStep, stnLockReq, STN_SENS, burnArea, FLARE, STN, STN_MODES, stnSetPhos, stnFxSet, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
+Object.assign(window.__sc, { VOICE, SQD });
+Object.assign(window.__sc, { stnMouse, stnSwap, stnLockReq, STN_SENS, burnArea, FLARE, STN, STN_MODES, stnSetPhos, stnFxSet, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
 /*STN-END*/
 /*SA-START*/
 /* ================================================================ v9.8: see the battle at a glance.
