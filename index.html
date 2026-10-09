@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.4 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.5 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -4880,7 +4880,9 @@ function fpStance(n) {                                           // stand, crouc
   if (!fp.on) return; fp.stance = n; toast(['Standing', 'Crouching: slower, steadier, harder to hit', 'Prone: very low and still. Space gets you up.'][n]); fp.zoom = fp.zoom && true;
 }
 function fpJumpOrGetUp() {
-  const p = fp.p; if (!p) return; if (fp.veh) { fp.vhb = 0.5; return; } if (BATTLE.on && BATTLE.down) return; if (fp.stance) { fpStance(0); return; }
+  const p = fp.p; if (!p) return; if (fp.veh) { fp.vhb = 0.5; return; }
+  if (p.state === 'rag' && BATTLE.on && (BATTLE.down || (p.hp !== undefined && p.hp <= 0))) return;          // a real knock-out waits for the deploy menu; a knock-DOWN (hp > 0) always gets up with Space or Jump, first
+  if (p.state !== 'rag' && BATTLE.on && BATTLE.down) return; if (p.state === 'rag') fp.stance = 0; else if (fp.stance) { fpStance(0); return; }
   if (p.state === 'rag') { if (standY(p.rag.bodies.pelvis.position.x, p.rag.bodies.pelvis.position.z) >= 0.15) standUp(p); else { const pb = p.rag.bodies.pelvis.position; freeRag(p); p.state = 'idle'; p.floating = false; p.x = pb.x; p.z = pb.z; p.swim = true; p.y = waveH(p.x, p.z, simT) - 1.15; for (const n in p.info) { const i = p.info[n]; i.b.quaternion.copy(i.restQ); i.b.position.copy(i.restP); } p.obj.quaternion.identity(); giveBody(p); } return; }
   fp.jump = true;
 }
@@ -6777,7 +6779,6 @@ function gunshipFromOverview(fromPanel) {                              // the Gu
   if (STN.on) return false; if (mode !== 'god') { toast('Go back to the overview first.'); return false; }
   if (BATTLE.over) { toast('The battle is over. Clear the battlefield or play again first.'); return false; }
   const team = BATTLE.on ? (BATTLE.team || FIRE.team || 'blue') : 'blue';
-  if (BATTLE.on && !stnPick(team) && !CHEAT.free && AIR.cd[team].gs > 0) { toast('The gunship is not ready yet. Your side has to wait before calling it again.'); return false; }
   const s0 = sel[0]; let at = null; if (s0) { if (Number.isFinite(s0.x) && Number.isFinite(s0.z)) at = { x: s0.x, z: s0.z }; else if (s0.body && s0.body.position) at = { x: s0.body.position.x, z: s0.body.position.z }; }
   const ov = { x: god.tgt.x, y: god.tgt.y, z: god.tgt.z, yaw: god.yaw, dist: god.dist, tilt: god.tilt, top: god.top, follow: god.follow, fly: god.fly };
   if (!stnOpenFor(team, { at })) return false; STN.ov = ov; return true;
@@ -13232,9 +13233,8 @@ function stnOpenFor(team, o) {
   o = o || {}; if (STN.on) return true; if (BATTLE.over) return false; team = team || BATTLE.team || 'blue';
   let u = stnPick(team); const hot = hotSpot(team), st0 = o.at ? { x: o.at.x, z: o.at.z } : fp.on && S0op(o) ? (hot || { x: fp.p.x, z: fp.p.z }) : (!fp.on && Math.abs(god.tgt.x) < EXT && Math.abs(god.tgt.z) < EXT ? { x: god.tgt.x, z: god.tgt.z } : (hot || { x: 0, z: 0 }));
   if (!u) {
-    if (BATTLE.on && !o.free && !CHEAT.free && AIR.cd[team].gs > 0) { toast('The gunship is not ready yet.'); return false; }
     ensureAir(); const c = { x: st0.x, z: st0.z }; u = airSpawn(team, 'gunship', c); if (!u) { toast('No gunship could be called.'); return false; }
-    const a = Math.random() * 6.283; u.oa = a; u.x = c.x + Math.cos(a) * ACORB; u.z = c.z + Math.sin(a) * ACORB; u.hd = Math.PI - a; u.y = ACALT; u.life += 10; u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, 0, 'YXZ'); if (BATTLE.on) AIR.cd[team].gs = 180;
+    const a = Math.random() * 6.283; u.oa = a; u.x = c.x + Math.cos(a) * ACORB; u.z = c.z + Math.sin(a) * ACORB; u.hd = Math.PI - a; u.y = ACALT; u.life += 10; u.pstn = true; u.g.position.set(u.x, u.y, u.z); u.g.rotation.set(0, u.hd, 0, 'YXZ');   // the station's own gunship: free, no cooldown, and it never touches the side's call cooldown (AIR.cd.gs)
   }
   if (u.leaving) { u.leaving = false; u.life = Math.max(u.life, 30); }
   stnBuild(); const S = STN;

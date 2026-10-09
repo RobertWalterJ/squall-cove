@@ -701,7 +701,7 @@
   ,
   {
    "id": "gunship-overview",
-   "what": "Gunship button on the overview (and the O key): opens the station for your side's gunship, calling one in if none is up (respects the battle cooldown); also works in the sandbox with no battle, orbiting the centre of the view or the selected person. Leaving returns the overview camera exactly where it was",
+   "what": "Gunship button on the overview (and the O key): opens the station for your side's gunship, taking over the side's gunship if one is up, otherwise spawning one at once, free (never blocked by a cooldown, and it uses its own slot so the AI's calls cannot make it unavailable; the cooldown only limits the Command panel strike call and the AI); also works in the sandbox with no battle, orbiting the centre of the view or the selected person. Leaving returns the overview camera exactly where it was",
    "covers": [
     "over|O"
    ],
