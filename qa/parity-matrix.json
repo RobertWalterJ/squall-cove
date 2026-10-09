@@ -229,15 +229,22 @@
   },
   {
    "id": "cheats",
-   "what": "Cheats panel",
+   "what": "Cheat prompt (backtick or Enter then /, every mode) and the cheats panel",
    "covers": [
     "over|` (backtick)",
-    "fp|` (backtick)"
+    "fp|` (backtick)",
+    "over|Enter, then /",
+    "fp|Enter, then /",
+    "veh|` or Enter, then /",
+    "stn|` or Enter, then /",
+    "over|Cheat codes"
    ],
    "desktop": {
-    "sel": "#mCheats,#chClose"
+    "sel": "#mCheats,#chClose,#chPrompt,#chPIn,#chPRun,#chPClose,#chOff"
    },
-   "phoneOmit": "Hidden on the phone edition so the Menu stays short. The code ignores the key and the button is not shown."
+   "phone": {
+    "sel": "#mCheats,#chPrompt,#chPIn,#chPRun,#chPClose,#chOff"
+   }
   },
   {
    "id": "enter-fp",
@@ -711,8 +718,7 @@
     "sel": "#stnS1,#stnS2,#stnS3,#stnF1,#stnF2,#stnF3,#stnThermal,#stnNight,#stnPhos,#stnColour,#stnZoomOut,#stnZoomIn,#stnTrack,#stnLeave,#stnMini,#stnPad",
     "gesture": "One thumb on the slew pad moves the aim point; a tap in the view or on the small map sets it; pinch zooms; the large Fire buttons fire (hold for the Vulcan); Leave station is always on screen"
    }
-  }
-  ,
+  },
   {
    "id": "gunship-overview",
    "what": "Gunship button on the overview (and the O key): opens the station for your side's gunship, taking over the side's gunship if one is up, otherwise spawning one at once, free (never blocked by a cooldown, and it uses its own slot so the AI's calls cannot make it unavailable; the cooldown only limits the Command panel strike call and the AI); also works in the sandbox with no battle, orbiting the centre of the view or the selected person. Leaving returns the overview camera exactly where it was",

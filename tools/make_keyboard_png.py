@@ -22,7 +22,7 @@ MODES = {
   'w': (1, 'Pan up'), 'a': (1, 'Pan left'), 's': (1, 'Pan down'), 'd': (1, 'Pan right'), 'q': (1, 'Turn left'), 'e': (1, 'Turn right'),
   'z': (1, 'Zoom out'), 'x': (1, 'Zoom in'), '1': (5, 'Select tool'), '2': (5, 'Place tool'), '3': (5, 'Land tool'), '4': (5, 'Sky tool'),
   'esc': (6, 'Stand down / menu'), 't': (4, 'Command'), 'l': (4, 'Tactical map'), 'j': (2, 'Jump in'), 'k': (2, 'Watch next'), 'o': (2, 'Gunship station'),
-  'p': (6, 'Side pane'), '`': (6, 'Cheats'), 'v': (1, 'Drop into first person'), 'h': (1, 'Take the helm'), 'n': (1, 'Next boat'),
+  'p': (6, 'Side pane'), '`': (6, 'Cheat prompt (or Enter then /)'), 'enter': (6, 'Cheat prompt: Enter, then /'), '/': (6, 'Enter, then / opens the prompt'), 'v': (1, 'Drop into first person'), 'h': (1, 'Take the helm'), 'n': (1, 'Next boat'),
   'r': (2, 'Rain crates'), 'f': (2, 'Fire mode'), 'b': (4, 'Box-select mode'), 'g': (2, 'Drop carried'), 'del': (6, 'Remove selected'),
   '[': (6, 'Drop height down'), ']': (6, 'Drop size up'), '5': (3, 'Recall group 5'), '6': (3, 'Recall group 6'), '7': (3, 'Recall group 7'),
   '8': (3, 'Recall group 8'), '9': (3, 'Recall group 9'), 'shift': (4, 'Shift+drag: box-select'), 'ctrl': (4, 'Ctrl+A: select all; Ctrl+5-9 saves group')}),
@@ -33,7 +33,7 @@ MODES = {
   'n': (3, 'Hold: squad order ring'), 'i': (3, 'Ping a spot or enemy'), 'j': (3, 'Squad mount up / get out'), 'm': (4, 'Quick map (Shift+M corner map)'),
   'u': (3, 'Heal me'), 'k': (3, 'Squad hold / free fire'), 't': (4, 'Command'), 'l': (4, 'Tactical map'), 'b': (2, 'Detonate charges'),
   'y': (3, 'Swap to nearest friend'), 'v': (6, 'Back to overview'), 'esc': (6, 'Back to overview'), 'tab': (6, 'Back to overview'), 'o': (6, 'Back to overview'),
-  '`': (6, 'Cheats'), '1': (5, 'Tool 1'), '2': (5, 'Tool 2'), '3': (5, 'Tool 3'), '4': (5, 'Tool 4'), '5': (5, 'Tool 5'), '6': (5, 'Tool 6'),
+  '`': (6, 'Cheat prompt (or Enter then /)'), 'enter': (6, 'Cheat prompt: Enter, then /'), '/': (6, 'Enter, then / opens the prompt'), '1': (5, 'Tool 1'), '2': (5, 'Tool 2'), '3': (5, 'Tool 3'), '4': (5, 'Tool 4'), '5': (5, 'Tool 5'), '6': (5, 'Tool 6'),
   '7': (5, 'Tool 7'), '8': (5, 'Tool 8 / squad order 8'), '9': (5, 'Tool 9'), '0': (5, 'Grenade'), '-': (5, 'Charge')}),
  'station': ('Gunship station', {
   '1': (2, 'Howitzer (ready-up ~2 s)'), '2': (2, '40 mm cannon (~1 s, 15 rounds)'), '3': (2, 'Vulcan (instant; right mouse fires it any time)'), 'space': (2, 'Fire chosen gun (also left mouse button)'), 'enter': (2, 'Fire chosen gun'),
