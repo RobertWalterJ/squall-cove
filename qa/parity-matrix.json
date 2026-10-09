@@ -182,11 +182,11 @@
     "fp|Shift + M"
    ],
    "desktop": {
-    "sel": "#qmClose,#qmFull,#qmToggle",
+    "sel": "#miniMap,#qmClose,#qmFull,#qmToggle",
     "gesture": "Press M (again, Esc or a click outside closes it); Shift + M hides the corner map"
    },
    "phone": {
-    "sel": "#qmClose,#qmFull,#qmToggle,#fpMapBtn",
+    "sel": "#miniMap,#qmClose,#qmFull,#qmToggle,#fpMapBtn",
     "gesture": "Tap the Map button or the corner map; the Quick map has Close, Full map and Hide corner map buttons"
    }
   },

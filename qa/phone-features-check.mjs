@@ -41,7 +41,7 @@ await run('features', `${base}index.html?map=port&nointro=1&gov=auto&edition=pho
   // ---- battle, wake lock, back in play
   await b.ev("__sc.openBattleSetup();1"); await sleep(600); await b.ev(clickText('#bSetup button', 'Begin battle')); await sleep(16000);
   await sleep(1800); const wl = await b.ev('__wl'); check(wl.req >= 1, 'wake lock requested once the battle is on', 'no wake lock request in a battle: ' + JSON.stringify(wl));
-  await b.ev("document.getElementById('bMenu').click();1"); await sleep(2000); const wl2 = await b.ev('__wl');
+  await b.ev("document.getElementById('bMenu').click();1"); let wl2 = null; for (let i = 0; i < 16; i++) { await sleep(500); wl2 = await b.ev('__wl'); if (wl2.rel >= 1) break; }
   check(wl2.rel >= 1, 'wake lock released while the Menu is open', 'wake lock was not released with the Menu open: ' + JSON.stringify(wl2));
   await b.ev("document.getElementById('menuSheet').hidden=true;1"); await sleep(2000); const wl3 = await b.ev('__wl'); check(wl3.req >= 2, 'wake lock taken again when play resumes', 'wake lock not re-taken: ' + JSON.stringify(wl3));
   await b.ev("__sc.openCommand('fire');1"); await sleep(300); await b.ev("document.getElementById('tablet').hidden=true;1"); await sleep(300);
