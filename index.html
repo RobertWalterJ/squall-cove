@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.7 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.8 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -3550,7 +3550,7 @@ const PERSON_ROLES = ['Tourist', 'Dock worker', 'Hiker', 'Photographer', 'Fisher
 const GR_PERSON = 2, GR_RAG = 16;
 /* The mixer only rewrites a bone when its clip value changes, so anything I layer on top (gait, wave, bob) would stick or pile up.
    Each frame: put the bones I touch back to the clean animated pose, let the mixer run, snapshot, then layer on top. */
-const POSED = ['thigh.L', 'thigh.R', 'shin.L', 'shin.R', 'upper_arm.L', 'upper_arm.R', 'forearm.L', 'forearm.R', 'spine', 'chest', 'head', 'foot.L', 'foot.R'];
+const POSED = ['thigh.L', 'thigh.R', 'shin.L', 'shin.R', 'upper_arm.L', 'upper_arm.R', 'forearm.L', 'forearm.R', 'spine', 'chest', 'head', 'neck', 'foot.L', 'foot.R'];
 function animStep(p, dt) {
   for (const n of POSED) p.bones[n].quaternion.copy(p.snap[n]); p.bones.hips.position.copy(p.snapHip);
   p.mixer.update(dt);
@@ -3794,7 +3794,7 @@ function poseCrouchStance(p, k, wk, runK, leanK, kn, ly) {        // knees and h
   for (const [side, off, ix, kt] of [['L', 0, idle, kL], ['R', 0.5, -idle, kR]]) {
     const u = ((ph / 6.2832 + off) % 1 + 1) % 1; let fx, fy;
     if (u < sf) { fx = Sc * (sf / 2 - u); fy = -hh; } else { const s = (u - sf) / (1 - sf), e = s * s * (3 - 2 * s); fx = Sc * (-sf / 2 + e * sf); fy = -hh + lift * Math.sin(Math.PI * s); }
-    let tx = ix + (fx - ix) * w, ty = -Hc + (fy + Hc) * w; tx += (kt[0] - tx) * kn; ty += (kt[1] - ty) * kn; tx += (0 - tx) * ly; ty += (-Hs - ty) * ly;
+    let tx = ix + (fx - ix) * w, ty = -Hc + (fy + Hc) * w; tx += (kt[0] - tx) * kn; ty += (kt[1] - ty) * kn; tx += (0.18 - tx) * ly; ty += (-Hs - ty) * ly;
     solveLeg(p, side, tx, ty, k, 0.12 * ly, 1.3 * ly);
   }
   const lean = leanK * (0.16 + 0.15 * runK), leanT = (lean + (0.14 - lean) * kn) * (1 - ly);
@@ -3806,17 +3806,18 @@ function crawlStride(p) { const T = legDims(p).T; return 2 * T * (Math.cos(CRAWL
 function poseProne(p, pk, wk, t) {                                  // the drop (knees, then hands, then chest), lying flat with the head up, and the crawl; the body itself is tilted by placeBody
   if (pk < 0.02) return; const R = p.ax.right, F = p.ax.fwd, U = p.ax.up;
   const ext = ss(clamp((pk - 0.55) / 0.45, 0, 1));
-  blendPose(p, 'spine', R, 0.08 * ext, 1); blendPose(p, 'chest', R, 0.1 * ext, 1); blendPose(p, 'head', R, 0.15 * ext, 1);
+  { const hf = clamp((p.pitchA || 0) / 1.45, 0, 1); blendPose(p, 'spine', R, 0.08 * ext, 1); blendPose(p, 'chest', R, 0.1 * ext, 1); blendPose(p, 'neck', R, 0.42 * hf, 1); blendPose(p, 'head', R, 0.78 * hf + 0.1 * ext, 1); }          // the torso lies flat, so the neck and head turn back up: the face looks along the ground ahead, not into it
   const cw = pk * wk;
   if (cw > 0.02) {                                                  // crawl: opposite knees drawn up and dragged back in turn, the shoulders twisting against the hips
     const ph = p.ph, T = legDims(p).T;
     for (const [side, off] of [['L', 0], ['R', 0.5]]) {
       const u = ((ph / 6.2832 + off) % 1 + 1) % 1; let g, kn;
-      if (u < 0.5) { g = Math.acos(Math.cos(CRAWL.gHi) + (Math.cos(CRAWL.gLo) - Math.cos(CRAWL.gHi)) * (u / 0.5)); kn = 0.25; } else { const s = (u - 0.5) / 0.5, e = s * s * (3 - 2 * s); g = CRAWL.gLo + (CRAWL.gHi - CRAWL.gLo) * e; kn = 0.25 + 0.55 * Math.sin(Math.PI * s); }
-      blendPose2(p, 'thigh.' + side, R, u < 0.5 ? 0 : -0.3 * Math.sin(Math.PI * (u - 0.5) / 0.5), F, g * (side === 'L' ? 1 : -1), cw); blendPose(p, 'shin.' + side, R, -kn, cw);
+      if (u < 0.5) { g = Math.acos(Math.cos(CRAWL.gHi) + (Math.cos(CRAWL.gLo) - Math.cos(CRAWL.gHi)) * (u / 0.5)); kn = 0.04; } else { const s = (u - 0.5) / 0.5, e = s * s * (3 - 2 * s); g = CRAWL.gLo + (CRAWL.gHi - CRAWL.gLo) * e; kn = 0.04 + 0.03 * Math.sin(Math.PI * s); }
+      blendPose2(p, 'thigh.' + side, R, 0.12, F, g * (side === 'L' ? 1 : -1), cw); blendPose(p, 'shin.' + side, R, -kn, cw);
     }
     addPose(p, 'spine', F, 0.1 * Math.sin(ph) * cw); addPose(p, 'chest', F, -0.06 * Math.sin(ph) * cw);
   }
+  if (cw > 0.02) addPose(p, 'head', R, 0.05 * Math.sin(p.ph * 2) * cw);
   if (wk < 0.3) { const br = Math.sin(t * 1.6 + p.id * 0.37), kk = pk * (1 - wk * 3); addPose(p, 'chest', R, 0.02 * br * kk); addPose(p, 'head', R, -0.012 * br * kk); }
 }
 function poseWave(p, k, t) {
@@ -4387,8 +4388,8 @@ function placeBody(p, dt) {
   p.obj.position.set(p.x + vT1.x - vT2.x, p.y - p.footOff + vT1.y - vT2.y, p.z + vT1.z - vT2.z);
   p.obj.updateMatrixWorld(true);
   if (p.footR === undefined) p.footR = Math.max(0.04, restOf(p, 'foot.L').pos.dot(UPV) - p.footOff);
-  let shift = -1e9;
-  for (let i = 0; i < FITB.length; i++) { const bn = p.bones[FITB[i]]; if (!bn) continue; vT1.setFromMatrixPosition(bn.matrixWorld); const need = standY(vT1.x, vT1.z) - (vT1.y - (i < 2 ? p.footR : FITR[i])); if (need > shift) shift = need; }
+  let shift = -1e9; const ly = p.lyW || 0;
+  for (let i = 0; i < FITB.length; i++) { const bn = p.bones[FITB[i]]; if (!bn) continue; vT1.setFromMatrixPosition(bn.matrixWorld); const need = standY(vT1.x, vT1.z) - (vT1.y - (i < 2 ? p.footR * (1 - ly) + 0.0 * ly : i < 4 ? 0.09 * (1 - ly) + 0.03 * ly : FITR[i])); if (need > shift) shift = need; }
   const gm = p.gunMesh || (p.bot && p.bot.wmesh); if (gm && gm.parent === p.obj && gm.visible) { for (const z of [-0.1, 0.5]) { vT1.set(0, 0, z).applyMatrix4(gm.matrixWorld); const need = standY(vT1.x, vT1.z) - (vT1.y - 0.05); if (need > shift) shift = need; } }
   const fw = ss(clamp(pk / 0.12, 0, 1)); p.fitDy = shift * fw; p.obj.position.y += shift * fw;
 }
