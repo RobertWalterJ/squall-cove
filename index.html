@@ -98,6 +98,8 @@ body.stn-on #feedCol{z-index:calc(var(--z-menu) + 1);top:calc(116px + var(--safe
 #stnMsg[data-dc="1"]{background:#8a0f0a;border-color:#fff}
 #stnMsg[hidden]{display:none}
 #stnSt{position:absolute;left:10px;bottom:10px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 14px var(--f-mono);pointer-events:none}
+#stnHint{position:absolute;left:10px;right:152px;bottom:50px;padding:6px 10px;border-radius:8px;background:rgba(8,12,12,.72);color:#f1f5f0;font:600 13px/1.35 var(--f-body);pointer-events:none}
+body.ed-phone #stnHint{display:none}
 #stnMini{position:absolute;right:10px;bottom:10px;width:132px;height:132px;border:2px solid #f1f5f0;border-radius:8px;background:#000;touch-action:none;cursor:pointer}
 #stnPad{display:none;position:absolute;left:14px;bottom:56px;width:132px;height:132px;border-radius:50%;border:2px solid #f1f5f0;background:rgba(8,12,12,.55);touch-action:none;align-items:center;justify-content:center}
 #stnPad i{width:52px;height:52px;border-radius:50%;background:#f1f5f0;opacity:.85}
@@ -346,7 +348,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.2 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.3 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -1142,7 +1144,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
 <div id="objective" hidden><span id="objText"></span><button id="objEnd" type="button">End</button></div>
 <button id="landUndo" type="button" hidden>Undo</button><button id="sculpt" type="button" hidden aria-label="Hold to sculpt the land under the cross">Sculpt</button><button id="placeBtn" type="button" hidden>Place</button><button id="turnBtn" type="button" hidden>Turn</button>
 <div id="stn" hidden role="dialog" aria-label="Gunship sensor station">
-<div id="stnView"><canvas id="stnHud" aria-hidden="true"></canvas><div id="stnTL"></div><div id="stnTR"></div><div id="stnMsg" role="status" aria-live="polite" hidden></div><div id="stnSt"></div><canvas id="stnMini" width="144" height="144" role="img" aria-label="Map. Tap it to move the aim point."></canvas><div id="stnPad" aria-label="Slew pad. Drag with your thumb to move the aim point."><i id="stnKnob"></i></div></div>
+<div id="stnView"><canvas id="stnHud" aria-hidden="true"></canvas><div id="stnTL"></div><div id="stnTR"></div><div id="stnMsg" role="status" aria-live="polite" hidden></div><div id="stnSt"></div><div id="stnHint"></div><canvas id="stnMini" width="144" height="144" role="img" aria-label="Map. Tap it to move the aim point."></canvas><div id="stnPad" aria-label="Slew pad. Drag with your thumb to move the aim point."><i id="stnKnob"></i></div></div>
 <div id="stnCards"><div class="stnCard" id="stnC1" data-sel="true"><button type="button" class="stnSel" id="stnS1" aria-pressed="true"><b>105 mm howitzer</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF1" aria-disabled="true">Fire</button></div>
 <div class="stnCard" id="stnC2" data-sel="false"><button type="button" class="stnSel" id="stnS2" aria-pressed="false"><b>40 mm cannon</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF2" aria-disabled="true">Fire</button></div>
 <div class="stnCard" id="stnC3" data-sel="false"><button type="button" class="stnSel" id="stnS3" aria-pressed="false"><b>25 mm Vulcan</b><span class="stnLab">Ready</span></button><div class="stnBar"><i></i></div><button type="button" class="stnFire" id="stnF3" aria-disabled="true">Hold to fire</button></div></div>
@@ -4840,7 +4842,7 @@ function fpCamera(dt, t) {
   const cp = Math.cos(fp.pitch + sp_); camera.lookAt(px + Math.sin(fp.yaw + sy_) * cp, py + Math.sin(fp.pitch + sp_), pz + Math.cos(fp.yaw + sy_) * cp);
 }
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
-document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch) $('fpHint').textContent = 'Paused. Click the view to look around again. M opens the map and L the full map. Esc or the Leave button returns to the overview.'; });
+document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch && !STN.on) $('fpHint').textContent = 'Paused. Click the view to look around again. M opens the map and L the full map. Esc or the Leave button returns to the overview.'; });
 $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
 let SEEN_MOUSE = false; document.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') SEEN_MOUSE = true; }, { capture: true, passive: true });   // a touch laptop reports a coarse pointer yet has a mouse: believe the mouse once it moves
 const noMouse = () => isTouch && !SEEN_MOUSE;
@@ -4849,7 +4851,7 @@ document.addEventListener('pointerlockerror', () => { fp.lockFail = true; fp.fre
 // the mouse still aims when the browser will not lock the pointer (a refused request, an overlay that ate the click): after one click on the view, plain mouse movement turns the view
 document.addEventListener('pointerdown', (e) => { if (!fp.on || mode !== 'fp' || e.pointerType !== 'mouse' || fp.locked || (BATTLE.on && BATTLE.down)) return; const t = e.target; if (t && t.closest && t.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help,#stn')) return; fp.free = true; lockPointer(); }, true);
 addEventListener('mousemove', (e) => {
-  if (!fp.on || noMouse()) return;
+  if (!fp.on || noMouse() || STN.on) return;
   if (SQD.wheel && SQD.wheelEl && SQD.wheelEl.hidden) SQD.wheel = false;                  // a stuck ring must never swallow the aim
   if (fp.locked) { if (SQD.wheel) { sqdWheelMove(e.movementX, e.movementY); return; } fp.yaw -= e.movementX * 0.0024; fp.pitch = clamp(fp.pitch - e.movementY * 0.0024, -1.45, 1.45); return; }
   if (fp.free && mode === 'fp' && !(e.buttons & 1) && (e.target === canvas || !(e.target && e.target.closest && e.target.closest('button,input,select,textarea,a,.sheet,#tablet,#tmap,#boot,#menuSheet,#sqdWheel,.help,#stn'))) && !SQD.wheel && !(BATTLE.on && BATTLE.down)) { fp.yaw -= e.movementX * 0.0034; fp.pitch = clamp(fp.pitch - e.movementY * 0.0034, -1.45, 1.45); }   // held-button drag is handled by the pointermove drag-look
@@ -8891,11 +8893,14 @@ const KEYMAP = [
   ['veh', 'F', 'Get out (same as E, and works in a helicopter that is under 3 metres up and slow)'],
   ['veh', 'Helicopter: W S, A D, Q E', 'Fly forward and back, bank and turn, and turn on the spot. E turns right in the air and gets you out on the ground'],
   ['veh', 'Helicopter: 1, 2, 3', 'Seats: 1 pilot, 2 and 3 door guns (or the Cobra chin gun). A crewman holds the hover while you shoot. Right button fires the Cobra cannon'],
-  ['stn', '1, 2, 3', 'Gunship station: choose the 105 mm howitzer, the 40 mm cannon or the 25 mm Vulcan. A short "Getting ready" follows each switch'],
-  ['stn', 'Space, Enter, right button', 'Gunship station: fire the chosen gun. Hold for the Vulcan'],
-  ['stn', 'Arrow keys, W A S D, drag', 'Gunship station: slew the camera. A click or tap in the view, or on the small map, moves the aim point there'],
-  ['stn', '+, -, wheel', 'Gunship station: zoom in and out, up to x24'],
-  ['stn', 'M, T, Esc', 'Gunship station: change sensor (Thermal, Night vision, Colour), track the unit under the reticle, leave the station'],
+  ['stn', 'Mouse', 'Gunship station: the mouse aims. The pointer is captured when the station opens or on your first click, and moving the mouse slews the camera, slower when you are zoomed in. If the browser refuses to capture it, click the view and moving the mouse over the view still slews'],
+  ['stn', 'Left button, Space, Enter', 'Gunship station: fire the chosen gun. Hold for the Vulcan and for repeating 40 mm bursts'],
+  ['stn', 'Right button (hold)', 'Gunship station: slow, precise aim while you hold it'],
+  ['stn', '1, 2, 3, wheel', 'Gunship station: choose the 105 mm howitzer, the 40 mm cannon or the 25 mm Vulcan. The mouse wheel cycles them (wheel up next, wheel down previous). A short "Getting ready" follows each switch'],
+  ['stn', 'Shift + wheel, + -, [ ], Q E', 'Gunship station: zoom in and out, up to x24'],
+  ['stn', 'Arrow keys, W A S D', 'Gunship station: slew the camera with the keyboard (the mouse does the same)'],
+  ['stn', 'Shift + click, C, comma, period', 'Gunship station: Shift + click moves the aim point to the cursor when the cursor is free. C frees or recaptures the cursor so you can click the small map and the buttons. Comma and period change the mouse speed'],
+  ['stn', 'M, T, Esc', 'Gunship station: change sensor (Thermal, Night vision, Colour), track the unit under the reticle, leave the station and release the mouse'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Fire mission', 'Marking a target opens a fire mission. The Fire tab lists what could fire on it (mortar pits, howitzers, vehicles, aircraft, your squad, snipers, anti-armour teams, gun nests). Tick any number and press Execute. Cease fire stops them. A destroyed person or vehicle clears the marker by itself. Ground cover fire carries on until you cease it'],
   ['tab', 'Map', 'Opens the tactical map (also the L key). Range rings, fire data (bearing, elevation, flight time, spread), danger close warning, shell types and adjust fire'],
@@ -13130,7 +13135,7 @@ const SW = [{ id: 'how', name: '105 mm howitzer', prep: 2.0, reload: 7.0 }, { id
 const STN_MODES = { thermal: { n: 'Thermal (white hot)', hint: 'Sees through cloud', k: 0 }, night: { n: 'Night vision', hint: 'Clouds can block this', k: 1 }, colour: { n: 'Colour', hint: 'Clouds can block this', k: 2 } };
 var STN = {
   on: false, team: null, u: null, op: false, t: 0, mode: 'thermal', phos: 'green', zoom: 1, zoomT: 1, ax: 0, ay: 0, az: 0, state: 'locked', outT: 0, off: 0, rel: 0, relB: 0, elB: 0, easeT: 0, cd: new THREE.Vector3(0, -0.6, 0.8).normalize(),
-  gun: null, focus: new THREE.Vector3(), view: { x: 0, y: 0, w: 1, h: 1 }, keys: new Set(), pad: { x: 0, y: 0 }, drag: null, ptr: new Map(), pinch: null, fireBtn: false, fireKey: false, fireRmb: false, fireV: false,
+  gun: null, focus: new THREE.Vector3(), view: { x: 0, y: 0, w: 1, h: 1 }, keys: new Set(), pad: { x: 0, y: 0 }, drag: null, ptr: new Map(), pinch: null, fireBtn: false, fireKey: false, fireRmb: false, fireV: false, fireLmb: false, prec: false, locked: false, plFail: false, free: false, wheelT: 0, wheelS: 0, sensI: 2, hint: '',
   weapon: 0, W: SW.map(() => ({ prep: 0, rel: 0, fill: 1, lock: false, was: true })), lock: null, lockBox: { x: 0, y: 0, s: 120, id: 0 }, trk: null, contacts: [], cnt: { e: 0, f: 0, u: 0 }, cloud: 0, cloudT: 0,
   why: '', msg: '', saved: null, hidden: [], hudT: 0, commsT: 4, squelchT: 18, lastShot: -9, loseT: 0, lockSnd: 0, danger: 0, shots: { how: 0, can: 0, vul: 0 }, crew: { n: 0, last: '', say: [] }, wantInt: 0, stats: { frames: 0 },
   tg() { if (!this.on || this.state !== 'locked') return null; const l = this.lock; if (l && l.ref && Math.hypot(l.ref.x - this.ax, l.ref.z - this.az) < 12 && (l.kind === 'person' ? (l.ref.state !== 'rag' && l.ref.hp > 0) : !l.ref.dead)) return { type: l.kind, ref: l.ref, x: l.ref.x, y: (l.ref.y || 0) + (l.kind === 'person' ? 1 : 1.5), z: l.ref.z }; return { type: 'ground', x: this.ax, y: this.ay, z: this.az, area: true }; },
@@ -13154,27 +13159,41 @@ function stnOpenFor(team, o) {
   }
   if (u.leaving) { u.leaving = false; u.life = Math.max(u.life, 30); }
   stnBuild(); const S = STN;
-  if (!$('tablet').hidden) toggleTablet(false); if (TMAP.open) tmClose(); if (document.pointerLockElement) document.exitPointerLock(); fp.free = false; fp.fireHeld = false; keys.clear();
+  if (!$('tablet').hidden) toggleTablet(false); if (TMAP.open) tmClose(); fp.free = false; fp.fireHeld = false; keys.clear();
   S.saved = { fov: camera.fov, aspect: camera.aspect, near: camera.near, far: camera.far, vis: [] };
-  S.on = true; S.team = team; S.u = u; S.op = !!o.op; S.t = 0; S.state = 'locked'; S.outT = 0; S.zoom = S.zoomT = 1; S.trk = null; S.lock = null; S.fireBtn = S.fireKey = S.fireRmb = S.fireV = false; S.keys.clear(); S.pad.x = S.pad.y = 0; S.why = ''; S.msg = '';
+  S.on = true; S.team = team; S.u = u; S.op = !!o.op; S.t = 0; S.state = 'locked'; S.outT = 0; S.zoom = S.zoomT = 1; S.trk = null; S.lock = null; S.fireBtn = S.fireKey = S.fireRmb = S.fireV = S.fireLmb = S.prec = false; S.keys.clear(); S.pad.x = S.pad.y = 0; S.why = ''; S.msg = ''; S.locked = false; S.plFail = false; S.free = false; S.wheelT = S.wheelS = 0;
   S.ax = clamp(st0.x, -EXT * 0.95, EXT * 0.95); S.az = clamp(st0.z, -EXT * 0.95, EXT * 0.95); S.ay = Math.max(heightAt(S.ax, S.az), 0);
   u.wasManual = u.manual; u.manual = true; u.stnC = u.stnC || { x: u.tgt.x, z: u.tgt.z }; u.stnC.x = u.tgt.x; u.stnC.z = u.tgt.z; u.tgt = u.stnC; u.fmP = null;
   for (const w of S.W) { w.prep = 0; w.rel = 0; w.fill = 1; w.lock = false; } S.weapon = 0; S.W[0].prep = SW[0].prep; S.W[0].was = false;
-  document.body.classList.add('stn-on'); $('stn').hidden = false; stnLayout(); stnMiniBuild(); stnSetMode(S.mode, true); stnWeaponUi();
+  document.body.classList.add('stn-on'); $('stn').hidden = false; stnLayout(); stnLockReq(); stnMiniBuild(); stnSetMode(S.mode, true); stnWeaponUi();
   S.focus.set(S.ax, S.ay, S.az); S.cd.set(0, -0.6, 0.8).normalize(); S.easeT = 1.2; S.wantInt = 0;
   Snd.setStation(true); AC.stn.stop(u); AC.stn.preInt(); acSafe(acPre); try { voxPreload('crew'); } catch (e) { } S.crewPlan = undefined; S.crewKeepT = 0;
   Snd.fx('ac130_int_select_howitzer', undefined, undefined, { gain: 0.9, gap: 0.1, q: true }); Snd.fx('ac130_int_ready_howitzer', undefined, undefined, { gain: 1.1, gap: 1.0, q: true });
-  stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Slew with the arrow keys or drag. Space fires. Esc leaves.');
+  stnMsg(isTouch ? 'Sensor station. Drag the pad or the view to slew. Tap to move the aim point. Use the Fire buttons.' : 'Sensor station. Move the mouse to slew. Left button fires. Wheel or 1 2 3 choose the gun. Esc leaves.');
   return true;
 }
 function stnClose(why) {
   const S = STN; if (!S.on) return; const u = S.u; S.on = false; try { AC.stn.stop(u); } catch (e) { }
+  const hudLocked = document.pointerLockElement === stnEl('stnHud'); if (hudLocked) { try { document.exitPointerLock(); } catch (e) { } }              // the mouse is always given back; the soldier or the overview takes it again on the next click
   if (u && AIR.list.includes(u) && !u.down) { u.manual = !!u.wasManual; u.life = Math.min(Math.max(u.life, 25), 45); if (!u.manual) { u.tgt = hotSpot(u.team) || u.stnC || u.tgt; } }
   const sv = S.saved; if (sv) { camera.fov = sv.fov; camera.near = sv.near; camera.far = sv.far; } camera.up.set(0, 1, 0); try { resize(); } catch (e) { }
-  document.body.classList.remove('stn-on'); $('stn').hidden = true; Snd.setStation(false); S.keys.clear(); S.fireBtn = S.fireKey = S.fireRmb = S.fireV = false; S.ptr.clear(); S.drag = null; S.pinch = null; S.trk = null; S.u = null;
+  document.body.classList.remove('stn-on'); $('stn').hidden = true; Snd.setStation(false); S.keys.clear(); S.fireBtn = S.fireKey = S.fireRmb = S.fireV = S.fireLmb = S.prec = false; S.locked = false; S.free = false; S.ptr.clear(); S.drag = null; S.pinch = null; S.trk = null; S.u = null;
   try { renderer.setRenderTarget(null); renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight); if (stnR.rt) { stnR.rt.dispose(); stnR.rt = null; } } catch (e) { }                      // the sensor picture's target is given back to the graphics card
-  keys.clear(); if (fp.on && !isTouch && mode === 'fp') lockPointer(); if (why) toast(why);
+  keys.clear(); if (hudLocked) setTimeout(() => { if (fp.on && !isTouch && mode === 'fp' && !STN.on && !document.pointerLockElement) lockPointer(); }, 80); else if (fp.on && !isTouch && mode === 'fp') lockPointer(); if (why) toast(why);
 }
+function stnLockReq() {                                                              // capture the mouse for the station, like first person; if the browser refuses, moving the mouse over the view still slews
+  const S = STN; if (isTouch || !S.on) return; const h = stnEl('stnHud'); S.free = false;
+  try { const r = h.requestPointerLock && h.requestPointerLock(); if (r && r.catch) r.catch(() => { S.plFail = true; }); } catch (e) { S.plFail = true; }
+}
+const STN_SENS = [0.5, 0.8, 1.2, 1.8, 2.7], STN_SENSN = ['Very slow', 'Slow', 'Normal', 'Fast', 'Very fast'];
+function stnSens(step) {
+  const S = STN; S.sensI = clamp(S.sensI + step, 0, STN_SENS.length - 1); try { localStorage.setItem('squall-cove-stn-sens', String(S.sensI)); } catch (e) { }
+  stnMsg('Mouse speed: ' + STN_SENSN[S.sensI] + '.');
+}
+function stnMouse(dx, dy) {                                                          // the mouse aims: moving right looks right, up looks up. The distance on the ground per pixel already shrinks with zoom, so a zoomed view is slower; the right button held makes it finer still
+  const S = STN; if (!S.on || (!dx && !dy)) return; const k = STN_SENS[S.sensI] * (S.prec ? 0.3 : 1); stnDrag(-dx * k, -dy * k);
+}
+function stnWheelStep(dir) { const S = STN; if (!S.on) return; stnSelect((S.weapon + (dir > 0 ? 1 : 2)) % 3); }   // wheel up is the next gun, wheel down the previous, wrapping
 function stnLeave() { stnClose(); }
 function stnMsg(t) { STN.msg = t; STN.msgT = STN.t; }
 
@@ -13284,7 +13303,7 @@ function stnHowSeq() {                                                          
   const go = (t, st) => AC.later(t, () => { if (STN.on) Snd.fx(st, undefined, undefined, { gain: 1.0, gap: 0.5, q: true }); }); go(1.0, 'ac130_int_howitzer_hoist'); go(2.5, 'ac130_int_howitzer_ram'); go(3.5, 'ac130_int_howitzer_breech');
 }
 function stnWeapons(dt) {
-  const S = STN, hold = S.fireBtn || S.fireKey || S.fireRmb;
+  const S = STN, hold = S.fireBtn || S.fireKey || S.fireRmb || S.fireLmb;
   for (let i = 0; i < 3; i++) {
     const w = S.W[i], d = SW[i]; if (w.prep > 0) w.prep = Math.max(0, w.prep - dt); if (w.rel > 0) w.rel = Math.max(0, w.rel - dt);
     if (i === 2) { if (w.lock) { w.fill = Math.min(1, w.fill + dt * 0.25); if (w.fill >= 1) w.lock = false; } else if (!S.fireV) w.fill = Math.min(1, w.fill + dt * 0.35); }
@@ -13293,7 +13312,7 @@ function stnWeapons(dt) {
     else if (!ready) w.was = false;
   }
   S.fireV = S.weapon === 2 && hold && S.canFire(2);
-  if (hold && S.holdWas !== true && S.weapon !== 2) { stnTryFire(); S.holdWas = true; } if (!hold) S.holdWas = false;
+  if (hold && S.weapon !== 2 && (S.holdWas !== true || (S.weapon === 1 && S.canFire(1)))) { stnTryFire(); S.holdWas = true; } if (!hold) S.holdWas = false;
   if (S.weapon === 2 && hold && !S.fireV && S.t - (S.whyT || 0) > 1.5) { S.whyT = S.t; const t = stnWhy(); if (t) stnMsg(t); }
   stnWeaponUi();
 }
@@ -13463,17 +13482,39 @@ function stnDom() {
   if (S.state === 'losing') m = 'Losing target. The point is beyond the gimbal limit.'; else if (S.state === 'broken') m = 'Lock lost. Slew or tap the view to lock again.'; else if (S.msg && S.t - (S.msgT || 0) < 6) m = S.msg;
   const el = stnEl('stnMsg'), txt = (dc ? dc + (m ? '\n' : '') : '') + m; if (el.textContent !== txt) el.textContent = txt; el.dataset.dc = dc ? '1' : '0'; el.dataset.warn = S.state !== 'locked' ? '1' : '0'; el.hidden = !txt;
   const tr = stnEl('stnTrack'); if (tr) tr.setAttribute('aria-pressed', String(!!S.trk));
+  const hint = S.free ? 'Cursor free: click a button or the small map, or Shift + click the view to move the aim point. Click the view or press C to aim with the mouse again.' : S.locked ? 'Mouse aims. Left button fires (hold for the Vulcan and the 40 mm). Right button held: slow aim. Wheel or 1 2 3 choose the gun. Shift + wheel, + -, [ ] or Q E zoom. T tracks. C frees the cursor. Esc leaves.' : 'Click the view to aim with the mouse. Moving the mouse over the view still slews. Left button fires, wheel or 1 2 3 choose the gun, Shift + wheel zooms, Esc leaves.';
+  if (S.hint !== hint) { S.hint = hint; const he = stnEl('stnHint'); if (he) he.textContent = hint; }
 }
 
 /* ---------------------------------------------------------------- building the controls once */
 function stnBuild() {
   if (stnBuilt) return; stnBuilt = true; const S = STN, root = $('stn'), cv = stnEl('stnHud');
-  const up = (e) => { if (!S.on) return; if (e.button === 2) S.fireRmb = false; S.ptr.delete(e.pointerId); if (S.drag && S.drag.id === e.pointerId) { const d = S.drag; S.drag = null; if (e.type === 'pointerup' && e.button === 0 && !d.moved) stnClickAt(e.clientX, e.clientY); } if (S.ptr.size < 2) S.pinch = null; };
-  cv.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) { } if (e.pointerType === 'mouse' && e.button === 2) { S.fireRmb = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } return; } S.ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (S.ptr.size === 2) { const [a, b] = [...S.ptr.values()]; S.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: S.zoomT }; S.drag = null; } else if (S.ptr.size === 1) S.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 }; });
-  cv.addEventListener('pointermove', (e) => { if (!S.on) return; const p = S.ptr.get(e.pointerId); if (!p) return; if (S.pinch && S.ptr.size === 2) { p.x = e.clientX; p.y = e.clientY; const [a, b] = [...S.ptr.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (S.pinch.d > 10) S.zoomT = clamp(S.pinch.z * d / S.pinch.d, 1, STN_ZMAX); return; }
+  const up = (e) => { if (!S.on) return; if (e.pointerType === 'mouse') { if (e.button === 0) S.fireLmb = false; if (e.button === 2) S.prec = false; return; } S.ptr.delete(e.pointerId); if (S.drag && S.drag.id === e.pointerId) { const d = S.drag; S.drag = null; if (e.type === 'pointerup' && e.button === 0 && !d.moved) stnClickAt(e.clientX, e.clientY); } if (S.ptr.size < 2) S.pinch = null; };
+  cv.addEventListener('pointerdown', (e) => {
+    if (!S.on) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) { }
+    if (e.pointerType === 'mouse') {                                                                      // the mouse aims by moving; the buttons fire
+      if (e.button === 2) { S.prec = true; return; } if (e.button !== 0) return;
+      if (e.shiftKey && !S.locked) { stnClickAt(e.clientX, e.clientY); return; }                         // Shift + click puts the aim point at the cursor (when the cursor is free)
+      if (!S.locked && !S.plFail && !isTouch) { stnLockReq(); return; }                                  // the first click only captures the mouse, like first person
+      S.fireLmb = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } return;
+    }
+    S.ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (S.ptr.size === 2) { const [a, b] = [...S.ptr.values()]; S.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: S.zoomT }; S.drag = null; } else if (S.ptr.size === 1) S.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 }; });
+  cv.addEventListener('pointermove', (e) => { if (!S.on || e.pointerType === 'mouse') return; const p = S.ptr.get(e.pointerId); if (!p) return; if (S.pinch && S.ptr.size === 2) { p.x = e.clientX; p.y = e.clientY; const [a, b] = [...S.ptr.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (S.pinch.d > 10) S.zoomT = clamp(S.pinch.z * d / S.pinch.d, 1, STN_ZMAX); return; }
     if (S.drag && S.drag.id === e.pointerId) { const dx = e.clientX - S.drag.x, dy = e.clientY - S.drag.y; S.drag.moved += Math.hypot(dx, dy); if (S.drag.moved > 6) stnDrag(dx, dy); S.drag.x = e.clientX; S.drag.y = e.clientY; p.x = e.clientX; p.y = e.clientY; } });
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { S.fireRmb = false; up(e); }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
-  cv.addEventListener('wheel', (e) => { if (!S.on) return; e.preventDefault(); stnZoom(e.deltaY < 0 ? 1.18 : 1 / 1.18); }, { passive: false });
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', (e) => { S.fireRmb = S.fireLmb = S.prec = false; up(e); }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+  root.addEventListener('wheel', (e) => {                                                                // the wheel changes gun; Shift + wheel zooms
+    if (!S.on) return; e.preventDefault(); const d = e.deltaY || e.deltaX; if (!d) return;
+    if (e.shiftKey) { stnZoom(d < 0 ? 1.18 : 1 / 1.18); return; }
+    const now = performance.now(), notch = Math.abs(d) >= 50, quiet = now - S.wheelT > 250;
+    if (notch ? now - S.wheelS > 120 : quiet) { S.wheelS = now; stnWheelStep(d < 0 ? 1 : -1); }                 // one step per notch; a touchpad flick (many small events) gives one step only
+    S.wheelT = now; }, { passive: false });
+  addEventListener('mousemove', (e) => {                                                                 // locked: every move aims. Not locked (the browser said no): moving over the view still aims
+    if (!S.on || (!e.movementX && !e.movementY)) return; if (!S.locked && (S.free || e.target !== cv)) return; stnMouse(e.movementX, e.movementY); });
+  document.addEventListener('pointerlockchange', () => {
+    if (!S.on) return; const was = S.locked; S.locked = document.pointerLockElement === cv;
+    if (S.locked) { S.plFail = false; S.free = false; } else if (was && !S.free && document.hasFocus()) stnLeave(); });                // Esc (the browser eats the key and releases the mouse) leaves the station, and the soldier or the overview takes the mouse back on the next click
+  document.addEventListener('pointerlockerror', () => { if (!S.on) return; S.plFail = true; S.locked = false; stnMsg('Click the view to aim with the mouse.'); });
+  try { const v = parseInt(localStorage.getItem('squall-cove-stn-sens'), 10); if (v >= 0 && v < STN_SENS.length) S.sensI = v; } catch (e) { }
   const mini = stnEl('stnMini'); mini.addEventListener('pointerdown', (e) => { if (!S.on) return; e.preventDefault(); e.stopPropagation(); const r = mini.getBoundingClientRect(); stnSetAim(((e.clientX - r.left) / r.width * 2 - 1) * EXT, ((e.clientY - r.top) / r.height * 2 - 1) * EXT); });
   const pad = stnEl('stnPad'), kn = stnEl('stnKnob'); let pid = null; const pm = (e) => { const r = pad.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2 - 10; let dx = (e.clientX - cx) / R, dy = (e.clientY - cy) / R; const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; } S.pad.x = Math.abs(dx) < 0.1 ? 0 : dx; S.pad.y = Math.abs(dy) < 0.1 ? 0 : dy; kn.style.transform = 'translate(' + (dx * R * 0.7).toFixed(0) + 'px,' + (dy * R * 0.7).toFixed(0) + 'px)'; };
   pad.addEventListener('pointerdown', (e) => { pid = e.pointerId; try { pad.setPointerCapture(e.pointerId); } catch (er) { } e.preventDefault(); pm(e); }); pad.addEventListener('pointermove', (e) => { if (e.pointerId === pid) pm(e); });
@@ -13488,19 +13529,21 @@ function stnBuild() {
   try { stnSetPhos(localStorage.getItem('squall-cove-stn-phos') === 'white' ? 'white' : 'green', true); } catch (e) { stnSetPhos('green', true); }
   KEY_ROUTE.unshift(stnKey);
   addEventListener('keyup', (e) => { if (!S.on) return; const k = e.key.toLowerCase(); S.keys.delete(k); if (k === ' ' || k === 'enter') { S.fireKey = false; e.preventDefault(); } });
-  addEventListener('blur', () => { S.keys.clear(); S.fireKey = false; S.fireBtn = false; S.fireRmb = false; });
+  addEventListener('blur', () => { S.keys.clear(); S.fireKey = false; S.fireBtn = false; S.fireRmb = false; S.fireLmb = false; S.prec = false; });
 }
 function stnKey(e) {
   const S = STN; if (!S.on) return; if (e.ctrlKey || e.metaKey || e.altKey) return; const k = e.key.toLowerCase(); keyStop = true;
   if (k === 'escape') { stnLeave(); e.preventDefault(); return; }
   if (k === '1' || k === '2' || k === '3') { stnSelect(+k - 1); e.preventDefault(); return; }
   if (k === ' ' || k === 'enter') { if (!e.repeat) { S.fireKey = true; if (S.weapon !== 2) { stnTryFire(); S.holdWas = true; } } e.preventDefault(); return; }
-  if (k === '+' || k === '=' || e.code === 'NumpadAdd') { stnZoom(1.35); e.preventDefault(); return; } if (k === '-' || k === '_' || e.code === 'NumpadSubtract') { stnZoom(1 / 1.35); e.preventDefault(); return; }
+  if (k === '+' || k === '=' || k === ']' || k === 'e' || e.code === 'NumpadAdd') { stnZoom(1.35); e.preventDefault(); return; } if (k === '-' || k === '_' || k === '[' || k === 'q' || e.code === 'NumpadSubtract') { stnZoom(1 / 1.35); e.preventDefault(); return; }
+  if (k === ',' || k === '<') { stnSens(-1); e.preventDefault(); return; } if (k === '.' || k === '>') { stnSens(1); e.preventDefault(); return; }
+  if (k === 'c' && !e.repeat) { if (S.free) stnLockReq(); else { S.free = true; if (document.pointerLockElement === stnEl('stnHud')) { try { document.exitPointerLock(); } catch (er) { } } stnMsg('Cursor free. Click the view or press C to aim with the mouse again.'); } e.preventDefault(); return; }
   if (k === 't' && !e.repeat) { stnTrackToggle(); return; } if (k === 'm' && !e.repeat) { stnCycleMode(); return; }
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(k)) { S.keys.add(k); e.preventDefault(); return; }
 }
 stnBuild();
-Object.assign(window.__sc, { burnArea, FLARE, STN, STN_MODES, stnSetPhos, stnFxSet, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
+Object.assign(window.__sc, { stnMouse, stnWheelStep, stnLockReq, STN_SENS, burnArea, FLARE, STN, STN_MODES, stnSetPhos, stnFxSet, stnR, SW, stnOpenFor, stnClose, stnStep, stnSelect, stnTryFire, stnSetAim, stnSetMode, stnZoom, stnCrew, stnPick, stnLeave, stnKey, stnRender, stnTrackToggle, STN_LIM, ACALT, ACORB });
 /*STN-END*/
 /*SA-START*/
 /* ================================================================ v9.8: see the battle at a glance.

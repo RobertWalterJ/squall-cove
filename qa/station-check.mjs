@@ -111,6 +111,95 @@ try {
   ok('Night colour button: Green to White to Green, said in words, remembered, and sent to the shader', ph.exists && ph.afterClick === 'white' && /White/.test(ph.label) && /white/.test(ph.aria) && ph.stored === 'white' && ph.uPhosWhite === 1 && ph.back === 'green' && /Green/.test(ph.labelBack) && ph.storedBack === 'green' && ph.uPhosGreen === 0 && ph.err === 0, ph);
   await b.ev("__sc.renderer.render = () => {}; 1");
 
+  // ---- 8c v9.9.3 mouse-first station: the mouse aims, the wheel changes gun, the left button fires, Esc gives the mouse back
+  {
+    const pre = `const sc = __sc, S = sc.STN, u = S.u, cv = document.getElementById('stnHud'); const face = () => { u.hd = Math.atan2(S.ax - u.x, S.az - u.z) - Math.PI / 2; }; const mm = (dx, dy, el) => (el || cv).dispatchEvent(new MouseEvent('mousemove', { movementX: dx, movementY: dy, bubbles: true })); const lab = (i) => document.getElementById('stnC' + (i + 1)).querySelector('.stnLab').textContent;
+      const rc = () => { const a = window.__a0 || [S.ax, S.az]; window.__a0 = a; S.state = 'locked'; S.outT = 0; sc.stnSetAim(a[0], a[1]); S.zoom = S.zoomT = 1; face(); for (let i = 0; i < 30; i++) sc.stnStep(0.1); };
+      const ndc = (x, z, y) => { const v = new sc.THREE.Vector3(x, y === undefined ? S.ay : y, z).project(sc.camera); return v; };`;
+    const m0 = await J(pre + `window.__a0 = [S.ax, S.az]; rc(); S.locked = false; S.plFail = true; S.free = false; S.prec = false;
+      const A = [S.ax, S.az, S.ay]; mm(40, 0); sc.stnStep(0.02); const p1 = ndc(A[0], A[1], A[2]); const moved1 = Math.hypot(S.ax - A[0], S.az - A[1]);
+      const B = [S.ax, S.az, S.ay]; mm(0, 30); sc.stnStep(0.02); const p2 = ndc(B[0], B[1], B[2]); const moved2 = Math.hypot(S.ax - B[0], S.az - B[1]);
+      return { moved1: +moved1.toFixed(2), oldPointNdcX: +p1.x.toFixed(4), moved2: +moved2.toFixed(2), oldPointNdcY: +p2.y.toFixed(4) };`);
+    ok('mouse (fallback, not captured): moving over the view slews the camera, right looks right', m0.moved1 > 0.2 && m0.oldPointNdcX < -0.001, m0);
+    ok('mouse: moving down looks down (the old point moves up the screen)', m0.moved2 > 0.2 && m0.oldPointNdcY > 0.001, m0);
+    const m1 = await J(pre + `const out = {}; const run = (z) => { rc(); S.zoom = S.zoomT = z; sc.stnStep(0.02); const a = [S.ax, S.az]; mm(50, 0); return Math.hypot(S.ax - a[0], S.az - a[1]); };
+      out.z1 = +run(1).toFixed(3); out.z8 = +run(8).toFixed(3); out.z24 = +run(24).toFixed(3); rc();
+      const a0 = [S.ax, S.az]; mm(50, 0); const norm = Math.hypot(S.ax - a0[0], S.az - a0[1]); rc(); S.prec = true; const a1 = [S.ax, S.az]; mm(50, 0); const slow = Math.hypot(S.ax - a1[0], S.az - a1[1]); S.prec = false; out.norm = +norm.toFixed(3); out.slow = +slow.toFixed(3); return out;`);
+    ok('mouse speed scales with zoom (slower when zoomed in)', m1.z8 < m1.z1 * 0.4 && m1.z24 < m1.z8 * 0.6, m1);
+    ok('right button held is a slow, precise aim', m1.slow > 0 && m1.slow < m1.norm * 0.45, m1);
+    const m2 = await J(pre + `rc(); const out = {}; const A = [S.ax, S.az];
+      S.locked = true; S.free = false; mm(30, 0, document.body); out.lockedBodyMoves = Math.hypot(S.ax - A[0], S.az - A[1]) > 0.2;
+      S.locked = false; S.free = false; S.plFail = true; rc(); const B = [S.ax, S.az]; mm(30, 0, document.body); out.unlockedOffViewIgnored = Math.hypot(S.ax - B[0], S.az - B[1]) < 0.001;
+      S.free = true; rc(); const C = [S.ax, S.az]; mm(30, 0, cv); out.freeCursorIgnored = Math.hypot(S.ax - C[0], S.az - C[1]) < 0.001; S.hudT = 0; sc.stnStep(0.02); out.hintFree = document.getElementById('stnHint').textContent; S.free = false;
+      S.locked = true; S.hudT = 0; sc.stnStep(0.02); out.hintLocked = document.getElementById('stnHint').textContent; S.locked = false; S.hudT = 0; sc.stnStep(0.02); out.hintUnlocked = document.getElementById('stnHint').textContent; return out;`);
+    ok('mouse: captured moves aim anywhere; not captured only over the view; a freed cursor does not slew', m2.lockedBodyMoves && m2.unlockedOffViewIgnored && m2.freeCursorIgnored, m2);
+    ok('hints say what the mouse does (captured, not captured, cursor free), no em dashes', /Mouse aims/.test(m2.hintLocked) && /Left button fires/.test(m2.hintLocked) && /Wheel or 1 2 3/.test(m2.hintLocked) && /Shift \+ wheel/.test(m2.hintLocked) && /Click the view to aim with the mouse/.test(m2.hintUnlocked) && /Cursor free/.test(m2.hintFree) && !/—/.test(m2.hintLocked + m2.hintUnlocked + m2.hintFree), m2);
+    const lim = await J(pre + `rc(); S.locked = true; S.free = false; face(); S.state = 'locked'; S.outT = 0; for (let i = 0; i < 30; i++) { mm(400, 0); sc.stnStep(0.1); } const Lb = u.hd + Math.PI / 2, cb = Math.atan2(S.cd.x, S.cd.z); const camOff = Math.abs(Math.atan2(Math.sin(cb - Lb), Math.cos(cb - Lb))) * 57.3;
+      for (let i = 0; i < 30; i++) { mm(-400, -400); sc.stnStep(0.1); } const cb2 = Math.atan2(S.cd.x, S.cd.z), camOff2 = Math.abs(Math.atan2(Math.sin(cb2 - Lb), Math.cos(cb2 - Lb))) * 57.3;
+      return { camOff: +camOff.toFixed(1), camOff2: +camOff2.toFixed(1), limit: +(sc.STN_LIM * 57.3).toFixed(1), state: S.state };`);
+    ok('hard mouse flicks keep the camera inside the gimbal limit (it eases to the limit, never past it)', lim.camOff <= lim.limit + 3 && lim.camOff2 <= lim.limit + 3, lim);
+    await b.ev("(() => { const S = __sc.STN, u = S.u; S.locked = false; S.plFail = true; S.free = false; __sc.stnSetAim(S.ax, S.az); u.hd = Math.atan2(S.ax - u.x, S.az - u.z) - Math.PI / 2; S.state = 'locked'; S.outT = 0; for (let i = 0; i < 40; i++) __sc.stnStep(0.1); return 1; })()");
+    // keys 1 2 3
+    const k1 = await J(pre + `const out = []; for (const k of ['2', '3', '1']) { window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); out.push([S.weapon, lab(S.weapon)]); } return out;`);
+    ok('keys 1, 2, 3 choose the howitzer, the 40 mm and the Vulcan, each showing Getting ready', k1[0][0] === 1 && k1[1][0] === 2 && k1[2][0] === 0 && k1[0][1] === 'Getting ready' && k1[2][1] === 'Getting ready', k1);
+    // wheel
+    await b.ev("(() => { __sc.stnSelect(0); return 1; })()");
+    const wh = []; const wev = (dy, shift, n) => `for (let i = 0; i < ${n || 1}; i++) cv.dispatchEvent(new WheelEvent('wheel', { deltaY: ${dy}, shiftKey: ${!!shift}, bubbles: true, cancelable: true }));`;
+    for (const [name, dy, want] of [['up', -100, 1], ['up', -100, 2], ['up wraps', -100, 0], ['down wraps', 100, 2], ['down', 100, 1]]) {
+      await sleep(260); wh.push([name, await J(pre + wev(dy) + `return [S.weapon, lab(S.weapon)];`), want]);
+    }
+    ok('wheel up goes to the next gun and down to the previous, wrapping at both ends, with Getting ready', wh.every(w => w[1][0] === w[2]) && wh[0][1][1] === 'Getting ready' && wh[2][1][1] === 'Getting ready', wh);
+    await sleep(260); const deb1 = await J(pre + `const a = S.weapon; ` + wev(-100, false, 3) + ` return [a, S.weapon];`);
+    ok('debounce: three wheel notches in one burst move one gun, not three', (deb1[1] - deb1[0] + 3) % 3 === 1, deb1);
+    await sleep(500); const deb2 = await J(pre + `const a = S.weapon; ` + wev(-6, false, 10) + ` return [a, S.weapon];`);
+    ok('debounce: a touchpad flick (ten small events) moves one gun, not several', (deb2[1] - deb2[0] + 3) % 3 === 1, deb2);
+    await sleep(300); const zw = await J(pre + `const w0 = S.weapon, z0 = S.zoomT; ` + wev(-100, true) + ` const z1 = S.zoomT; ` + wev(100, true) + ` return { sameWeapon: S.weapon === w0, up: +(z1 / z0).toFixed(2), back: +(S.zoomT / z0).toFixed(2) };`);
+    ok('Shift + wheel zooms (wheel up zooms in) and does not change gun', zw.sameWeapon && zw.up > 1.1 && zw.back < zw.up, zw);
+    const zk = await J(pre + `const out = {}; for (const [k, c] of [[']', 'in'], ['[', 'out'], ['e', 'in'], ['q', 'out']]) { const z0 = S.zoomT; window.dispatchEvent(new KeyboardEvent('keydown', { key: k })); out[k] = S.zoomT > z0 ? 'in' : S.zoomT < z0 ? 'out' : 'none'; out[k + 'ok'] = out[k] === c; } return out;`);
+    ok('zoom keys: ] and E zoom in, [ and Q zoom out', zk[']ok'] && zk['[ok'] && zk.eok && zk.qok, zk);
+    // left button fires
+    await b.ev("(() => { const S = __sc.STN; S.zoom = S.zoomT = 1; return 1; })()");
+    const lf = await J(pre + `const pd = (btn) => cv.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', pointerId: 11, button: btn, buttons: btn === 0 ? 1 : 2, bubbles: true, cancelable: true })); const pu = (btn) => cv.dispatchEvent(new PointerEvent('pointerup', { pointerType: 'mouse', pointerId: 11, button: btn, buttons: 0, bubbles: true, cancelable: true }));
+      const rdy = (i) => { sc.stnSelect(i); for (let k = 0; k < 400; k++) sc.stnStep(0.02); }; const out = {}; S.locked = false; S.plFail = true;
+      rdy(1); const c0 = S.shots.can; pd(0); out.cannonFired = S.shots.can === c0 + 1; out.lmb = S.fireLmb; pu(0); out.lmbUp = !S.fireLmb;
+      rdy(0); const h0 = S.shots.how; pd(0); out.howitzerFired = S.shots.how === h0 + 1; pu(0);
+      rdy(1); const c1 = S.shots.can; pd(0); for (let k = 0; k < 400; k++) sc.stnStep(0.02); out.cannonRepeats = S.shots.can - c1; pu(0);
+      rdy(2); pd(0); sc.stnStep(0.02); out.vulcanOn = S.fireV; for (let k = 0; k < 10; k++) sc.stnStep(0.02); out.vulcanStill = S.fireV; pu(0); sc.stnStep(0.02); out.vulcanOff = !S.fireV;
+      rdy(1); const c2 = S.shots.can; pd(2); out.rmbHeld = S.prec; out.rmbNoFire = S.shots.can === c2 && !S.fireRmb; pu(2); out.rmbUp = !S.prec; return out;`);
+    ok('left button fires the active gun: 40 mm, howitzer; hold repeats the 40 mm bursts and runs the Vulcan; releasing stops', lf.cannonFired && lf.lmb && lf.lmbUp && lf.howitzerFired && lf.cannonRepeats >= 2 && lf.vulcanOn && lf.vulcanStill && lf.vulcanOff, lf);
+    ok('right button is slow aim only (held on, released off, never fires)', lf.rmbHeld && lf.rmbNoFire && lf.rmbUp, lf);
+    // first click captures
+    const fc = await J(pre + `const pd = (btn) => cv.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', pointerId: 12, button: btn, bubbles: true, cancelable: true })); sc.stnSelect(1); for (let k = 0; k < 400; k++) sc.stnStep(0.02);
+      S.locked = false; S.plFail = false; S.free = false; const c0 = S.shots.can; let asked = 0; const orig = cv.requestPointerLock; cv.requestPointerLock = function () { asked++; return undefined; }; pd(0); cv.requestPointerLock = orig; return { asked, fired: S.shots.can - c0, lmb: S.fireLmb };`);
+    ok('first click on the view only captures the mouse (no shot), like first person', fc.asked === 1 && fc.fired === 0 && !fc.lmb, fc);
+    const sf = await J(pre + `S.locked = false; S.plFail = true; S.free = true; rc(); const q = cv.getBoundingClientRect(); const A = [S.ax, S.az]; const dbg = [S.view.x, S.view.y, S.view.w, S.view.h].map(Math.round); cv.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', pointerId: 13, button: 0, shiftKey: true, clientX: q.left + q.width * 0.8, clientY: q.top + q.height * 0.4, bubbles: true, cancelable: true })); return { jumped: Math.round(Math.hypot(S.ax - A[0], S.az - A[1])), view: dbg, rect: [q.left, q.top, q.width, q.height].map(Math.round) };`);
+    ok('Shift + click (cursor free) jumps the aim point to the cursor ray', sf.jumped > 10, sf);
+    const ck = await J(pre + `S.free = false; S.locked = false; const out = {}; window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' })); out.freed = S.free; window.dispatchEvent(new KeyboardEvent('keyup', { key: 'c' })); S.sensI = 2; window.dispatchEvent(new KeyboardEvent('keydown', { key: '.' })); out.faster = S.sensI === 3; window.dispatchEvent(new KeyboardEvent('keydown', { key: ',' })); out.slower = S.sensI === 2; S.free = false; return out;`);
+    ok('C frees the cursor and comma / period change the mouse speed', ck.freed && ck.faster && ck.slower, ck);
+    // a real pointer lock request, if the headless browser grants one
+    await b.ev("(() => { const S = __sc.STN; S.free = false; S.plFail = false; S.locked = false; document.getElementById('stnHud').requestPointerLock && document.getElementById('stnHud').requestPointerLock(); return 1; })()"); await sleep(600);
+    const rl = await J("const S = __sc.STN; return { granted: document.pointerLockElement === document.getElementById('stnHud'), locked: S.locked, plFail: S.plFail, on: S.on }");
+    log('real pointer lock in this headless browser: ' + JSON.stringify(rl));
+    ok('pointer lock state mirrors the browser (locked flag follows the real lock)', rl.granted === rl.locked && rl.on, rl);
+    await b.ev("(() => { const S = __sc.STN; S.free = true; if (document.pointerLockElement) document.exitPointerLock(); return 1; })()"); await sleep(400);
+    await b.ev("(() => { const S = __sc.STN; S.free = false; S.locked = false; S.plFail = true; return 1; })()");
+    // Esc through the lock path: the browser eats the key and releases the mouse; the station must leave
+    const el = await J(`const sc = __sc, S = sc.STN; document.hasFocus = () => true; S.locked = true; S.free = false; const r = { before: S.on }; document.dispatchEvent(new Event('pointerlockchange')); r.after = S.on; return r;`);
+    ok('releasing the mouse with Esc (browser-side unlock) leaves the station', el.before && !el.after, el);
+    await b.ev("delete document.hasFocus; __sc.renderer.render = () => {}; __sc.stnOpenFor('blue'); 1"); await sleep(800);
+    const el2 = await J(`const sc = __sc, S = sc.STN; const r = { on: S.on }; S.locked = true; window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); r.afterKey = S.on; r.lockEl = !!document.pointerLockElement; r.locked = S.locked; r.mouseFlags = [S.fireLmb, S.prec]; return r;`);
+    ok('Esc key leaves the station and the mouse is not held', el2.on && !el2.afterKey && !el2.lockEl && !el2.locked && !el2.mouseFlags[0] && !el2.mouseFlags[1], el2);
+    // handlers restored
+    const rs = await J(`const sc = __sc, S = sc.STN; const out = {}; const a0 = [S.ax, S.az]; const yaw0 = sc.fp.yaw, pit0 = sc.fp.pitch; window.dispatchEvent(new MouseEvent('mousemove', { movementX: 300, movementY: 200, bubbles: true })); document.getElementById('stnHud').dispatchEvent(new MouseEvent('mousemove', { movementX: 300, movementY: 200, bubbles: true }));
+      out.stationOff = !S.on; out.aimMoved = Math.hypot(S.ax - a0[0], S.az - a0[1]); out.camSame = Math.abs(sc.fp.yaw - yaw0) < 1e-9 && Math.abs(sc.fp.pitch - pit0) < 1e-9; out.mode = sc.mode; out.body = document.body.classList.contains('stn-on'); return out;`);
+    ok('after leaving, mouse movement no longer moves the station camera', rs.stationOff && rs.aimMoved < 0.001 && rs.camSame && !rs.body, rs);
+    const od = await J(`const sc = __sc, c = document.getElementById('c'), g = sc.god; c.setPointerCapture = () => {}; const t0 = [g.tgt.x, g.tgt.z]; const pe = (t, x, y) => c.dispatchEvent(new PointerEvent(t, { pointerType: 'mouse', pointerId: 21, button: 0, buttons: t === 'pointerup' ? 0 : 1, clientX: x, clientY: y, bubbles: true, cancelable: true }));
+      const mode0 = sc.mode; pe('pointerdown', 500, 350); for (let i = 1; i <= 8; i++) pe('pointermove', 500 + i * 25, 350 + i * 10); pe('pointerup', 700, 430); return { mode: mode0, moved: +Math.hypot(g.tgt.x - t0[0], g.tgt.z - t0[1]).toFixed(2) };`);
+    ok('overview drag works again after leaving the station', od.mode === 'god' && od.moved > 0.5, od);
+    await b.ev("__sc.renderer.render = () => {}; __sc.stnOpenFor('blue'); 1"); await sleep(800);
+    await b.ev("(() => { const S = __sc.STN; S.locked = false; S.plFail = true; return 1; })()");
+  }
+
   // ---- 9 leaving restores the normal view and the normal mix
   const o9 = await J(`const sc = __sc, S = sc.STN; const u = S.u; const wasManual = u.wasManual; sc.stnClose(); return { on: S.on, hidden: document.getElementById('stn').hidden, body: document.body.classList.contains('stn-on'), fov: sc.camera.fov, near: sc.camera.near, far: sc.camera.far, rt: sc.renderer.getRenderTarget() === null, scissor: sc.renderer.getContext().isEnabled(sc.renderer.getContext().SCISSOR_TEST), fog: sc.scene.fog.density, manual: u.manual, wasManual, alive: sc.AIR.list.includes(u), life: Math.round(u.life), up: [sc.camera.up.x, sc.camera.up.y, sc.camera.up.z] };`);
   await sleep(2500);
@@ -134,7 +223,7 @@ try {
   ok('the god-mode command panel and the red side open the same station', o10c && o10c.opened && o10c.team === 'red', o10c);
   const o12 = await J("const sc = __sc; sc.AIR.list.length = 0; sc.BATTLE.on = false; let out; try { const r = sc.stnOpenFor('blue'); const u = sc.STN.u, p0 = [u.x, u.z]; for (let i = 0; i < 40; i++) sc.stnStep(0.1); out = { r, on: sc.STN.on, moved: Math.round(Math.hypot(u.x - p0[0], u.z - p0[1])), state: sc.STN.state, y: Math.round(u.y) }; sc.stnClose(); } catch (e) { out = { err: String(e) }; } sc.BATTLE.on = true; return out;");
   ok('sandbox (no battle running): the station flies the gunship itself', o12 && o12.r && o12.moved > 100 && o12.state === 'locked', o12);
-  ok('no page errors during the run', b.errs.filter(e => !/Failed to load resource|favicon/.test(e)).length === 0, b.errs.slice(0, 3));
+  ok('no page errors during the run', b.errs.filter(e => !/Failed to load resource|favicon|not valid for pointer lock/.test(e)).length === 0, b.errs.slice(0, 3));
 
   }
   // ---- 11 layout: no overlaps between the readouts, message, map and thumb pad; targets; no sideways scroll
@@ -142,8 +231,8 @@ try {
     if (!phone) { await b.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 760, deviceScaleFactor: 1, mobile: false }); await sleep(800); }
     await b.ev("__sc.renderer.render = () => {}; __sc.stnOpenFor('blue'); 1"); await sleep(2500);
     const O = await J(`const sc = __sc; sc.stnMsg && 0; sc.STN.msg = 'DANGER CLOSE: friendly forces within 90 m of the aim point.'; sc.STN.msgT = sc.STN.t; sc.STN.danger = 1; sc.STN.hudT = 0; sc.stnStep(0.05); document.getElementById('stnMsg').hidden = false;
-      const ids = ['stnTL', 'stnTR', 'stnMsg', 'stnSt', 'stnMini', 'stnPad', 'stnCards', 'stnBar'], R = {}; for (const id of ids) { const e = document.getElementById(id), q = e.getBoundingClientRect(), vis = !e.hidden && getComputedStyle(e).display !== 'none' && q.width > 0; R[id] = vis ? [q.left, q.top, q.right, q.bottom] : null; }
-      const hit = []; const a = (x, y) => R[x] && R[y] && R[x][0] < R[y][2] - 1 && R[y][0] < R[x][2] - 1 && R[x][1] < R[y][3] - 1 && R[y][1] < R[x][3] - 1; const view = ['stnTL', 'stnTR', 'stnMsg', 'stnSt', 'stnMini', 'stnPad'];
+      const ids = ['stnTL', 'stnTR', 'stnMsg', 'stnSt', 'stnHint', 'stnMini', 'stnPad', 'stnCards', 'stnBar'], R = {}; for (const id of ids) { const e = document.getElementById(id), q = e.getBoundingClientRect(), vis = !e.hidden && getComputedStyle(e).display !== 'none' && q.width > 0; R[id] = vis ? [q.left, q.top, q.right, q.bottom] : null; }
+      const hit = []; const a = (x, y) => R[x] && R[y] && R[x][0] < R[y][2] - 1 && R[y][0] < R[x][2] - 1 && R[x][1] < R[y][3] - 1 && R[y][1] < R[x][3] - 1; const view = ['stnTL', 'stnTR', 'stnMsg', 'stnSt', 'stnHint', 'stnMini', 'stnPad'];
       for (let i = 0; i < view.length; i++) for (let j = i + 1; j < view.length; j++) if (a(view[i], view[j])) hit.push(view[i] + '+' + view[j]); const vr = document.getElementById('stnView').getBoundingClientRect(); const outside = view.filter(id => R[id] && (R[id][0] < vr.left - 1 || R[id][2] > vr.right + 1 || R[id][1] < vr.top - 1 || R[id][3] > vr.bottom + 1));
       const small = []; for (const e of document.querySelectorAll('#stn button')) { const q = e.getBoundingClientRect(); if (q.width && q.height && Math.min(q.width, q.height) < 47.5) small.push(e.id + ':' + Math.round(q.width) + 'x' + Math.round(q.height)); }
       const lv = R.stnBar; const leave = document.getElementById('stnLeave').getBoundingClientRect();

@@ -679,10 +679,13 @@
    "id": "gunship-station",
    "what": "Gunship sensor station: Thermal, Night vision and Colour views, slew and zoom, three weapons (105 mm howitzer, 40 mm cannon, 25 mm Vulcan) aimed at one ground point, track target, leave. Opened from Command > Support > Gunship station, or by deploying as the Gunship operator class",
    "covers": [
-    "stn|1, 2, 3",
-    "stn|Space, Enter, right button",
-    "stn|Arrow keys, W A S D, drag",
-    "stn|+, -, wheel",
+    "stn|Mouse",
+    "stn|Left button, Space, Enter",
+    "stn|Right button (hold)",
+    "stn|1, 2, 3, wheel",
+    "stn|Shift + wheel, + -, [ ], Q E",
+    "stn|Arrow keys, W A S D",
+    "stn|Shift + click, C, comma, period",
     "stn|M, T, Esc"
    ],
    "desktop": {
