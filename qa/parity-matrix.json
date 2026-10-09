@@ -737,6 +737,17 @@
    "phone": {
     "gesture": "Same: the Clear battlefield button on the end screen, and in the Edit menu Battle tab with Undo clear battlefield; the dialog buttons are 52 px tall"
    }
+  },
+  {
+   "id": "soldier-stances",
+   "what": "Soldiers (and your squad) crouch, crouch-walk, go prone and crawl on their own: cover chosen by height and sight line, prone when pinned in the open, wounded or holding with a long gun, rising when the shooting stops; the Take cover squad order makes the squad crouch behind cover or lie down if there is none. No control of its own",
+   "covers": [],
+   "desktop": {
+    "gesture": "Automatic in every battle; your own crouch (C) and prone (P) already exist and the squad follows them"
+   },
+   "phone": {
+    "gesture": "Automatic in every battle, the same behaviour; your own Stance button already exists and the squad follows it"
+   }
   }
  ],
  "ignoreKeys": {},
