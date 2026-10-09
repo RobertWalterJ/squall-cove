@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.5 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.6 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -1125,6 +1125,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
   <div class="mgrid">
     <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats, sound</small></button><button id="bQual" type="button">Quality: High</button>
     <button id="mTheme" type="button">Colours: Dusk</button><button id="mEasy" type="button">Easy read: off</button>
+    <button id="mDistort" type="button">Air distortion: On<small>Bends the air over big blasts and fires. Off saves battery.</small></button>
     <button id="mHide" type="button">Hide buttons</button><button id="mCheats" type="button">Cheats<small>for fun and testing. The ` key opens it</small></button>
   </div>
   </div>
@@ -4588,6 +4589,7 @@ function updateCombat(dt, t) {
     if (bt.flood > 0 && !bt.sunk && wreck >= 0.4) bt.flood = Math.max(0, bt.flood - crew.length * 0.0012 * dt);
     if (bt.hp <= 0) bt.flood = Math.min(1, bt.flood + 0.012 * dt);
     if (bt.fire > 0) {
+      DIST.haze(DIST.idOf(bt), bt.body.position.x, bt.body.position.y + 1, bt.body.position.z, Math.min(1, 0.3 + bt.fire * 0.6), 4, 3);
       bt.fireT -= dt * (1 + crew.length * 0.8);
       bt.fire = bt.fireT > 0 ? Math.min(1, bt.fire + dt * 0.035) : Math.max(0, bt.fire - dt * 0.12);
       bt.hp = Math.max(0, bt.hp - bt.fire * bt.hpMax * 0.0035 * dt);
@@ -5760,6 +5762,7 @@ function fx2Update(dt) {
   const cp = fxPos();
   for (let i = LF.list.length - 1; i >= 0; i--) {
     const f = LF.list[i]; f.age += dt; if (f.age >= f.life) { LF.list.splice(i, 1); continue; } if (Math.hypot(f.x - cp.x, f.z - cp.z) > 450) continue;
+    DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);
     const fade = Math.min(1, (f.life - f.age) / (f.life * 0.35)), up = Math.min(1, f.age / 1.2); f.acc += dt * FXK * fade * up * (6 + f.R);
     while (f.acc >= 1) { f.acc -= 1; const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * f.R * 0.28, px = f.x + Math.cos(a) * r, pz = f.z + Math.sin(a) * r, gh = Math.max(heightAt(px, pz), 0);
       if (Math.random() < 0.6) fxG.emit(px, gh + 0.2, pz, rnd(-0.3, 0.3), rnd(1.2, 2.8), rnd(-0.3, 0.3), rnd(0.5, 0.9), rnd(0.45, 0.9) * (0.6 + f.R * 0.05), -0.7, [1, rnd(0.45, 0.65), 0.15, 0.75], -1.5, 0.6);
@@ -6243,7 +6246,7 @@ function airFire(u, dt) {
 }
 function updateShellsAir(dt) {
   for (let i = AIR.shells.length - 1; i >= 0; i--) { const s = AIR.shells[i]; s.t -= dt; if (!s.wh && s.t < 1.5 && s.t > 0) { s.wh = true; Snd.fx(s.R && s.R < 9 ? 'wpn_mortar_whistle' : 'imp_shell_whistle', s.x, s.z, { gain: 0.8, far: 3, y: heightAt(s.x, s.z) + 8 }); } const T = s.T || 1.6, k = 1 - Math.max(0, s.t) / T, k2 = Math.min(1, k + 0.03), gy = heightAt(s.x, s.z); if (k > 0 && s.t < T) addTracer(s.ox + (s.x - s.ox) * k, s.y0 * (1 - k) + gy * k, s.oz + (s.z - s.oz) * k, s.ox + (s.x - s.ox) * k2, s.y0 * (1 - k2) + gy * k2, s.oz + (s.z - s.oz) * k2, s.ac ? { k: 'cannon', nf: true } : undefined);
-    if (s.t > 0) continue; AIR.shells.splice(i, 1); blast(s.x, gy, s.z, { R: s.R || 11, dmg: s.dmg || 150, crater: s.crater === undefined ? 5 : s.crater, depth: s.depth || 1.4, owner: null, quiet: !!s.ac }); if (s.ac) acSafe(acHowHit, s, gy); }
+    if (s.t > 0) continue; AIR.shells.splice(i, 1); blast(s.x, gy, s.z, { R: s.R || 11, dmg: s.dmg || 150, crater: s.crater === undefined ? 5 : s.crater, depth: s.depth || 1.4, owner: null, quiet: !!s.ac, heavy: true }); if (s.ac) acSafe(acHowHit, s, gy); }
 }
 const AAS = [], MIS = [];
 function damageAir(u, dmg, by, kind) {
@@ -6424,7 +6427,7 @@ function lifeWreck(x, y, z) {                                       // a burnt h
 }
 function updateLife(dt) {
   for (let i = LIFE.decals.length - 1; i >= 0; i--) { const d = LIFE.decals[i], a = simT - d.born; if (a > 100) { d.m.material.opacity = Math.max(0, 1 - (a - 100) / 20); d.m.material.needsUpdate = false; if (a > 120) { scene.remove(d.m); d.m.material.dispose(); LIFE.decals.splice(i, 1); } } }
-  for (let i = LIFE.wrecks.length - 1; i >= 0; i--) { const w = LIFE.wrecks[i], a = simT - w.born; if (a < 20 && Math.random() < dt * 2) puffSmoke(w.x, w.y + 1.4, w.z, 1, true, 1.1); if (a > 54) { w.m.opacity = Math.max(0, 1 - (a - 54) / 6); if (a > 60) { scene.remove(w.g); w.m.dispose(); LIFE.wrecks.splice(i, 1); } } }
+  for (let i = LIFE.wrecks.length - 1; i >= 0; i--) { const w = LIFE.wrecks[i], a = simT - w.born; if (a < 28) DIST.haze(DIST.idOf(w), w.x, w.y + 0.6, w.z, 0.55 * (1 - a / 28), 3, 2.2); if (a < 20 && Math.random() < dt * 2) puffSmoke(w.x, w.y + 1.4, w.z, 1, true, 1.1); if (a > 54) { w.m.opacity = Math.max(0, 1 - (a - 54) / 6); if (a > 60) { scene.remove(w.g); w.m.dispose(); LIFE.wrecks.splice(i, 1); } } }
   const L = LIFE.cl; if (LIFE.cas) { for (let i = L.length - 1; i >= 0; i--) { const c = L[i], a = simT - c.born; if (a > 60) { L.splice(i, 1); continue; } if (!c.rest) { c.vy -= 9.8 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt; c.r += dt * 9; const gy = heightAt(c.x, c.z) + 0.02; if (c.y <= gy) { if (c.vy < -2 && !c.bounced) { c.bounced = true; c.y = gy; c.vy *= -0.3; c.vx *= 0.5; c.vz *= 0.5; } else { c.y = gy; c.rest = true; } } }
       _lp.set(c.x, c.y, c.z); _le.set(0, c.r, 0.3); _lq.setFromEuler(_le); const k = a > 56 ? Math.max(0.01, 1 - (a - 56) / 4) : 1; _ls.set(k, k, k); _lm.compose(_lp, _lq, _ls); LIFE.cas.setMatrixAt(i, _lm); }
     LIFE.cas.count = L.length; LIFE.cas.instanceMatrix.needsUpdate = true; }
@@ -6433,7 +6436,7 @@ function lifeClear() { for (const d of LIFE.decals) { scene.remove(d.m); d.m.mat
 function blast(x, y, z, o) {                                        // one explosion: flash and smoke, a crater, a shockwave on people, cargo and boats, and trees knocked down
   const R = (o.R || 10) * (CHEAT.big ? 2 : 1), dmg = o.dmg || 100, wet = heightAt(x, z) < 0.3, gy = wet ? waveH(x, z, simT) : heightAt(x, z);
   fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14);
-  blastFx(x, gy, z, R, wet); if (wet) splash(x, z, Math.min(6, R * 0.3), o.quiet); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40, o.quiet); }
+  blastFx(x, gy, z, R, wet); DIST.shock(x, gy, z, R, o.heavy); if (wet) splash(x, z, Math.min(6, R * 0.3), o.quiet); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40, o.quiet); }
   if (!o.quiet) Snd.fx(R < 8 ? 'imp_blast_small' : R < 14 ? 'imp_blast_medium' : 'imp_blast_large', x, z, { gain: Math.min(1.5, 0.7 + R * 0.05), far: 4, y: gy }); if (!o.quiet && !wet && R >= 6) Snd.fx('imp_crater_thud', x, z, { gain: 0.7, far: 3, y: gy });
   const cx = camera.position.x, cz = camera.position.z, k = clamp(1 - Math.hypot(cx - x, cz - z) / (R * 12), 0, 1); dis.quake = Math.max(dis.quake, k * Math.min(2.5, R * 0.16));
   if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2);
@@ -6445,7 +6448,7 @@ function blast(x, y, z, o) {                                        // one explo
   for (const ob of objects) { if (ob.gone || !ob.body || !(ob.body.mass > 0)) continue; const dx = ob.body.position.x - x, dz = ob.body.position.z - z, d = Math.hypot(dx, dz); if (d < R * 2.2) { const f = 1 - d / (R * 2.2); { const pu = (o.push || 1) * 55 * f * ob.body.mass; ob.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * pu, 0.73 * pu, dz / (d + 1) * pu), ob.body.position); } } }
   if (!wet && R >= 8) { clearTreesNear(x, z, R * 0.45); if (R >= 10) igniteTreesNear(x, z, R * 1.2); }
 }
-function heavyBlast(s) { blast(s.x, s.y, s.z, { R: 12, dmg: (s.dmg || 80) * 1.3, owner: s.owner, crater: 5, depth: 1.4 }); }
+function heavyBlast(s) { blast(s.x, s.y, s.z, { R: 12, dmg: (s.dmg || 80) * 1.3, owner: s.owner, crater: 5, depth: 1.4, heavy: true }); }
 /* ---- gunnery from the helm: G to man the guns, then click anywhere (a boat, the shore, open water) and every gun on your ship engages that spot */
 const MANQ = [];
 function gunneryFire(bt, pt) {
@@ -6556,6 +6559,7 @@ function updateDebris(dt) {
   DEB.m.count = k; DEB.m.instanceMatrix.needsUpdate = true; if (DEB.m.instanceColor) DEB.m.instanceColor.needsUpdate = true;
 }
 function updateMines() {
+  for (const h of HEATP) DIST.haze(DIST.idOf(h), h.x, Math.max(heightAt(h.x, h.z), 0) + 0.5, h.z, Math.min(1, h.p / 20), 5, Math.max(3, h.r * 0.8));
   for (let i = HEATP.length - 1; i >= 0; i--) { HEATP[i].t -= 1 / 60; if (HEATP[i].t <= 0) HEATP.splice(i, 1); }
   for (let i = MINES.length - 1; i >= 0; i--) { const m = MINES[i]; for (const v of (typeof BV !== 'undefined' && BV.list) || []) { if (v.dead || v.team === m.team || (v.speed || 0) < 0.4) continue; if (Math.hypot(v.x - m.x, v.z - m.z) < (v.rad || 2) * 0.55 + 0.6) { scene.remove(m.g); MINES.splice(i, 1); blast(m.x, m.y, m.z, { R: 5, dmg: 40, crater: 1.8, depth: 0.5, owner: null }); try { damageVehicle(v, 260, m.team, 'Anti-armour mine'); } catch (e) { } break; } } }
 }
@@ -6573,7 +6577,7 @@ function updateBombs(dt) {
       for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.ride || q.hoist) continue; let hits = 0; for (let k = 0; k < px.length; k++) if (Math.hypot(px[k] - q.x, pz[k] - q.z) < 0.9) hits++; if (hits) { if (BATTLE.on) hurt(q, 14 * hits, null, false); else if (hits > 1) topple(q, new CANNON.Vec3(0, 3, 0)); else stagger(q, new CANNON.Vec3(0, 0, 0)); } }
       continue; }
     if (b.cluster && b.y - heightAt(b.x, b.z) < 45) { BOMBS.splice(i, 1); for (let k = 0; k < 9; k++) { const a = rnd(0, 6.283), sp = rnd(2, 9); BOMBS.push({ x: b.x, y: b.y, z: b.z, vx: Math.cos(a) * sp, vy: rnd(-6, -2), vz: Math.sin(a) * sp, g: 9.8, R: b.R * 0.3, dmg: b.dmg * 0.4, crater: 0, depth: 0 }); } fxG.emit(b.x, b.y, b.z, 0, 0, 0, 0.3, 6, 1.5, [1, 0.9, 0.6, 1]); continue; }
-    if (b.y <= Math.max(heightAt(b.x, b.z), waveH(b.x, b.z, simT) - 0.2)) { BOMBS.splice(i, 1); blast(b.x, b.y, b.z, { R: b.R, dmg: b.dmg, crater: b.crater, depth: b.depth, owner: null }); if (b.fire) burnArea(b.x, b.z, b.R * 2.2); } }
+    if (b.y <= Math.max(heightAt(b.x, b.z), waveH(b.x, b.z, simT) - 0.2)) { BOMBS.splice(i, 1); blast(b.x, b.y, b.z, { R: b.R, dmg: b.dmg, crater: b.crater, depth: b.depth, owner: null, heavy: b.R >= 9 }); if (b.fire) burnArea(b.x, b.z, b.R * 2.2); } }
   for (let i = NADES.length - 1; i >= 0; i--) { const n = NADES[i]; n.t -= dt; n.vy -= 9.8 * dt; n.x += n.vx * dt; n.y += n.vy * dt; n.z += n.vz * dt; const gy = heightAt(n.x, n.z);
     if (n.y < gy + 0.08) { if (gy < -0.2 && n.y < waveH(n.x, n.z, simT)) { splash(n.x, n.z, 0.8); scene.remove(n.mesh); NADES.splice(i, 1); continue; } n.y = gy + 0.08; if (n.vy < -1.2) { n.vy *= -0.35; n.vx *= 0.6; n.vz *= 0.6; Snd.fx('mat_wood_tock', n.x, n.z, { gain: 0.3 }); } else { n.vy = 0; n.vx *= 0.85; n.vz *= 0.85; } }
     n.mesh.position.set(n.x, n.y, n.z); if (n.t <= 0) { scene.remove(n.mesh); NADES.splice(i, 1); if (n.smoke) fireOne('smoke', { x: n.x, z: n.z }, 0.5, n.team); else blast(n.x, n.y, n.z, { R: 8, dmg: 150, owner: null, team: n.team }); } }
@@ -7487,7 +7491,7 @@ function bvEjectAll(c) { let n = 0; for (const s of c.seats) if (s.q) bvEject(c,
 const bvWreckMat = new THREE.MeshStandardMaterial({ color: 0x1d1c1b, roughness: 0.95, metalness: 0.2 });
 function bvDestroy(v, byTeam, weapon, byQ) {
   if (v.dead) return; v.dead = true; v.hp = 0; v.wreck = true; v.wreckT = 0; v.speed = 0; v.burn = 0; NAV.dyn.push({ x: v.x, z: v.z, r: v.rad * 0.7, until: simT + 95 }); bvEjectAll(v); if (v.ai) bvAIRelease(v);
-  blast(v.x, v.y + 1, v.z, { R: v.sp.boom ? 12 : 9, dmg: 140, crater: 3, depth: 0.8, owner: null, skip: v, by: byTeam || null, name: 'Vehicle explosion' });
+  blast(v.x, v.y + 1, v.z, { R: v.sp.boom ? 12 : 9, dmg: 140, crater: 3, depth: 0.8, owner: null, heavy: true, skip: v, by: byTeam || null, name: 'Vehicle explosion' });
   puffSmoke(v.x, v.y + 2, v.z, 12, true, 2); sparks(v.x, v.y + 1.5, v.z, 20); dis.quake = Math.max(dis.quake, Math.hypot(v.x - camera.position.x, v.z - camera.position.z) < 80 ? 1.6 : 0.3);
   v.g.traverse(o => { if (o.isMesh) o.material = bvWreckMat; }); v.rol += (Math.random() - 0.5) * 0.12; for (const w of v.wheels) w.n.rotation.x = Math.random() * 6;
   if (v.T && v.T.tur) v.T.tur.rotation.y += (Math.random() - 0.5) * 0.9; bvSync(v);
@@ -7987,10 +7991,11 @@ function bvHeat(v, dt) {                                              // lava an
   let heat = 0; const gx = Math.round(W2G(v.x)), gz = Math.round(W2G(v.z));
   if (gx > 1 && gz > 1 && gx < TN - 2 && gz < TN - 2) { const k = gz * TN + gx, lava = Math.max(LV[k], LV[k + 1], LV[k - 1], LV[k + TN], LV[k - TN]); if (lava > 0.04) heat = 28 + lava * 40; }
   for (const h of HEATP) if (Math.hypot(h.x - v.x, h.z - v.z) < h.r) heat = Math.max(heat, h.p);
-  if (heat > 0) { if (Math.random() < 0.4) puffSmoke(v.x + rnd(-1, 1), v.y + 1, v.z + rnd(-1, 1), 1, true, 0.9); if (Math.random() < 0.25) fxG.emit(v.x + rnd(-1, 1), v.y + 0.6, v.z + rnd(-1, 1), 0, 2, 0, 0.4, 1.3, 1, [1, 0.5, 0.15, 0.9]); try { damageVehicle(v, heat * dt, null, 'Heat'); } catch (e) { } }
+  if (heat > 0) { DIST.haze(DIST.idOf(v), v.x, v.y + 0.3, v.z, Math.min(1, 0.35 + heat / 40), 3.5, 2.4); if (Math.random() < 0.4) puffSmoke(v.x + rnd(-1, 1), v.y + 1, v.z + rnd(-1, 1), 1, true, 0.9); if (Math.random() < 0.25) fxG.emit(v.x + rnd(-1, 1), v.y + 0.6, v.z + rnd(-1, 1), 0, 2, 0, 0.4, 1.3, 1, [1, 0.5, 0.15, 0.9]); try { damageVehicle(v, heat * dt, null, 'Heat'); } catch (e) { } }
 }
 function bvUpdateVeh(v, dt, t) {
   bvHeat(v, dt);
+  if (v.heli && v.rpm > 0.3 && v.y - Math.max(standY(v.x, v.z), 0) < 6) DIST.haze(DIST.idOf(v), v.x, v.y + 1.2, v.z, 0.3 * Math.min(1, v.rpm), 3, 2.4);                // a helicopter turning on the ground: exhaust shimmer
   const ds = v.seats[0], drv = ds && ds.kind === 'driver' ? ds.q : null; v.drv = !!drv; const playerDrv = !!drv && fp.on && fp.p === drv && fp.veh === v; let ctl = null;
   if (playerDrv) { bvPlayerCtl(v, BC); ctl = BC; } else if (drv && drv.bot && v.ai && v.ai.st !== 'park') { bvAIDrive(v, dt, BC); ctl = BC; }
   const moving = ctl || Math.abs(v.speed) > 0.05, was = v.x * 7 + v.z * 3 + v.yaw;
@@ -8649,7 +8654,7 @@ function govFrame(now) {                                          // true when t
   const d = now - GOV.lastF; GOV.lastF = now; if (d <= 0 || d > 250) return false;                  // ignore stalls such as a tab switch
   GOV.acc += d; GOV.n++; GOV.win += d; if (GOV.win < 2000) return false;
   const avg = GOV.acc / Math.max(1, GOV.n); GOV.win = GOV.acc = GOV.n = 0; if (govMode() !== 'auto') return false;
-  if (avg > 24) { GOV.cool = 0; if (GOV.dpr > GOV.min + 1e-6) { GOV.dpr = Math.max(GOV.min, GOV.dpr - 0.25); GOV.steps.push('dpr ' + GOV.dpr); govApply(); } else if (!GOV.cap) { GOV.cap = 30; GOV.capT = now; GOV.steps.push('cap 30'); } }
+  if (avg > 24) { DIST.govTrip(); GOV.cool = 0; if (GOV.dpr > GOV.min + 1e-6) { GOV.dpr = Math.max(GOV.min, GOV.dpr - 0.25); GOV.steps.push('dpr ' + GOV.dpr); govApply(); } else if (!GOV.cap) { GOV.cap = 30; GOV.capT = now; GOV.steps.push('cap 30'); } }
   else if (avg < 15 && !GOV.cap) { GOV.cool += 2; if (GOV.cool >= 10 && GOV.dpr < Math.min(GOV.max, devicePixelRatio || 1) - 1e-6) { GOV.cool = 0; GOV.dpr = Math.min(GOV.max, GOV.dpr + 0.25); GOV.steps.push('dpr ' + GOV.dpr); govApply(); } }
   else if (GOV.cap && now - GOV.capT > 90000) { GOV.cap = 0; GOV.cool = 0; GOV.steps.push('cap off'); }          // try 60 again after a long calm spell
   return false;
@@ -8722,6 +8727,162 @@ let last = performance.now(), hudT = 0, panelT = 0;
 const tmpV3 = new THREE.Vector3(), fwdV = new CANNON.Vec3(), upV = new CANNON.Vec3();
 function syncMesh(obj, body) { obj.position.copy(body.interpolatedPosition); obj.quaternion.copy(body.interpolatedQuaternion); }
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ================================================================ atmospheric distortion engine (v9.9.6)
+   ONE engine, sources feed it. Sources: SHOCKWAVES (big blasts only, a brief fast ring) and HEAT HAZE volumes (fires, lava, vents, burning wrecks, exhaust, hot ground).
+   Each frame, only when at least one source is alive and on screen: the sources are drawn additively into a small half-resolution "bend map"
+   (RG = screen displacement as a fraction of the picture height, B = a saturation lift mask for the shockwave band), then ONE composite pass redraws the finished picture through it.
+   The finished picture is copied from the canvas after the normal render (copyFramebufferToTexture), so tone mapping, colour space, antialiasing and blending are exactly what the
+   game already draws; with no source alive the pass does not run at all and the frame is untouched. In the gunship station the same bend map bends the scene picture BEFORE the
+   Thermal, Night or Colour sensor shader reads it; in Thermal a brief bright ring is added (thermal flash) and the heat reads as a shimmer.
+   Caps: 8 shockwaves, 24 haze volumes. Off by default on the phone, off for reduced motion, and switched off by the smoothness governor when frames get slow (EDITION-RULES.md). */
+const DIST = (() => {
+  const CAP_SHOCK = 8, CAP_HAZE = 24, FEED_MAX = 192, SHOCK_LIFE = 0.3, SQUASH = 1.3, HAZE_AMP = 0.012, MAX_OFF = 0.02;
+  const D = { pref: !ED.phone, govOff: false, live: false, ok: null, ts: 1, shocks: [], slots: new Map(), fn: 0, passes: 0, bendDraws: 0, stationPasses: 0, nr: 0, nh: 0, t: 0, ema: 0.016, slow: 0, offUntil: 0, toastOnce: false, last: 0 };
+  try { const v = localStorage.getItem('squall-cove-airdistort'); if (v === '1' || v === '0') D.pref = v === '1'; } catch (e) { }
+  const F = new Float32Array(FEED_MAX * 7), ids = new WeakMap(); let idN = 1;
+  const _v = new THREE.Vector3(), _sz = new THREE.Vector2(), _zero = new THREE.Vector2(), _cc = new THREE.Color();
+  let R = null;                                                   // GL resources, built on first use
+  const enabled = () => D.pref && !REDUCE_MOTION && !D.govOff && D.ok !== false;
+  const support = () => { if (D.ok === null) { D.ok = !!(renderer.capabilities.isWebGL2 && (renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float'))); } return D.ok; };
+  const proj = (x, y, z, o) => { _v.set(x, y, z).applyMatrix4(camera.matrixWorldInverse); const d = -_v.z; o.d = d; if (d < 0.3) { o.ux = o.uy = 0; return d; } const p5 = camera.projectionMatrix.elements[5]; o.ux = _v.x * p5 / d; o.uy = _v.y * p5 / d; o.p5 = p5; return d; };
+  const P1 = { d: 0, ux: 0, uy: 0, p5: 1 }, P2 = { d: 0, ux: 0, uy: 0, p5: 1 };
+  const VS = 'attribute vec4 aA; attribute vec4 aB; attribute vec4 aC; varying vec2 vN; varying vec4 vB; varying vec4 vC; void main(){ vN = aA.xy + position.xy * aA.zw; vB = aB; vC = aC; gl_Position = vec4(vN, 0.0, 1.0); }';
+  const FS_RING = [
+    'precision highp float; varying vec2 vN; varying vec4 vB; varying vec4 vC; uniform float uAsp;',
+    'void main(){',
+    '  vec2 u = vec2(vN.x * uAsp, vN.y); vec2 d2 = u - vB.xy; d2.y *= ' + SQUASH.toFixed(2) + '; float d = length(d2) + 1e-5; float T = vB.w; float e = d - vB.z; float ae = abs(e); if (ae >= T) discard;',
+    '  float prof = sin(e / T * 3.14159265) * (1.0 - ae / T);',                                     // out, then in, across the thickness
+    '  vec2 dir = d2 / d; float sat = max(1.0 - ae / (T * 0.85), 0.0); sat = sat * sat * vC.y;',    // the saturation mask: no bright line
+    '  gl_FragColor = vec4(dir * prof * vC.x, sat, 1.0);',
+    '}'].join('\n');
+  const FS_HAZE = [
+    'precision highp float; varying vec2 vN; varying vec4 vB; varying vec4 vC; uniform float uAsp, uT, uGain;',
+    'float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
+    'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }',
+    'void main(){',
+    '  vec2 u = vec2(vN.x * uAsp, vN.y); vec2 p = u - vB.xy; vec2 ax = vB.zw; float al = length(ax); vec2 ah = al > 1e-5 ? ax / al : vec2(0.0, 1.0);',
+    '  float rx = vC.x, ry = max(al, rx * 0.9) * 1.25; float along = dot(p, ah), perp = dot(p, vec2(-ah.y, ah.x)); vec2 q = vec2(perp / rx, along / ry); float rr = length(q);',
+    '  float w = 0.55 * exp(-pow(rr / 0.45, 2.0)) + 0.30 * exp(-pow(rr / 0.95, 2.0)) + 0.15 * exp(-pow(rr / 1.7, 2.0));',     // strong core, medium, faint outer: no hard edge
+    '  w *= 1.0 - smoothstep(2.0, 3.0, rr); w *= smoothstep(-1.1, -0.65, q.y);',
+    '  float n = mix(0.4, 1.0, vn(u * 3.2 + vec2(vC.z, -uT * 0.22))); float n2 = 0.75 + 0.25 * vn(u * 9.0 + vec2(vC.z * 1.7, -uT * 0.6));',   // patchy, slow
+    '  float f = w * n * n2 * vC.y * uGain; float ph = u.y * 34.0 - uT * 5.0 + u.x * 6.0 + vC.z; float ph2 = u.y * 52.0 - uT * 7.5 + u.x * 13.0 + vC.z * 1.3;',      // the pattern rises
+    '  float s = sin(ph) * 0.65 + sin(ph2) * 0.35; float c = cos(ph * 0.83 + 1.3) * 0.5; gl_FragColor = vec4(vec2(s, c) * f * ' + HAZE_AMP.toFixed(4) + ', 0.0, 1.0);',
+    '}'].join('\n');
+  const FS_COMP = [
+    'varying vec2 vUv; uniform sampler2D tScene; uniform sampler2D tBend; uniform float uAsp, uThermal;',
+    'void main(){',
+    '  vec4 b = texture2D(tBend, vUv); vec2 m = vec2(' + MAX_OFF.toFixed(3) + ' / uAsp, ' + MAX_OFF.toFixed(3) + '); vec2 off = clamp(vec2(b.r / uAsp, b.g), -m, m);',
+    '  vec3 c = texture2D(tScene, vUv - off).rgb; float s = max(b.b, 0.0);',
+    '  if (uThermal > 0.5) c += vec3(s * 5.0); else { float g = dot(c, vec3(0.299, 0.587, 0.114)); c = mix(vec3(g), c, 1.0 + s); }',   // thermal flash only in Thermal; elsewhere a saturation lift
+    '  gl_FragColor = vec4(c, 1.0);',
+    '}'].join('\n');
+  function mkInst(n, fs) {
+    const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, 1, 0, -1, 1, 0]), 3));
+    const A = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4), B = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4), C = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4);
+    for (const a of [A, B, C]) a.setUsage(THREE.DynamicDrawUsage); g.setAttribute('aA', A); g.setAttribute('aB', B); g.setAttribute('aC', C); g.instanceCount = 0;
+    const m = new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: fs, uniforms: { uAsp: { value: 1 }, uT: { value: 0 }, uGain: { value: 1 } }, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendEquationAlpha: THREE.AddEquation, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor, toneMapped: false });
+    const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; return { g, m, mesh, A: A.array, B: B.array, C: C.array, attrs: [A, B, C] };
+  }
+  function init() {
+    if (R) return R; R = { ring: mkInst(CAP_SHOCK, FS_RING), haze: mkInst(CAP_HAZE, FS_HAZE), bend: null, bw: 0, bh: 0, fb: null, fw: 0, fh: 0, st: null, sw: 0, sh: 0 };
+    R.bs = new THREE.Scene(); R.bs.add(R.ring.mesh, R.haze.mesh); R.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3)); geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2));
+    R.cmat = new THREE.ShaderMaterial({ vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }', fragmentShader: FS_COMP, uniforms: { tScene: { value: null }, tBend: { value: null }, uAsp: { value: 1 }, uThermal: { value: 0 } }, depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false });
+    R.quad = new THREE.Mesh(geo, R.cmat); R.quad.frustumCulled = false; R.cs = new THREE.Scene(); R.cs.add(R.quad); return R;
+  }
+  function ensureBend(w, h) { w = Math.max(16, w | 0); h = Math.max(16, h | 0); if (R.bend && R.bw === w && R.bh === h) return; if (R.bend) R.bend.dispose(); R.bend = new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }); R.bw = w; R.bh = h; }
+  function ensureFb(w, h) { if (R.fb && R.fw === w && R.fh === h) return; if (R.fb) R.fb.dispose(); R.fb = new THREE.FramebufferTexture(w, h); R.fb.minFilter = R.fb.magFilter = THREE.LinearFilter; R.fw = w; R.fh = h; }
+  function ensureSt(rt, w, h) { if (R.st && R.sw === w && R.sh === h && R.stType === rt.texture.type) return; if (R.st) R.st.dispose(); R.st = new THREE.WebGLRenderTarget(w, h, { type: rt.texture.type, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }); if (rt.texture.colorSpace === THREE.SRGBColorSpace) R.st.texture.colorSpace = THREE.SRGBColorSpace; R.sw = w; R.sh = h; R.stType = rt.texture.type; }
+  /* ---- sources */
+  D.idOf = (o) => { let i = ids.get(o); if (!i) { i = idN++; ids.set(o, i); } return i; };
+  D.shock = (x, y, z, Rb, heavy) => {                                                // a big blast: blast radius >= 14 or a heavy kind
+    if (!D.live || !(Rb >= 14 || heavy)) return; const cp = fxPos(); if (Math.hypot(x - cp.x, z - cp.z) > 500) return;
+    if (D.shocks.length >= CAP_SHOCK) D.shocks.shift();
+    D.shocks.push({ x, y: y + Math.min(3, Rb * 0.15), z, rw: clamp(Rb * 2.4, 25, 60), age: 0, life: SHOCK_LIFE * (0.9 + Math.min(0.2, Rb / 100)), k: clamp(0.6 + Rb / 40, 0.7, 1.2) });
+  };
+  D.haze = (id, x, y, z, k, h, r) => {                                               // a heat source this frame: k 0..1 (temperature), h and r in metres. Re-fed every frame while it burns.
+    if (!D.live || D.fn >= FEED_MAX || !(k > 0.02)) return; const cp = fxPos(), dx = x - cp.x, dz = z - cp.z; if (dx * dx + dz * dz > 240 * 240) return;
+    const o = D.fn * 7; F[o] = id; F[o + 1] = x; F[o + 2] = y; F[o + 3] = z; F[o + 4] = Math.min(1, k); F[o + 5] = h; F[o + 6] = r; D.fn++;
+  };
+  D.reset = () => { D.shocks.length = 0; D.slots.clear(); D.fn = 0; };
+  D.govTrip = () => { if (D.pref && !D.govOff && GOV.perf !== 'best') { D.govOff = true; D.offUntil = performance.now() + 60000; if (!D.toastOnce) { D.toastOnce = true; try { toast('Air distortion paused to keep play smooth.'); } catch (e) { } } } };
+  D.setPref = (on) => { D.pref = !!on; D.govOff = false; D.slow = 0; try { localStorage.setItem('squall-cove-airdistort', on ? '1' : '0'); } catch (e) { } if (!on) D.reset(); };
+  D.enabled = enabled; D.cap = { shock: CAP_SHOCK, haze: CAP_HAZE };
+  D.tick = (dt) => {                                                                   // once per frame, before the render
+    const now = performance.now(); const real = D.last ? Math.min(0.25, (now - D.last) / 1000) : 0.016; D.last = now;
+    if (D.govOff && now > D.offUntil && D.offUntil > 0 && !ED.phone) { D.govOff = false; D.offUntil = 0; D.slow = 0; }          // the desktop tries again after a minute; the phone waits for the setting
+    D.live = enabled() && support();
+    if (!D.live) { if (D.shocks.length || D.slots.size) D.reset(); D.fn = 0; D.nr = D.nh = 0; return; }
+    D.ema += (real - D.ema) * 0.08; if (GOV.perf !== 'best' && (D.nr + D.nh) > 0) { if (D.ema > 0.036) { D.slow += real; if (D.slow > 2.5) D.govTrip(); } else D.slow = Math.max(0, D.slow - real); }
+    dt = Math.min(dt, 0.05) * D.ts; D.t += dt;
+    for (let i = D.shocks.length - 1; i >= 0; i--) { const s = D.shocks[i]; s.age += dt; if (s.age >= s.life) D.shocks.splice(i, 1); }
+    mirage();
+    // haze slots: the best CAP_HAZE of this frame's feed, each fading in and out so nothing pops
+    const cp = fxPos(), n = D.fn, sc = new Array(n); for (let i = 0; i < n; i++) { const o = i * 7, dx = F[o + 1] - cp.x, dz = F[o + 3] - cp.z; sc[i] = [F[o + 4] * (F[o + 5] + F[o + 6]) / (1 + (dx * dx + dz * dz) / 1600), i]; }
+    sc.sort((a, b) => b[0] - a[0]); const seen = new Set(); let used = 0;
+    for (let j = 0; j < n && used < CAP_HAZE; j++) { const o = sc[j][1] * 7, id = F[o]; if (seen.has(id)) continue; seen.add(id); used++;
+      let s = D.slots.get(id); if (!s) { if (D.slots.size >= CAP_HAZE + 12) continue; s = { id, a: 0, k: F[o + 4] }; D.slots.set(id, s); }
+      s.x = F[o + 1]; s.y = F[o + 2]; s.z = F[o + 3]; s.k += (F[o + 4] - s.k) * Math.min(1, dt * 4); s.h = F[o + 5]; s.r = F[o + 6]; }
+    for (const [id, s] of D.slots) { s.a = clamp(s.a + (seen.has(id) ? 1 : -1) * dt * 2.5, 0, 1); if (s.a <= 0) D.slots.delete(id); }
+    D.fn = 0;
+  };
+  function mirage() {                                                                  // very hot ground in the sun, low in the view: a faint flat shimmer ahead
+    if (D.noMirage || (STN && STN.on)) return; const cam = camera.position; if (cam.y > 40 || sunDir.y < 0.35) return;
+    let T = 0; try { T = airTempAt(cam.x, cam.z); } catch (e) { return; } if (!(T > 30)) return;
+    camera.getWorldDirection(_v); const l = Math.hypot(_v.x, _v.z) || 1, fx = _v.x / l, fz = _v.z / l, k = clamp((T - 30) / 10, 0, 1) * 0.3 * clamp((sunDir.y - 0.35) * 2.5, 0, 1);
+    for (let i = 0; i < 2; i++) { const dd = 60 + i * 70, x = cam.x + fx * dd, z = cam.z + fz * dd; D.haze(0x7000 + i, x, Math.max(heightAt(x, z), 0) + 0.4, z, k, 0.8, 38 + i * 12); }
+  }
+  /* ---- fill the instance arrays for the view (camera is current); returns how many sources will draw */
+  function build(asp, thermal, station) {
+    const cp = camera.position, ring = R.ring, haze = R.haze; let nr = 0, nh = 0; const p5 = camera.projectionMatrix.elements[5];
+    for (const s of D.shocks) {
+      const d = proj(s.x, s.y, s.z, P1); if (d < 0.5) continue; const dist = Math.hypot(cp.x - s.x, cp.y - s.y, cp.z - s.z), att = station ? 1 : clamp(1.25 - dist / 220, 0.12, 1); if (!station && dist > 450) continue;
+      const u = s.age / s.life, e = 1 - Math.pow(1 - u, 2.2), rw = s.rw * Math.max(0.08, e), dd = Math.max(d, 3), cap = 1.2 * asp;
+      let rs = rw * p5 / dd, st = s.k * att * Math.pow(1 - u, 1.1); if (rs > cap) { st *= 0.85; rs = cap; }
+      const T = Math.max(0.065 * rs, 0.012), hx = (rs + T + 0.02) / asp, hy = (rs + T + 0.02) / SQUASH; if (Math.abs(P1.ux / asp) > 1 + hx || Math.abs(P1.uy) > 1 + hy || st < 0.01) continue;
+      const o = nr * 4; ring.A[o] = P1.ux / asp; ring.A[o + 1] = P1.uy; ring.A[o + 2] = hx; ring.A[o + 3] = hy; ring.B[o] = P1.ux; ring.B[o + 1] = P1.uy; ring.B[o + 2] = rs; ring.B[o + 3] = T;
+      ring.C[o] = 0.06 * st; ring.C[o + 1] = 0.45 * st; ring.C[o + 2] = 0; ring.C[o + 3] = 0; nr++;
+    }
+    const sl = []; for (const s of D.slots.values()) sl.push(s); sl.sort((a, b) => b.a * b.k - a.a * a.k);
+    for (const s of sl) { if (nh >= CAP_HAZE) break;
+      const d1 = proj(s.x, s.y, s.z, P1), d2 = proj(s.x, s.y + s.h, s.z, P2); if (d1 < 1.5 || d2 < 1.5) continue; const dm = (d1 + d2) / 2, dist = Math.hypot(cp.x - s.x, cp.z - s.z);
+      const r0 = s.r * p5 / dm, cx = (P1.ux + P2.ux) / 2, cy = (P1.uy + P2.uy) / 2, ax = (P2.ux - P1.ux) / 2, ay = (P2.uy - P1.uy) / 2, al = Math.hypot(ax, ay); if (r0 < 0.004) continue;
+      const ry = Math.max(al, r0 * 0.9) * 1.25, ahx = al > 1e-5 ? ax / al : 0, ahy = al > 1e-5 ? ay / al : 1, bx = 3 * Math.hypot(ry * ahx, r0 * ahy), by = 3 * Math.hypot(ry * ahy, r0 * ahx);
+      if (Math.abs(cx) > asp + bx || Math.abs(cy) > 1 + by) continue;
+      let st = s.k * s.a * (station ? 1 : 1 - smoothstep01(120, 240, dist)); if (r0 > 1.5) st *= 1.5 / r0; if (st < 0.01) continue;
+      const o = nh * 4; haze.A[o] = cx / asp; haze.A[o + 1] = cy; haze.A[o + 2] = bx / asp; haze.A[o + 3] = by; haze.B[o] = cx; haze.B[o + 1] = cy; haze.B[o + 2] = ax; haze.B[o + 3] = ay;
+      haze.C[o] = r0; haze.C[o + 1] = st; haze.C[o + 2] = (s.id * 12.9898) % 100; haze.C[o + 3] = 0; nh++;
+    }
+    ring.g.instanceCount = nr; haze.g.instanceCount = nh; ring.mesh.visible = nr > 0; haze.mesh.visible = nh > 0; for (const a of ring.attrs) a.needsUpdate = true; for (const a of haze.attrs) a.needsUpdate = true;
+    ring.m.uniforms.uAsp.value = haze.m.uniforms.uAsp.value = asp; haze.m.uniforms.uT.value = D.t; haze.m.uniforms.uGain.value = thermal ? 1.4 : 1;
+    D.nr = nr; D.nh = nh; return nr + nh;
+  }
+  const smoothstep01 = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  function drawBend() {
+    const ac = renderer.autoClear, ca = renderer.getClearAlpha(); renderer.getClearColor(_cc);
+    try { renderer.setRenderTarget(R.bend); renderer.setClearColor(0x000000, 0); renderer.autoClear = false; renderer.clear(); renderer.render(R.bs, R.cam); } finally { renderer.setRenderTarget(null); renderer.autoClear = ac; renderer.setClearColor(_cc, ca); }
+    D.bendDraws++;
+  }
+  function composite(target, asp, thermal) {
+    const ac = renderer.autoClear; R.cmat.uniforms.tBend.value = R.bend.texture; R.cmat.uniforms.uAsp.value = asp; R.cmat.uniforms.uThermal.value = thermal ? 1 : 0;
+    try { renderer.setRenderTarget(target); renderer.autoClear = false; renderer.render(R.cs, R.cam); } finally { renderer.setRenderTarget(null); renderer.autoClear = ac; }
+  }
+  D.main = () => {                                                                     // after the normal render: bend the finished picture, or do nothing at all
+    if (D.mute) return false;                                                          // test hook: draw the plain picture while the sources stay alive
+    if (!D.live || (!D.shocks.length && !D.slots.size && !D.force)) { D.nr = D.nh = 0; return false; } init(); renderer.getDrawingBufferSize(_sz); const W = _sz.x | 0, H = _sz.y | 0; if (W < 16 || H < 16) return false;
+    if (!build(W / H, false, false) && !D.force) return false;          // D.force is a test hook: run the pass with an empty bend map to prove it is the identity
+    try { ensureBend(W / 2, H / 2); ensureFb(W, H); drawBend(); renderer.copyFramebufferToTexture(_zero, R.fb); R.cmat.uniforms.tScene.value = R.fb; composite(null, W / H, false); D.passes++; return true; }
+    catch (e) { D.ok = false; D.reset(); console.error('air distortion failed and was switched off', e); return false; }
+  };
+  D.station = (rt, rw, rh, thermal) => {                                               // the sensor picture: bend it before the sensor shader reads it. Returns the texture to use, or null.
+    if (!D.live || (!D.shocks.length && !D.slots.size)) { D.nr = D.nh = 0; return null; } init(); if (!build(rw / rh, thermal, true)) return null;
+    try { ensureBend(rw / 2, rh / 2); ensureSt(rt, rw, rh); drawBend(); R.cmat.uniforms.tScene.value = rt.texture; composite(R.st, rw / rh, thermal); D.stationPasses++; D.passes++; return R.st.texture; }
+    catch (e) { D.ok = false; D.reset(); console.error('air distortion failed and was switched off', e); return null; }
+  };
+  D.end = () => { D.fn = 0; };
+  D.status = () => ({ live: D.live, pref: D.pref, govOff: D.govOff, ok: D.ok, shocks: D.shocks.length, hazes: D.slots.size, nr: D.nr, nh: D.nh, passes: D.passes, stationPasses: D.stationPasses, bendDraws: D.bendDraws });
+  return D;
+})();
 const PF = window.__pf = {}; const PFT = (n, f) => { const a = performance.now(); f(); PF[n] = (PF[n] || 0) + performance.now() - a; };
 let frameErrN = 0;
 function frame(now) { if (ED.phone && govFrame(now)) { requestAnimationFrame(frame); return; } try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
@@ -8854,7 +9015,9 @@ function frameStep(now) {
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
-  if (STN && STN.on) stnRender(); else renderer.render(scene, camera);
+  DIST.tick(dt);
+  if (STN && STN.on) stnRender(); else { renderer.render(scene, camera); DIST.main(); }
+  DIST.end();
   Snd.frame(dt);
   requestAnimationFrame(frame);
 }
@@ -8909,6 +9072,7 @@ const KEYMAP = [
   ['over', 'Symbols', 'More, then Symbols: from far away, friends show as a blue rectangle and hostile units as a red diamond, each with a small picture inside (crossed lines infantry, oval armour, dot gun, wings aircraft, waves boat). A letter marks each point. Squads show as one mark with the squad name when you zoom in. Many marks merge into one with a count'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
+  ['over', 'Menu, Settings, Air distortion', 'Bends the air over big blasts (a quick ripple that passes through the view) and over fires, lava and hot engines (a soft shimmer). On by default on desktop, off on the phone, off when your device asks for less motion, and it pauses itself if play gets slow. Also seen through the gunship sensor views'],
   ['over', '` (backtick)', 'Cheats: for fun and testing. Switches, spawns, weather and typed codes. Also in Menu, Settings'],
   ['over', 'V', 'Drop into first person as the selected person (in a battle, the nearest soldier)', 'hp'],
   ['over', 'J, K', 'In a battle: take over the nearest soldier, watch the next one'],
@@ -9495,6 +9659,7 @@ function updateVolcanoes(dt, t) {
       else puffSmoke(v.x + rnd(-5, 5), topY + 0.5, v.z + rnd(-5, 5), 2, true, 1.2);
       if (v.t > 4) { v.state = 'build'; v.t = 0; toast('It is erupting'); for (const bt of boats) { const d = Math.hypot(bt.body.position.x - v.x, bt.body.position.z - v.z); if (d < 70) bt.body.applyImpulse(new CANNON.Vec3((bt.body.position.x - v.x) / d * bt.body.mass * 1.2, bt.body.mass * 0.6, (bt.body.position.z - v.z) / d * bt.body.mass * 1.2), bt.body.position); } }
     } else if (v.state === 'build' || v.state === 'active') {
+      DIST.haze(DIST.idOf(v), v.x, topY + 1, v.z, v.state === 'active' ? 1 : 0.6, 22, 16);
       if (v.state === 'build') { v.p = Math.min(1, v.t / 55); v.tick -= dt; }
       v.upd = (v.upd || 0) - dt; if (v.state === 'build' && v.upd <= 0) { v.upd = 0.2; reshape(v); }
       if (v.state === 'build' && v.p >= 1) { v.state = 'active'; v.t = 0; reshape(v); }
@@ -10771,7 +10936,7 @@ function placeLavaThing(item, p) {
   g.position.set(p.x, Math.max(standY(p.x, p.z), 0), p.z); scene.add(g); lavaVents.push({ x: p.x, z: p.z, rate: 2.6, mesh: g, glow }); toast('Lava vent: it keeps pouring until you remove it.');
 }
 function updateLavaVents(dt) {
-  for (const v of lavaVents) { if (Math.random() < dt * 14) { const y0 = Math.max(standY(v.x, v.z), 0) + 1.3; for (let b = 0; b < 2; b++) fxG.emit(v.x + rnd(-0.3, 0.3), y0, v.z + rnd(-0.3, 0.3), rnd(-2.2, 2.2), rnd(6, 12), rnd(-2.2, 2.2), rnd(0.9, 1.5), rnd(0.35, 0.7), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.95], 9.8, 0.05); }
+  for (const v of lavaVents) { DIST.haze(DIST.idOf(v), v.x, Math.max(standY(v.x, v.z), 0) + 0.8, v.z, 0.9, 7, 6); if (Math.random() < dt * 14) { const y0 = Math.max(standY(v.x, v.z), 0) + 1.3; for (let b = 0; b < 2; b++) fxG.emit(v.x + rnd(-0.3, 0.3), y0, v.z + rnd(-0.3, 0.3), rnd(-2.2, 2.2), rnd(6, 12), rnd(-2.2, 2.2), rnd(0.9, 1.5), rnd(0.35, 0.7), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.95], 9.8, 0.05); }
     const gx = Math.round(W2G(v.x)), gz = Math.round(W2G(v.z)); for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) addLava(gx + dj, gz + di, v.rate * dt / 9); v.glow.material.color.setRGB(1, 0.3 + 0.2 * Math.sin(simT * 5 + v.x), 0.05); }
 }
 function clearLavaVents() { for (const v of lavaVents) scene.remove(v.mesh); lavaVents.length = 0; }
@@ -10805,7 +10970,7 @@ function updatePerf(dt) {                                                       
 function updateTreeFire(dt) {
   growProps(dt); updateSeeds(dt); updateDevices(dt); updatePerf(dt); updateHold(dt);
   for (let i = burning.length - 1; i >= 0; i--) {
-    const t = burning[i]; t.burn -= dt * (wx.rainAmt > 0.3 ? 3 : 1); const gy = Math.max(heightAt(t.x, t.z), 0);
+    const t = burning[i]; t.burn -= dt * (wx.rainAmt > 0.3 ? 3 : 1); const gy = Math.max(heightAt(t.x, t.z), 0); DIST.haze(DIST.idOf(t), t.x, gy + 1.2, t.z, 0.35 + 0.4 * Math.min(1, t.burn / 6), 7, 4.5);
     if (Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5), t.z + rnd(-0.6, 0.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1.1), rnd(0.7, 1.4), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]);
     if (Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);
     t.spread = (t.spread || 0) - dt;
@@ -11664,7 +11829,7 @@ function updateBomber(dt, t) {
 }
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
-window.__sc = { BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
+window.__sc = { DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -11716,6 +11881,9 @@ function applyLook() {
 }
 $('mTheme').addEventListener('click', () => { const o = Object.keys(LOOK_NAMES), cur = applyLook().th, nx = o[(o.indexOf(cur) + 1) % o.length]; try { localStorage.setItem('squall-cove-theme', nx); } catch (e) { } applyLook(); });
 $('mEasy').addEventListener('click', () => { const ez = applyLook().ez; try { localStorage.setItem('squall-cove-easy', ez ? '0' : '1'); } catch (e) { } applyLook(); });
+const paintDistort = () => { const b = $('mDistort'); if (!b) return; const on = DIST.pref && !REDUCE_MOTION; b.firstChild.nodeValue = 'Air distortion: ' + (on ? 'On' : 'Off'); b.setAttribute('aria-pressed', String(on)); b.querySelector('small').textContent = REDUCE_MOTION ? 'Off, because your device asks for less motion.' : DIST.govOff ? 'Paused to keep play smooth. Tap to try again.' : 'Bends the air over big blasts and fires. Off saves battery.'; };
+$('mDistort').addEventListener('click', () => { const on = !(DIST.pref && !DIST.govOff); DIST.setPref(on); paintDistort(); toast('Air distortion: ' + (on && !REDUCE_MOTION ? 'On' : 'Off')); });
+paintDistort();
 applyLook();
 /* the Menu in four tabs: Play, Settings, Help, App */
 { const tabs = menuMain.querySelectorAll('.mtabs button'), secs = menuMain.querySelectorAll('.mtab'); const show = (id) => { tabs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mt === id))); secs.forEach(s => { s.hidden = s.dataset.mt !== id; }); }; tabs.forEach(b => b.addEventListener('click', () => show(b.dataset.mt))); show('play'); }
@@ -12516,7 +12684,7 @@ function shellBurst(s, gs) {                                         // a shell 
   const t = s.type;
   if (t === 'smoke') { smokeBloom(s.x, s.z, 0.6); Snd.fx('imp_blast_small', s.x, s.z, { gain: 0.7, far: 3, y: gs }); puffSmoke(s.x, gs + 1, s.z, 10, false, 2.2); }
   else if (t === 'inc') { blast(s.x, gs, s.z, { R: 5, dmg: 45, crater: 1.4, depth: 0.5, owner: null }); burnArea(s.x, s.z, 11); }
-  else blast(s.x, gs, s.z, { R: s.R, dmg: s.dmg, crater: s.crater, depth: s.depth, owner: null });
+  else blast(s.x, gs, s.z, { R: s.R, dmg: s.dmg, crater: s.crater, depth: s.depth, owner: null, heavy: s.R >= 10 });
 }
 function updateShells(dt) {
   for (let i = SHELLS.length - 1; i >= 0; i--) {
@@ -13533,7 +13701,8 @@ function stnRender() {
   stnFxSet(thermal ? 1 : S.mode === 'night' ? 2 : 0);
   try { renderer.setRenderTarget(stnR.rt); renderer.render(scene, camera); } finally { renderer.setRenderTarget(null); stnFxSet(0); }
   for (const c of kids) c.visible = true; if (own) own.visible = ownV; scene.fog.density = fd; for (let i = 0; i < swaps.length; i += 2) swaps[i].material = swaps[i + 1];
-  const m = S.mode === 'colour' ? stnR.mats.tone : stnR.mats.raw, U = m.uniforms; U.tDiff.value = stnR.rt.texture; U.uTexel.value.set(1 / rw, 1 / rh); U.uMode.value = STN_MODES[S.mode].k; U.uPhos.value = S.phos === 'white' ? 1 : 0; U.uCloud.value = S.cloud; U.uTime.value = S.t; U.uAsp.value = V.w / V.h; stnR.quad.material = m;
+  const dtex = DIST.station(stnR.rt, rw, rh, thermal);                                   // air distortion bends the scene picture before the sensor shader reads it
+  const m = S.mode === 'colour' ? stnR.mats.tone : stnR.mats.raw, U = m.uniforms; U.tDiff.value = dtex || stnR.rt.texture; U.uTexel.value.set(1 / rw, 1 / rh); U.uMode.value = STN_MODES[S.mode].k; U.uPhos.value = S.phos === 'white' ? 1 : 0; U.uCloud.value = S.cloud; U.uTime.value = S.t; U.uAsp.value = V.w / V.h; stnR.quad.material = m;
   const W = innerWidth, H = innerHeight; renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H); renderer.setClearColor(0x000000, 1); renderer.clear(); renderer.setClearColor(cc, ca);
   renderer.setScissorTest(true); renderer.setViewport(V.x, H - V.y - V.h, V.w, V.h); renderer.setScissor(V.x, H - V.y - V.h, V.w, V.h); const ac = renderer.autoClear; renderer.autoClear = false; renderer.render(stnR.scene, stnR.cam); renderer.autoClear = ac;
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);

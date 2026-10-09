@@ -593,13 +593,27 @@
   },
   {
    "id": "settings",
-   "what": "Settings: sandbox, quality, colours, easy read, voices, captions, hide buttons",
+   "what": "Settings: sandbox, quality, colours, easy read, air distortion, voices, captions, hide buttons",
    "covers": [],
    "desktop": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
    },
    "phone": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+   }
+  },
+  {
+   "id": "air-distortion",
+   "what": "Air distortion (v9.9.6): a quick ripple through the view for big blasts and a soft shimmer over fires, lava and hot engines, also through the gunship sensor views. Settings switch Air distortion: On or Off, remembered (squall-cove-airdistort); On by default on desktop, Off by default on the phone, off for reduced motion, and paused by the smoothness governor when frames get slow",
+   "covers": [
+    "over|Menu, Settings, Air distortion"
+   ],
+   "desktop": {
+    "sel": "#mDistort"
+   },
+   "phone": {
+    "sel": "#mDistort",
+    "gesture": "Menu, Settings, Air distortion: one button, same behaviour, Off until you turn it on"
    }
   },
   {
