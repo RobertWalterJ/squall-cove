@@ -205,7 +205,7 @@ class Air:
         gm = self._grad(mag)
         n = np.sqrt(gm[0] ** 2 + gm[1] ** 2 + gm[2] ** 2) + 1e-6
         nx_, ny_, nz_ = gm[0] / n, gm[1] / n, gm[2] / n
-        sc = vc * 20.0 * dt
+        sc = vc * 20.0 * min(dt, 1.0 / 48.0)
         self.u += sc * (ny_ * oz - nz_ * oy)
         self.v += sc * (nz_ * ox - nx_ * oz)
         self.w += sc * (nx_ * oy - ny_ * ox)

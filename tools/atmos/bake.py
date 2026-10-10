@@ -318,7 +318,7 @@ def run_strip(name, seed=0):
     log(f"[{name}] drift done ({time.time() - t0:.0f}s)")
     # ---- linger: churn damped, nearly static
     state["fn"] = hold(stg["linger"]["churn"])
-    for _ in range(steps_for(20.0)):
+    for _ in range(steps_for(8.0)):
         air.step()
     raw = new_clip("raw", "loop", 0, c["linger_fps"], True)
     record(air, rend, raw, nli + mo // 2, c["linger_fps"], 2, loop_phase=True, nloop=nli, frame_s=fs * 1.5, u_ref=u_ref * 0.3)
@@ -383,10 +383,10 @@ def run_blobs(name, seed=0):
             qs = FL.qsat(air.T0 + air.th)
             air.qe += (qs - air.qb[None, None, :]) * m
             air.ql += tp["amp"] * m
-            for _ in range(int(8 / air.dt)):
+            for _ in range(int(4 / air.dt)):
                 air.step()
             raw = new_clip("raw", "loop", v, b["fps"], True)
-            fsx = 0.8
+            fsx = 0.6
             record(air, rend, raw, n + mo, b["fps"], v, loop_phase=True, nloop=n, frame_s=fsx)
             lp = make_loop(raw, v, n, mo, mirror=False, name=f"{tname}_{'ab'[v]}", stage="blob")
             lp["blob_type"] = tname

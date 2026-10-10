@@ -75,6 +75,17 @@ def block(d, name, info):
     sc = min(sc, 260 / fh) if info["family"] != "fog" or info["kind"] == "blobs" else sc
     cw, ch = max(8, int(fw * sc)), max(8, int(fh * sc))
     rows = []
+    if fw >= 400:     # wide strips: 2 columns x 3 rows per background, dark and grey
+        cw, ch = 380, int(380 * fh / fw)
+        panels = []
+        for bg in (DARK, GREY):
+            tl = [np.asarray(Image.fromarray((comp(main[i], scat[i], bg) * 255).astype(np.uint8)).resize((cw, ch), Image.LANCZOS)) for i in sel]
+            panels.append(np.concatenate([np.concatenate(tl[r * 2:r * 2 + 2], 1) for r in range(3)], 0))
+        img = Image.fromarray(np.concatenate(panels, 1))
+        canvas = Image.new("RGB", (img.width, img.height + 18), (24, 24, 28))
+        canvas.paste(img, (0, 18))
+        ImageDraw.Draw(canvas).text((4, 3), f"{name}  {info['title']}  |  left dark, right grey day; frames: form, drift, drift, linger, thin, fall  |  {info['size_note'][:60]}", fill=(235, 235, 235))
+        return canvas
     for bg, back in ((DARK, 0.0), (GREY, 0.0), (BRIGHT, 1.0)):
         tiles = []
         for i in sel:
