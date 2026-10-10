@@ -141,10 +141,17 @@ function val(name) { return document.querySelector('input[name=' + name + ']:che
 function loadImg(file) {
   if (cache[file]) return cache[file];
   cache[file] = new Promise(res => {
-    const im = new Image();
-    im.onload = () => res(im);
-    im.onerror = () => { $('err').textContent = 'Could not load ' + file + ' (expected in ../assets/fire_blender/ next to the docs folder).'; res(null); };
-    im.src = BASE + file;
+    let tries = 0;
+    const go = () => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => {
+        if (++tries < 4) { setTimeout(go, 150 * tries); return; }
+        $('err').textContent = 'Could not load ' + file + ' (expected in ../assets/fire_blender/ next to the docs folder).'; res(null);
+      };
+      im.src = BASE + file + (tries ? '?r=' + tries : '');
+    };
+    go();
   });
   return cache[file];
 }

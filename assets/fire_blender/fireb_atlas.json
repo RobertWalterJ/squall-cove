@@ -1,0 +1,3452 @@
+{
+ "fps": 24,
+ "loop": true,
+ "alphaMode": "straight",
+ "format": "webp",
+ "notes": "All images are STRAIGHT-alpha WebP. Flame/ember/heat: additive (three.js AdditiveBlending = SRC_ALPHA, ONE) reproduces the render; flame colour is hue-normalised with alpha = brightness. Smoke: NormalBlending. Anchor [0.5,0] = bottom centre of the frame. Per-preset frameSize and grid; *_low files are half size.",
+ "totalBytes": 3773194,
+ "presets": {
+  "campfire": {
+   "desc": "campfire / burning barrel (flames 0.8 to 1.2 m)",
+   "fuel": "wood",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    128,
+    192
+   ],
+   "lowFrameSize": [
+    64,
+    96
+   ],
+   "worldWidth": 2.0,
+   "worldHeight": 3.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.55,
+     0.22
+    ],
+    "intensity": 2.2
+   },
+   "flicker": [
+    0.897,
+    0.934,
+    0.975,
+    1.011,
+    1.032,
+    1.033,
+    1.019,
+    0.996,
+    0.975,
+    0.963,
+    0.963,
+    0.972,
+    0.988,
+    1.005,
+    1.022,
+    1.04,
+    1.061,
+    1.085,
+    1.103,
+    1.107,
+    1.096,
+    1.074,
+    1.049,
+    1.03,
+    1.029,
+    1.051,
+    1.079,
+    1.089,
+    1.075,
+    1.047,
+    1.022,
+    1.012,
+    1.016,
+    1.021,
+    1.018,
+    1.002,
+    0.971,
+    0.932,
+    0.899,
+    0.875,
+    0.859,
+    0.85,
+    0.853,
+    0.869
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_campfire_flame.webp",
+     "bytes": 122406,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_campfire_flame_low.webp",
+     "bytes": 47592,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_campfire_smoke.webp",
+     "bytes": 76264,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_campfire_smoke_low.webp",
+     "bytes": 29844,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_campfire_heat.webp",
+     "bytes": 26320,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_campfire_heat_low.webp",
+     "bytes": 12172,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 112,
+   "haze": {
+    "strength": 0.45,
+    "radiusM": 0.9,
+    "heightM": 3.0,
+    "riseSpeed": 2.0
+   }
+  },
+  "vehicle": {
+   "desc": "vehicle fire with a hot engine bay",
+   "fuel": "vehicle",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    160,
+    192
+   ],
+   "lowFrameSize": [
+    80,
+    96
+   ],
+   "worldWidth": 7.5,
+   "worldHeight": 9.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.5,
+     0.18
+    ],
+    "intensity": 4.0
+   },
+   "flicker": [
+    1.004,
+    1.02,
+    1.038,
+    1.052,
+    1.062,
+    1.068,
+    1.072,
+    1.071,
+    1.065,
+    1.054,
+    1.041,
+    1.034,
+    1.033,
+    1.042,
+    1.053,
+    1.06,
+    1.061,
+    1.052,
+    1.033,
+    1.008,
+    0.979,
+    0.953,
+    0.933,
+    0.921,
+    0.913,
+    0.908,
+    0.908,
+    0.916,
+    0.93,
+    0.946,
+    0.961,
+    0.968,
+    0.975,
+    0.986,
+    0.994,
+    0.995,
+    0.991,
+    0.988,
+    0.986,
+    0.984,
+    0.981,
+    0.982,
+    0.986,
+    0.993
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_vehicle_flame.webp",
+     "bytes": 127300,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_vehicle_flame_low.webp",
+     "bytes": 49720,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_vehicle_smoke.webp",
+     "bytes": 73522,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_vehicle_smoke_low.webp",
+     "bytes": 30100,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_vehicle_heat.webp",
+     "bytes": 28616,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_vehicle_heat_low.webp",
+     "bytes": 10936,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 96,
+   "haze": {
+    "strength": 0.85,
+    "radiusM": 2.6,
+    "heightM": 8.0,
+    "riseSpeed": 3.2
+   }
+  },
+  "gas": {
+   "desc": "gas burner / jet flame, blue base turning orange (2 m frame)",
+   "fuel": "gas",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    128,
+    192
+   ],
+   "lowFrameSize": [
+    64,
+    96
+   ],
+   "worldWidth": 2.0,
+   "worldHeight": 3.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     0.55,
+     0.7,
+     1.0
+    ],
+    "intensity": 1.4
+   },
+   "flicker": [
+    0.992,
+    0.999,
+    1.008,
+    1.016,
+    1.018,
+    1.012,
+    1.002,
+    0.994,
+    0.989,
+    0.982,
+    0.971,
+    0.956,
+    0.944,
+    0.949,
+    0.972,
+    1.008,
+    1.046,
+    1.069,
+    1.067,
+    1.044,
+    1.02,
+    1.004,
+    0.99,
+    0.98,
+    0.976,
+    0.977,
+    0.991,
+    1.013,
+    1.024,
+    1.025,
+    1.025,
+    1.016,
+    1.007,
+    1.015,
+    1.028,
+    1.031,
+    1.019,
+    1.0,
+    0.98,
+    0.968,
+    0.961,
+    0.96,
+    0.969,
+    0.981
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_gas_flame.webp",
+     "bytes": 40102,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_gas_flame_low.webp",
+     "bytes": 15788,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_gas_smoke.webp",
+     "bytes": 2250,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_gas_smoke_low.webp",
+     "bytes": 640,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_gas_heat.webp",
+     "bytes": 10066,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_gas_heat_low.webp",
+     "bytes": 4352,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 112,
+   "haze": {
+    "strength": 0.3,
+    "radiusM": 0.4,
+    "heightM": 2.0,
+    "riseSpeed": 2.5
+   }
+  },
+  "pool": {
+   "desc": "sooty fuel / oil pool fire, 3 m across",
+   "fuel": "liquid",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    128,
+    192
+   ],
+   "lowFrameSize": [
+    64,
+    96
+   ],
+   "worldWidth": 6.0,
+   "worldHeight": 9.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.5,
+     0.18
+    ],
+    "intensity": 3.0
+   },
+   "flicker": [
+    0.993,
+    0.986,
+    0.98,
+    0.977,
+    0.975,
+    0.973,
+    0.97,
+    0.966,
+    0.964,
+    0.97,
+    0.983,
+    0.997,
+    1.009,
+    1.019,
+    1.023,
+    1.025,
+    1.029,
+    1.029,
+    1.023,
+    1.01,
+    1.0,
+    0.995,
+    0.996,
+    1.004,
+    1.018,
+    1.036,
+    1.054,
+    1.065,
+    1.065,
+    1.053,
+    1.03,
+    1.003,
+    0.983,
+    0.976,
+    0.976,
+    0.978,
+    0.981,
+    0.984,
+    0.984,
+    0.979,
+    0.976,
+    0.981,
+    0.989,
+    0.994
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_pool_flame.webp",
+     "bytes": 109676,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_pool_flame_low.webp",
+     "bytes": 41732,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_pool_smoke.webp",
+     "bytes": 45630,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_pool_smoke_low.webp",
+     "bytes": 17312,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_pool_heat.webp",
+     "bytes": 20662,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_pool_heat_low.webp",
+     "bytes": 8954,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 88,
+   "haze": {
+    "strength": 0.9,
+    "radiusM": 2.2,
+    "heightM": 9.0,
+    "riseSpeed": 3.5
+   }
+  },
+  "building": {
+   "desc": "building fire: window flames and a roof fire",
+   "fuel": "structure",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    160,
+    160
+   ],
+   "lowFrameSize": [
+    80,
+    80
+   ],
+   "worldWidth": 16.0,
+   "worldHeight": 16.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.48,
+     0.16
+    ],
+    "intensity": 7.0
+   },
+   "flicker": [
+    1.0,
+    0.997,
+    0.991,
+    0.986,
+    0.988,
+    0.997,
+    1.008,
+    1.017,
+    1.02,
+    1.014,
+    0.999,
+    0.982,
+    0.974,
+    0.982,
+    1.001,
+    1.02,
+    1.035,
+    1.053,
+    1.07,
+    1.077,
+    1.07,
+    1.051,
+    1.029,
+    1.008,
+    0.99,
+    0.978,
+    0.973,
+    0.973,
+    0.977,
+    0.983,
+    0.985,
+    0.98,
+    0.98,
+    0.985,
+    0.987,
+    0.99,
+    0.994,
+    0.988,
+    0.972,
+    0.962,
+    0.966,
+    0.98,
+    0.992,
+    0.999
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_building_flame.webp",
+     "bytes": 211106,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_building_flame_low.webp",
+     "bytes": 78664,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_building_smoke.webp",
+     "bytes": 54664,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_building_smoke_low.webp",
+     "bytes": 19614,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_building_heat.webp",
+     "bytes": 36206,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_building_heat_low.webp",
+     "bytes": 16114,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 80,
+   "haze": {
+    "strength": 1.0,
+    "radiusM": 5.0,
+    "heightM": 16.0,
+    "riseSpeed": 4.0
+   }
+  },
+  "grass": {
+   "desc": "grass / brush fire front, flames 0.3 to 1.5 m",
+   "fuel": "grass",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    256,
+    160
+   ],
+   "lowFrameSize": [
+    128,
+    80
+   ],
+   "worldWidth": 4.0,
+   "worldHeight": 2.5,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.52,
+     0.2
+    ],
+    "intensity": 2.0
+   },
+   "flicker": [
+    1.046,
+    1.062,
+    1.067,
+    1.056,
+    1.035,
+    1.022,
+    1.002,
+    0.976,
+    0.967,
+    0.969,
+    0.981,
+    1.006,
+    1.023,
+    1.02,
+    1.016,
+    1.034,
+    1.06,
+    1.058,
+    1.023,
+    0.977,
+    0.929,
+    0.895,
+    0.893,
+    0.928,
+    0.992,
+    1.067,
+    1.089,
+    1.03,
+    0.975,
+    0.998,
+    1.066,
+    1.107,
+    1.096,
+    1.053,
+    0.996,
+    0.95,
+    0.924,
+    0.907,
+    0.902,
+    0.913,
+    0.933,
+    0.955,
+    0.985,
+    1.019
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_grass_flame.webp",
+     "bytes": 211284,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_grass_flame_low.webp",
+     "bytes": 75686,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_grass_smoke.webp",
+     "bytes": 140020,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_grass_smoke_low.webp",
+     "bytes": 51080,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_grass_heat.webp",
+     "bytes": 61776,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_grass_heat_low.webp",
+     "bytes": 27528,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 128,
+   "haze": {
+    "strength": 0.35,
+    "radiusM": 3.0,
+    "heightM": 1.2,
+    "riseSpeed": 1.2
+   }
+  },
+  "tree": {
+   "desc": "burning tree: crown and trunk fire (8 by 12 m frame)",
+   "fuel": "tree",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    128,
+    192
+   ],
+   "lowFrameSize": [
+    64,
+    96
+   ],
+   "worldWidth": 8.0,
+   "worldHeight": 12.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.5,
+     0.18
+    ],
+    "intensity": 5.0
+   },
+   "flicker": [
+    1.0,
+    0.974,
+    0.964,
+    0.969,
+    0.973,
+    0.968,
+    0.959,
+    0.952,
+    0.95,
+    0.948,
+    0.945,
+    0.941,
+    0.94,
+    0.943,
+    0.952,
+    0.968,
+    0.993,
+    1.023,
+    1.048,
+    1.06,
+    1.062,
+    1.055,
+    1.042,
+    1.021,
+    0.995,
+    0.98,
+    0.98,
+    0.98,
+    0.974,
+    0.968,
+    0.97,
+    0.984,
+    1.008,
+    1.036,
+    1.06,
+    1.075,
+    1.079,
+    1.068,
+    1.05,
+    1.033,
+    1.025,
+    1.03,
+    1.033,
+    1.023
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_tree_flame.webp",
+     "bytes": 212092,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_tree_flame_low.webp",
+     "bytes": 79492,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_tree_smoke.webp",
+     "bytes": 37932,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_tree_smoke_low.webp",
+     "bytes": 16352,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_tree_heat.webp",
+     "bytes": 28874,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_tree_heat_low.webp",
+     "bytes": 13788,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 72,
+   "haze": {
+    "strength": 0.8,
+    "radiusM": 3.5,
+    "heightM": 12.0,
+    "riseSpeed": 3.5
+   }
+  },
+  "fireball": {
+   "desc": "explosion fireball, 8 m class, one-shot 3 s (flash, expansion, rising bubble with smoke head, residue)",
+   "fuel": "explosion",
+   "frames": 72,
+   "loop": false,
+   "frameSize": [
+    128,
+    192
+   ],
+   "lowFrameSize": [
+    64,
+    96
+   ],
+   "worldWidth": 16.0,
+   "worldHeight": 24.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.72,
+     0.38
+    ],
+    "intensity": 20.0
+   },
+   "flicker": [
+    1.974,
+    2.659,
+    2.699,
+    2.725,
+    2.722,
+    2.587,
+    2.41,
+    2.547,
+    2.936,
+    3.347,
+    3.809,
+    4.245,
+    4.581,
+    4.84,
+    5.035,
+    5.064,
+    4.7,
+    4.015,
+    3.251,
+    2.428,
+    1.577,
+    0.828,
+    0.304,
+    0.06,
+    0.003,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.655
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_fireball_flame.webp",
+     "bytes": 40450,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_fireball_flame_low.webp",
+     "bytes": 15914,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_fireball_smoke.webp",
+     "bytes": 148442,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 58
+    },
+    "smoke_low": {
+     "file": "fireb_fireball_smoke_low.webp",
+     "bytes": 59794,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 82
+    },
+    "heat": {
+     "file": "fireb_fireball_heat.webp",
+     "bytes": 51292,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_fireball_heat_low.webp",
+     "bytes": 12442,
+     "grid": [
+      8,
+      9
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 72,
+   "haze": {
+    "strength": 1.0,
+    "radiusM": 10.0,
+    "heightM": 24.0,
+    "riseSpeed": 5.0
+   }
+  },
+  "trail_slow": {
+   "desc": "carried flame, slow (about 5 m/s relative air), flame bent back along +X",
+   "fuel": "debris",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    192,
+    128
+   ],
+   "lowFrameSize": [
+    96,
+    64
+   ],
+   "worldWidth": 3.0,
+   "worldHeight": 2.0,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.55,
+     0.2
+    ],
+    "intensity": 0.8
+   },
+   "flicker": [
+    0.96,
+    0.93,
+    0.903,
+    0.88,
+    0.865,
+    0.86,
+    0.866,
+    0.885,
+    0.911,
+    0.934,
+    0.949,
+    0.968,
+    0.991,
+    1.0,
+    0.998,
+    0.993,
+    0.974,
+    0.961,
+    0.965,
+    0.967,
+    0.972,
+    0.997,
+    1.027,
+    1.054,
+    1.078,
+    1.096,
+    1.104,
+    1.101,
+    1.094,
+    1.087,
+    1.08,
+    1.075,
+    1.065,
+    1.052,
+    1.043,
+    1.042,
+    1.049,
+    1.059,
+    1.062,
+    1.054,
+    1.039,
+    1.021,
+    1.005,
+    0.986
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_trail_slow_flame.webp",
+     "bytes": 25466,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_trail_slow_flame_low.webp",
+     "bytes": 10592,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_trail_slow_smoke.webp",
+     "bytes": 67484,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_trail_slow_smoke_low.webp",
+     "bytes": 24318,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_trail_slow_heat.webp",
+     "bytes": 16716,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_trail_slow_heat_low.webp",
+     "bytes": 7014,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 96,
+   "haze": {
+    "strength": 0.15,
+    "radiusM": 0.5,
+    "heightM": 1.0,
+    "riseSpeed": 2.0
+   }
+  },
+  "trail_med": {
+   "desc": "carried flame, medium (about 11 m/s), flame bent back along +X",
+   "fuel": "debris",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    192,
+    128
+   ],
+   "lowFrameSize": [
+    96,
+    64
+   ],
+   "worldWidth": 3.9,
+   "worldHeight": 2.6,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.55,
+     0.2
+    ],
+    "intensity": 1.0
+   },
+   "flicker": [
+    0.939,
+    0.917,
+    0.909,
+    0.903,
+    0.898,
+    0.902,
+    0.916,
+    0.935,
+    0.959,
+    0.986,
+    1.009,
+    1.026,
+    1.03,
+    1.017,
+    0.991,
+    0.962,
+    0.935,
+    0.921,
+    0.928,
+    0.955,
+    0.991,
+    1.025,
+    1.054,
+    1.076,
+    1.086,
+    1.084,
+    1.071,
+    1.052,
+    1.038,
+    1.031,
+    1.033,
+    1.04,
+    1.05,
+    1.056,
+    1.051,
+    1.044,
+    1.039,
+    1.037,
+    1.039,
+    1.038,
+    1.033,
+    1.023,
+    1.002,
+    0.971
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_trail_med_flame.webp",
+     "bytes": 43844,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_trail_med_flame_low.webp",
+     "bytes": 16890,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_trail_med_smoke.webp",
+     "bytes": 84756,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_trail_med_smoke_low.webp",
+     "bytes": 31888,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_trail_med_heat.webp",
+     "bytes": 18744,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_trail_med_heat_low.webp",
+     "bytes": 7156,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 96,
+   "haze": {
+    "strength": 0.2,
+    "radiusM": 0.6,
+    "heightM": 1.2,
+    "riseSpeed": 2.0
+   }
+  },
+  "trail_fast": {
+   "desc": "carried flame, fast (about 20 m/s), long streaming tail along +X",
+   "fuel": "debris",
+   "frames": 44,
+   "loop": true,
+   "frameSize": [
+    192,
+    128
+   ],
+   "lowFrameSize": [
+    96,
+    64
+   ],
+   "worldWidth": 5.1,
+   "worldHeight": 3.4,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "light": {
+    "color": [
+     1.0,
+     0.55,
+     0.2
+    ],
+    "intensity": 1.2
+   },
+   "flicker": [
+    0.907,
+    0.892,
+    0.882,
+    0.878,
+    0.88,
+    0.89,
+    0.909,
+    0.935,
+    0.961,
+    0.986,
+    1.012,
+    1.032,
+    1.039,
+    1.025,
+    0.994,
+    0.957,
+    0.926,
+    0.916,
+    0.931,
+    0.961,
+    1.0,
+    1.043,
+    1.076,
+    1.093,
+    1.099,
+    1.096,
+    1.086,
+    1.067,
+    1.044,
+    1.028,
+    1.033,
+    1.062,
+    1.096,
+    1.106,
+    1.088,
+    1.058,
+    1.025,
+    0.999,
+    0.995,
+    1.013,
+    1.029,
+    1.024,
+    0.988,
+    0.939
+   ],
+   "files": {
+    "flame": {
+     "file": "fireb_trail_fast_flame.webp",
+     "bytes": 71546,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "flame_low": {
+     "file": "fireb_trail_fast_flame_low.webp",
+     "bytes": 27256,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke": {
+     "file": "fireb_trail_fast_smoke.webp",
+     "bytes": 102620,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "smoke_low": {
+     "file": "fireb_trail_fast_smoke_low.webp",
+     "bytes": 38402,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat": {
+     "file": "fireb_trail_fast_heat.webp",
+     "bytes": 20876,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "heat_low": {
+     "file": "fireb_trail_fast_heat_low.webp",
+     "bytes": 8378,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   },
+   "variants": [
+    {
+     "name": "A",
+     "offset": 0,
+     "flip": false
+    },
+    {
+     "name": "B",
+     "offset": 19,
+     "flip": true
+    },
+    {
+     "name": "C",
+     "offset": 37,
+     "flip": false
+    },
+    {
+     "name": "D",
+     "offset": 11,
+     "flip": true
+    }
+   ],
+   "clips": [
+    {
+     "name": "ignite",
+     "source": "loop",
+     "duration": 1.5,
+     "loop": false,
+     "scaleY": [
+      0.12,
+      1.0
+     ],
+     "scaleX": [
+      0.45,
+      1.0
+     ],
+     "flameGain": [
+      0.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.0,
+      0.6
+     ],
+     "erosion": [
+      0.55,
+      0.0
+     ]
+    },
+    {
+     "name": "growth",
+     "source": "loop",
+     "duration": 6.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      0.6,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ],
+     "note": "scale the whole sprite with fuel load / area over this time"
+    },
+    {
+     "name": "developed",
+     "source": "loop",
+     "duration": 2.333,
+     "loop": true,
+     "scaleY": [
+      1.0,
+      1.0
+     ],
+     "scaleX": [
+      1.0,
+      1.0
+     ],
+     "flameGain": [
+      1.0,
+      1.0
+     ],
+     "smokeGain": [
+      1.0,
+      1.0
+     ],
+     "erosion": [
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "decay",
+     "source": "loop",
+     "duration": 8.0,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.25
+     ],
+     "scaleX": [
+      1.0,
+      0.7
+     ],
+     "flameGain": [
+      1.0,
+      0.25
+     ],
+     "smokeGain": [
+      1.0,
+      0.35
+     ],
+     "erosion": [
+      0.0,
+      0.6
+     ],
+     "embers": true,
+     "note": "fuel fades; switch to the embers atlas and thin smoke"
+    },
+    {
+     "name": "extinguish",
+     "source": "loop",
+     "duration": 1.2,
+     "loop": false,
+     "scaleY": [
+      1.0,
+      0.05
+     ],
+     "scaleX": [
+      1.0,
+      0.8
+     ],
+     "flameGain": [
+      1.0,
+      0.0
+     ],
+     "smokeGain": [
+      1.0,
+      2.2
+     ],
+     "erosion": [
+      0.0,
+      0.9
+     ],
+     "steam": true,
+     "note": "water: flame erodes fast, smoke layer brightens to steam for about 2 s, then thins"
+    }
+   ],
+   "resCells": 96,
+   "haze": {
+    "strength": 0.25,
+    "radiusM": 0.8,
+    "heightM": 1.5,
+    "riseSpeed": 2.0
+   }
+  }
+ },
+ "extras": {
+  "embers": {
+   "desc": "rising sparks and embers (additive); numpy ballistic particles, not Mantaflow",
+   "frameSize": [
+    64,
+    96
+   ],
+   "frames": 48,
+   "worldWidth": 1.0,
+   "worldHeight": 1.5,
+   "anchor": [
+    0.5,
+    0.0
+   ],
+   "files": {
+    "embers": {
+     "file": "fireb_embers.webp",
+     "bytes": 36796,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    }
+   }
+  },
+  "spatter": {
+   "desc": "burning spatter / thrown fuel droplets on gravity arcs (additive), numpy, not Mantaflow; thrown towards +X from the left",
+   "frameSize": [
+    128,
+    96
+   ],
+   "frames": 40,
+   "loop": false,
+   "worldWidth": 4.0,
+   "worldHeight": 3.0,
+   "anchor": [
+    0.2,
+    0.0
+   ],
+   "files": {
+    "spatter": {
+     "file": "fireb_spatter.webp",
+     "bytes": 26554,
+     "grid": [
+      8,
+      5
+     ],
+     "quality": 88
+    }
+   }
+  },
+  "ember_streak": {
+   "desc": "ember streak: head at right edge, tail streaming left; stretch along the velocity vector",
+   "frameSize": [
+    96,
+    24
+   ],
+   "frames": 24,
+   "loop": true,
+   "worldWidth": 1.2,
+   "worldHeight": 0.3,
+   "anchor": [
+    1.0,
+    0.5
+   ],
+   "files": {
+    "streak": {
+     "file": "fireb_streak.webp",
+     "bytes": 8862,
+     "grid": [
+      8,
+      3
+     ],
+     "quality": 88
+    }
+   }
+  },
+  "spread_grass": {
+   "desc": "tileable fire-front segment, seamless left-right; lead/trail end pieces; spot fire; smouldering burnt strip",
+   "tileFrameSize": [
+    128,
+    160
+   ],
+   "tileWorldWidth": 2.0,
+   "worldHeight": 2.5,
+   "spotFrameSize": [
+    42,
+    80
+   ],
+   "spotWorldWidth": 0.656,
+   "burntStripFrameSize": [
+    128,
+    24
+   ],
+   "burntStripWorldWidth": 2.0,
+   "burntStripWorldHeight": 0.375,
+   "frames": 44,
+   "burntStripFrames": 40,
+   "files": {
+    "front": {
+     "file": "fireb_grass_tile_front.webp",
+     "bytes": 101956,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "front_smoke": {
+     "file": "fireb_grass_tile_smoke.webp",
+     "bytes": 71444,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "lead": {
+     "file": "fireb_grass_tile_lead.webp",
+     "bytes": 90522,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "trail": {
+     "file": "fireb_grass_tile_trail.webp",
+     "bytes": 88798,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "spot": {
+     "file": "fireb_grass_spot.webp",
+     "bytes": 33420,
+     "grid": [
+      8,
+      6
+     ],
+     "quality": 88
+    },
+    "burnt_bed": {
+     "file": "fireb_grass_burnt_strip.webp",
+     "bytes": 38334,
+     "grid": [
+      8,
+      5
+     ],
+     "quality": 70
+    }
+   },
+   "notes": "place tiles side by side along the front; lead piece at advancing ends, trail piece at dying ends; burnt strip behind the front; spot clip for spotting ahead of the front"
+  }
+ }
+}

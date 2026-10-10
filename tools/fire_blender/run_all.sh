@@ -6,5 +6,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 W="$1"; shift
 for spec in "$@"; do
   p="${spec%%:*}"; fl=""; [[ "$spec" == *:* ]] && fl="${spec#*:}" && fl="${fl//,/ }"
-  "$B" --background --factory-startup --python "$HERE/bake_fire.py" -- "$p" "$W" --samples 20 $fl > "$W/$p.log" 2>&1
+  for try in 1 2 3; do   # Blender occasionally throws a wind-field/depsgraph error on startup: retry
+    "$B" --background --factory-startup --python "$HERE/bake_fire.py" -- "$p" "$W" --samples 20 $fl > "$W/$p.log" 2>&1
+    grep -q "RENDER DONE" "$W/$p.log" && break
+  done
 done

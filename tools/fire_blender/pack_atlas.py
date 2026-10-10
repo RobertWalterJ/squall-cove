@@ -18,17 +18,17 @@ COLS = 8
 FPS = 24
 
 META = {
-    'campfire': dict(light=(1.0, 0.55, 0.22), intensity=2.2, smoke_tone=0.55, desc='campfire / burning barrel (flames 0.8 to 1.2 m)', fuel='wood', haze=(0.45, 0.9, 3.0, 2.0)),
-    'gas':      dict(light=(0.55, 0.7, 1.0), intensity=1.4, smoke_tone=0.8, desc='gas burner / jet flame, blue base turning orange', fuel='gas', haze=(0.3, 0.4, 2.0, 2.5)),
-    'pool':     dict(light=(1.0, 0.5, 0.18), intensity=3.0, smoke_tone=0.32, desc='sooty fuel / oil pool fire, 3 m across', fuel='liquid', glow=0.35, haze=(0.9, 2.2, 9.0, 3.5)),
-    'vehicle':  dict(light=(1.0, 0.5, 0.18), intensity=4.0, smoke_tone=0.38, desc='vehicle fire with a hot engine bay', fuel='vehicle', glow=0.3, haze=(0.85, 2.6, 8.0, 3.2)),
-    'building': dict(light=(1.0, 0.48, 0.16), intensity=7.0, smoke_tone=0.42, desc='building fire: window flames and a roof fire', fuel='structure', glow=0.12, haze=(1.0, 5.0, 16.0, 4.0)),
+    'campfire': dict(light=(1.0, 0.55, 0.22), intensity=2.2, smoke_tone=0.55, desc='campfire / burning barrel (flames 0.8 to 1.2 m)', fuel='wood', env=(0.16, 0.36), haze=(0.45, 0.9, 3.0, 2.0)),
+    'gas':      dict(light=(0.55, 0.7, 1.0), intensity=1.4, smoke_tone=0.8, desc='gas burner / jet flame, blue base turning orange (2 m frame)', fuel='gas', haze=(0.3, 0.4, 2.0, 2.5)),
+    'pool':     dict(light=(1.0, 0.5, 0.18), intensity=3.0, smoke_tone=0.32, desc='sooty fuel / oil pool fire, 3 m across', fuel='liquid', env=(0.17, 0.38), glow=0.2, haze=(0.9, 2.2, 9.0, 3.5)),
+    'vehicle':  dict(light=(1.0, 0.5, 0.18), intensity=4.0, smoke_tone=0.38, desc='vehicle fire with a hot engine bay', fuel='vehicle', env=(0.20, 0.40), glow=0.3, haze=(0.85, 2.6, 8.0, 3.2)),
+    'building': dict(light=(1.0, 0.48, 0.16), intensity=7.0, smoke_tone=0.42, desc='building fire: window flames and a roof fire', fuel='structure', env=(0.26, 0.45), glow=0.12, haze=(1.0, 5.0, 16.0, 4.0)),
     'grass':    dict(light=(1.0, 0.52, 0.2), intensity=2.0, smoke_tone=0.6, desc='grass / brush fire front, flames 0.3 to 1.5 m', fuel='grass', tile=True, sgain=3.5, haze=(0.35, 3.0, 1.2, 1.2)),
     'fireball': dict(light=(1.0, 0.72, 0.38), intensity=20.0, smoke_tone=0.35, desc='explosion fireball, 8 m class, one-shot 3 s (flash, expansion, rising bubble with smoke head, residue)', fuel='explosion', oneshot=True, sgain=1.4, glow=0.25, haze=(1.0, 10.0, 24.0, 5.0)),
     'trail_slow': dict(light=(1.0, 0.55, 0.2), intensity=0.8, smoke_tone=0.6, desc='carried flame, slow (about 5 m/s relative air), flame bent back along +X', fuel='debris', sgain=1.5, haze=(0.15, 0.5, 1.0, 2.0)),
     'trail_med':  dict(light=(1.0, 0.55, 0.2), intensity=1.0, smoke_tone=0.6, desc='carried flame, medium (about 11 m/s), flame bent back along +X', fuel='debris', sgain=1.5, haze=(0.2, 0.6, 1.2, 2.0)),
     'trail_fast': dict(light=(1.0, 0.55, 0.2), intensity=1.2, smoke_tone=0.6, desc='carried flame, fast (about 20 m/s), long streaming tail along +X', fuel='debris', sgain=1.5, haze=(0.25, 0.8, 1.5, 2.0)),
-    'tree':     dict(light=(1.0, 0.5, 0.18), intensity=5.0, smoke_tone=0.4, desc='burning tree: crown and trunk fire (8 by 12 m frame)', fuel='tree', glow=0.1, haze=(0.8, 3.5, 12.0, 3.5)),
+    'tree':     dict(light=(1.0, 0.5, 0.18), intensity=5.0, smoke_tone=0.4, desc='burning tree: crown and trunk fire (8 by 12 m frame)', fuel='tree', env=(0.18, 0.40), glow=0.1, haze=(0.8, 3.5, 12.0, 3.5)),
 }
 VARIANTS = [dict(name='A', offset=0, flip=False), dict(name='B', offset=19, flip=True),
             dict(name='C', offset=37, flip=False), dict(name='D', offset=11, flip=True)]
@@ -95,6 +95,15 @@ def window(fh, fw, side=0.09, top=0.14, bottom=0.0):
     x = np.linspace(0, 1, fw)[None, :]; y = np.linspace(0, 1, fh)[:, None]
     w = ss(x / side) * ss((1 - x) / side) * ss(y / top)
     if bottom > 0: w = w * ss((1 - y) / bottom)
+    return w[..., None]
+
+def plume_window(fh, fw, hw0, hw1, soft=0.16, top=0.24):
+    """Soft plume silhouette (narrow at the base, widening upward) so smoke never reads as a box:
+    half-width as a fraction of frame width goes hw0 -> hw1 with height, edges feather over `soft`, top fades out."""
+    x = (np.linspace(0, 1, fw)[None, :] - 0.5)
+    yb = (1 - np.linspace(0, 1, fh))[:, None]
+    hw = hw0 + (hw1 - hw0) * yb ** 0.85
+    w = ss((hw - np.abs(x)) / soft) * ss((1 - yb) / top)
     return w[..., None]
 
 def apply_window(a, **kw):
@@ -260,12 +269,23 @@ def main():
         meta = json.load(open(os.path.join(d, 'meta.json')))
         fl = np.load(os.path.join(d, 'flame.npy')).astype(np.float32)
         sm = np.load(os.path.join(d, 'smoke.npy')).astype(np.float32)
-        ht = np.load(os.path.join(d, 'heat.npy')).astype(np.float32)
+        if sm.shape[0] != fl.shape[0]:             # smoke was rendered every 2nd frame: interpolate in time
+            t = np.linspace(0, sm.shape[0] - 1, fl.shape[0]); i0 = np.floor(t).astype(int); i1 = np.minimum(i0 + 1, sm.shape[0] - 1); fr = (t - i0)[:, None, None, None]
+            sm = sm[i0] * (1 - fr) + sm[i1] * fr
+        hp = os.path.join(d, 'heat.npy')
+        if os.path.exists(hp):
+            ht = np.load(hp).astype(np.float32)
+        else:                                      # derive the thermal layer: blurred flame emission plus a glow of the hot gas / smoke column above
+            lum = fl[..., :3].mean(axis=-1, keepdims=True)
+            core = gaussian_filter(lum, sigma=(0, 2.0, 2.0, 0))
+            wide = gaussian_filter(lum, sigma=(0, 7.0, 7.0, 0))
+            col = 0.5 * np.maximum(sm[..., 3:4] * 0.0, 0) + 0.35 * np.clip(sm[..., 3:4], 0, 1) * (wide.max() * 0.4)
+            ht = np.repeat(core * 1.0 + wide * 0.8 + col, 4, axis=-1)
         if META[p].get('oneshot'):
             n, x = fl.shape[0], 0
             fl, sm, ht = fl.astype(np.float32), sm.astype(np.float32), ht.astype(np.float32)
         else:
-            n = LOOP if fl.shape[0] >= LOOP else fl.shape[0]
+            n = meta.get('loop', 56) if fl.shape[0] >= meta.get('loop', 56) else fl.shape[0]
             x = fl.shape[0] - n
             fl = crossfade_loop(fl, n, x); sm = crossfade_loop(sm, n, x); ht = crossfade_loop(ht, n, x)
         norm = float(np.percentile(ht[..., :3].mean(axis=-1), 99.7)) or 1.0
@@ -273,6 +293,9 @@ def main():
         sm = blur_t(sm, 1.3, 1.2); ht = blur_t(ht, 0.8, 0.8)
         F = apply_window(tm_flame(fl), top=0.12); S = apply_window(tm_smoke(sm, m['smoke_tone'], m.get('sgain', 1.0), m.get('glow', 0.0)), top=0.18, side=0.12)
         Hh = apply_window(tm_heat(ht, norm), top=0.16, side=0.10)
+        if m.get('env'):
+            pw = plume_window(fhei_ := F.shape[1], F.shape[2], *m['env'])
+            S = S * pw; Hh = Hh * np.sqrt(pw)
         seams[p] = dict(flame=seam_metric(F[..., :3]), smoke=seam_metric(S[..., :3]))
         fwid, fhei = F.shape[2], F.shape[1]
         wb = max(1.0, fwid * fhei / (128 * 192))
