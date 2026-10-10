@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.10 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.11 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -860,6 +860,8 @@ body.touch #fpHUp{right:calc(134px + var(--safe-r));bottom:calc(82px + var(--saf
 body.touch #fpJump,body.touch #fpHL{left:calc(var(--fp-edge) + var(--safe-l));bottom:calc(158px + var(--safe-b))}
 body.touch #fpStance,body.touch #fpHR{left:calc(var(--fp-edge) + 64px + var(--safe-l));bottom:calc(158px + var(--safe-b))}
 body.touch #fpHL,body.touch #fpHR{display:none}
+body.touch #fpLight{left:calc(var(--fp-edge) + 128px + var(--safe-l));bottom:calc(158px + var(--safe-b))}
+body.touch #fp.tu-heli #fpLight{display:none}
 body.touch #fp.tu-reload #fpReload,body.touch #fp.tu-zoom #fpZoom,body.touch #fp.tu-squad #fpSquad{display:grid}
 body.touch #fp.tu-heli #fpHDn,body.touch #fp.tu-heli #fpHUp,body.touch #fp.tu-heli #fpHL,body.touch #fp.tu-heli #fpHR{display:grid}
 body.touch #fp.tu-heli #fpJump,body.touch #fp.tu-veh #fpStance,body.touch #fp.tu-heli #fpStance{display:none}
@@ -919,6 +921,7 @@ body.ed-phone[data-mode="fp"] #phoneStack > #feedCol{position:fixed!important;le
   /* first person, landscape: Jump and Stance sit beside the stick (clear of its reach), tools bottom centre, stats top left, toasts top centre */
   body.touch #fpJump,body.touch #fpHL{left:calc(var(--fp-edge) + 148px + var(--safe-l));bottom:calc(var(--fp-b) + var(--safe-b))}
   body.touch #fpStance,body.touch #fpHR{left:calc(var(--fp-edge) + 148px + var(--safe-l));bottom:calc(82px + var(--safe-b))}
+  body.touch #fpLight{left:calc(var(--fp-edge) + 212px + var(--safe-l));bottom:calc(82px + var(--safe-b))}
   body.touch #fpTools{bottom:calc(var(--fp-b) + var(--safe-b));left:50%;right:auto;transform:translateX(-50%);max-width:min(400px,calc(100vw - 480px))}
   body.touch .fpPrompt{bottom:calc(86px + var(--safe-b));max-width:min(44vw,360px)}
   body.touch #bStat{left:calc(8px + var(--safe-l));top:calc(44px + var(--safe-t))}
@@ -1239,7 +1242,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
     <div id="fpTools"></div>
     <div id="fpLook"></div>
     <div id="fpStick"><div id="fpKnob"></div></div>
-    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Command</button><button id="fpStance" type="button">Stance</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button><button id="fpReload" type="button"><svg class="ic" aria-hidden="true"><use href="#i-reload"/></svg><span>Reload</span></button><button id="fpZoom" type="button"><svg class="ic" aria-hidden="true"><use href="#i-scope"/></svg><span>Zoom</span></button><button id="fpSquad" type="button"><svg class="ic" aria-hidden="true"><use href="#i-squad"/></svg><span>Squad</span></button><button id="fpHUp" type="button"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg><span>Climb</span></button><button id="fpHDn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg><span>Descend</span></button><button id="fpHL" type="button"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg><span>Turn</span></button><button id="fpHR" type="button"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg><span>Turn</span></button></div>
+    <div class="fpBtns"><button id="fpHelm" type="button" hidden>Helm</button><button id="fpDrop" type="button" hidden>Drop</button><button id="fpFire" type="button">Fire</button><button id="fpTab" type="button">Command</button><button id="fpStance" type="button">Stance</button><button id="fpLight" type="button">Light</button><button id="fpJump" type="button">Jump</button><button id="fpUse" type="button">Use</button><button id="fpReload" type="button"><svg class="ic" aria-hidden="true"><use href="#i-reload"/></svg><span>Reload</span></button><button id="fpZoom" type="button"><svg class="ic" aria-hidden="true"><use href="#i-scope"/></svg><span>Zoom</span></button><button id="fpSquad" type="button"><svg class="ic" aria-hidden="true"><use href="#i-squad"/></svg><span>Squad</span></button><button id="fpHUp" type="button"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg><span>Climb</span></button><button id="fpHDn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg><span>Descend</span></button><button id="fpHL" type="button"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg><span>Turn</span></button><button id="fpHR" type="button"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg><span>Turn</span></button></div>
   </div>
   <div id="inspector" hidden role="dialog" aria-label="Device settings">
     <div class="ihead"><b id="iTitle">Device</b><span id="iNote"></span><button id="iClose" type="button">Done</button></div>
@@ -1299,7 +1302,7 @@ const BOOT = window.__BOOT || null;                                 // the choic
 const $ = (id) => document.getElementById(id);
 var BVL = [], BVA = null;                                          // the battlefield vehicles (BV block): declared early so every hook can ask whether there are any
 const ic = (n, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + n + '"/></svg>';        // one inline sprite, no image files
-const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot' };
+const TOOL_IC = { hands: 'hand', rod: 'fish', pistol: 'pistol', revolver: 'pistol', smg: 'rifle', rifle: 'rifle', shotgun: 'rifle', carbine: 'rifle', sniper: 'scope', marksman: 'scope', lmg: 'belt', aa: 'aa', rpg: 'aa', grenade: 'bomb', c4: 'bomb', satchel: 'bomb', smoke: 'smoke', binoculars: 'binoc', radio: 'radio', medkit: 'cross', sandbag: 'depot', chem: 'smoke', flare: 'bomb' };
 const CLS_IC = { tankhunter: 'aa', assault: 'rifle', marksman: 'scope', heavy: 'belt', engineer: 'wrench', spotter: 'binoc', medic: 'cross', scout: 'scope', trooper: 'chevrons', breacher: 'door', aa: 'aa', gunship: 'scope' };
 const A = 'assets/';
 const RHO_W = 1025, RHO_A = 1.225, G = 9.82, KN = 1.94384, MAX_OBJ = matchMedia('(pointer: coarse)').matches ? 90 : 220, MAX_BOATS = matchMedia('(pointer: coarse)').matches ? 14 : 26;
@@ -4998,6 +5001,7 @@ function fpCamera(dt, t) {
 /* ---- input: pointer lock and mouse look, keys, the touch stick and look pad, the buttons */
 document.addEventListener('pointerlockchange', () => { fp.locked = document.pointerLockElement === canvas; if (fp.on && !fp.locked && !isTouch && !STN.on) $('fpHint').textContent = 'Paused. Click the view to look around again. M opens the map and L the full map. Esc or the Leave button returns to the overview.'; });
 $('fpStance').addEventListener('click', () => fpStance(((fp.stance || 0) + 1) % 3));
+$('fpLight').addEventListener('click', () => torchToggle());
 let SEEN_MOUSE = false; document.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') SEEN_MOUSE = true; }, { capture: true, passive: true });   // a touch laptop reports a coarse pointer yet has a mouse: believe the mouse once it moves
 const noMouse = () => isTouch && !SEEN_MOUSE;
 const FPAIM_HINT = 'Click the view to aim with the mouse. M opens the map, L the full map, Shift + M hides the corner map, and the compass runs along the top. Esc or the Leave button returns to the overview.';
@@ -5039,6 +5043,7 @@ const KEY_ROUTE = []; let keyStop = false; const onKey = (fn) => { KEY_ROUTE.pus
 addEventListener('keydown', (e) => { keyStop = false; for (let i = 0; i < KEY_ROUTE.length; i++) { KEY_ROUTE[i](e); if (keyStop) break; } });
 onKey((e) => {
   if (!fp.on || mode !== 'fp' || e.metaKey || e.ctrlKey || e.altKey) return; const k = e.key.toLowerCase();
+  if (!(STN && STN.on)) { if (k === '.') { torchToggle(); e.preventDefault(); return; } if (k === ',' && !e.shiftKey) { chemThrow(); e.preventDefault(); return; } if (k === '<' || (k === ',' && e.shiftKey)) { flareHandStart(); e.preventDefault(); return; } }
   if (fp.veh && bvKey(k, e)) return;
   if (k === 'h') keyStop = true;      // the overview handler would otherwise see the new helm mode and toggle straight back
   if (k === 'e') fpUse(); else if (k === 'g') { if (fp.p && fp.p.carry) dropCarry(fp.p); } else if (k === 'q') fpOverboard(); else if (k === 'h') fpHelm();
@@ -5047,7 +5052,7 @@ onKey((e) => {
 });
 
 /* ================================================================ first-person tools: hands (pick up, carry, throw), fishing rod, rifle (cartoon knock-outs) */
-const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['pistol', 'Pistol', '3'], ['smg', 'SMG', '4'], ['rifle', 'Rifle', '5'], ['shotgun', 'Shotgun', '6'], ['sniper', 'Sniper', '7'], ['carbine', 'Carbine', '8'], ['aa', 'AA launcher', '9'], ['grenade', 'Grenades', '0'], ['c4', 'Charges', '-'], ['lmg', 'LMG', ''], ['marksman', 'Marksman rifle', ''], ['revolver', 'Revolver', ''], ['rpg', 'Rocket launcher', ''], ['binoculars', 'Binoculars', ''], ['smoke', 'Smoke grenade', ''], ['satchel', 'Satchel charge', ''], ['radio', 'Radio', ''], ['medkit', 'Medical kit', ''], ['atmine', 'Anti-armour mine', '']];
+const FPT = [['hands', 'Hands', '1'], ['rod', 'Rod', '2'], ['pistol', 'Pistol', '3'], ['smg', 'SMG', '4'], ['rifle', 'Rifle', '5'], ['shotgun', 'Shotgun', '6'], ['sniper', 'Sniper', '7'], ['carbine', 'Carbine', '8'], ['aa', 'AA launcher', '9'], ['grenade', 'Grenades', '0'], ['c4', 'Charges', '-'], ['lmg', 'LMG', ''], ['marksman', 'Marksman rifle', ''], ['revolver', 'Revolver', ''], ['rpg', 'Rocket launcher', ''], ['binoculars', 'Binoculars', ''], ['smoke', 'Smoke grenade', ''], ['satchel', 'Satchel charge', ''], ['radio', 'Radio', ''], ['medkit', 'Medical kit', ''], ['atmine', 'Anti-armour mine', ''], ['chem', 'Chemical light', ''], ['flare', 'Handheld flare', '']];
 fp.tool = 'hands'; fp.rod = null; fp.cool = 0; fp.kick = 0; fp.fish = { n: 0, kg: 0, log: [] }; fp.ko = 0;
 const fpToolMesh = {}; { const gm = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3b4a30, roughness: 0.6 })); gm.position.set(0.26, -0.24, -0.5); gm.visible = false; gm.renderOrder = 8; gm.material.depthTest = false; camera.add(gm); fpToolMesh.grenade = gm; }
 (() => {
@@ -5088,6 +5093,7 @@ function fpAim(maxD, jit) {
   for (const bt of boats) { if (bt.sunk) continue; const bp = bt.body.position; if (Math.hypot(bp.x - _o.x, bp.z - _o.z) > maxD + bt.sp.L) continue; _bx.setFromObject(bt.group); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.5 && t < best.t && !(me.ride && me.ride.boat === bt && t < 3)) best = { t, kind: 'boat', ref: bt }; } }
   for (const o of objects) { if (o.gone) continue; const bp = o.body.position, cx = bp.x - _o.x, cy = bp.y - _o.y, cz = bp.z - _o.z, t0 = cx * _d.x + cy * _d.y + cz * _d.z; if (t0 < 0.4 || t0 > best.t + 3) continue; if (Math.hypot(_o.x + _d.x * t0 - bp.x, _o.y + _d.y * t0 - bp.y, _o.z + _d.z * t0 - bp.z) > 4) continue; _bx.setFromObject(o.mesh); if (_ray.intersectBox(_bx, _hit)) { const t = _hit.distanceTo(_o); if (t > 0.4 && t < best.t) best = { t, kind: 'obj', ref: o }; } }
   if (BVL.length) for (const w of BVL) { if (w === fp.veh || Math.hypot(w.x - _o.x, w.z - _o.z) > maxD + w.rad) continue; const t = bvRayBox(w, _o.x, _o.y, _o.z, _d.x, _d.y, _d.z); if (t > 0.3 && t < best.t) best = { t, kind: 'veh', ref: w }; }
+  if (LIGHT.fix.length) { const fa = lightFixAim(_o, _d, best.t); if (fa) best = { t: fa.t, kind: 'fix', ref: fa.ref }; }
   best.pt = new THREE.Vector3(_o.x + _d.x * best.t, _o.y + _d.y * best.t, _o.z + _d.z * best.t); return best;
 }
 function fpHandsPrimary() {
@@ -5118,7 +5124,7 @@ function fpFireGun() {
   const mz = camera.localToWorld(new THREE.Vector3(0.2, -0.17, -0.95)); fxS.emit(mz.x, mz.y, mz.z, _d.x * 2, _d.y * 2 + 0.4, _d.z * 2, 0.5, 0.3, 4, [0.9, 0.9, 0.85, 0.5], 0, 1);
   ejectCasing(p.x, p.y + 1.3, p.z, Math.atan2(_d.x, _d.z)); fpAirHit(w); const n = w.pellets || 1, jit = w.spread * (fp.zoom ? 0.2 : 1) * (fp.spd > 2 ? 1.8 : 1) * [1, 0.7, 0.45][fp.stance || 0];
   for (let i = 0; i < n; i++) { const h = fpAim(w.range, jit), pt = h.pt, d = h.t, fall = 1 - 0.5 * clamp((d - w.range * 0.4) / (w.range * 0.6), 0, 1); if (i < 3) addTracer(mz.x, mz.y, mz.z, pt.x, pt.y, pt.z, { k: WK[id] || 'rifle', team: BATTLE.on ? BATTLE.team : null, own: true });
-    impactFx(h.kind, h.ref, pt, d); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { if (id === 'sniper') hurt(q, head ? 120 : 70 * Math.max(0.8, fall), p, false, w.name); else hurt(q, w.dmg * fall, p, head, w.name); Snd.ui('ui_hitmarker', 0.6); }          /* the sniper rifle only one-shots on the head; a body shot leaves a target on its feet */ else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
+    impactFx(h.kind === 'fix' ? 'land' : h.kind, h.kind === 'fix' ? null : h.ref, pt, d); if (h.kind === 'fix') fixDamage(h.ref, w.dmg * fall, pt.x, pt.y, pt.z); if (h.kind === 'person') { const q = h.ref, head = pt.y > q.y + 1.45; if (BATTLE.on) { if (id === 'sniper') hurt(q, head ? 120 : 70 * Math.max(0.8, fall), p, false, w.name); else hurt(q, w.dmg * fall, p, head, w.name); Snd.ui('ui_hitmarker', 0.6); }          /* the sniper rifle only one-shots on the head; a body shot leaves a target on its feet */ else { try { topple(q, new CANNON.Vec3(_d.x * 3, 2.4, _d.z * 3)); } catch (e) { } q.koUntil = simT + 14; fp.ko++; npcEv('playerKO'); const bad = q.role === 'Raider' || q.side === 'red' || q.fromHostile || q.trueRole === 'Smuggler'; if (!bad) { ECON.trust = Math.max(0, ECON.trust - 0.06); noteOnce('civhit', 'You knocked out a bystander. The Port will remember that.'); } } }
     else if (h.kind === 'boat') { const bt = h.ref; damageBoat(bt, w.dmg * 0.3, pt.x, pt.y, pt.z, null, 'mg'); if (!isHostile(bt)) ECON.trust = Math.max(0, ECON.trust - 0.01); }
     else if (h.kind === 'veh') damageVehicle(h.ref, w.dmg * fall * 0.7 * (w.pellets ? 3 : 1) * h.ref.sp.arm, BATTLE.on ? BATTLE.team : null, w.name, p);
     else if (h.kind === 'obj') { const o = h.ref; o.body.wakeUp(); o.body.applyImpulse(new CANNON.Vec3(_d.x * w.dmg * 3, _d.y * w.dmg * 3 + 12, _d.z * w.dmg * 3), new CANNON.Vec3(pt.x - o.body.position.x, pt.y - o.body.position.y, pt.z - o.body.position.z)); if (o.m && o.m.frag && o.m.str < 120 && Math.random() < 0.2) fracture(o, 'shot'); }
@@ -5746,6 +5752,7 @@ const WPN = {
   rpg: { name: 'Rocket launcher', dmg: 0, rate: 1.0, mag: 1, spread: 0, range: 400, auto: false, zoom: 40, bot: 9, reloadT: 4.2 },
 };
 const LOADOUTS = { assault: { name: 'Assault', note: 'rifle and pistol', w: ['rifle', 'pistol', 'grenade'] }, marksman: { name: 'Marksman', note: 'marksman rifle, scoped carbine and pistol', w: ['marksman', 'carbine', 'pistol', 'grenade'] }, heavy: { name: 'Heavy', note: 'light machine gun, pistol and grenades', w: ['lmg', 'pistol', 'grenade'] }, engineer: { name: 'Engineer', note: 'rocket launcher, satchel charge and pistol. F builds sandbags', w: ['rpg', 'satchel', 'pistol'] }, spotter: { name: 'Spotter', note: 'binoculars, SMG, revolver, smoke and the radio', w: ['smg', 'binoculars', 'revolver', 'smoke', 'radio'] }, medic: { name: 'Medic', note: 'medical kit and pistol. E or a click revives a fallen friend', w: ['pistol', 'medkit'] }, scout: { name: 'Sniper', note: 'sniper rifle and pistol', w: ['sniper', 'pistol', 'grenade'] }, tankhunter: { name: 'Tank hunter', note: 'rocket launcher, anti-armour mines, pistol and a grenade. Rockets hit vehicles hard', w: ['rpg', 'atmine', 'pistol', 'grenade'] }, trooper: { name: 'Trooper', note: 'SMG and pistol', w: ['smg', 'pistol', 'grenade', 'c4'] }, breacher: { name: 'Breacher', note: 'shotgun and pistol', w: ['shotgun', 'pistol', 'grenade', 'c4'] }, aa: { name: 'Air defence', note: 'portable AA launcher, SMG and pistol', w: ['aa', 'smg', 'pistol', 'grenade'] }, gunship: { name: 'Gunship operator', note: 'sensor station aboard your gunship, with three guns. Your side\'s gunship is called if none is up. Esc leaves the station', w: ['pistol'] } };
+for (const k in LOADOUTS) LOADOUTS[k].w.push('chem', 'flare');
 const kitTools = () => LOADOUTS[BATTLE.kit || 'assault'].w, kitHas = (t) => kitTools().includes(t), inKit = () => BATTLE.on && fp.on && fp.p && fp.p.role === 'You';
 function kitButtons(host, after, cols) {                              // the loadout cards: an icon, a name and one plain line each
   const g = document.createElement('div'); g.className = cols === 2 ? 'cards two' : 'cards';
@@ -6686,7 +6693,7 @@ function blast(x, y, z, o) {                                        // one explo
   if (!wet && o.crater) crater(x, z, o.crater, o.depth || 1.2);
   if (!wet) { debrisBurst(x, gy + 0.5, z, Math.min(44, Math.round(R * 3.2)), R * 0.9, surfaceAt(x, z)); if (R >= 5) debrisBurst(x, gy + 1, z, Math.min(30, Math.round(R * 2)), R * 1.4, 'metal', true); } if (!wet && R >= 5) scorchAt(x, z, R * 0.7);
   for (const bt of boats) { if (bt === o.owner || bt.sunk) continue; const d = Math.hypot(bt.body.position.x - x, bt.body.position.z - z); if (d < R * 1.3 && !insideHull(bt, x, z, 0)) damageBoat(bt, dmg * 0.6 * (1 - d / (R * 1.3)), x, gy, z, o.owner || null, 'heavy'); }
-  if (BVL.length) bvBlast(x, y, z, o);
+  if (BVL.length) bvBlast(x, y, z, o); try { if (LIGHT.fix.length) lightBlast(x, y, z, R, dmg); } catch (e) { }
   for (const q of people) { if (q.state === 'rag' || q.hp <= 0 || q.hoist || q.ride) continue; if (o.team && BATTLE.on && teamOf(q) === o.team) continue; const d = Math.hypot(q.x - x, q.z - z); if (d >= R) continue; const f = 1 - d / R;
     if (BATTLE.on) { hurt(q, dmg * f + 20, null, false, o.name || 'Explosion'); if (q.state !== 'rag' && f > 0.35) stagger(q, new CANNON.Vec3((q.x - x) * 2.5, 0, (q.z - z) * 2.5)); } else if (f > 0.5) topple(q, new CANNON.Vec3((q.x - x) / (d + 1) * 8, 6, (q.z - z) / (d + 1) * 8)); else stagger(q, new CANNON.Vec3((q.x - x) * 2, 0, (q.z - z) * 2)); }
   for (const ob of objects) { if (ob.gone || !ob.body || !(ob.body.mass > 0)) continue; const dx = ob.body.position.x - x, dz = ob.body.position.z - z, d = Math.hypot(dx, dz); if (d < R * 2.2) { const f = 1 - d / (R * 2.2); { const pu = (o.push || 1) * 55 * f * ob.body.mass; ob.body.applyImpulse(new CANNON.Vec3(dx / (d + 1) * pu, 0.73 * pu, dz / (d + 1) * pu), ob.body.position); } } }
@@ -7095,7 +7102,7 @@ const ensureBattleKit = () => bkP || (bkP = loadGLB('battle').then(g => { D.glb.
 const ensureTroops2 = () => t2P || (t2P = (BOOT ? BOOT.skins === false : ED.phone) ? Promise.resolve() : loadGLB('troops2').then(g => { D.glb.troops2 = g; }).catch(e => { t2P = null; }));
 const SNDW = { lmg: 'rifle', marksman: 'sniper', revolver: 'pistol', carbine: 'rifle', medic: 'pistol', rpg: 'shotgun' };
 const wsnd = (w) => SNDW[w] || w;                                      // which recorded gun sound stands in for each weapon
-const NEWT = new Set(['atmine', 'lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
+const NEWT = new Set(['chem', 'flare', 'atmine', 'lmg', 'marksman', 'revolver', 'rpg', 'binoculars', 'smoke', 'satchel', 'radio', 'medkit']);       // tools that only exist in a battle loadout
 const kitGated = (t) => !!WPN[t] || NEWT.has(t) || t === 'grenade' || t === 'c4';
 const SCOPEDT = new Set(['sniper']), SCOPEL = new Set(['marksman', 'carbine']), HIDEZ = new Set(['sniper', 'marksman', 'carbine', 'binoculars']), ZOOMT = { binoculars: 7.5 };
 const zoomFov = (t) => (WPN[t] && WPN[t].zoom) || ZOOMT[t] || 0;
@@ -7104,7 +7111,7 @@ function toolHelp(t) {
   if (t === 'hands') return 'Hands: click or E picks up, click again throws, G drops';
   if (t === 'rod') return 'Rod: click to cast onto water, click when the float dips';
   if (WPN[t]) return WPN[t].name + ': click to fire' + (WPN[t].zoom ? ', right click to zoom' : '') + ', R reloads. Knock-outs only, never gore.';
-  return ({ grenade: 'Grenades: click to throw', c4: 'Charges: click to place, B to detonate', satchel: 'Satchel charge: click to place, B to detonate', atmine: 'Anti-armour mine: click to lay it on the ground. It blows when an enemy vehicle drives over it. Foot soldiers are safe', binoculars: 'Binoculars: hold right click to zoom, click marks the spot you are looking at for the tablet', smoke: 'Smoke grenade: click to throw a smoke screen', radio: 'Radio: click opens the command tablet', medkit: 'Medical kit: stand near a fallen friend and press E or click' })[t] || (TOOLN[t] || t);
+  return ({ chem: 'Chemical light: click to throw one. It glows softly for a long time. The key is the comma', flare: 'Handheld flare: click to light one in your hand. It is bright for about a minute, and lights you up too', grenade: 'Grenades: click to throw', c4: 'Charges: click to place, B to detonate', satchel: 'Satchel charge: click to place, B to detonate', atmine: 'Anti-armour mine: click to lay it on the ground. It blows when an enemy vehicle drives over it. Foot soldiers are safe', binoculars: 'Binoculars: hold right click to zoom, click marks the spot you are looking at for the tablet', smoke: 'Smoke grenade: click to throw a smoke screen', radio: 'Radio: click opens the command tablet', medkit: 'Medical kit: stand near a fallen friend and press E or click' })[t] || (TOOLN[t] || t);
 }
 
 /* ---- what holding a point gives */
@@ -7168,6 +7175,7 @@ function removeStruct(s) {
   const f = FOOT.indexOf(s.fi); if (f >= 0) FOOT.splice(f, 1); if (s.cone) { s.cone.geometry.dispose(); s.cone.material.dispose(); }      // the models themselves are shared with the loaded file, so only what this code made is disposed
 }
 function kitStop() {
+  try { lightsClear(); } catch (e) { }
   for (const s of STRUCT.slice()) removeStruct(s); STRUCT.length = 0; for (let i = FOOT.length - 1; i >= 0; i--) if (FOOT[i].bk) FOOT.splice(i, 1);
   BKIT.crew.length = 0; BKIT.mine.length = 0; BKIT.forced = {}; BKIT.owner = {}; BKIT.bank = { blue: 0, red: 0 }; BKIT.near = {}; BKIT.ev = null;
   if (BKIT.crate) { scene.remove(BKIT.crate.g); BKIT.crate = null; }
@@ -7210,7 +7218,7 @@ function layPoint(p) {
 }
 function layBattleKit() {
   if (D.glb.battle) for (const p of BATTLE.points) { try { layPoint(p); } catch (e) { window.__bkerr = String(e && e.stack || e); } }
-  assignCrew();
+  assignCrew(); try { layPointLights(); } catch (e) { window.__lterr = String(e && e.stack || e); }
 }
 
 /* ---- emplacements: crews, mortar pits, artillery batteries */
@@ -7395,7 +7403,7 @@ function civSkin(role) { if (role || !D.glb.troops2 || !isBattleMap() || MAP.t =
 
 /* ---- the new hand tools: rocket launcher, binoculars, smoke, radio, medical kit, satchel, sandbags */
 function fpHeldUse() {
-  const t = fp.tool; if (t === 'satchel') fpPlaceC4(); else if (t === 'binoculars') fpBino(); else if (t === 'smoke') fpThrowSmoke(); else if (t === 'radio') toggleTablet(true); else if (t === 'medkit') { if (!fpRevive()) toast('No fallen friend within reach.'); }
+  const t = fp.tool; if (t === 'satchel') fpPlaceC4(); else if (t === 'binoculars') fpBino(); else if (t === 'smoke') fpThrowSmoke(); else if (t === 'chem') chemThrow(); else if (t === 'flare') flareHandStart(); else if (t === 'radio') toggleTablet(true); else if (t === 'medkit') { if (!fpRevive()) toast('No fallen friend within reach.'); }
 }
 function fpBino() {                                                    // marks the spot you are looking at, so the tablet's Marker target can use it
   const p = fp.p; if (!p || fp.cool > 0) return; fp.cool = 0.4; Snd.fx('ppl_binocular_click', p.x, p.z, { gain: 0.5 }); const pt = aimPoint(); if (!pt) { toast('Look at the ground to mark it.'); return; } setMarker(pt);
@@ -9400,6 +9408,7 @@ function frameStep(now) {
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
+  lightsTick(dt);
   DIST.tick(dt);
   if (STN && STN.on) stnRender(); else { renderer.render(scene, camera); DIST.main(); }
   DIST.end();
@@ -9483,6 +9492,9 @@ const KEYMAP = [
   ['fp', 'Enter, then /', 'Cheat prompt, the same as the backtick key'],
   ['veh', '` or Enter, then /', 'Cheat prompt, also in a vehicle or at the helm: jeep, tank, ammo and more spawn at your crosshair'],
   ['stn', '` or Enter, then /', 'Cheat prompt in the gunship station (Enter alone still fires after a short pause). Spawns land at the aim point'],
+  ['fp', '. (full stop)', 'Torch on or off, or the headlights when you are in a vehicle. The torch is a beam with a hot spot and soft edge, 38 metres at most. Pick a handheld torch, a weapon light or a headlamp in Menu, Battle setup, Loadout. A soldier with a light on can be seen from farther away'],
+  ['fp', ', (comma)', 'Throw a chemical light: green, red, blue, yellow in turn. It lies where it lands and glows softly for a long time. Also a tool in the tool row'],
+  ['fp', 'Shift + comma', 'Light a handheld flare in your hand: bright for about a minute. Also a tool in the tool row'],
   ['fp', 'Shift', 'Run'],
   ['fp', 'Space', 'Jump, or stand up from crouch and prone'],
   ['fp', 'C, P', 'Crouch, lie prone'],
@@ -9517,6 +9529,7 @@ const KEYMAP = [
   ['boat', 'X', 'Right the boat'],
   ['boat', 'Mouse wheel', 'Camera distance'],
   ['boat', 'H', 'Back to the overview'],
+  ['veh', '. (full stop)', 'Headlights on or off. They come on by themselves at night and are off by day unless you switch them. The brake lights show when you slow down'],
   ['veh', 'E', 'In a battle: get in a friendly jeep, truck, carrier, tank or helicopter beside you. Driver seat first, then gunner, then passenger. E again gets out (a helicopter must be landed)'],
   ['veh', 'W S, A D', 'Drive: throttle and brake or reverse, steer left and right. A tank turns on the spot'],
   ['veh', 'Space, Shift', 'Handbrake and boost in a car or truck. In a helicopter Space climbs and Shift or Ctrl descends'],
@@ -12222,7 +12235,7 @@ function updateBomber(dt, t) {
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
 function qaTick(dt) { world.step(1 / 60, dt, 5); armedLayer(dt); updateBattle(dt); updatePeople(dt, simT); }      // test hook: one fixed simulation step without the renderer (the frame loop is paused with window.__qaHold)
-window.__sc = { snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
+window.__sc = { torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -12251,7 +12264,7 @@ function renderSetup() {
     say1(g, 'Tickets run down as soldiers fall. The side that runs out loses.', true); chips(g, [['auto', 'Tickets: auto'], ['hand', 'Tickets: by hand']], BATTLE.tixAuto ? 'auto' : 'hand', v => { BATTLE.tixAuto = v === 'auto'; if (!BATTLE.tixAuto) BATTLE.tix = startTickets(); });
     tx = rg('Tickets per side', 60, 400, 10, startTickets(), v => { BATTLE.tix = v; BATTLE.tixAuto = false; }, BATTLE.tixAuto);
     say1(g, 'Command power is fire control and support.', true); chips(g, [['free', 'Free'], ['cost', 'Costs tickets']], BATTLE.cmdFree ? 'free' : 'cost', v => { BATTLE.cmdFree = v === 'free'; }); }
-  { const g = grp('Loadout', 'Your class. Each has its own tools.'); kitButtons(g, renderSetup); }
+  { const g = grp('Loadout', 'Your class. Each has its own tools.'); kitButtons(g, renderSetup); say1(g, 'Light source. The Light button, or the full stop key, switches it on:', true); chips(g, Object.keys(LIGHT_KINDS).map(k => [k, LIGHT_KINDS[k][0]]), LIGHT.kind, v => setLightKind(v)); say1(g, LIGHT_KINDS[LIGHT.kind][1].replace(/^./, c => c.toUpperCase()) + '.'); }
   const mk = (txt, icn, cls, fn) => { const b = mkB(txt, cls, fn); b.insertAdjacentHTML('afterbegin', ic(icn)); b.disabled = !onMap; foot.append(b); };
   mk('Begin battle', 'flag', 'big btn-p', () => setupGo('begin')); mk('Watch only', 'eye', '', () => setupGo('watch')); mk('Fight as ' + sideN, 'person', '', () => setupGo('fight'));
   body.scrollTop = y;
@@ -13309,6 +13322,345 @@ function flareStep(dt) {                                             // a flare 
   FLARE.light.position.set(FLARE.x, FLARE.y, FLARE.z); FLARE.light.intensity = 7000 * k * fl; FLARE.spr.position.set(FLARE.x, FLARE.y, FLARE.z); FLARE.spr.material.opacity = k * fl;
   if (t >= 40) { FLARE.on = false; FLARE.light.intensity = 0; FLARE.spr.visible = false; }
 }
+/* ================================================================ lights (v9.9.11): a torch, lights on vehicles, lit bases, and a budget
+   Real lights are a fixed pool made once at load (a changing number of lights would rebuild every shader): desktop 12 (4 spot, 8 point), phone 4 (1 spot, 3 point).
+   Spot slot 0 is always the player's own light: the torch, or the headlights of the vehicle you are in. Everything that wants light asks for it each frame (lightWant);
+   the nearest and brightest get a real light, fading in and out so nothing pops; the rest are faked with an additive glow sprite and a soft pool of light on the ground. */
+const LIGHT = { cap: ED.phone ? 4 : 12, nSpot: ED.phone ? 1 : 4, spots: [], pts: [], W: [], nW: 0, glow: [], pools: [], lampK: 0, dark: 0, beamTex: null, hlTex: null, cone: null, torchDir: new THREE.Vector3(0, 0, -1), torchOn: false, torchK: 0, kind: 'hand', chem: [], chemCol: 0, flares: [], fix: [], gens: [], win: null, winSig: '', winT: 0, winK: -1, dashM: null, selT: 0, last: { real: 0, spots: 0, pts: 0, glow: 0 } };
+try { const k = localStorage.getItem('squall-cove-lightkind'); if (k === 'weapon' || k === 'head' || k === 'hand') LIGHT.kind = k; } catch (e) { }
+const LIGHT_KINDS = { hand: ['Handheld torch', 'held low at your side, it sways a little behind your aim'], weapon: ['Weapon light', 'fixed to the weapon, it points exactly where you aim'], head: ['Headlamp', 'on your head, it follows where you look'] };
+const _ltq = new THREE.Vector3(), _ltq2 = new THREE.Vector3(), _ltq3 = new THREE.Vector3(), _ltcol = new THREE.Color();
+const lsstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function beamTexture() {                                                       // a torch beam as a lamp really throws it: hot spot, soft spill, a thin dark ring, a faint corona, ring artefacts, a little grain, an off-centre filament
+  const N = 256, cv = document.createElement('canvas'); cv.width = cv.height = N; const cx = cv.getContext('2d'), im = cx.createImageData(N, N), d = im.data; let s = 987654321; const rr = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const u = (x + 0.5) / N * 2 - 1, v = (y + 0.5) / N * 2 - 1, r = Math.hypot(u, v), hr = Math.hypot(u - 0.03, v + 0.02);        // the hot spot sits a hair off the middle: the filament is not perfectly centred
+    let I = Math.exp(-(hr / 0.26) * (hr / 0.26)) * 0.62 + 0.55 * (1 - lsstep(0.22, 0.72, r)) + 0.1 * Math.exp(-((r - 0.66) / 0.06) * ((r - 0.66) / 0.06));
+    I *= 1 - 0.85 * Math.exp(-((r - 0.76) / 0.022) * ((r - 0.76) / 0.022));            // the thin dark ring where the reflector ends
+    I += 0.14 * Math.exp(-((r - 0.9) / 0.06) * ((r - 0.9) / 0.06));                    // the faint outer corona
+    I *= 1 + 0.045 * Math.sin(r * 74) + 0.03 * Math.sin(r * 23 + 1.3);                 // concentric ring artefacts
+    I *= 1 - 0.2 * Math.exp(-((u + 0.075) * (u + 0.075) + (v - 0.05) * (v - 0.05)) / 0.0035);   // a dark smudge from the filament support
+    I *= 1 + (rr() - 0.5) * 0.07; I *= 1 - lsstep(0.92, 1.0, r); I = Math.max(0, Math.min(1, I));
+    const o = (y * N + x) * 4; d[o] = Math.round(255 * I); d[o + 1] = Math.round(255 * I * 0.975); d[o + 2] = Math.round(255 * I * 0.93); d[o + 3] = 255;
+  }
+  cx.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.userData = { cv }; return t;
+}
+function headlightTexture() {                                                   // a wider, smoother pattern for vehicle headlights: bright low, soft edges, no rings
+  const N = 128, cv = document.createElement('canvas'); cv.width = cv.height = N; const cx = cv.getContext('2d'), im = cx.createImageData(N, N), d = im.data;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = (x + 0.5) / N * 2 - 1, v = (y + 0.5) / N * 2 - 1, r = Math.hypot(u, v * 1.15); let I = (0.35 + 0.65 * Math.exp(-(r * r) / 0.25)) * (1 - lsstep(0.55, 1.0, r)); I *= 0.75 + 0.25 * lsstep(-0.6, 0.15, v); const o = (y * N + x) * 4; d[o] = d[o + 1] = d[o + 2] = Math.round(255 * Math.max(0, Math.min(1, I))); d[o + 3] = 255; }
+  cx.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+}
+function lightsInit() {
+  if (LIGHT.spots.length) return;
+  LIGHT.beamTex = beamTexture(); LIGHT.hlTex = headlightTexture();
+  for (let i = 0; i < LIGHT.nSpot; i++) {
+    const L = new THREE.SpotLight(0xffffff, 0, i === 0 ? 38 : 30, 0.5, 0.4, 2); L.position.set(0, -500, 0); L.target.position.set(0, -501, 0); scene.add(L, L.target);
+    if (i === 0) { L.map = LIGHT.beamTex; if (!ED.phone) { L.castShadow = true; L.shadow.mapSize.set(512, 512); L.shadow.camera.near = 0.25; L.shadow.camera.far = 40; L.shadow.bias = -0.0009; L.shadow.normalBias = 0.03; L.shadow.radius = 4; L.shadow.autoUpdate = false; L.shadow.needsUpdate = false; } }
+    LIGHT.spots.push({ L, key: null, cur: 0, tgt: 0, w: null, peak: 1 });
+  }
+  for (let i = 0; i < LIGHT.cap - LIGHT.nSpot; i++) { const L = new THREE.PointLight(0xffffff, 0, 30, 2); L.position.set(0, -500, 0); scene.add(L); LIGHT.pts.push({ L, key: null, cur: 0, tgt: 0, w: null, peak: 1 }); }
+  // glow sprites and ground pools: the cheap stand-ins
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const c = cv.getContext('2d'), g = c.createRadialGradient(32, 32, 1, 32, 32, 31); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.18, 'rgba(255,255,255,0.7)'); g.addColorStop(0.5, 'rgba(255,255,255,0.18)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 64, 64);
+  const gt = new THREE.CanvasTexture(cv); gt.colorSpace = THREE.SRGBColorSpace; LIGHT.glowTex = gt;
+  const cv2 = document.createElement('canvas'); cv2.width = cv2.height = 64; const c2 = cv2.getContext('2d'), g2 = c2.createRadialGradient(32, 32, 0, 32, 32, 31); g2.addColorStop(0, 'rgba(255,255,255,0.85)'); g2.addColorStop(0.45, 'rgba(255,255,255,0.35)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); c2.fillStyle = g2; c2.fillRect(0, 0, 64, 64);
+  const pt = new THREE.CanvasTexture(cv2); pt.colorSpace = THREE.SRGBColorSpace;
+  const ng = ED.phone ? 14 : 44, np = ED.phone ? 6 : 22;
+  for (let i = 0; i < ng; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: gt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: true })); sp.visible = false; sp.renderOrder = 6; scene.add(sp); LIGHT.glow.push(sp); }
+  const pg = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+  for (let i = 0; i < np; i++) { const m = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ map: pt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })); m.visible = false; m.renderOrder = 2; m.frustumCulled = false; scene.add(m); LIGHT.pools.push(m); }
+  // the visible beam in fog, dust and smoke: one additive cone, only drawn when the air is thick
+  const cg = new THREE.CylinderGeometry(0.03, 1, 1, 20, 1, true).translate(0, -0.5, 0).rotateX(-Math.PI / 2);        // apex at the origin, opening along -Z
+  const cm = new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.95, 0.8) } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+    vertexShader: `varying vec3 vN; varying float vT; varying vec3 vV; void main(){ vN = normalize(normalMatrix * normal); vT = position.z; vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform float uA; uniform vec3 uCol; varying vec3 vN; varying float vT; varying vec3 vV; void main(){ float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.4); float f = pow(1.0 - clamp(vT, 0.0, 1.0), 1.5) * smoothstep(0.0, 0.06, vT); gl_FragColor = vec4(uCol, uA * e * f); }` });
+  const cone = new THREE.Mesh(cg, cm); cone.frustumCulled = false; cone.visible = false; cone.renderOrder = 7; scene.add(cone); LIGHT.cone = cone;
+  // the dash glow: a soft green-white wash low in the view when you sit in a vehicle in the dark
+  const dm = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.34), new THREE.MeshBasicMaterial({ map: pt, color: 0x66ffaa, transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending })); dm.position.set(0, -0.34, -0.7); dm.renderOrder = 8; dm.visible = false; camera.add(dm); LIGHT.dashM = dm;
+}
+function lightWant(key, kind, x, y, z, r, g, b, I, range, prio, o) {              // ask for a light this frame. kind: 'spot' or 'point'. o: { dx, dy, dz, glow (sprite radius), pool (ground pool radius), k (0..1 fade), player, ang, map }
+  let w = LIGHT.W[LIGHT.nW]; if (!w) w = LIGHT.W[LIGHT.nW] = {}; LIGHT.nW++;
+  w.key = key; w.kind = kind; w.x = x; w.y = y; w.z = z; w.r = r; w.g = g; w.b = b; w.I = I; w.range = range; w.prio = prio || 1; w.o = o || null; w.k = o && o.k !== undefined ? o.k : 1; w.score = 0; w.slot = null; return w;
+}
+const lightFocus = () => mode === 'god' ? god.tgt : camera.position;
+function lightsSelect(dt) {                                                       // give the real lights to the nearest and brightest, keeping whoever already has one unless a clearly better one turns up
+  const fc = lightFocus(), fx = fc.x, fz = fc.z, W = LIGHT.W, n = LIGHT.nW;
+  for (const pool of [LIGHT.spots, LIGHT.pts]) for (const s of pool) s.w = null;
+  const spotW = [], ptW = []; let pl = null;
+  for (let i = 0; i < n; i++) {
+    const w = W[i]; if (w.k <= 0.001 || w.I * w.k <= 0.001) continue; const d2 = (w.x - fx) * (w.x - fx) + (w.z - fz) * (w.z - fz);
+    if (w.o && w.o.player) { pl = w; continue; }
+    w.score = w.I * w.k * w.prio / (d2 + 300) * ((w.slotKeep) ? 1.5 : 1); (w.kind === 'spot' ? spotW : ptW).push(w);
+  }
+  const assign = (pool, list, first) => {
+    list.sort((a, b) => b.score - a.score);
+    const free = []; for (let i = first; i < pool.length; i++) free.push(pool[i]);
+    // keep each key where it is
+    for (const w of list) { const s = free.find(q => q.key === w.key); if (s) { s.w = w; w.slot = s; } }
+    let ok = 0; for (const w of list) { if (w.slot) { ok++; continue; } if (ok >= free.length) break;
+      let s = free.find(q => !q.w && q.cur < 0.02 * q.peak && q.key === null) || free.find(q => !q.w && q.cur < 0.02 * q.peak);          // a free slot that has finished fading out
+      if (s) { s.key = w.key; s.w = w; w.slot = s; ok++; } }
+  };
+  assign(LIGHT.pts, ptW, 0); assign(LIGHT.spots, spotW, 1);
+  if (pl) { const s = LIGHT.spots[0]; s.w = pl; pl.slot = s; s.key = pl.key; }
+  const apply = (s, dtt) => {
+    const L = s.L, w = s.w;
+    if (w) { L.position.set(w.x, w.y, w.z); L.color.setRGB(w.r, w.g, w.b); L.distance = w.range; s.tgt = w.I * w.k; s.peak = Math.max(1, w.I); if (w.kind === 'spot') { L.target.position.set(w.x + w.o.dx * 10, w.y + w.o.dy * 10, w.z + w.o.dz * 10); L.angle = w.o.ang || 0.5; if (s === LIGHT.spots[0] && w.o.map && L.map !== w.o.map) L.map = w.o.map; } }
+    else s.tgt = 0;
+    const up = s.tgt > s.cur; s.cur += (s.tgt - s.cur) * (1 - Math.exp(-dtt * (up ? 8 : 5))); if (s.cur < 0.0005 * s.peak && s.tgt === 0) { s.cur = 0; s.key = null; }
+    L.intensity = s.cur;
+  };
+  for (const s of LIGHT.pts) apply(s, dt); for (const s of LIGHT.spots) apply(s, dt);
+  let real = 0, sp = 0; for (const s of LIGHT.pts) if (s.cur > 0.5) real++; for (const s of LIGHT.spots) if (s.cur > 0.5) { real++; sp++; }
+  LIGHT.last.real = real; LIGHT.last.spots = sp; LIGHT.last.pts = real - sp;
+  // the stand-ins: a glow sprite for every wanted light near enough, and a ground pool for the ones that have no real light
+  const lim = ED.phone ? 150 : 260; let gi = 0, pi = 0; const cands = [];
+  for (let i = 0; i < n; i++) { const w = W[i]; if (w.k <= 0.01 || !w.o || !(w.o.glow || w.o.pool)) continue; const d2 = (w.x - fx) * (w.x - fx) + (w.z - fz) * (w.z - fz); if (d2 > lim * lim) continue; w._d = d2; cands.push(w); }
+  cands.sort((a, b) => a._d - b._d);
+  for (const w of cands) {
+    if (w.o.glow && gi < LIGHT.glow.length) { const sp2 = LIGHT.glow[gi++]; sp2.visible = true; sp2.position.set(w.x, w.y, w.z); const gr = w.o.glow * (0.8 + 0.2 * (w.o.fl || 1)); sp2.scale.set(gr * 2, gr * 2, 1); sp2.material.color.setRGB(w.r, w.g, w.b); sp2.material.opacity = Math.min(1, w.k * (w.o.glowA || 0.9)); }
+    if (w.o.pool && !w.slot && pi < LIGHT.pools.length) { const m = LIGHT.pools[pi++]; m.visible = true; const gy = Math.max(heightAt(w.x, w.z), 0); m.position.set(w.x, gy + 0.07, w.z); m.scale.set(w.o.pool * 2, 1, w.o.pool * 2); m.material.color.setRGB(w.r * 0.55, w.g * 0.5, w.b * 0.4); m.material.opacity = w.k * 0.55; }
+  }
+  for (let i = gi; i < LIGHT.glow.length; i++) LIGHT.glow[i].visible = false; for (let i = pi; i < LIGHT.pools.length; i++) LIGHT.pools[i].visible = false; LIGHT.last.glow = gi;
+}
+/* ---- the lamps-on level for the time of day: on at dusk, off at dawn, on through a dark storm */
+function lampLevel() { const e = tod.e; return Math.max(1 - lsstep(-2, 6, e), (e < 30 ? 0.55 : 0) * Math.min(1, wx.rainAmt * 1.2) * (1 - lsstep(10, 30, e))); }
+/* ---- the player's torch ---- */
+function torchToggle() {
+  if (!fp.on || !fp.p) return;
+  if (fp.veh) { const v = fp.veh; if (v.heli || !v.lt) { toast('This vehicle has no headlights.'); return; } const on = !vehLightsOn(v); v.hlUser = on; try { Snd.fx('ppl_binocular_click', v.x, v.z, { gain: 0.5 }); } catch (e) { } toast(on ? 'Headlights on' : 'Headlights off'); return; }
+  LIGHT.torchOn = !LIGHT.torchOn; try { Snd.fx('ppl_binocular_click', fp.p.x, fp.p.z, { gain: 0.45 }); } catch (e) { } toast(LIGHT.torchOn ? LIGHT_KINDS[LIGHT.kind][0] + ' on' : (LIGHT_KINDS[LIGHT.kind][0]) + ' off'); { const b = $('fpLight'); if (b) b.classList.toggle('on', LIGHT.torchOn); }
+}
+function setLightKind(k) { if (!LIGHT_KINDS[k]) return; LIGHT.kind = k; try { localStorage.setItem('squall-cove-lightkind', k); } catch (e) { } }
+function torchHurtK(hp, t) { if (!(hp !== undefined && hp < 35)) return 1; const f = Math.sin(t * 31) * Math.sin(t * 13.7 + 1.1); return f > 0.35 ? 0.1 : 0.55 + 0.45 * Math.sin(t * 23); }
+function playerLightWant(dt) {
+  if (!fp.on || !fp.p || (mode !== 'fp')) { LIGHT.torchK += (0 - LIGHT.torchK) * (1 - Math.exp(-dt * 8)); }
+  const p = fp.p;
+  if (fp.on && p && mode === 'fp' && !fp.veh && LIGHT.torchOn && p.state !== 'rag') {
+    camera.getWorldPosition(_ltq); camera.getWorldDirection(_ltq2); const lag = LIGHT.kind === 'hand' ? 10 : LIGHT.kind === 'head' ? 18 : 60, k = 1 - Math.exp(-dt * lag);
+    if (!LIGHT._init) { LIGHT.torchDir.copy(_ltq2); LIGHT._init = true; } LIGHT.torchDir.lerp(_ltq2, k).normalize();
+    const dir = LIGHT.torchDir, off = LIGHT.kind === 'hand' ? [0.22, -0.24, -0.35] : LIGHT.kind === 'weapon' ? [0.17, -0.15, -0.9] : [0, 0.07, -0.1];
+    _ltq3.set(off[0], off[1], off[2]).applyQuaternion(camera.quaternion).add(_ltq);
+    let I = 520, hurtF = BATTLE.on ? torchHurtK(p.hp, simT) : 1;       // it only flickers when you are badly hurt
+    LIGHT.torchK += (1 - LIGHT.torchK) * (1 - Math.exp(-dt * 12));
+    lightWant('player', 'spot', _ltq3.x, _ltq3.y, _ltq3.z, 1, 0.96, 0.88, I * hurtF, 38, 9, { player: true, dx: dir.x, dy: dir.y, dz: dir.z, ang: 0.5, map: LIGHT.beamTex, k: LIGHT.torchK });
+    LIGHT.beamOrigin = _ltq3.clone ? LIGHT.beamOrigin : null; LIGHT.bo = LIGHT.bo || new THREE.Vector3(); LIGHT.bo.copy(_ltq3); LIGHT.bdir = dir; LIGHT.bk = LIGHT.torchK * hurtF;
+  } else if (fp.on && fp.veh && !fp.veh.heli && fp.veh.lt && vehLightsOn(fp.veh)) { LIGHT.bk = 0; }
+  else { LIGHT.bk = 0; if (LIGHT.torchK < 0.01) LIGHT._init = false; }
+  if (LIGHT.bk === undefined) LIGHT.bk = 0;
+}
+function lightsBeamCone(dt) {                                                      // the visible beam: only when there is fog, rain, dust or smoke to catch it
+  const c = LIGHT.cone; if (!c) return; const haze = Math.max(0, (scene.fog ? scene.fog.density : 0) - 0.0012) * 500 + wx.rainAmt * 0.6 + (MAP.t === 'desert' ? 0.12 : 0) + (wx.fog > 0 ? 0.2 * wx.fog : 0);
+  const a = clamp(haze * 0.22, 0, 0.5) * (LIGHT.bk || 0);
+  if (a < 0.01 || !LIGHT.bdir || !LIGHT.bo) { c.visible = false; return; }
+  c.visible = true; c.position.copy(LIGHT.bo); const L = 24; c.scale.set(Math.tan(0.5) * L * 0.9, Math.tan(0.5) * L * 0.9, L); _ltq.copy(LIGHT.bo).add(LIGHT.bdir); c.lookAt(_ltq.x, _ltq.y, _ltq.z); c.material.uniforms.uA.value = a;
+}
+/* ---- vehicles: headlights (auto at night, off by day unless you toggle), brake lights, a dash glow ---- */
+function vehLightsOn(v) { return v.hlUser !== undefined ? !!v.hlUser : LIGHT.lampK > 0.55; }
+const LENSON = new THREE.MeshBasicMaterial({ color: 0xfff1c4 }), LENSOFF = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.3, metalness: 0.3 }), REDON = new THREE.MeshBasicMaterial({ color: 0xff2a1a }), REDOFF = new THREE.MeshStandardMaterial({ color: 0x4a1612, roughness: 0.4 });
+const lensGeo = new THREE.BoxGeometry(0.26, 0.18, 0.06), GENON = new THREE.MeshBasicMaterial({ color: 0x66ff88 });
+function vehLightsMake(v) {
+  const sp = v.sp, y = Math.max(0.55, (sp.cy || 0.9) * 0.55), fz = v.cz + v.hz * 0.985, bz = v.cz - v.hz * 0.985, hx = v.hx * 0.62, lt = { hl: [], br: [], on: 0, br2: 0 };
+  for (const sd of [-1, 1]) { const m = new THREE.Mesh(lensGeo, LENSOFF); m.position.set(sd * hx, y, fz); m.frustumCulled = false; v.g.add(m); lt.hl.push(m); const r = new THREE.Mesh(lensGeo, REDOFF); r.position.set(sd * hx, y + 0.05, bz); r.rotation.y = Math.PI; v.g.add(r); lt.br.push(r); }
+  lt.fy = y; lt.fz = fz; lt.bz = bz; lt.hx = hx; v.lt = lt;
+}
+function vehLightsTick(dt) {
+  const fc = lightFocus();
+  for (const v of BVL) {
+    if (v.heli || v.dead) continue; if (!v.lt) vehLightsMake(v); const lt = v.lt;
+    const on = vehLightsOn(v), k = lt.on += ((on ? 1 : 0) - lt.on) * (1 - Math.exp(-dt * 9));
+    const brk = v.sPrev !== undefined && v.speed < v.sPrev - 0.02 && v.speed > -0.2 || (BC.hb && fp.veh === v); lt.br2 += ((brk ? 1 : 0) - lt.br2) * (1 - Math.exp(-dt * 14)); lt.brk = brk;
+    for (const m of lt.hl) m.material = k > 0.3 ? LENSON : LENSOFF; for (const m of lt.br) m.material = (lt.br2 > 0.4 || (on && k > 0.5 && false)) ? REDON : REDOFF;
+    if (k < 0.01 && lt.br2 < 0.01) continue;
+    const d2 = (v.x - fc.x) * (v.x - fc.x) + (v.z - fc.z) * (v.z - fc.z); if (d2 > 300 * 300 && fp.veh !== v) continue;
+    const s = Math.sin(v.yaw), c = Math.cos(v.yaw), wy = v.y + lt.fy;
+    if (k > 0.01) {
+      const fxw = v.x + s * lt.fz, fzw = v.z + c * lt.fz, isMine = fp.on && fp.veh === v, pitch = -0.07;
+      lightWant('veh' + v.id, 'spot', fxw, wy, fzw, 1, 0.95, 0.82, 420, 42, isMine ? 9 : 4, { player: isMine, dx: s * Math.cos(pitch), dy: pitch, dz: c * Math.cos(pitch), ang: 0.62, k, map: LIGHT.hlTex, glow: 0.9, glowA: 0.9 });
+      for (const sd of [-1, 1]) { const px = v.x + s * lt.fz + c * sd * lt.hx, pz = v.z + c * lt.fz - s * sd * lt.hx; lightWant('vg' + v.id + sd, 'point', px, wy, pz, 1, 0.96, 0.84, 0, 1, 0, { glow: 0.55, glowA: 0.85, k }); }       // the lamp glows themselves: sprites only (intensity 0 asks for no real light)
+    }
+    if (lt.br2 > 0.05 && LIGHT.lampK > 0.3) for (const sd of [-1, 1]) { const px = v.x + s * lt.bz + c * sd * lt.hx, pz = v.z + c * lt.bz - s * sd * lt.hx; lightWant('vb' + v.id + sd, 'point', px, wy + 0.05, pz, 1, 0.12, 0.08, 0, 1, 0, { glow: 0.5, glowA: 0.9, k: lt.br2 }); }
+    else if (on && k > 0.5) for (const sd of [-1, 1]) { const px = v.x + s * lt.bz + c * sd * lt.hx, pz = v.z + c * lt.bz - s * sd * lt.hx; lightWant('vt' + v.id + sd, 'point', px, wy + 0.05, pz, 1, 0.12, 0.08, 0, 1, 0, { glow: 0.3, glowA: 0.5, k }); }
+  }
+}
+/* ---- fires and fire on vehicles: flickering warm lights that use the same budget ---- */
+function fireLights(dt) {
+  const fc = lightFocus(); const dk = LIGHT.dark; if (dk < 0.05) return;
+  let n = 0; const mx = ED.phone ? 4 : 10;
+  for (const t of burning) { if (n >= mx) break; const d = Math.hypot(t.x - fc.x, t.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 17 + t.x) * Math.sin(simT * 9.3 + t.z); lightWant('tf' + (t.id || ((t.x * 7 + t.z) | 0)), 'point', t.x, Math.max(heightAt(t.x, t.z), 0) + 2.5, t.z, 1, 0.55, 0.2, 360 * fl, 28, 1.2, { glow: 2.2, glowA: 0.5 * fl, fl, pool: 7, k: clamp(t.burn / 3, 0, 1) * dk }); n++; }
+  for (const h of HEATP) { if (n >= mx) break; const d = Math.hypot(h.x - fc.x, h.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 15 + h.x); lightWant('hp' + ((h.x * 3 + h.z) | 0), 'point', h.x, Math.max(heightAt(h.x, h.z), 0) + 1.6, h.z, 1, 0.5, 0.16, 300 * fl * Math.min(1, h.p / 12), 26, 1.2, { glow: 2.4, glowA: 0.5 * fl, fl, pool: Math.max(5, h.r), k: clamp(h.t / 2, 0, 1) * dk }); n++; }
+  for (const v of BVL) { if (!v.fire && !(v.burn > 0)) continue; if (n >= mx) break; const fl = 0.75 + 0.25 * Math.sin(simT * 19 + v.id); lightWant('vf' + v.id, 'point', v.x, v.y + 1.8, v.z, 1, 0.55, 0.18, 380 * fl, 30, 2, { glow: 2.6, glowA: 0.55 * fl, fl, k: dk }); n++; }
+  if (lavaOn && typeof lavaVents !== 'undefined') for (const lv of lavaVents) { if (n >= mx) break; const d = Math.hypot(lv.x - fc.x, lv.z - fc.z); if (d > 200) continue; const fl = 0.8 + 0.2 * Math.sin(simT * 6 + lv.x); lightWant('lv' + ((lv.x * 3 + lv.z) | 0), 'point', lv.x, Math.max(heightAt(lv.x, lv.z), 0) + 2, lv.z, 1, 0.45, 0.1, 520 * fl, 40, 1.4, { glow: 3.2, glowA: 0.5, fl, pool: 10, k: Math.max(dk, 0.35) }); n++; }
+}
+/* ---- thrown chemical lights and handheld flares ---- */
+const CHEM_COLS = [['green', 0.3, 1.0, 0.35, 0x5dff7a], ['red', 1.0, 0.18, 0.12, 0xff3a2a], ['blue', 0.22, 0.4, 1.0, 0x4d7aff], ['yellow', 1.0, 0.85, 0.2, 0xffe040]];
+let chemGeo = null;
+function chemThrow() {
+  if (!fp.on || !fp.p || mode !== 'fp' || fp.veh) return; if (simT - (LIGHT.chemT || -9) < 0.45) return; LIGHT.chemT = simT;
+  const col = CHEM_COLS[LIGHT.chemCol % 4]; LIGHT.chemCol++; if (!chemGeo) chemGeo = new THREE.CylinderGeometry(0.018, 0.018, 0.15, 8).rotateZ(Math.PI / 2);
+  const m = new THREE.Mesh(chemGeo, new THREE.MeshBasicMaterial({ color: col[4] })); m.frustumCulled = false; scene.add(m);
+  camera.getWorldPosition(_ltq); camera.getWorldDirection(_ltq2); const c = { m, x: _ltq.x + _ltq2.x * 0.5, y: _ltq.y - 0.2, z: _ltq.z + _ltq2.z * 0.5, vx: _ltq2.x * 9, vy: _ltq2.y * 9 + 3, vz: _ltq2.z * 9, age: 0, col, rest: false, id: ++LIGHT.n || (LIGHT.n = 1) };
+  LIGHT.chem.push(c); while (LIGHT.chem.length > 8) { const o = LIGHT.chem.shift(); scene.remove(o.m); o.m.material.dispose(); }
+  try { Snd.fx('wpn_knife_swish', fp.p.x, fp.p.z, { gain: 0.4 }); } catch (e) { } toast('Threw a ' + col[0] + ' chemical light');
+}
+function flareHandStart() {
+  if (!fp.on || !fp.p || mode !== 'fp' || fp.veh) return; for (const f of LIGHT.flares) if (f.mine && f.age < 55) { toast('Your flare is still burning.'); return; }
+  LIGHT.flares.push({ mine: true, age: 0, id: ++LIGHT.n || (LIGHT.n = 1) }); try { Snd.fx('imp_blast_small', fp.p.x, fp.p.z, { gain: 0.25, far: 2 }); } catch (e) { } toast('Flare lit. It burns for about a minute.');
+}
+function chemFlareTick(dt) {
+  for (let i = LIGHT.chem.length - 1; i >= 0; i--) {
+    const c = LIGHT.chem[i]; c.age += dt;
+    if (!c.rest) { c.vy -= 9.8 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt; const gy = Math.max(heightAt(c.x, c.z), 0) + 0.03; if (c.y <= gy) { c.y = gy; if (Math.abs(c.vy) > 2.2) { c.vy *= -0.3; c.vx *= 0.5; c.vz *= 0.5; } else { c.rest = true; c.vx = c.vy = c.vz = 0; } } c.m.rotation.y += dt * 6; }
+    c.m.position.set(c.x, c.y, c.z);
+    const life = 600, k = c.age < 0.6 ? c.age / 0.6 : c.age > life - 40 ? Math.max(0, (life - c.age) / 40) : 1;
+    if (c.age > life) { scene.remove(c.m); c.m.material.dispose(); LIGHT.chem.splice(i, 1); continue; }
+    const dk = Math.max(LIGHT.dark, 0.35);
+    lightWant('chem' + c.id, 'point', c.x, c.y + 0.15, c.z, c.col[1], c.col[2], c.col[3], 38, 14, 1.0, { glow: 0.7, glowA: 0.8, pool: 3.2, k: k * Math.min(1, 0.4 + dk) });
+  }
+  for (let i = LIGHT.flares.length - 1; i >= 0; i--) {
+    const f = LIGHT.flares[i]; f.age += dt; if (f.age > 62) { LIGHT.flares.splice(i, 1); continue; } const k = f.age < 0.5 ? f.age / 0.5 : f.age > 55 ? Math.max(0, (62 - f.age) / 7) : 1, fl = 0.8 + 0.2 * Math.sin(simT * 27) * Math.sin(simT * 11);
+    if (f.mine && fp.on && fp.p) { camera.getWorldPosition(_ltq); _ltq3.set(0.3, -0.1, -0.45).applyQuaternion(camera.quaternion).add(_ltq); f.x = _ltq3.x; f.y = _ltq3.y + 0.2; f.z = _ltq3.z; }
+    if (f.x === undefined) { f.age = 99; continue; }
+    lightWant('hflare' + f.id, 'point', f.x, f.y, f.z, 1, 0.3, 0.16, 900 * fl, 42, 3, { glow: 2.2, glowA: 0.9 * fl, fl, pool: 6, k: k });
+    if (Math.random() < dt * 20) fxG.emit(f.x, f.y, f.z, rnd(-0.5, 0.5), rnd(0.8, 1.6), rnd(-0.5, 0.5), rnd(0.3, 0.6), 0.2, 0.1, [1, rnd(0.3, 0.55), 0.12, 0.9]);
+  }
+}
+/* ---- fixtures at the capture points: light towers, floodlights, lamp posts, string lights and generators ---- */
+const FIXM = { steel: new THREE.MeshStandardMaterial({ color: 0x555b61, roughness: 0.55, metalness: 0.6 }), olive: new THREE.MeshStandardMaterial({ color: 0x4d5a3a, roughness: 0.7, metalness: 0.2 }), dark: new THREE.MeshStandardMaterial({ color: 0x23272a, roughness: 0.5, metalness: 0.4 }) };
+const FIXG = { box: new THREE.BoxGeometry(1, 1, 1), cyl: new THREE.CylinderGeometry(1, 1, 1, 8), sph: new THREE.SphereGeometry(1, 8, 6) };
+function fm(geo, mat, sx, sy, sz, x, y, z, ry) { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); if (ry) m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; return m; }
+function buildTower() {                                                            // a trailer light tower: a low trailer, a mast, two lamp bars of two lamps each
+  const g = new THREE.Group(), lens = [[], []];
+  g.add(fm(FIXG.box, FIXM.olive, 2.4, 0.4, 1.3, 0, 0.55, 0), fm(FIXG.cyl, FIXM.dark, 0.2, 0.34, 0.2, -0.9, 0.2, 0.7), fm(FIXG.cyl, FIXM.dark, 0.2, 0.34, 0.2, 0.9, 0.2, 0.7), fm(FIXG.cyl, FIXM.dark, 0.2, 0.34, 0.2, -0.9, 0.2, -0.7), fm(FIXG.cyl, FIXM.dark, 0.2, 0.34, 0.2, 0.9, 0.2, -0.7));
+  g.add(fm(FIXG.cyl, FIXM.steel, 0.07, 3.6, 0.07, 0, 4.0, 0), fm(FIXG.cyl, FIXM.steel, 0.1, 1.4, 0.1, 0, 1.2, 0));
+  for (let b = 0; b < 2; b++) { const sgn = b ? 1 : -1; g.add(fm(FIXG.box, FIXM.steel, 0.12, 0.12, 1.5, 0, 7.4, 0, b ? Math.PI / 2 : 0)); for (let q = 0; q < 2; q++) { const o = (q ? 0.55 : -0.55), x = b ? o : 0, z = b ? 0 : o; const head = fm(FIXG.box, FIXM.dark, 0.5, 0.36, 0.2, x, 7.25, z, b ? Math.PI / 2 : 0); g.add(head); const l = new THREE.Mesh(FIXG.box, LENSOFF); l.scale.set(0.42, 0.28, 0.04); l.position.set(x + (b ? 0.11 : 0), 7.25, z + (b ? 0 : 0.11)); if (b) l.rotation.y = Math.PI / 2; g.add(l); lens[b].push(l); } }
+  g.userData.lens = lens; return g;
+}
+function buildFlood() { const g = new THREE.Group(); g.add(fm(FIXG.cyl, FIXM.steel, 0.06, 1.6, 0.06, 0, 1.6, 0), fm(FIXG.box, FIXM.dark, 0.5, 0.34, 0.22, 0, 3.3, 0)); const l = new THREE.Mesh(FIXG.box, LENSOFF); l.scale.set(0.42, 0.26, 0.04); l.position.set(0, 3.3, 0.12); g.add(l); g.userData.lens = [[l]]; return g; }
+function buildLamp() { const g = new THREE.Group(); g.add(fm(FIXG.cyl, FIXM.steel, 0.06, 2.1, 0.06, 0, 2.1, 0), fm(FIXG.box, FIXM.steel, 0.9, 0.06, 0.06, 0.4, 4.2, 0), fm(FIXG.box, FIXM.dark, 0.34, 0.1, 0.2, 0.8, 4.2, 0)); const l = new THREE.Mesh(FIXG.box, LENSOFF); l.scale.set(0.26, 0.03, 0.14); l.position.set(0.8, 4.13, 0); g.add(l); g.userData.lens = [[l]]; return g; }
+function buildGen() { const g = new THREE.Group(); g.add(fm(FIXG.box, FIXM.olive, 1.5, 0.85, 0.8, 0, 0.55, 0), fm(FIXG.box, FIXM.dark, 0.5, 0.5, 0.04, 0, 0.6, 0.42), fm(FIXG.cyl, FIXM.steel, 0.07, 0.5, 0.07, 0.55, 1.3, -0.15), fm(FIXG.box, FIXM.olive, 0.4, 0.5, 0.3, -1.0, 0.35, 0.1)); const l = new THREE.Mesh(FIXG.box, LENSOFF); l.scale.set(0.12, 0.08, 0.04); l.position.set(-0.3, 0.9, 0.42); g.add(l); g.userData.lens = [[l]]; return g; }
+function buildStrings(len) {                                                       // two short poles and a sagging line of bulbs
+  const g = new THREE.Group(); g.add(fm(FIXG.cyl, FIXM.steel, 0.05, 1.3, 0.05, -len / 2, 1.3, 0), fm(FIXG.cyl, FIXM.steel, 0.05, 1.3, 0.05, len / 2, 1.3, 0));
+  const n = 9, im = new THREE.InstancedMesh(FIXG.sph, new THREE.MeshBasicMaterial({ color: 0xffe3a0 }), n), m4 = new THREE.Matrix4(); for (let i = 0; i < n; i++) { const u = i / (n - 1), x = -len / 2 + u * len, y = 2.5 - 0.5 * Math.sin(u * Math.PI); m4.makeScale(0.07, 0.07, 0.07).setPosition(x, y, 0); im.setMatrixAt(i, m4); }
+  im.frustumCulled = false; g.add(im); g.userData.bulbs = im; g.userData.lens = []; return g;
+}
+function fixTry(p, ang, dist, r) {
+  for (const [da, dd] of BTRY) { const a = ang + da * 1.4, d = dist + dd * 1.8, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d; if (standY(x, z) < 0.9) continue; if (footBlocked(x, z, r || 1)) continue; let bad = false; for (const q of BATTLE.points) if (q !== p && Math.hypot(q.x - x, q.z - z) < 12) bad = true; for (const f of LIGHT.fix) if (Math.hypot(f.x - x, f.z - z) < (r || 1) + 1.6) bad = true; if (bad) continue; return { x, z, y: standY(x, z), a }; }
+  return null;
+}
+function fixPlace(p, kind, ang, dist, gen, yawTo) {
+  const sp = fixTry(p, ang, dist, kind === 'tower' || kind === 'gen' ? 1.8 : 0.8); if (!sp) return null;
+  const g = kind === 'tower' ? buildTower() : kind === 'flood' ? buildFlood() : kind === 'lamp' ? buildLamp() : kind === 'gen' ? buildGen() : buildStrings(6); g.position.set(sp.x, sp.y - 0.02, sp.z);
+  const yaw = yawTo === 'in' ? Math.atan2(p.x - sp.x, p.z - sp.z) : yawTo === 'out' ? Math.atan2(sp.x - p.x, sp.z - p.z) : (yawTo || 0); g.rotation.y = yaw; if (kind === 'lamp') g.rotation.y = Math.atan2(-(p.z - sp.z), p.x - sp.x); scene.add(g);
+  const FX = { LAMPFX: 1 };
+  const mk = (k, hx, hy, hz, lensI, I, range, glow, pool, col, hp) => ({ kind: k, x: sp.x + hx, y: sp.y + hy, z: sp.z + hz, g, p, gen, lens: g.userData.lens[lensI] || [], I, range, glow, pool, col, on: 0, hp: hp || 40, hp0: hp || 40, dead: false, id: ++LIGHT.n || (LIGHT.n = 1) });
+  const out = []; const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  if (kind === 'tower') { for (let b = 0; b < 2; b++) { const ox = b ? 0.9 : 0, oz = b ? 0 : 0.9; /* the two bars face out from the mast */ out.push(mk('tower', 0, 7.2, 0, b, 1100, 58, 2.4, 15, [1, 0.93, 0.78], 45)); } }
+  else if (kind === 'flood') out.push(mk('flood', 0, 3.3, 0, 0, 700, 44, 1.5, 10, [1, 0.94, 0.8], 30));
+  else if (kind === 'lamp') { const f = mk('lamp', Math.cos(g.rotation.y) * 0.8, 4.1, -Math.sin(g.rotation.y) * 0.8, 0, 190, 27, 0.9, 7.5, [1, 0.8, 0.5], 25); out.push(f); }
+  else if (kind === 'string') { const f = mk('string', 0, 2.2, 0, 0, 70, 12, 0.7, 5, [1, 0.82, 0.5], 20); f.bulbs = g.userData.bulbs; out.push(f); }
+  else if (kind === 'gen') { const f = mk('gen', 0, 0.9, 0, 0, 0, 1, 0.3, 0, [0.3, 1, 0.4], 260); f.kind = 'gen'; out.push(f); gen = f; }
+  for (const f of out) { f.model = g; LIGHT.fix.push(f); }
+  return out[0];
+}
+function layPointLights() {
+  lightsInit(); for (const p of BATTLE.points) { try { layPointFix(p); } catch (e) { window.__lterr = String(e && e.stack || e); } }
+}
+function layPointFix(p) {
+  const T = p.type, a0 = p.x * 0.011 + p.z * 0.009 + 2.3, R = (n) => isTouch ? Math.max(1, Math.ceil(n / 2)) : n; p.lights = { gen: null };
+  const needGen = T === 'hq' || T === 'depot' || T === 'strongpoint' || T === 'airfield' || T === 'harbour';
+  let gen = null; if (needGen) { gen = fixPlace(p, 'gen', a0 + 0.8, 14, null, 'out'); p.lights.gen = gen; }
+  const put = (k, da, d, yawTo, cnt, step) => { for (let i = 0; i < R(cnt || 1); i++) { const f = fixPlace(p, k, a0 + da + i * (step || 0), d, gen, yawTo); if (f && gen) f.gen = gen; } };
+  if (T === 'hq') { put('tower', 0, 17, 'in', 1); put('tower', 3.1, 18, 'in', 1); put('flood', 1.6, 12, 'in', 2, 1.2); put('lamp', 4.6, 9, 'in', 3, 0.9); put('string', 5.7, 12, 0, 1); }
+  else if (T === 'depot') { put('tower', 0.3, 15, 'in', 1); put('flood', 2.2, 11, 'in', 1); put('lamp', 3.7, 9, 'in', 2, 1.1); put('string', 5.3, 11, 0, 1); }
+  else if (T === 'strongpoint') { put('flood', 0.2, 14, 'in', 2, 1.4); put('lamp', 2.6, 9, 'in', 2, 1.4); }
+  else if (T === 'airfield') { put('tower', 0, 18, 'in', 1); put('tower', 3.2, 18, 'in', 1); put('lamp', 1.6, 12, 'in', 4, 1.1); }
+  else if (T === 'harbour') { put('tower', 0.4, 15, 'in', 1); put('lamp', 2.0, 9, 'in', 5, 0.8); put('string', 5.4, 11, 0, 1); }
+  else if (T === 'radio') { put('lamp', 0.5, 9, 'in', 2, 1.6); }
+  else if (T === 'battery') { put('lamp', 0.6, 10, 'in', 2, 1.6); put('string', 3.3, 10, 0, 1); }
+  else { put('lamp', 0.9, 8, 'in', 2, 1.8); }
+}
+function lightsClear() {
+  for (const f of LIGHT.fix) if (f.model && f.model.parent) { scene.remove(f.model); f.model.traverse(o => { if (o.isMesh && o.geometry && !Object.values(FIXG).includes(o.geometry) && o.geometry !== lensGeo) { } }); f.model = null; }
+  LIGHT.fix.length = 0; for (const c of LIGHT.chem) { scene.remove(c.m); } LIGHT.chem.length = 0; LIGHT.flares.length = 0;
+}
+function fixPowered(f) {
+  const p = f.p; if (!f.gen) return p ? (f.kind === 'gen' ? true : true) : true;
+  if (f.gen.dead) return false; if (!p || !p.owner) return false; return simT >= (p.outageT || 0);
+}
+function fixDamage(f, dmg, x, y, z) {
+  if (f.dead) return; f.hp -= dmg; if (f.hp > 0) return; f.dead = true; f.on = Math.min(f.on, 0.4);
+  try { sparks(f.x, f.y, f.z, f.kind === 'gen' ? 40 : 16); } catch (e) { }
+  try { Snd.fx(f.kind === 'gen' ? 'imp_blast_small' : 'imp_glass_0' + (1 + Math.floor(Math.random() * 3)), f.x, f.z, { gain: 0.8, far: 3, y: f.y }); } catch (e) { }
+  if (f.kind === 'gen') { try { blast(f.x, f.y, f.z, { R: 5, dmg: 40, crater: 0, quiet: true, owner: null }); } catch (e) { } if (f.p && f.p.owner && BATTLE.on) { const mine = f.p.owner === BATTLE.team; noteOnce('gen' + f.id, (mine ? 'Our generator at ' : 'The enemy generator at ') + f.p.name + ' is out. The lights there are dark.'); } }
+  if (f.model && f.kind === 'gen') { f.model.userData.smoke = true; }
+}
+function lightBlast(x, y, z, R, dmg) {                                                // explosions break lamps and generators
+  for (const f of LIGHT.fix) { if (f.dead) continue; const d = Math.hypot(f.x - x, f.z - z); if (d < R * 1.1 && Math.abs(f.y - y) < R + 6) fixDamage(f, dmg * (1 - d / (R * 1.1)) * (f.kind === 'gen' ? 2.2 : 3), x, y, z); }
+}
+function lightFixAim(o, d, maxT) {                                                    // a bullet ray against lamp heads and generators
+  let bt = maxT, ref = null; for (const f of LIGHT.fix) { if (f.dead) continue; const cx = f.x - o.x, cy = f.y - o.y, cz = f.z - o.z, t = cx * d.x + cy * d.y + cz * d.z; if (t < 0.5 || t >= bt) continue; const r = f.kind === 'gen' ? 0.9 : f.kind === 'tower' ? 0.5 : 0.42; if (Math.hypot(o.x + d.x * t - f.x, o.y + d.y * t - f.y, o.z + d.z * t - f.z) < r) { bt = t; ref = f; } }
+  return ref ? { t: bt, ref } : null;
+}
+function fixtureTick(dt) {
+  const lk = LIGHT.lampK, fc = lightFocus(), phone = ED.phone;
+  for (const p of BATTLE.points) { if (p._lo === undefined) p._lo = p.owner; else if (p._lo !== p.owner) { p._lo = p.owner; if (p.lights && p.lights.gen) p.outageT = simT + 22; } }
+  for (const f of LIGHT.fix) {
+    if (f.kind === 'gen') { f.on += ((f.dead ? 0 : 1) - f.on) * (1 - Math.exp(-dt * 4)); for (const l of f.lens) l.material = f.dead ? LENSOFF : (simT >= (f.p.outageT || 0) ? GENON : LENSOFF); if (f.dead && f.model && Math.random() < dt * 3) { const d = Math.hypot(f.x - fc.x, f.z - fc.z); if (d < 90) puffSmoke(f.x, f.y + 0.6, f.z, 1, false, 0.9); } continue; }
+    const want = f.dead ? 0 : (fixPowered(f) ? lk : 0); f.on += (want - f.on) * (1 - Math.exp(-dt * (want > f.on ? 3.5 : 6)));
+    for (const l of f.lens) l.material = f.dead ? LENSOFF : f.on > 0.3 ? LENSON : LENSOFF; if (f.bulbs) { f.bulbs.visible = f.on > 0.3; }
+    if (f.on < 0.01) continue; const d2 = (f.x - fc.x) * (f.x - fc.x) + (f.z - fc.z) * (f.z - fc.z); if (d2 > 320 * 320) continue;
+    const fl = f.kind === 'lamp' && Math.random() < 0.0 ? 0.9 : 1;
+    lightWant('fx' + f.id, 'point', f.x, f.y, f.z, f.col[0], f.col[1], f.col[2], f.I * f.on, f.range, f.kind === 'tower' ? 3 : f.kind === 'flood' ? 2.5 : 1.5, { glow: f.glow, glowA: 0.85, pool: f.pool, k: f.on });
+  }
+}
+function lightAt(x, z) {                                                               // how brightly lit a spot of ground is, from lamps, flares, fires, chemical lights and torches: 0 is dark, 1 is as bright as a lamp-lit street. The bots use it.
+  let s = 0;
+  for (const f of LIGHT.fix) { if (f.on < 0.05 || f.dead) continue; const d2 = (f.x - x) * (f.x - x) + (f.z - z) * (f.z - z), R = f.range * 0.8; if (d2 > R * R) continue; s += (f.I / 700) * f.on / (1 + d2 / 120); }
+  for (const c of LIGHT.chem) { const d2 = (c.x - x) * (c.x - x) + (c.z - z) * (c.z - z); if (d2 < 100) s += 0.12 / (1 + d2 / 8); }
+  for (const f of LIGHT.flares) { if (f.x === undefined) continue; const d2 = (f.x - x) * (f.x - x) + (f.z - z) * (f.z - z); if (d2 < 1600) s += 1.2 / (1 + d2 / 150); }
+  for (const t of burning) { const d2 = (t.x - x) * (t.x - x) + (t.z - z) * (t.z - z); if (d2 < 900) s += 0.5 / (1 + d2 / 60); }
+  for (const h of HEATP) { const d2 = (h.x - x) * (h.x - x) + (h.z - z) * (h.z - z); if (d2 < 900) s += 0.6 / (1 + d2 / 60); }
+  for (const v of BVL) { if (v.lt && v.lt.on > 0.3 && !v.dead) { const d2 = (v.x - x) * (v.x - x) + (v.z - z) * (v.z - z); if (d2 < 1600) { const dx = x - v.x, dz = z - v.z, dd = Math.sqrt(d2) + 0.01, al = (dx * Math.sin(v.yaw) + dz * Math.cos(v.yaw)) / dd; if (al > 0.7) s += 0.8 / (1 + d2 / 400); } } }
+  if (LIGHT.torchOn && LIGHT.bk > 0.3 && LIGHT.bo && LIGHT.bdir) { const dx = x - LIGHT.bo.x, dz = z - LIGHT.bo.z, d2 = dx * dx + dz * dz; if (d2 < 1500 && d2 > 1) { const dd = Math.sqrt(d2), al = (dx * LIGHT.bdir.x + dz * LIGHT.bdir.z) / (dd * Math.hypot(LIGHT.bdir.x, LIGHT.bdir.z) + 1e-6); if (al > 0.85) s += 0.9 / (1 + d2 / 500); } }
+  for (const q of people) { if (q.torch && q.torch.on && q.torch.k > 0.3) { const dx = x - q.x, dz = z - q.z, d2 = dx * dx + dz * dz; if (d2 < 1200 && d2 > 1) { const dd = Math.sqrt(d2), al = (dx * Math.sin(q.heading) + dz * Math.cos(q.heading)) / dd; if (al > 0.85) s += 0.9 / (1 + d2 / 500); } } }
+  return s;
+}
+/* ---- lit windows after dusk: one instanced mesh of small warm quads on the faces of the buildings ---- */
+const WIN_SKIP = /bunker|tent|silo|tank|crane|tower|guard|hangar|fuel|ruin/i;
+function windowsBuild() {
+  const list = props.filter(pr => pr.item && pr.item.cat === 'Buildings' && pr.item.box && !WIN_SKIP.test(pr.item.node || pr.item.id || ''));
+  if (LIGHT.win) { scene.remove(LIGHT.win); LIGHT.win.geometry.dispose && 0; LIGHT.win.dispose(); LIGHT.win = null; }
+  const cap = ED.phone ? 700 : 2600, rec = []; let s = 24681357; const rr = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (const pr of list) {
+    const [hx, hy, hz] = pr.item.box, H = Math.max(2.4, hy * 2) * (/house/.test(pr.item.id) ? 0.7 : 1), fl = Math.max(1, Math.round(H / 3)), y0 = pr.mesh.position.y, yaw = pr.mesh.rotation.y, c = Math.cos(yaw), sn = Math.sin(yaw);
+    for (const [nx, nz, len, half] of [[0, 1, hx * 2, hz], [0, -1, hx * 2, hz], [1, 0, hz * 2, hx], [-1, 0, hz * 2, hx]]) {
+      const nw = Math.max(1, Math.floor(len / 3)); for (let f = 0; f < fl; f++) for (let k = 0; k < nw; k++) { if (rec.length >= cap) break;
+        const u = (k + 0.5) / nw * len - len / 2, lx = nx ? nx * (half + 0.07) : u, lz = nz ? nz * (half + 0.07) : u, wx0 = pr.x + lx * c + lz * sn, wz0 = pr.z - lx * sn + lz * c, ry = yaw + Math.atan2(nx, nz);
+        rec.push({ x: wx0, y: y0 + (f + 0.55) * H / fl + 0.2, z: wz0, ry, th: rr(), tint: rr() }); }
+    }
+  }
+  if (!rec.length) { LIGHT.win = null; return; }
+  const geo = new THREE.PlaneGeometry(0.9, 1.15), mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+  const im = new THREE.InstancedMesh(geo, mat, rec.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), ps = new THREE.Vector3();
+  for (let i = 0; i < rec.length; i++) { e.set(0, rec[i].ry, 0); q.setFromEuler(e); ps.set(rec[i].x, rec[i].y, rec[i].z); m4.compose(ps, q, one); im.setMatrixAt(i, m4); im.setColorAt(i, _ltcol.setRGB(0, 0, 0)); }
+  im.frustumCulled = false; im.renderOrder = 3; im.userData.rec = rec; im.instanceMatrix.needsUpdate = true; scene.add(im); LIGHT.win = im; LIGHT.winK = -1;
+}
+function windowsTick(dt) {
+  const lk = LIGHT.lampK; LIGHT.winT -= dt; if (LIGHT.winT > 0) return; LIGHT.winT = 1.0;
+  const nb = props.length, sig = MAP.t + '|' + nb; if (sig !== LIGHT.winSig && lk > 0.02) { LIGHT.winSig = sig; windowsBuild(); }
+  const im = LIGHT.win; if (!im) return; if (Math.abs(lk - LIGHT.winK) < 0.03 && !(lk === 0 && LIGHT.winK !== 0)) return; LIGHT.winK = lk; const rec = im.userData.rec;
+  for (let i = 0; i < rec.length; i++) { const r = rec[i], on = lk > r.th * 0.9 + 0.05 && r.th < 0.62 ? 1 : 0, f = on ? Math.min(1, (lk - r.th * 0.9) * 6) * 0.8 : 0; im.setColorAt(i, _ltcol.setRGB(f * (r.tint < 0.7 ? 1 : 0.8), f * (r.tint < 0.7 ? 0.82 : 0.9), f * (r.tint < 0.7 ? 0.5 : 0.95))); }
+  im.instanceColor.needsUpdate = true; im.visible = lk > 0.01;
+}
+function lightsTick(dt) {
+  if (!LIGHT.spots.length) lightsInit();
+  LIGHT.nW = 0; LIGHT.lampK = lampLevel(); LIGHT.dark = 1 - lsstep(-4, 8, tod.e);
+  playerLightWant(dt); fixtureTick(dt); vehLightsTick(dt); fireLights(dt); chemFlareTick(dt); if (typeof botLightTick === 'function') botLightTick(dt);
+  lightsSelect(dt); lightsBeamCone(dt); windowsTick(dt);
+  const s0 = LIGHT.spots[0]; if (!ED.phone && s0.L.castShadow) { const on = s0.cur > 5; s0.L.shadow.autoUpdate = on; if (on) s0.L.shadow.needsUpdate = true; }
+  if (LIGHT.dashM) { const k = fp.on && fp.veh && !fp.veh.heli && BV.camMode === 'cockpit' ? LIGHT.dark : 0; LIGHT.dashM.visible = k > 0.05; LIGHT.dashM.material.opacity = k * 0.5; }
+}
+window.__sc.LIGHT = LIGHT;
 function shellBurst(s, gs) {                                         // a shell reaches the ground
   const t = s.type;
   if (t === 'smoke') { smokeBloom(s.x, s.z, 0.6); Snd.fx('imp_blast_small', s.x, s.z, { gain: 0.7, far: 3, y: gs }); puffSmoke(s.x, gs + 1, s.z, 10, false, 2.2); }

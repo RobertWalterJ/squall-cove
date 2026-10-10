@@ -32,7 +32,7 @@ MODES = {
   'q': (2, 'Jump overboard'), 'h': (1, 'Take the helm'), 'f': (2, 'Set down a sandbag'), 'x': (3, 'Squad follow / hold'), 'z': (3, 'Squad move to crosshair'),
   'n': (3, 'Hold: squad order ring'), 'i': (3, 'Ping a spot or enemy'), 'j': (3, 'Squad mount up / get out'), 'm': (4, 'Quick map (Shift+M corner map)'),
   'u': (3, 'Heal me'), 'k': (3, 'Squad hold / free fire'), 't': (4, 'Command'), 'l': (4, 'Tactical map'), 'b': (2, 'Detonate charges'),
-  'y': (3, 'Swap to nearest friend'), ';': (6, 'Pause or resume the clock'), 'v': (6, 'Back to overview'), 'esc': (6, 'Back to overview'), 'tab': (6, 'Back to overview'), 'o': (6, 'Back to overview'),
+  'y': (3, 'Swap to nearest friend'), ';': (6, 'Pause or resume the clock'), '.': (2, 'Torch on or off (vehicle: headlights)'), ',': (2, 'Throw a chemical light (Shift: handheld flare)'), 'v': (6, 'Back to overview'), 'esc': (6, 'Back to overview'), 'tab': (6, 'Back to overview'), 'o': (6, 'Back to overview'),
   '`': (6, 'Cheat prompt (or Enter then /)'), 'enter': (6, 'Cheat prompt: Enter, then /'), '/': (6, 'Enter, then / opens the prompt'), '1': (5, 'Tool 1'), '2': (5, 'Tool 2'), '3': (5, 'Tool 3'), '4': (5, 'Tool 4'), '5': (5, 'Tool 5'), '6': (5, 'Tool 6'),
   '7': (5, 'Tool 7'), '8': (5, 'Tool 8 / squad order 8'), '9': (5, 'Tool 9'), '0': (5, 'Grenade'), '-': (5, 'Charge')}),
  'station': ('Gunship station', {

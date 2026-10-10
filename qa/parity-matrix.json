@@ -768,6 +768,35 @@
    "phone": {
     "gesture": "Sky tool, Time passes chips, the Pause chip and sliders; Menu, Battle setup has the same choices"
    }
+  },
+  {
+   "id": "torch-lights",
+   "what": "Torch (handheld, weapon light or headlamp) and vehicle headlights: on or off",
+   "covers": [
+    "fp|. (full stop)",
+    "veh|. (full stop)"
+   ],
+   "desktop": {
+    "gesture": "The full stop key in first person or in a vehicle"
+   },
+   "phone": {
+    "sel": "#fpLight",
+    "gesture": "The Light button beside Jump and Stance toggles the torch, or the headlights in a vehicle"
+   }
+  },
+  {
+   "id": "throw-lights",
+   "what": "Chemical lights (green, red, blue, yellow) and handheld flares",
+   "covers": [
+    "fp|, (comma)",
+    "fp|Shift + comma"
+   ],
+   "desktop": {
+    "gesture": "Comma throws a chemical light, Shift and comma lights a flare; both are also tools in the tool row"
+   },
+   "phone": {
+    "gesture": "Chemical light and Handheld flare are tools in the tool row; the Use button throws or lights it"
+   }
   }
  ],
  "ignoreKeys": {},
