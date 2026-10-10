@@ -797,6 +797,19 @@
    "phone": {
     "gesture": "Chemical light and Handheld flare are tools in the tool row; the Use button throws or lights it"
    }
+  },
+  {
+   "id": "night-sight-ai",
+   "what": "Bots at night: how far soldiers see depends on the light; Night vision for AI (none, some, all) in the battle setup. The player is a target under the same rules. No control of its own in play",
+   "covers": [
+    "fp|Night sight"
+   ],
+   "desktop": {
+    "gesture": "Menu, Battle setup, Night vision for AI: None, Some, All"
+   },
+   "phone": {
+    "gesture": "Menu, Battle setup, Night vision for AI: None, Some, All"
+   }
   }
  ],
  "ignoreKeys": {},

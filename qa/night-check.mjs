@@ -220,10 +220,10 @@ try {
       for (const [bx, bz] of bases) { if (s.standY(bx, bz) < 0.5 || s.standY(bx + 70, bz) < 0.5) continue;
         const mk = (team, x, z, cls) => { const q = s.spawnBot(team, true, { x, z, cls }); if (!q) return null; q.x = x; q.z = z; q.y = s.standY(x, z); q.bot.alert = 0; q.bot.scan = 99; q.bot.cls = cls; q.bot.gear = undefined; return q; };
         const a = mk('blue', bx, bz, 'rifle'); if (!a) continue; a.heading = Math.PI / 2; const out = {}; const tgt = mk('red', bx + 15, bz, 'rifle'); if (!tgt) { s.removePerson(a); continue; }
-        const at = (d) => { tgt.x = bx + d; tgt.z = bz; tgt.y = s.standY(tgt.x, tgt.z); tgt.litK = 0; tgt.run = false; tgt.lastShot = -99; tgt.torch = null; return s.senseEnemy(a, a.bot) === tgt; };
+        const at = (d, o) => { o = o || {}; tgt.x = bx + d; tgt.z = bz; tgt.y = s.standY(tgt.x, tgt.z); tgt.litK = o.lit || 0; tgt.run = !!o.run; tgt.lastShot = o.shot ? s.simTime() : -99; tgt.torch = null; return s.senseEnemy(a, a.bot) === tgt; };
         out.near = at(15); if (!out.near) { s.removePerson(a); s.removePerson(tgt); continue; }
         out.far40 = at(40); out.far60 = at(60); a.bot.gear = undefined;
-        tgt.litK = 1; out.lit60 = at(60); tgt.litK = 0; tgt.run = true; out.moving30 = at(30); out.moving45 = at(45); tgt.run = false; tgt.lastShot = s.simT; out.firing60 = at(60); tgt.lastShot = -99;
+        out.lit60 = at(60, { lit: 1 }); out.moving30 = at(30, { run: true }); out.moving45 = at(45, { run: true }); out.firing60 = at(60, { shot: true });
         s.setNightAI('all'); a.bot.gear = undefined; out.nv60 = at(60); out.gear = a.bot.gear; s.setNightAI('none'); a.bot.gear = undefined;
         s.todSetHour(12.5, {}); s.tod.xf = 1; s.tod.force = true; s.stepWeather(0.1); out.day60 = at(60); s.todSetHour(0.5, {}); s.tod.xf = 1; s.tod.force = true; s.stepWeather(0.1);
         s.removePerson(a); s.removePerson(tgt); res = { base: [bx, bz], ...out }; break; }
