@@ -159,7 +159,7 @@ def type_rows(at, hpx, detail=False):
         r3 = np.concatenate(smk + [heat], 1)
         r3 = np.pad(r3, ((0, 0), (0, cells_dark[0].shape[1] * len(cells_dark) - r3.shape[1]), (0, 0)), constant_values=0.02)
         return [np.concatenate(cells_dark, 1), np.concatenate(cells_grey, 1), r3]
-    n = min(4, len(sp))
+    n = min(3, len(sp))
     return [np.concatenate(cells_dark[:n] + cells_grey[:n] + [heat], 1)]
 
 
@@ -184,10 +184,12 @@ def main():
         lab.paste(img, (0, 16))
         d = data[n]
         ImageDraw.Draw(lab).text((4, 2), f"{n}: {d['title']} | {d['size_note']} | domain {d['domain_m'][0]} x {d['domain_m'][1]} x {d['domain_m'][2]} m", fill=(235, 235, 235))
+        if not detail and lab.width > 1000:
+            lab = lab.resize((1000, int(lab.height * 1000 / lab.width)), Image.LANCZOS)
         blocks.append(lab)
     cwid = max(b.width for b in blocks)
     rh = max(b.height for b in blocks)
-    ncol = 2 if len(blocks) > 1 else 1
+    ncol = (2 if detail else 3) if len(blocks) > 1 else 1
     nrow = (len(blocks) + ncol - 1) // ncol
     sh = Image.new("RGB", (ncol * (cwid + 8) + 8, nrow * (rh + 4) + 8), (24, 24, 28))
     for i, b in enumerate(blocks):

@@ -38,18 +38,46 @@ wide for pools, roofs and fronts). The domain is sized in metres so the sprite w
 <!-- CATALOGUE -->
 | Type | Kind | Real size | Domain (m) | Flame sprite (m) | Clips | Full KB (flame / smoke / heat) | Low KB (flame / smoke) |
 |---|---|---|---|---|---|---|---|
-| `campfire` | life | flames 0.5 to 0.9 m | 1.06 x 1.06 x 1.58 | 0.792x1.254 | decay, extinguish, growth, ignite, loop | 77 / 56 / 8 | 30 / 36 |
-| `pool` | life | pool 2 to 3 m wide, flames 3 m | 5.12 x 5.12 x 7.68 | 4.693x6.08 | decay, extinguish, growth, ignite, loop | 95 / 64 / 8 | 35 / 39 |
-| `vehicle` | life | car or truck, 4 to 5 m | 5.44 x 5.44 x 8.16 | 5.44x7.367 | decay, extinguish, growth, ignite, loop | 155 / 67 / 10 | 56 / 42 |
-| `building` | life | 9 m wide, flames 8 to 12 m | 11.52 x 11.52 x 17.28 | 11.52x14.88 | decay, extinguish, growth, ignite, loop | 141 / 50 / 11 | 54 / 34 |
-| `tree_crown` | life | tree 8 to 12 m, flames 6 to 12 m | 15.36 x 15.36 x 23.04 | 15.36x20.8 | decay, extinguish, growth, ignite, loop | 139 / 44 / 11 | 51 / 29 |
-| `tree_trunk` | life | trunk 4 to 5 m, flames up the trunk | 3.36 x 3.36 x 6.72 | 3.36x5.693 | decay, extinguish, growth, ignite, loop | 97 / 36 / 8 | 36 / 24 |
-| `grass` | life | patch 2 m wide, flames 0.4 to 1.2 m | 2.11 x 1.58 x 2.11 | 2.112x2.068 | decay, extinguish, growth, ignite, loop | 115 / 51 / 8 | 43 / 32 |
-| `front_lead` | tile | 2 m wide tile, flames 0.8 to 1.5 m | 2.01 x 1.0 x 2.01 | 2.006x2.006 | loop | 111 / 33 / 5 | 40 / 20 |
-| `front_body` | tile | 2 m wide tile, flames 0.5 to 1.0 m | 2.01 x 1.0 x 2.01 | 2.006x1.881 | loop | 83 / 31 / 6 | 31 / 19 |
-| `front_trail` | tile | 2 m wide tile, low flames, smoke | 2.01 x 1.0 x 2.01 | 2.006x0.711 | loop | 30 / 23 / 3 | 11 / 13 |
+| `campfire` | life | flames 0.5 to 0.9 m | 1.06 x 1.06 x 1.58 | 0.792x1.188 | decay, extinguish, growth, ignite, loop | 74 / 53 / 8 | 29 / 35 |
+| `pool` | life | pool 2 to 3 m wide, flames 3 m | 5.12 x 5.12 x 7.68 | 4.693x5.867 | decay, extinguish, growth, ignite, loop | 91 / 62 / 8 | 34 / 39 |
+| `vehicle` | life | car or truck, 4 to 5 m | 5.44 x 5.44 x 8.16 | 5.44x7.027 | decay, extinguish, growth, ignite, loop | 144 / 65 / 10 | 54 / 41 |
+| `building` | life | 9 m wide, flames 8 to 12 m | 11.52 x 11.52 x 17.28 | 11.52x13.92 | decay, extinguish, growth, ignite, loop | 127 / 48 / 11 | 48 / 32 |
+| `tree_crown` | life | tree 8 to 12 m, flames 6 to 12 m | 15.36 x 15.36 x 23.04 | 15.36x20.48 | decay, extinguish, growth, ignite, loop | 125 / 42 / 10 | 46 / 27 |
+| `tree_trunk` | life | trunk 4 to 5 m, flames up the trunk | 3.36 x 3.36 x 6.72 | 3.36x5.6 | decay, extinguish, growth, ignite, loop | 88 / 34 / 7 | 34 / 22 |
+| `grass` | life | patch 2 m wide, flames 0.4 to 1.2 m | 2.72 x 2.04 x 2.72 | 2.607x2.04 | decay, extinguish, growth, ignite, loop | 74 / 42 / 6 | 29 / 26 |
+| `front_lead` | tile | 2 m wide tile, flames 0.8 to 1.5 m | 2.01 x 1.0 x 2.01 | 2.006x1.965 | loop | 93 / 30 / 5 | 36 / 18 |
+| `front_body` | tile | 2 m wide tile, flames 0.5 to 1.0 m | 2.01 x 1.0 x 2.01 | 2.006x1.505 | loop | 60 / 25 / 5 | 23 / 17 |
+| `front_trail` | tile | 2 m wide tile, low flames, smoke | 2.01 x 1.0 x 2.01 | 2.006x0.711 | loop | 30 / 23 / 3 | 11 / 14 |
+| `gas` | life | flame 0.5 to 0.7 m | 0.8 x 0.8 x 1.2 | 0.5x0.95 | decay, extinguish, growth, ignite, loop | 75 / 44 / 8 | 29 / 28 |
+| `barrel` | life | 0.6 m drum, flames 1 to 1.4 m | 1.21 x 1.21 x 1.82 | 1.012x1.746 | decay, extinguish, growth, ignite, loop | 127 / 64 / 8 | 49 / 43 |
+| `torch` | life | flame 0.35 to 0.5 m | 0.58 x 0.58 x 0.87 | 0.363x0.641 | decay, extinguish, growth, ignite, loop | 58 / 40 / 6 | 22 / 26 |
+| `flare` | life | flame 0.25 to 0.4 m | 0.53 x 0.53 x 0.79 | 0.308x0.561 | decay, extinguish, growth, ignite, loop | 51 / 34 / 6 | 20 / 23 |
+| `debris` | life | pile 1 m, flames 0.4 to 0.9 m | 1.37 x 1.37 x 2.06 | 1.316x1.115 | decay, extinguish, growth, ignite, loop | 61 / 58 / 7 | 24 / 35 |
+| `gas_jet` | life | jet flame 0.9 to 1.2 m | 0.6 x 0.6 x 1.44 | 0.44x0.98 | decay, extinguish, growth, ignite, loop | 48 / 20 / 6 | 18 / 13 |
+| `shrub` | life | shrub 2 m, flames 1.5 to 2.5 m | 2.53 x 2.53 x 3.8 | 2.112x3.221 | decay, extinguish, growth, ignite, loop | 95 / 59 / 8 | 36 / 40 |
+| `spot_fire` | life | small, flames 0.3 to 0.6 m | 0.79 x 0.66 x 1.06 | 0.616x0.792 | decay, extinguish, growth, ignite, loop | 39 / 28 / 4 | 16 / 17 |
+| `oil_slick` | life | slick 4 m wide, flames 2 to 3.5 m | 7.2 x 4.32 x 7.2 | 6.48x4.44 | decay, extinguish, growth, ignite, loop | 88 / 52 / 7 | 33 / 31 |
+| `boat_deck` | life | deck fire 5 m, flames 3 to 4 m | 8.0 x 4.0 x 8.0 | 7.733x5.733 | decay, extinguish, growth, ignite, loop | 123 / 61 / 8 | 48 / 38 |
+| `smoke_column` | life | column 7 m tall, smoke only | 4.47 x 4.47 x 8.94 | smoke only | decay, extinguish, growth, ignite, loop | 0 / 53 / 6 | 0 / 34 |
+| `vehicle_engine` | life | engine bay, flames 1 to 1.5 m | 2.72 x 2.72 x 4.08 | 2.493x3.797 | decay, extinguish, growth, ignite, loop | 121 / 63 / 8 | 47 / 42 |
+| `vehicle_small` | life | small car, flames 1.5 to 2.5 m | 3.84 x 3.84 x 5.76 | 3.84x5.04 | decay, extinguish, growth, ignite, loop | 124 / 67 / 9 | 47 / 42 |
+| `roof` | life | 12 m roof, flames 6 to 10 m | 20.0 x 12.0 x 20.0 | 18.667x14.667 | decay, extinguish, growth, ignite, loop | 116 / 46 / 10 | 43 / 28 |
+| `window` | life | window 1.2 m, flames 2.5 to 4 m | 4.03 x 4.03 x 6.05 | 3.36x5.124 | decay, extinguish, growth, ignite, loop | 75 / 33 / 8 | 29 / 21 |
+| `doorway` | life | door 1 m, flames 3 to 4 m | 4.03 x 4.03 x 6.05 | 3.36x5.208 | decay, extinguish, growth, ignite, loop | 91 / 40 / 9 | 35 / 27 |
+| `blast_small` | blast | fireball about 3 m | 6.4 x 6.4 x 9.6 | 5.333x7.733 | fireball, plume, residue | 114 / 72 / 7 | 45 / 44 |
+| `blast_medium` | blast | fireball about 8 m | 16.0 x 16.0 x 24.0 | 15.333x14.333 | fireball, plume, residue | 118 / 56 / 8 | 47 / 36 |
+| `blast_large` | blast | fireball about 20 m | 40.0 x 40.0 x 60.0 | 38.333x34.167 | fireball, plume, residue | 113 / 48 / 7 | 43 / 29 |
+| `blast_fuel` | blast | rolling fireball about 12 m, heavy black smoke | 19.2 x 19.2 x 28.8 | 19.2x21.6 | fireball, plume, residue | 175 / 55 / 10 | 67 / 33 |
+| `blast_ground` | blast | burst 12 m wide, 4 m tall | 20.0 x 16.0 x 16.0 | 17.333x11.333 | fireball, plume, residue | 120 / 49 / 8 | 47 / 30 |
+| `debris_slow` | carried | object speed about 4 m/s | 2.88 x 0.96 x 1.44 | 2.52x1.04 | loop | 54 / 16 / 3 | 23 / 10 |
+| `debris_med` | carried | object speed about 12 m/s | 2.88 x 0.96 x 1.44 | 2.86x0.8 | loop | 51 / 11 / 3 | 20 / 7 |
+| `debris_fast` | carried | object speed about 30 m/s | 2.88 x 0.96 x 1.44 | 2.8x0.76 | loop | 42 / 8 / 3 | 16 / 5 |
+| `trail_tile` | tile | 2 m long streaming ribbon, repeat or stretch along the path | 2.01 x 0.75 x 1.0 | 2.006x1.003 | loop | 46 / 15 / 1 | 17 / 10 |
+| `lick` | shot | 0.5 to 0.9 m, about 0.8 s | 0.99 x 0.79 x 1.39 | 0.594x0.396 | lick | 5 / 1 / 0 | 2 / 1 |
+| `spatter_fan` | shot | 0.5 to 0.9 m, about 0.8 s | 1.58 x 0.99 x 1.39 | 1.056x0.429 | spatter_fan | 11 / 2 / 1 | 4 / 1 |
+| `splash_fire` | life | splash 1 m, spreads over about 1.2 s, flames 0.8 to 1.2 m | 1.79 x 1.34 x 1.79 | 1.643x1.717 | decay, extinguish, growth, ignite, loop | 91 / 39 / 7 | 35 / 25 |
 
-Total full-size atlases: 1.54 MB. Total phone (low) set: 0.74 MB (the heat atlas is shared).
+Total full-size atlases: 4.83 MB. Total phone (low) set: 2.39 MB (the heat atlas is shared).
 
 Particles: dots 63 KB, streaks 6 KB, burnt strip 30 KB.
 <!-- /CATALOGUE -->
@@ -59,9 +87,9 @@ Kinds: `life` full lifecycle; `tile` periodic in x (tileable) loops; `carried` a
 one-shots have a, b (blasts) or a, b, c (one-shots).
 
 ## Files and JSON (assets/fire/)
-Per type: `fire_<t>_flame.webp` (premultiplied RGBA, sRGB-encoded), `fire_<t>_smoke.webp` (straight alpha, coloured: grey plus
-orange glow near the base), `fire_<t>_heat.png` (8-bit), and `fire_<t>_flame_low.webp`, `fire_<t>_smoke_low.webp` (half-size frames
-for phones; the heat atlas is shared). Particles: `fire_particles_dots.webp`, `fire_particles_streaks.webp`, `fire_burnt_strip.webp`.
+Per type: `fire_<t>_flame.webp` (RGBA, STRAIGHT alpha: sRGB colour, linear alpha; lossy WebP), `fire_<t>_smoke.webp` (straight alpha, coloured: grey plus
+orange glow near the base, 6-bit alpha), `fire_<t>_heat.webp` (8-bit grey stored as lossy WebP), and `fire_<t>_flame_low.webp`, `fire_<t>_smoke_low.webp` (half-size frames
+for phones; the heat atlas is shared). Particles: `fire_particles_dots.webp`, `fire_particles_streaks.webp` (lossless, straight alpha), `fire_burnt_strip.webp`.
 
 `fire_atlas.json` (version 2): `presets.<type>` has
 - `title`, `kind`, `size_note`, `domain_m`, `has_flame`, `tile`, `variants`
@@ -77,7 +105,7 @@ for phones; the heat atlas is shared). Particles: `fire_particles_dots.webp`, `f
 - Billboard: a camera-facing quad that stands on the ground (rotate about Y only), anchored at the layer anchor (bottom centre). Size from `size_m` times your scale.
   Flame and smoke have different `m_per_px` and sizes (smoke is lower resolution and covers the whole plume): size each quad from `size_m`.
 - Larger fires: two or three crossed quads 60 to 90 degrees apart with different variants and start frames; fade each by how face-on it is.
-- Flame: premultiplied alpha, `blending = CustomBlending, src ONE, dst ONE_MINUS_SRC_ALPHA, premultipliedAlpha: true`, or plain additive (ONE, ONE) ignoring alpha.
+- Flame: straight alpha, so normal blending is right (three.js `NormalBlending`, canvas `source-over`); for a brighter additive look use `CustomBlending` with src `SRC_ALPHA`, dst `ONE`. (Straight alpha was chosen over premultiplied because lossy WebP bleeds colour into transparent pixels, which premultiplied or additive blending would show as bright bars.)
   Smoke: normal blending, straight alpha. `depthWrite: false` on both, sort smoke back to front, draw it after the flame near the base. `toneMapped = false` on flame for night-vision bloom.
 - Soft depth fade: `saturate((sceneDepth - fragDepth) / 0.5)` on alpha; without a depth texture lift the quad 5 to 10 cm.
 - Frame choice: `f = clip.first + floor(t * layer.fps * speed) % count` for loops, clamp at the last frame for one-shots. Random start offset per fire. Blend with the next frame by the fractional part when playing the 8 fps stage clips.
@@ -107,16 +135,44 @@ Heat haze for the game's DIST sources: every type has `haze` = `{strength 0..1, 
 <!-- HAZE -->
 | Type | Haze strength | Radius (m) | Height (m) | Rise (m/s) | Shape |
 |---|---|---|---|---|---|
-| `campfire` | 0.45 | 0.28 | 2.01 | 0.3 | default |
+| `campfire` | 0.45 | 0.28 | 1.9 | 0.3 | default |
 | `pool` | 1.0 | 2.11 | 6.91 | 0.3 | tall |
 | `vehicle` | 0.9 | 2.45 | 7.34 | 0.3 | tall |
 | `building` | 1.0 | 5.18 | 15.55 | 0.3 | tall |
 | `tree_crown` | 0.9 | 6.91 | 20.74 | 0.3 | tall |
 | `tree_trunk` | 0.6 | 1.51 | 6.05 | 0.3 | tall |
-| `grass` | 0.4 | 1.52 | 1.86 | 0.3 | wide |
-| `front_lead` | 0.4 | 1.0 | 1.81 | 0.3 | wide |
-| `front_body` | 0.4 | 1.0 | 1.69 | 0.3 | wide |
+| `grass` | 0.4 | 1.56 | 1.84 | 0.3 | wide |
+| `front_lead` | 0.4 | 1.0 | 1.77 | 0.3 | wide |
+| `front_body` | 0.4 | 1.0 | 1.35 | 0.3 | wide |
 | `front_trail` | 0.25 | 1.0 | 0.64 | 0.3 | wide |
+| `gas` | 0.4 | 0.15 | 1.52 | 0.3 | default |
+| `barrel` | 0.6 | 0.3 | 2.79 | 0.3 | default |
+| `torch` | 0.25 | 0.11 | 1.03 | 0.3 | default |
+| `flare` | 0.2 | 0.09 | 0.9 | 0.3 | default |
+| `debris` | 0.4 | 0.7 | 1.78 | 0.3 | default |
+| `gas_jet` | 0.6 | 0.13 | 1.57 | 0.3 | default |
+| `shrub` | 0.55 | 0.88 | 5.15 | 0.3 | default |
+| `spot_fire` | 0.25 | 0.37 | 0.71 | 0.3 | wide |
+| `oil_slick` | 1.0 | 2.99 | 6.48 | 0.3 | tall |
+| `boat_deck` | 0.9 | 3.64 | 7.2 | 0.3 | tall |
+| `smoke_column` | 0.7 | 1.17 | 7.66 | 0.3 | tall |
+| `vehicle_engine` | 0.6 | 1.12 | 3.67 | 0.3 | tall |
+| `vehicle_small` | 0.75 | 1.73 | 5.18 | 0.3 | tall |
+| `roof` | 1.0 | 8.4 | 18.0 | 0.3 | tall |
+| `window` | 0.6 | 1.01 | 8.2 | 0.3 | default |
+| `doorway` | 0.6 | 1.01 | 8.33 | 0.3 | default |
+| `blast_small` | 1.0 | 2.4 | 8.64 | 0.43 | tall |
+| `blast_medium` | 1.0 | 6.9 | 21.6 | 0.34 | tall |
+| `blast_large` | 1.0 | 17.25 | 54.0 | 0.43 | tall |
+| `blast_fuel` | 1.0 | 8.64 | 25.92 | 0.54 | tall |
+| `blast_ground` | 1.0 | 7.8 | 14.4 | 0.3 | tall |
+| `debris_slow` | 0.3 | 1.57 | 1.66 | 0.3 | default |
+| `debris_med` | 0.3 | 1.57 | 1.28 | 0.3 | default |
+| `debris_fast` | 0.3 | 1.57 | 1.22 | 0.3 | default |
+| `trail_tile` | 0.2 | 1.0 | 0.9 | 0.3 | wide |
+| `lick` | 0.15 | 0.36 | 0.36 | 0.3 | wide |
+| `spatter_fan` | 0.15 | 0.63 | 0.39 | 0.3 | wide |
+| `splash_fire` | 0.5 | 0.99 | 1.55 | 0.3 | wide |
 <!-- /HAZE -->
 
 ## Explosions, flaming debris, spatter

@@ -178,7 +178,7 @@ function drawLayer(P, layer, idx, x, y, pxm, o = {}) {
   const L = P.info.layers[layer]; if (!L || idx == null) return;
   const fw = L.frame_px[0], fh = L.frame_px[1], r = Math.floor(idx / L.cols), c = idx % L.cols;
   const k = pxm * (o.size || 1) * L.m_per_px, w = fw * k, h = fh * k, an = L.anchor;
-  ctx.save(); ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot); if (o.stretch && o.stretch !== 1) ctx.scale(o.stretch, 1);
+  ctx.save(); ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot); if (o.stretch && o.stretch !== 1) ctx.scale(o.stretch, 1); if (o.flip) ctx.scale(-1, 1);
   ctx.globalAlpha = o.alpha == null ? 1 : o.alpha;
   const dst = [-an[0] * w, -an[1] * h, w, h];
   if (layer === 'flame') ctx.drawImage(P.flame, c * fw, r * fh, fw, fh, ...dst);
@@ -301,7 +301,7 @@ function frontScene(dt) {
   if (!FRONT.ready) { say('Loading the front tiles...'); return; }
   const W = cv.width, H = cv.height, sp = +$('fspeed').value, fuel = +$('ffuel').value, day = sel('bg') === 'day';
   if (dt > 0 && !FRONT.paused) FRONT.pos += dt * sp * state.speed;
-  const rows = 14, depth = 0.7, near = H - 30, far = 170, yOf = r => far + (near - far) * Math.pow(r / (rows - 1), 1.6), scOf = r => 0.35 + 0.65 * r / (rows - 1);
+  const rows = 10, depth = 0.9, near = H - 40, far = 230, yOf = r => far + (near - far) * Math.pow(r / (rows - 1), 1.5), scOf = r => 0.6 + 0.6 * r / (rows - 1);
   for (let r = 0; r < rows; r++) {
     const y = yOf(r), bandH = (r < rows - 1 ? yOf(r + 1) - y : 30) + 4, rel = FRONT.pos - r * depth;
     ctx.fillStyle = rel > 0.3 ? (day ? '#3b3733' : '#15130f') : (day ? '#7d8a52' : '#2a3320');
@@ -314,11 +314,9 @@ function frontScene(dt) {
     if (rel > 0 && rel < 1.1) P = cache.front_lead; else if (rel >= 1.1 && rel < 3.2) P = cache.front_body; else if (rel >= 3.2 && rel < 6.5) { P = cache.front_trail; a = clamp(1 - (rel - 5) / 1.5, 0, 1); }
     if (rel > 0 && rel < 0.5) a = clamp(rel / 0.5, 0, 1);
     if (!P || a <= 0) continue;
-    const tileW = P.info.layers.smoke.size_m[0], pxm = (W / 12) * scOf(r), tiles = Math.ceil(12 / tileW) + 1;
-    for (let i = 0; i < tiles; i++) {
-      const clip = clipOf(P, 'loop_' + 'abc'[(i + r) % 3]);
-      drawFire(P, clip, state.t + i * 0.37 + r * 0.21, (i + 0.5) * tileW * pxm + (W - tiles * tileW * pxm) / 2, y, pxm, { size: fuel, alpha: a, view: 'comb' });
-    }
+    const tileW = P.info.layers.smoke.size_m[0], pxm = (W / 9) * scOf(r), tiles = Math.ceil(9 / tileW) + 2;
+    const clip = clipOf(P, 'loop_' + 'abc'[r % 3]);                       // one variant per row, same time across the row: the repeat is seamless
+    for (let i = 0; i < tiles; i++) drawFire(P, clip, state.t + r * 0.21, (i + 0.5) * tileW * pxm + (W - tiles * tileW * pxm) / 2, y, pxm, { size: fuel, alpha: a, view: 'comb' });
   }
   if ($('fspots').checked && dt > 0 && !FRONT.paused) { FRONT.next -= dt * state.speed; if (FRONT.next <= 0) { FRONT.next = rnd(2.5, 5); const d = FRONT.pos + rnd(1.5, 4); if (d < (rows - 1) * depth) FRONT.spots.push({ x: rnd(0.08, 0.92), d, t0: state.t }); } }
   const sf = cache.spot_fire;
@@ -327,7 +325,7 @@ function frontScene(dt) {
     const r = clamp(s.d / depth, 0, rows - 1), age = (state.t - s.t0) * state.speed;
     const ign = clipOf(sf, 'ignite'), gro = clipOf(sf, 'growth'), lp = clipOf(sf, 'loop_a'), dI = dur(ign), dG = dur(gro);
     const clip = age < dI ? ign : age < dI + dG ? gro : lp, t = age < dI ? age : age < dI + dG ? age - dI : age - dI - dG;
-    drawFire(sf, clip, t, s.x * W, yOf(r), (W / 12) * scOf(r) * 1.3, { speed: 1 });
+    drawFire(sf, clip, t, s.x * W, yOf(r), (W / 9) * scOf(r) * 1.3, { speed: 1 });
   }
   $('info').textContent = 'Each 2 m wide tile repeats left to right without a seam. The leading edge is drawn at the front, body tiles behind it, then trailing tiles with smoke; the burnt ground strip fades in behind. Spot fires start with the ignite clip and grow with the growth clip.';
 }
@@ -359,7 +357,7 @@ function boomScene(dt) {
       const clip = clipOf(D, 'loop_' + 'abc'[p.seed % 3]), design = { debris_slow: 4, debris_med: 12, debris_fast: 30 }[cname];
       const rot = Math.atan2(p.vy, -p.vx);               // canvas angle of "against the velocity": the sprite's +x (tail) points there
       const cool = clamp(1 - p.age / 7, 0.15, 1), stretch = clamp(sp / design, 0.6, 1.7);
-      drawFire(D, clip, p.age + p.seed, px, py, pxm * 0.5, { rot, stretch, alpha: cool, view: 'flame' });
+      drawFire(D, clip, p.age + p.seed, px, py, pxm * 1.8, { rot, stretch, alpha: cool, view: 'flame' });
     } else { ctx.fillStyle = '#222'; ctx.fillRect(px - 2, py - 2, 4, 4); }
   }
   const sf = cache.spot_fire;
