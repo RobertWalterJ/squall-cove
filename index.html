@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.13 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.14 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -5970,7 +5970,7 @@ const BCLS = ['rifle', 'rifle', 'rifle', 'smg', 'smg', 'sniper', 'medic', 'rifle
 function spawnPointOf(team) { const own = BATTLE.points.filter(p => p.owner === team); const base = own.length ? own[Math.floor(Math.random() * own.length)] : BATTLE.points.find(p => p.base && (p.owner === team || true)) || BATTLE.points[0]; return base; }
 function makeBotOf(q, team, cls) {                                  // the one place a person becomes a battle bot: a class and weapon, a squad, and the battle brain
   const w = CLSW[cls] || cls; q.hp = 100;
-  q.bot = { team, cls, w, ammo: WPN[w].mag, cool: rnd(0.3, 1), scan: rnd(0, 0.3), tgt: null, obj: null, alert: 0, rev: 0, reload: 0, burst: 0, cmdUntil: 0, myOrder: null, follow: false, step: rnd(0, 2), idle: rnd(0, 2) };
+  q.bot = { team, cls, w, mags: 6, ammo: WPN[w].mag, cool: rnd(0.3, 1), scan: rnd(0, 0.3), tgt: null, obj: null, alert: 0, rev: 0, reload: 0, burst: 0, cmdUntil: 0, myOrder: null, follow: false, step: rnd(0, 2), idle: rnd(0, 2) };
   q.ag = q.ag || { goal: null, think: 9, intent: '', stats: {}, cool: 0, bad: {}, pause: 0, myOrder: null }; q.ag.pause = 1e9; q.ag.intent = 'In the battle';
   q.bot.wmesh = botWeapon(w); q.obj.add(q.bot.wmesh); joinSquad(q, team); return q;
 }
@@ -6069,7 +6069,7 @@ function botFire(q, b, e, d) {
   const sx = q.x + Math.sin(q.heading) * 0.6, sz = q.z + Math.cos(q.heading) * 0.6, sy = q.y + lerpS(STANCE_MUZ, q.stanceK || 0), ex = e.x + (hit ? 0 : rnd(-1.4, 1.4)), ez = e.z + (hit ? 0 : rnd(-1.4, 1.4)), ey = e.y + Math.max(0.15, lerpS(STANCE_EYE, stOf(e)) - 0.3) + (hit ? 0 : rnd(-0.5, 0.5));
   addTracer(sx, sy, sz, ex, ey, ez, { k: WK[b.w] || 'rifle', team: b.team }); ejectCasing(q.x, q.y + 1.2, q.z, q.heading); { const far = Math.hypot(q.x - (fp.on ? fp.p.x : god.tgt.x), q.z - (fp.on ? fp.p.z : god.tgt.z)) > 90; Snd.fx('wpn_' + wsnd(b.w) + (far ? '_far' : '_fire_0' + (1 + Math.floor(Math.random() * 3))), q.x, q.z, { gain: 0.5 * (1 - 0.2 * (q.proneK || 0)), y: q.y + 1.4, gap: 0.03 }); }
   if (hit) { hurt(e, w.dmg * (w.pellets ? 4 : 1) * 0.7 * (1 - 0.4 * Math.min(1, d / w.range)) * (vsMe ? 1.5 : 1), q, Math.random() < 0.08, w.name); impactFx('person', e, { x: ex, y: ey, z: ez }, d); } else { if (e.bot) { e.bot.alert = Math.max(e.bot.alert, 3); e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.25); nmPush(e.bot, q); } impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, d) }
-  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); } else if (b.ammo === Math.ceil(w.mag * 0.2)) vsay(q, 'low_ammo', 1);
+  if (b.ammo <= 0) { b.reload = holdN(b.team, 'depot') ? 0.25 : 2.2; b.reloadDur = b.reload; b.ammo = w.mag; if (b.mags > 0) b.mags--; vsay(q, 'reload', 1); } else if (b.ammo === Math.ceil(w.mag * 0.2)) vsay(q, 'low_ammo', 1);
 }
 let sqT = -9, sqMap = new Map();
 function squadOf(q) {                                               // living members of this soldier's squad, leader first
@@ -6191,6 +6191,7 @@ function botThink0(q, dt) {
   const e = b.tgt;
   if (q.plat) { let r = false; try { r = deckThink(q, b, dt, e); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); q.plat = null; } if (r) return; }
   if (b.tower && !q.plat) { let r = false; try { r = towerWalk(q, b); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); b.tower = null; } if (r) return; }
+  if (b.gl) { let r = false; try { r = glThink(q, b, dt, e); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('group order error', er); b.gl = null; } if (r) return; }
   if (b.psq) { let r = false; try { r = squadThink(q, b, dt, e); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); sqdUnbind(q); } if (r) return; }
   if (e && e.state !== 'rag' && e.hp > 0) {
     const dx = e.x - q.x, dz = e.z - q.z, d = Math.hypot(dx, dz), w = WPN[b.w]; if (!q.order) q.heading = Math.atan2(dx, dz);          // walking somewhere (cover, a flank): face the way they walk; the body only turns to the enemy once they stop
@@ -6636,7 +6637,7 @@ function medevacStep(u, dt, i) {                                    // flies to 
   if (u.leaving && Math.hypot(u.x, u.z) > EXT * 1.05) { scene.remove(u.g); AIR.list.splice(i, 1); }
 }
 function airAuto(dt) {
-  if (CMDR.on && CMDR.side.blue) return;                                 // the commanders spend their own supply (cmdrSupport)
+  if (CMDR.on && (CMDR.side.blue || CMDR.side.red)) return;                                 // the commanders spend their own supply (cmdrSupport)
   AIR.autoT -= dt; if (AIR.autoT > 0) return; AIR.autoT = 14 + Math.random() * 10;
   for (const team of ['blue', 'red']) { if (team === BATTLE.team) continue; const ahead = BATTLE.tickets[team] - BATTLE.tickets[otherTeam(team)], c = AIR.cd[team]; if (Math.random() > (ahead < 0 ? 0.55 : 0.25)) continue; const pick = Math.random();
     if (pick < 0.3 && c.gr <= 0) callAir(team, c.co <= 0 && BATTLE.t > 60 && Math.random() < 0.4 ? 'cobra' : 'griffon'); else if (pick > 0.93 && c.md <= 0 && BATTLE.t > 60) callAir(team, 'medevac'); else if (pick < 0.45 && c.gs <= 0 && BATTLE.t > 90) callAir(team, 'gunship'); else if (pick < 0.62 && c.pa <= 0) paraWave(team, 5 + Math.floor(Math.random() * 3)); else if (pick < 0.75 && c.ar <= 0 && BATTLE.t > 80) { const hs = hotSpot(team); if (hs) callArty(team, { x: hs.x, z: hs.z }); } else if (pick < 0.85 && c.st <= 0 && BATTLE.t > 100) { const hs = hotSpot(team); if (hs) callStrike(team, { x: hs.x, z: hs.z }); } else if (c.bt <= 0 && BATTLE.t > 60) boatWave(team); }
@@ -6927,7 +6928,7 @@ $('tbClose').addEventListener('click', () => toggleTablet(false));
 onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
 function planBattle() {
   sqdMergeSmall();
-  if (CMDR.on && CMDR.side.blue) { for (const t of ['blue', 'red']) { const C = CMDR.side[t]; C.reviewT = -99; cmdrThink(C); } return; }         // the theatre commander plans; the old per-squad rules below are the fallback when it is off
+  if (CMDR.on && (CMDR.side.blue || CMDR.side.red)) { for (const t of ['blue', 'red']) { const C = CMDR.side[t]; if (!C) continue; C.reviewT = -99; cmdrThink(C); } return; }         // the theatre commander plans; the old per-squad rules below are the fallback when it is off
   for (const team of ['blue', 'red']) {
     const bots = people.filter(q => q.bot && q.bot.team === team && q.state !== 'rag' && !q.bot.dead && !q.bot.crew && q.bot.sq), pts = BATTLE.points, bases = pts.filter(p => p.owner === team), cx = bases.length ? bases.reduce((a, p) => a + p.x, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.x, 0) / bots.length : 0), cz = bases.length ? bases.reduce((a, p) => a + p.z, 0) / bases.length : (bots.length ? bots.reduce((a, q) => a + q.z, 0) / bots.length : 0);
     if (!bots.length || !pts.length) continue;
@@ -6961,7 +6962,7 @@ const CMDR = { on: true, dbg: false, acc: 0, turn: 0, step: ED.phone ? 2 : 1, ma
 const cmdrPt = (name) => BATTLE.points.find(p => p.name === name) || null;
 const cmdrFree = (team) => (CHEAT.free || CHEAT.budget) && team === chMy();
 function cmdrMake(team, pers) {
-  return { team, pers, plan: null, groups: [], gid: 0, know: new Map(), obs: new Map(), lastN: new Map(), prep: new Map(), objs: [], reviewT: -99, ownSig: '', budget: 100, lastT: simT, supT: 0, log: [], mainPt: null, postureT: -99, squads: [], ctx: null, mayCall: true };
+  return { team, pers, plan: null, groups: [], gid: 0, know: new Map(), obs: new Map(), lastN: new Map(), prep: new Map(), objs: [], reviewT: -99, ownSig: '', budget: 100, lastT: simT, supT: 0, log: [], mainPt: null, postureT: -99, squads: [], ctx: null, mayCall: true, bad: new Map(), commit: null, force: null, forceDef: 0, reports: [], rep: {}, inbox: [], ownPrev: new Map(), need: {} };
 }
 function cmdrReset(pers) {
   const ks = Object.keys(CPERS); CMDR.acc = 0; CMDR.turn = 0; CMDR.ms = 0; CMDR.thinks = 0;
@@ -7016,7 +7017,7 @@ function cmdrContext(C, sq, fr) {
     p._cs = es;
     if (p.owner !== team) {
       const d = Math.hypot(p.x - X.cx, p.z - X.cz) / (EXT * 0.8), pav = Math.max(2, X.power * 0.6);
-      let s = val * (1 / (1 + 1.3 * d)) * clamp(pav / (es * P.risk + 1.2), 0.15, 2.2) * (p.owner ? 1 : 1.1) * (pinA(p) ? 3 : 1);
+      let s = val * (1 / (1 + 1.3 * d)) * clamp(pav / (es * P.risk + 1.2), 0.15, 2.2) * (p.owner ? 1 : 1.1) * (pinA(p) ? 3 : 1) * (C.bad.get(p.name) > simT ? 0.3 : 1);
       if (p.type === 'hq' && p.owner === ot && pts.some(o => o !== p && o.owner === ot)) s *= 0.04;           // a headquarters cannot be taken while its side holds anything else
       X.att.push({ p, score: s, es, d });
     } else {
@@ -7030,8 +7031,10 @@ function cmdrContext(C, sq, fr) {
 }
 function cmdrPosture(C, X) {                                             // attack, hold, defend or reinforce: how hard to push, from confidence, the opening and threats to what we hold
   const threatened = X.def.filter(d => d.thr), commit = X.P.commit * X.dk;
-  let kind = X.conf >= commit ? 'attack' : X.conf >= commit * 0.6 ? 'hold' : 'defend';
+  const cur = C.plan && C.plan.kind, up = cur === 'attack' ? commit * 0.88 : commit, mid = cur === 'defend' ? commit * 0.67 : commit * 0.6;          // a band either side of each threshold, so one casualty at an even score does not flip the plan
+  let kind = X.conf >= up ? 'attack' : X.conf >= mid ? 'hold' : 'defend';
   if (BATTLE.t < 40) kind = 'attack';                                    // the opening: everyone races for the points
+  if (C.forceDef > simT && BATTLE.t >= 40) kind = 'defend';             // a stalled assault falls back to the defence lines for a while
   if (threatened.length && BATTLE.t >= 40) kind = 'reinforce';
   return { kind, threatened };
 }
@@ -7044,11 +7047,12 @@ function cmdrShare(n, ws) {                                              // spli
 }
 function cmdrObjectives(C, X, post, sq) {                                // the list of objectives for this posture: role, kind, point, how many squads
   const N = sq.length, P = X.P, objs = [], own = X.def, att = X.att.filter(a => a.score > 0.02);
-  let res = N >= 4 ? Math.max(1, Math.round(N * P.reserve)) : 0; if (post.kind === 'reinforce') res = 0;      // under threat the reserve is committed
+  const commit = C.commit && C.commit.until > simT ? C.commit : null; let res = N >= 4 ? Math.max(1, Math.round(N * P.reserve)) : 0; if (post.kind === 'reinforce' || commit) res = 0;      // under threat, or when the commander commits it, the reserve goes in
   const A = N - res;
   // keep the main effort unless something is clearly better (25 %) or it is no longer a target
   let main = att[0];
   if (C.mainPt) { const keep = att.find(a => a.p.name === C.mainPt); if (keep && keep.score * 1.25 >= (main ? main.score : 0)) main = keep; }
+  if (C.force && C.force.until > simT) { const f = att.find(a => a.p.name === C.force.pt); if (f) main = f; }          // a point just lost is counter-attacked whatever it scores
   const sec = att.find(a => !main || a.p !== main.p), probe = att.find(a => a.es <= 2.5 && (!main || a.p !== main.p));
   const d1 = own[0], d2 = own.find(d => d !== d1);
   const add = (role, kind, p, w) => { if (p && w > 0) objs.push({ role, kind, pt: p.name, w }); };
@@ -7057,11 +7061,13 @@ function cmdrObjectives(C, X, post, sq) {                                // the 
   else if (post.kind === 'reinforce') { const th = post.threatened[0] || d1; if (th) rolesW.push(['main', 'defend', th.p, 0.5]); if (X.conf >= P.commit * X.dk && main) rolesW.push(['second', 'attack', main.p, 0.2]); const d = own.find(x => th && x !== th); if (d) rolesW.push(['defence', 'defend', d.p, 0.3]); }
   else if (post.kind === 'hold') { if (d1) rolesW.push(['main', 'defend', d1.p, 0.35]); if (d2) rolesW.push(['defence', 'defend', d2.p, 0.25]); if (probe) rolesW.push(['probe', 'attack', probe.p, 0.3]); }
   else { if (d1) rolesW.push(['main', 'defend', d1.p, 0.5]); if (d2) rolesW.push(['defence', 'defend', d2.p, 0.3]); if (probe) rolesW.push(['probe', 'attack', probe.p, 0.2]); }
+  if (C.force && C.force.until > simT && main && main.p.name === C.force.pt && !rolesW.some(r => r[2] === main.p)) rolesW.splice(Math.min(1, rolesW.length), 0, ['second', 'attack', main.p, 0.35]);          // a point just lost is retaken whatever the posture
   if (!rolesW.length) { const t = att[0] || own[0]; if (t) rolesW.push(['main', att[0] ? 'attack' : 'defend', t.p, 1]); }
   const maxRoles = Math.max(1, CMDR.maxGroups - (res ? 1 : 0)), use = rolesW.slice(0, maxRoles);
   // a defending side that holds a headquarters keeps something at home, a little of everything
   const share = cmdrShare(A, use.map(r => r[3]));
   use.forEach((r, i) => { if (share[i] > 0) add(r[0], r[1], r[2], share[i]); });
+  if (commit) { const rc = Math.max(1, Math.round(N * P.reserve)), tgt = objs.find(o => o.pt === commit.to && o.role !== 'reserve'); if (tgt) { let moved = 0; for (const o of objs.slice().sort((a, b) => b.w - a.w)) { if (o === tgt) continue; while (o.w > 1 && moved < rc) { o.w--; moved++; } } tgt.w += moved; } }
   if (post.kind === 'attack' && main) C.mainPt = main.p.name; else if (post.kind === 'reinforce' && post.threatened[0]) C.mainPt = null;
   if (res) {                                                             // the reserve waits at the held point nearest the main effort
     const m = objs.find(o => o.role === 'main') || objs[0], mp = m && cmdrPt(m.pt), held = BATTLE.points.filter(p => p.owner === C.team);
@@ -7077,7 +7083,8 @@ function cmdrGroups(C, X, objs, sq) {                                    // keep
   for (const o of objs) {
     let g = C.groups.find(x => !used.has(x) && x.role === o.role && x.obj === o.pt) || C.groups.find(x => !used.has(x) && x.role === o.role);
     if (!g) { g = { id: 'G' + (++C.gid) + C.team[0], team: C.team, role: o.role, kind: o.kind, obj: o.pt, sq: [], want: o.w, born: simT, state: 'forming', prog: 0, n: 0, cx: 0, cz: 0 }; cmdrLog(C, 'New group ' + g.id + ' as ' + o.role + ' for ' + o.pt); }
-    else if (g.obj !== o.pt) { cmdrLog(C, g.id + ' (' + o.role + ') now goes for ' + o.pt); g.since = simT; g.obj = o.pt; g.prog = 0; g.born = simT; }
+    else if (g.obj !== o.pt) { { const old = cmdrPt(g.obj); if (old && old.owner === C.team && g.kind === 'attack' && g.role !== 'reserve' && g.ph !== 'secure') cmdrReport(C, g, 'secured'); } cmdrLog(C, g.id + ' (' + o.role + ') now goes for ' + o.pt); g.since = simT; g.obj = o.pt; g.prog = 0; g.born = simT; cmdrGroupReset(g); }
+    { const cp = cmdrPt(g.obj); if (g.kind === 'attack' && o.kind === 'defend' && cp && cp.owner === C.team && g.role !== 'reserve') cmdrReport(C, g, 'secured'); }          // the objective is ours and the group turns to holding it
     g.kind = o.kind; g.want = o.w; used.add(g); next.push(g);
   }
   for (const g of C.groups) if (!used.has(g)) { /* its squads fall into the pool below */ }
@@ -7090,7 +7097,8 @@ function cmdrGroups(C, X, objs, sq) {                                    // keep
   }
   for (const s of pool) { const g = C.groups.slice().sort((a, b) => (a.sq.length - a.want) - (b.sq.length - b.want))[0]; if (g) g.sq.push(s.id); }     // squads left over join the group most short of them
   for (const g of C.groups) {
-    let n = 0, x = 0, z = 0, eng = 0; for (const id of g.sq) { const s = byId.get(id); if (s) { s.grp = g; n += s.n; x += s.x * s.n; z += s.z * s.n; eng += s.eng; } } g.n = n; g.cx = n ? x / n : 0; g.cz = n ? z / n : 0; g.eng = eng;
+    let n = 0, x = 0, z = 0, eng = 0; g.mem = []; for (const id of g.sq) { const s = byId.get(id); if (s) { s.grp = g; n += s.n; x += s.x * s.n; z += s.z * s.n; eng += s.eng; for (const q of s.mem) g.mem.push(q); } }
+    g.dead = g.dead || new WeakSet(); for (const q of (g.memPrev || [])) if (!g.dead.has(q) && (q.state === 'rag' || q.hp <= 0 || (q.bot && q.bot.dead))) { g.dead.add(q); g.lost = (g.lost || 0) + 1; } g.memPrev = g.mem.slice(); g.n = n; g.cx = n ? x / n : 0; g.cz = n ? z / n : 0; g.eng = eng;
     const p = cmdrPt(g.obj); if (p) {
       const d = Math.hypot(g.cx - p.x, g.cz - p.z), mine = p.owner === C.team; g.dist = d;
       g.state = g.role === 'reserve' ? (d < 40 ? 'ready' : 'moving') : g.kind === 'defend' ? (d < p.r + 25 ? (g.eng ? 'engaged' : 'holding') : 'moving') : mine ? 'secured' : d > 150 ? 'forming' : d > 55 ? 'moving' : 'engaged';
@@ -7099,10 +7107,11 @@ function cmdrGroups(C, X, objs, sq) {                                    // keep
     }
   }
 }
+function cmdrGroupReset(g) { g.ph = null; g.fp = null; g.ap = null; g.stalled = 0; g.asT = 0; g.lost = 0; g.n0 = 0; g.bound = null; g.fw = null; g.flank = 0; g.signal = 0; g.pinT = 0; g.owSpot = undefined; g.fb = null; g.dead = new WeakSet(); for (const q of (g.mem || [])) if (q.bot) { q.bot.gl = null; q.bot.stage = null; } }
 function cmdrApply(C) {                                                  // orders go down: every soldier of a group takes the group's objective; local tactics stay theirs
   let gi = 0;
   for (const g of C.groups) { const p = cmdrPt(g.obj); gi++; if (!p) continue;
-    for (const id of g.sq) for (const q of people) { const b = q.bot; if (!b || b.sq !== id || b.team !== C.team || b.dead || b.follow || b.psq) continue; b.grp = g.id; b.role = g.role; b.squad = gi; if (b.forced && b.forced.until > simT) b.obj = b.forced.pt; else b.obj = p; }
+    for (const id of g.sq) for (const q of people) { const b = q.bot; if (!b || b.sq !== id || b.team !== C.team || b.dead || b.follow || b.psq) continue; if (b.grp !== g.id) { b.gl = null; b.stage = null; } b.grp = g.id; b.role = g.role; b.squad = gi; if (b.forced && b.forced.until > simT) b.obj = b.forced.pt; else b.obj = p; }
     BATTLE.sqObj[g.sq[0]] = g.obj; for (const id of g.sq) BATTLE.sqObj[id] = g.obj; }
 }
 function cmdrSpend(C, kind) {
@@ -7121,10 +7130,194 @@ function cmdrSupport(C, X) {                                             // supp
     else if (c.bt <= 0 && boatAllowed(team) && cmdrSpend(C, 'boat')) { if (boatWave(team)) cmdrLog(C, 'Reinforcements by boat'); else C.budget += CCOST.boat; }
   }
 }
+/* ================================================================ group leaders, fire and manoeuvre (v9.9.14)
+   Every group has a leader routine (glLead, run from each commander think). It turns the group's objective into an ASSEMBLY point on the axis of advance, a BASE-OF-FIRE position with sight of the objective, and a signal:
+   assemble, then the fire element goes to its position and suppresses while the manoeuvre element waits, then on the signal the manoeuvre element assaults. Under contact it BOUNDS (two buddy teams, one moves while
+   the other suppresses, then they swap) and when it is pinned it FLANKS (the manoeuvre element swings round to a point at the side of the objective while the fire element keeps the enemy's heads down). Snipers are
+   detached to an overwatch spot, one soldier of the manoeuvre element watches a security sector, mechanised squads ride (the vehicle AI carries them to the assembly point, `b.stage`) and dismount into the same drill.
+   Defence groups hold ring positions facing the threat and fall back to a line behind the point when overrun; the reserve waits at its point until the commander commits it. Soldiers carry the leader's order in `b.gl`
+   and obey it in `glThink` (called from botThink0): a moving order still fights at arm's reach, a holding order shoots from where it stands, a suppress order fires into the objective with tracers (no damage, enemies there
+   are pinned). Reports go up with cmdrReport and the commander acts on them (stall, reserve, fallback). */
+const GL = { ap: 75, bound: 22, fpR: [48, 56, 64], flankR: 55, stall: { aggressive: 55, balanced: 40, cautious: 28 }, lapse: 6 };
+const glValid = (x, z) => standY(x, z) > 0.6 && !footBlocked(x, z, 1.5);
+function glSpot(x, z) { if (glValid(x, z)) return { x, z }; for (let r = 4; r <= 40; r += 6) for (let a = 0; a < 6.283; a += 0.7) { const xx = x + Math.cos(a) * r, zz = z + Math.sin(a) * r; if (glValid(xx, zz)) return { x: xx, z: zz }; } return { x, z }; }
+function glOrder(q, k, x, z, ex) {                                       // an order from the group leader; the same order again only refreshes it, so arrival is remembered
+  const b = q.bot, o = b.gl; if (o && o.k === k && Math.abs(o.x - x) < 2.5 && Math.abs(o.z - z) < 2.5) { o.t = simT; if (ex) Object.assign(o, ex); return o; }
+  return (b.gl = Object.assign({ k, x, z, t: simT, arr: false }, ex || {}));
+}
+function glHold(q, face, ex) { const o = q.bot.gl; if (o && (o.k === 'hold' || o.k === 'guard' || o.k === 'suppress') && simT - o.t < 3) { o.t = simT; if (ex) Object.assign(o, ex); if (face !== undefined) o.face = face; return o; } return (q.bot.gl = Object.assign({ k: 'hold', x: q.x, z: q.z, t: simT, arr: true, face }, ex || {})); }
+const glJ = (q, r) => { const b = q.bot; if (b.jx === undefined) { b.jx = rnd(-1, 1); b.jz = rnd(-1, 1); } return { x: b.jx * r, z: b.jz * r }; };         // a fixed personal offset, so orders do not change every second
+const glFrac = (list, x, z, r) => { if (!list.length) return 0; let n = 0; for (const q of list) if (Math.hypot(q.x - x, q.z - z) <= r) n++; return n / list.length; };
+const glMean = (list) => { let x = 0, z = 0; for (const q of list) { x += q.x; z += q.z; } return { x: x / Math.max(1, list.length), z: z / Math.max(1, list.length) }; };
+function glFireAt(q, b, x, z) {                                          // suppressive fire into an area: tracers and dust, anyone there is pinned. Never through a wall.
+  if (b.reload > 0 || b.cool > 0) return; const y = heightAt(x, z) + 1; if (!losFull(q.x, q.y + 1.2, q.z, x, y + 0.2, z)) { b.cool = 0.5; return; } sqFireAt(q, b, x, y, z);
+}
+function glContact(q, b, e) {                                            // what the combat branch of botThink0 does when it sees someone: tell the squad and the neighbours
+  b.memE = e; b.memT = simT; if (simT - (b.shT || 0) > 1.5) { b.shT = simT; for (const m of squadOf(q)) if (m !== q && m.bot) { m.bot.alert = Math.max(m.bot.alert, 3); m.bot.hint = { x: e.x, z: e.z, t: simT }; } shareContact(q, e); if (b.lastE !== e) { b.lastE = e; if (simT - (b.callT || -9) > 5) { b.callT = simT; sqdCall(q, b, e, Math.hypot(e.x - q.x, e.z - q.z)); } } }
+}
+function glThink(q, b, dt, e) {                                          // one soldier carrying out the group leader's order. Returns true when it has used the frame.
+  const o = b.gl; if (!o) return false; if (simT - o.t > GL.lapse) { b.gl = null; return false; } if (q.vin || q.climb || q.plat || b.tower || b.mountV) return false;
+  const live = e && e.state !== 'rag' && e.hp > 0, w = WPN[b.w], dE = live ? Math.hypot(e.x - q.x, e.z - q.z) : 1e9;
+  if (b.cls === 'medic' && !live) { for (const a of people) if (a.state === 'rag' && teamOf(a) === b.team && a.bot && !a.bot.revived && a.hp <= 0 && simT - a.bot.deadAt < 7 && Math.hypot(a.x - q.x, a.z - q.z) < 45) return false; }         // a medic goes for the fallen first
+  if (live) { if (!q.order) q.heading = Math.atan2(e.x - q.x, e.z - q.z); b.stance = chooseStance(q, b, e, dE); glContact(q, b, e); }
+  if (o.k === 'go') {
+    const dd = Math.hypot(o.x - q.x, o.z - q.z); if (dd <= (o.tol || 5)) o.arr = true;
+    if (!o.arr) {
+      if (live && dE < 18) return false;                                  // a fight at arm's reach is fought, not walked past: the ordinary combat logic takes over
+      b.crouch = false; b.coverPt = null; b.atCover = false; b.stance = 0; sqGo(q, b, o.x, o.z, true); if (live && b.reload <= 0 && b.cool <= 0 && dE <= w.range && Math.random() < 0.2) botFire(q, b, e, dE); return true;       // fire on the move, run to the spot
+    }
+  }
+  // holding (an arrived move, a hold, a guard or a suppress order): stay put, shoot from here. An arrived move carries on as its `then` (suppress, guard, ow, ready).
+  const kk = o.k === 'go' ? (o.then || 'hold') : o.k;
+  if (q.order && q.order === b.myOrder) { q.order = null; q.route = null; b.myOrder = null; } q.run = false;
+  if (kk === 'ow') { b.stOrd = 2; b.tac = 'hold'; }
+  if (live) {
+    if (!b.noCover && dE > 6 && dE <= w.range && kk !== 'ow') { if ((!b.coverPt || b.coverFor !== e) && simT >= (b.cvNext || 0) && COVQ.n < COVQ.max) { COVQ.n++; b.cvNext = simT + 1.2 + Math.random() * 0.5; const cv = findCover(q, e, 10); if (cv) { b.coverPt = cv; b.coverFor = e; b.lastCover = cv; b.atCover = false; } else b.cvFail = simT; } if (b.coverPt && coverStep(q, b, e, dt, true)) return true; }
+    b.crouch = kk !== 'guard' && kk !== 'ready' && (b.supp || 0) > 0.5; if ((b.supp || 0) > 0.65 && b.crouch) return true; if (b.reload <= 0 && b.cool <= 0 && dE <= w.range) botFire(q, b, e, dE); return true;
+  }
+  b.tgt = null; b.coverPt = null; b.atCover = false; b.stance = kk === 'guard' || kk === 'ready' ? 0 : 1; b.crouch = b.stance === 1;
+  if (kk === 'suppress' && o.tx !== undefined) { glFireAt(q, b, o.tx + rnd(-4, 4), o.tz + rnd(-4, 4)); return true; }
+  if (o.face !== undefined) q.heading += wrap(o.face - q.heading) * Math.min(1, dt * 3);
+  if (b.cls === 'medic') return false;                                    // a medic still goes for the fallen
+  return true;
+}
+function glElements(g) {                                                  // the fire element, the manoeuvre element and the detached snipers, stable while the membership is
+  const mem = g.mem.filter(q => !q.vin), ow = [], rest = []; let fire = [], move = [];
+  for (const q of mem) (q.bot.cls === 'sniper' && mem.length > 3 ? ow : rest).push(q);
+  const sqs = [...new Set(rest.map(q => q.bot.sq))];
+  if (sqs.length >= 2) { const sc = sqs.map(id => { const m = rest.filter(q => q.bot.sq === id); return { m, fp: m.reduce((a, q) => a + ((q.bot.cls === 'heavy' || q.bot.cls === 'marksman') ? 2 : 1), 0) }; }).sort((a, b) => b.fp - a.fp || b.m.length - a.m.length); fire = sc[0].m; for (let i = 1; i < sc.length; i++) move.push(...sc[i].m); }
+  else { const s = rest.slice().sort((a, b) => (a.bot.sqi || 0) - (b.bot.sqi || 0)); s.forEach((q, i) => (i % 2 ? fire : move).push(q)); if (!move.length) { move = fire; fire = []; } }
+  if (!fire.length && move.length >= 4) fire = move.splice(Math.floor(move.length / 2));
+  g.ow = ow; g.fire = fire; g.move = move; g.ride = g.mem.length - mem.length;
+  for (const q of ow) q.bot.el = 'ow'; for (const q of fire) q.bot.el = 'fire'; for (const q of move) q.bot.el = 'move';
+}
+function glAssembly(g, p) {                                              // where the group gathers: the axis stage point, offset to the side for a flanking group, on reachable ground
+  const ax = g.axis; if (!ax) return glSpot(p.x - 60, p.z); const dx = ax.fx - ax.sx, dz = ax.fz - ax.sz, L = Math.hypot(dx, dz) || 1; let x = ax.sx - dz / L * ax.side * 55, z = ax.sz + dx / L * ax.side * 55; let s = glSpot(x, z);
+  if (lineBlocked(g.cx, g.cz, s.x, s.z) && !findFootPath(g.cx, g.cz, s.x, s.z)) for (const rot of [0.5, -0.5, 1.0, -1.0]) { const a = Math.atan2(s.z - p.z, s.x - p.x) + rot, r = Math.hypot(s.x - p.x, s.z - p.z), t = glSpot(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r); if (!lineBlocked(g.cx, g.cz, t.x, t.z) || findFootPath(g.cx, g.cz, t.x, t.z)) { s = t; break; } }
+  return s;
+}
+function glPickFP(g, p) {                                                // a base-of-fire position about 50 to 65 m from the objective with sight of it, on the side the group comes from
+  const ap = g.ap || { x: p.x - 60, z: p.z }, a0 = Math.atan2(ap.z - p.z, ap.x - p.x), py = standY(p.x, p.z); let best = null, bs = -1e9;
+  for (let i = -3; i <= 3; i++) for (const r of GL.fpR) { const a = a0 + i * 0.22, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (!glValid(x, z)) continue; const y = standY(x, z); if (!losFull(x, y + 1.3, z, p.x, py + 1.2, p.z)) continue; const s = -Math.abs(i) - Math.abs(r - 56) * 0.03 + (y - py) * 0.15; if (s > bs) { bs = s; best = { x, z }; } }
+  return best || glSpot(p.x + Math.cos(a0) * 56, p.z + Math.sin(a0) * 56);
+}
+function glOverwatch(g, p) {                                             // a spot 85 to 120 m out with sight of the objective, preferably high
+  const ap = g.ap || { x: p.x - 60, z: p.z }, a0 = Math.atan2(ap.z - p.z, ap.x - p.x), py = standY(p.x, p.z); let best = null, bs = -1e9;
+  for (let i = -4; i <= 4; i++) for (const r of [88, 104, 118]) { const a = a0 + i * 0.25, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (!glValid(x, z)) continue; const y = standY(x, z); if (!losFull(x, y + 1.0, z, p.x, py + 1.2, p.z)) continue; const s = (y - py) * 0.2 - Math.abs(i) * 0.3; if (s > bs) { bs = s; best = { x, z }; } }
+  if (!best) { let hy = -1e9; for (let i = -4; i <= 4; i++) for (const r of [88, 104]) { const a = a0 + i * 0.25, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (!glValid(x, z)) continue; const y = standY(x, z) - Math.abs(i) * 0.5; if (y > hy) { hy = y; best = { x, z }; } } }          // no clear sight line anywhere: the highest valid ground on the approach side (a sniper sees 200 m)
+  return best;
+}
+const glRing = (p, i, n, r, a0, spread) => { const a = a0 + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0); return glSpot(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r); };
+function cmdrReport(C, g, kind, info) {                                  // reports go up: the group leader tells the commander, who logs it and acts on it at the next think
+  g.rep = g.rep || {}; const gap = { contact: 25, pinned: 20, casualties: 40, lowammo: 60, secured: 5, stalled: 30, fallback: 30 }[kind] || 20; if (simT - (g.rep[kind] || -99) < gap) return; g.rep[kind] = simT;
+  const r = { t: simT, g: g.id, obj: g.obj, role: g.role, kind, info: info || null }; C.inbox.push(r); C.reports.push(r); if (C.reports.length > 80) C.reports.shift(); C.rep[kind] = (C.rep[kind] || 0) + 1;
+  const lead = g.mem && g.mem.find(q => q.bot && !q.vin); if (lead) { const k = kind === 'pinned' ? 'pinned' : kind === 'contact' ? 'taking_fire' : kind === 'secured' ? 'clear' : kind === 'fallback' ? 'retreat' : null; if (k) vsay(lead, k, 2); }
+}
+function glRoles(C, g, p) {                                              // the detached roles: snipers on overwatch, one security soldier watching a sector
+  const ow = g.ow || []; if (ow.length) { if (!g.owSpot && g.owSpot !== false) g.owSpot = glOverwatch(g, p) || false; for (const q of ow) { if (g.owSpot) glOrder(q, 'go', g.owSpot.x, g.owSpot.z, { tol: 5, then: 'ow', g: g.id }); else glHold(q); } }
+  g.sec = null; if (g.move && g.move.length >= 3 && (g.ph === 'bof' || g.ph === 'secure')) { const q = g.move[g.move.length - 1]; g.sec = q; const a = Math.atan2(g.cz - p.z, g.cx - p.x) + 1.75; const o = glHold(q, Math.atan2(Math.sin(a), Math.cos(a)), { sec: true }); o.k = 'guard'; }
+}
+function glAttack(C, g, p) {                                             // assemble, base of fire, signal, assault (bounding, flanking), secure
+  const T = C.team; glElements(g); const mem = g.mem; if (!mem.length) return; if (g.ride === mem.length) { g.ph = 'ride'; return; }
+  const free = mem.filter(q => !q.vin);
+  if (p.owner === T) { if (g.ph !== 'secure') { g.ph = 'secure'; g.phT = simT; cmdrReport(C, g, 'secured'); } }
+  else if (!g.ph || g.ph === 'ride' || g.ph === 'secure') { g.ph = g.dist > 120 ? 'assemble' : 'bof'; g.phT = simT; g.ap = null; g.fp = null; }
+  if (!g.ap) g.ap = glAssembly(g, p); for (const q of free) q.bot.stage = g.ph === 'assemble' ? g.ap : null;
+  const ap = g.ap, fire = g.fire, move = g.move, fireAll = fire.concat(g.ow);
+  if (g.ph === 'assemble') {
+    free.forEach((q, i) => { if (q.bot.el === 'ow') return; const j = glJ(q, 8); glOrder(q, 'go', ap.x + j.x, ap.z + j.z, { tol: 6, g: g.id }); });
+    const fr = glFrac(free.filter(q => q.bot.el !== 'ow'), ap.x, ap.z, 30); if (fr >= 0.7 || g.dist <= 95 || (simT - g.phT > 50 && g.dist < 220)) { g.ph = 'bof'; g.phT = simT; g.fp = null; return glAttack(C, g, p); }            // the next phase's orders go out in the same breath, so nobody carries on with the old one
+    glRoles(C, g, p); return;
+  }
+  if (g.ph === 'bof') {
+    if (!g.fp) g.fp = glPickFP(g, p); const fp = g.fp, tx = p.x, tz = p.z;
+    fire.forEach((q) => { const j = glJ(q, 5); glOrder(q, 'go', fp.x + j.x, fp.z + j.z, { tol: 6, g: g.id, then: 'suppress', tx, tz }); });
+    for (const q of move) glHold(q, Math.atan2(p.x - q.x, p.z - q.z));
+    glRoles(C, g, p); const inFp = fire.length ? glFrac(fire, fp.x, fp.z, 15) : 1;
+    if (inFp >= 0.7 || simT - g.phT > 28 || (!fire.length && simT - g.phT > 3)) { g.ph = 'assault'; g.phT = simT; g.signal = simT; g.asT = simT; g.p0 = g.prog; g.bound = null; g.fw = null; g.pinT = 0; g.n0 = Math.max(1, g.n); g.lost = 0; return glAttack(C, g, p); }
+    return;
+  }
+  if (g.ph === 'assault') {
+    const contact = g.eng > 0 || (C.know.size && [...C.know.values()].some(k => simT - k.t < 10 && Math.hypot(k.x - p.x, k.z - p.z) < 90)), mv = move.length ? move : fire;
+    const near = mv.length ? Math.min(...mv.map(q => Math.hypot(q.x - p.x, q.z - p.z))) : 0;
+    // pinned: half the group suppressed or flat for five seconds under contact
+    const pinN = free.filter(q => (q.bot.supp || 0) > 0.55 || (q.bot.pr && q.bot.prWhy > 2)).length; if (contact && free.length && pinN / free.length >= 0.5) g.pinT = g.pinT || simT; else g.pinT = 0;
+    if (g.pinT && simT - g.pinT > 5 && simT - (g.flank || -99) > 40 && !g.fw && move.length >= 2) {
+      g.flank = simT; g.fside = g.fside || (Math.random() < 0.5 ? 1 : -1); const a = Math.atan2(ap.z - p.z, ap.x - p.x) + g.fside * 1.15; g.fw = glSpot(p.x + Math.cos(a) * GL.flankR, p.z + Math.sin(a) * GL.flankR); g.bound = null; cmdrReport(C, g, 'pinned');
+    }
+    // the fire element keeps suppressing until the movers are close, then follows up
+    for (const q of fire) { if (near > 35) { const o = glHold(q); o.k = 'suppress'; o.tx = p.x; o.tz = p.z; } else { const j = glJ(q, 7); glOrder(q, 'go', p.x + j.x, p.z + j.z, { tol: 7, g: g.id }); } }
+    if (g.fw) {                                                          // flank: the movers swing round while the fire element pins the enemy
+      for (const q of move) { const j = glJ(q, 3); glOrder(q, 'go', g.fw.x + j.x, g.fw.z + j.z, { tol: 8, g: g.id, fl: true }); }
+      if (glFrac(move, g.fw.x, g.fw.z, 12) >= 0.6 || simT - g.flank > 25) { g.fw = null; g.pinT = 0; g.bound = null; }
+    } else if (!contact || near < p.r - 6) { for (const q of move) { const j = glJ(q, 6); glOrder(q, 'go', p.x + j.x, p.z + j.z, { tol: 4, g: g.id }); } }         // no contact, or at the objective: everyone runs on
+    else glBound(C, g, p, move);
+    glRoles(C, g, p); return;
+  }
+  if (g.ph === 'secure') {
+    const n = free.length, a0 = Math.atan2(ap.z - p.z, ap.x - p.x) + Math.PI; free.forEach((q, i) => { if (q.bot.el === 'ow' && g.owSpot) return; const s = glRing(p, i, n, 9 + (i % 2) * 4, a0, 4.2), o = glOrder(q, 'go', s.x, s.z, { tol: 4, g: g.id }); o.face = Math.atan2(s.x - p.x, s.z - p.z); });
+    glRoles(C, g, p);
+  }
+}
+function glBound(C, g, p, mv) {                                          // bounding overwatch: two buddy teams, one moves while the other suppresses, then they swap
+  const t1 = mv.filter((q, i) => i % 2 === 0), t2 = mv.filter((q, i) => i % 2 === 1); let B = g.bound; if (!B) B = g.bound = { team: 1, t: simT, n: 0, bp: null };
+  let act = B.team === 1 ? t1 : t2, rest = B.team === 1 ? t2 : t1; if (!act.length) { B.team = 3 - B.team; B.bp = null; act = rest; rest = []; }
+  if (!B.bp) { const c = glMean(act), dx = p.x - c.x, dz = p.z - c.z, L = Math.hypot(dx, dz) || 1, st = Math.min(GL.bound, Math.max(6, L - (p.r - 6))); B.bp = glSpot(c.x + dx / L * st, c.z + dz / L * st); B.t = simT; }
+  const bp = B.bp; act.forEach((q) => { const j = glJ(q, 4); glOrder(q, 'go', bp.x + j.x, bp.z + j.z, { tol: 5, g: g.id, bt: B.team }); });
+  for (const q of rest) { const o = glHold(q, Math.atan2(p.x - q.x, p.z - q.z), { bt: 0 }); o.k = 'suppress'; o.tx = p.x; o.tz = p.z; }
+  if (glFrac(act, bp.x, bp.z, 9) >= 0.6 || simT - B.t > 8) { B.team = 3 - B.team; B.bp = null; B.n++; }
+}
+function glDefend(C, g, p) {                                             // hold ring positions facing the threat; fall back to a line behind the point when overrun
+  glElements(g); const T = C.team, ot = otherTeam(T), mem = g.mem.filter(q => !q.vin); if (!mem.length) return;
+  let en = 0, ex = 0, ez = 0; for (const k of C.know.values()) if (simT - k.t < 10 && Math.hypot(k.x - p.x, k.z - p.z) < 60) { en++; ex += k.x; ez += k.z; }
+  const fr = mem.filter(q => Math.hypot(q.x - p.x, q.z - p.z) < 40).length, lossF = g.n0 ? g.lost / g.n0 : 0;
+  if (g.ph !== 'fall' && ((en >= 3 && en >= fr * 2 && lossF >= 0.35) || (fr <= 1 && en >= 2 && g.n >= 2 && simT - g.born > 20))) {
+    const own = BATTLE.points.filter(o => o !== p && o.owner === T).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0], toward = own || BATTLE.points.find(o => o.owner === T && o.type === 'hq') || { x: p.x - 80, z: p.z }, dx = toward.x - p.x, dz = toward.z - p.z, L = Math.hypot(dx, dz) || 1;
+    g.fb = glSpot(p.x + dx / L * 75, p.z + dz / L * 75); g.ph = 'fall'; g.phT = simT; cmdrReport(C, g, 'fallback', { en, fr });
+  }
+  if (g.ph === 'fall') {
+    const fb = g.fb, a0 = Math.atan2(p.z - fb.z, p.x - fb.x); mem.forEach((q, i) => { const s = glRing(fb, i, mem.length, 5 + (i % 2) * 3, a0 + Math.PI, 3.2); const o = glOrder(q, 'go', s.x, s.z, { tol: 4, g: g.id, face: a0 }); o.face = a0; });
+    if (simT - g.phT > 30 && en < Math.max(2, fr)) { g.ph = 'hold'; g.phT = simT; g.lost = 0; g.n0 = Math.max(1, g.n); }
+    return;
+  }
+  g.ph = 'hold'; const a0 = en ? Math.atan2(ez / en - p.z, ex / en - p.x) : (() => { const f = BATTLE.points.filter(o => o.owner === ot).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0]; return f ? Math.atan2(f.z - p.z, f.x - p.x) : 0; })();
+  const n = mem.length; mem.forEach((q, i) => { if (q.bot.el === 'ow') return; const s = glRing(p, i, n, 7 + (i % 2) * 5, a0, 2.2), o = glOrder(q, 'go', s.x, s.z, { tol: 4, g: g.id }); o.face = Math.atan2(s.x - p.x, s.z - p.z); });
+  for (const q of g.ow) glHold(q);
+  if (g.n0 === 0 || !g.n0) g.n0 = Math.max(1, g.n);
+}
+function glReserve(C, g, p) {                                            // the reserve waits at its point, standing, until the commander commits it
+  glElements(g); const mem = g.mem.filter(q => !q.vin), n = mem.length; g.ph = 'ready'; mem.forEach((q, i) => { const s = glRing(p, i, n, 10 + (i % 2) * 3, 0, 6.2); glOrder(q, 'go', s.x, s.z, { tol: 5, g: g.id, then: 'ready' }); });
+}
+function glLead(C, g) {                                                  // once per commander think, per group
+  const p = cmdrPt(g.obj); if (!p || !g.mem || !g.mem.length) return; const free = g.mem.some(q => !q.vin);
+  if (!free && g.role !== 'reserve') { g.ph = 'ride'; return; }
+  if (g.role === 'reserve') glReserve(C, g, p); else if (g.kind === 'defend') glDefend(C, g, p); else glAttack(C, g, p);
+  // reports up
+  if (g.eng > 0) { if (!g.engOn) { g.engOn = true; cmdrReport(C, g, 'contact'); } } else g.engOn = false;
+  if (g.n0 && g.lost / g.n0 >= 0.3) cmdrReport(C, g, 'casualties', { lost: g.lost, of: g.n0 });
+  let low = 0, cnt = 0; for (const q of g.mem) { const m = q.bot.mags; if (m === undefined) continue; cnt++; if (m <= 1) low++; } if (cnt >= 2 && low / cnt >= 0.5) cmdrReport(C, g, 'lowammo', { low, of: cnt });
+}
+function cmdrStallCheck(C, g, X) {                                       // an assault that is not getting anywhere, or is bleeding, is replanned: the reserve goes in, the main effort moves, or we fall back to defence
+  if (g.kind !== 'attack' || g.role === 'reserve' || g.ph !== 'assault' || !g.asT) return; const p = cmdrPt(g.obj); if (!p || p.owner === C.team) return;
+  const T = GL.stall[C.pers] * (CDIFF[CMDR.diff] || 1), loss = g.n0 ? g.lost / g.n0 : 0, gain = g.prog - (g.p0 || 0);
+  if (g.stalled && simT - g.stalled < 30) return; if (!((simT - g.asT > T && gain < 0.08) || loss >= 0.5)) return;
+  g.stalled = simT; C.bad.set(g.obj, simT + 90); cmdrReport(C, g, 'stalled', { loss: +loss.toFixed(2), gain: +gain.toFixed(2) });
+  const resv = C.groups.find(x => x.role === 'reserve' && x.sq.length);
+  if (resv && loss < 0.65 && !(C.commit && C.commit.until > simT)) { C.commit = { until: simT + 50, to: g.obj, why: 'stalled' }; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: reserve committed'); g.asT = simT; g.p0 = g.prog; g.lost = 0; g.n0 = Math.max(1, g.n); }
+  else if (X.att.some(a => a.p.name !== g.obj && a.score > 0.1 && !(C.bad.get(a.p.name) > simT))) { C.mainPt = null; C.force = null; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: main effort moves'); g.ph = null; }
+  else { C.forceDef = simT + 40; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: falling back to defence lines'); }
+  C.reviewT = -99;
+}
+function cmdrInbox(C) {                                                  // the commander reads the reports
+  for (const r of C.inbox) { cmdrLog(C, 'Report from ' + r.g + ' (' + r.role + ' at ' + r.obj + '): ' + r.kind); if (r.kind === 'secured') C.reviewT = -99; if (r.kind === 'lowammo') C.need = C.need || {}, C.need.ammo = simT; if (r.kind === 'fallback') C.reviewT = -99; }
+  C.inbox.length = 0;
+}
 function cmdrThink(C) {
   if (!C || !BATTLE.on || BATTLE.over) return; const t0 = performance.now(), team = C.team, dt = Math.min(5, simT - C.lastT); C.lastT = simT;
   C.mayCall = team !== BATTLE.team; C.budget = Math.min(160, C.budget + dt * (0.3 + 0.25 * BATTLE.points.filter(p => p.owner === team).length));
-  const sq = cmdrSquads(team); C.squads = sq; const fr = cmdrKnow(C), X = cmdrContext(C, sq, fr); C.ctx = X;
+  cmdrInbox(C); const sq = cmdrSquads(team); C.squads = sq; const fr = cmdrKnow(C);
+  for (const p of BATTLE.points) { const prev = C.ownPrev.get(p.name); if (prev === team && p.owner !== team && BATTLE.t > 20) { C.commit = { until: simT + 60, to: p.name, why: 'lost' }; C.force = { pt: p.name, until: simT + 60 }; cmdrLog(C, p.name + ' lost: counter-attack, reserve committed'); C.reviewT = -99; } C.ownPrev.set(p.name, p.owner); }
+  const X = cmdrContext(C, sq, fr); C.ctx = X;
   const sig = BATTLE.points.map(p => p.owner || '-').join('') + sq.length; const flip = sig !== C.ownSig; C.ownSig = sig;
   if (!C.plan || flip || simT - C.reviewT >= 3) {
     C.reviewT = simT; const post = cmdrPosture(C, X);
@@ -7134,6 +7327,8 @@ function cmdrThink(C) {
     const m = C.groups.find(g => g.role === 'main'); C.plan.main = m ? m.obj : null; C.plan.mainKind = m ? m.kind : null;
   } else cmdrGroups(C, X, C.objs, sq);
   cmdrApply(C);
+  for (const g of C.groups) { try { glLead(C, g); } catch (er) { window.__cmdrerr = String(er && er.stack || er); if (guardN++ < 6) console.error('group leader error', er); } }
+  for (const g of C.groups) cmdrStallCheck(C, g, X);
   if (simT - C.supT >= 4) { C.supT = simT; cmdrSupport(C, X); }
   CMDR.thinks++; CMDR.ms += (performance.now() - t0 - CMDR.ms) * 0.05;
 }
@@ -7152,7 +7347,10 @@ function cmdrDraw(c, P) {                                                // P(x,
   for (const team of ['blue', 'red']) { const C = CMDR.side[team]; if (!C) continue; const col = CMCOL[team]; c.strokeStyle = col; c.fillStyle = col;
     for (const g of C.groups) { const p = cmdrPt(g.obj); if (!p || !g.n) continue; const [x0, y0] = P(g.cx, g.cz), [x1, y1] = P(p.x, p.z); if (!isFinite(x0) || !isFinite(x1)) continue;
       cmdrArrow(c, x0, y0, x1, y1, g.role === 'main' ? 4 : g.role === 'reserve' ? 1.5 : 2.5, g.kind !== 'attack');
-      c.fillStyle = 'rgba(10,18,22,.9)'; c.beginPath(); c.arc(x0, y0, 14, 0, 6.283); c.fill(); c.lineWidth = 2; c.stroke(); c.fillStyle = '#fff'; c.fillText((CMROLE[g.role] || '?') + '·' + g.n, x0, y0 + 1); c.fillStyle = col; }
+      c.fillStyle = 'rgba(10,18,22,.9)'; c.beginPath(); c.arc(x0, y0, 14, 0, 6.283); c.fill(); c.lineWidth = 2; c.stroke(); c.fillStyle = '#fff'; c.fillText((CMROLE[g.role] || '?') + '·' + g.n + (g.ph ? ' ' + g.ph[0] : ''), x0, y0 + 1); c.fillStyle = col;
+      if (g.ap && g.kind === 'attack') { const [ax, ay] = P(g.ap.x, g.ap.z); if (isFinite(ax)) { c.beginPath(); c.moveTo(ax, ay - 6); c.lineTo(ax + 6, ay + 5); c.lineTo(ax - 6, ay + 5); c.closePath(); c.fill(); } }
+      if (g.fp && g.kind === 'attack') { const [fx, fy] = P(g.fp.x, g.fp.z); if (isFinite(fx)) c.fillRect(fx - 5, fy - 5, 10, 10); }
+      if (g.fw) { const [wx, wy] = P(g.fw.x, g.fw.z); if (isFinite(wx)) { c.beginPath(); c.moveTo(wx, wy - 7); c.lineTo(wx + 7, wy); c.lineTo(wx, wy + 7); c.lineTo(wx - 7, wy); c.closePath(); c.fill(); } } }
     for (const o of C.objs) { const p = cmdrPt(o.pt); if (!p || o.role === 'reserve') continue; const [x, y] = P(p.x, p.z); if (!isFinite(x)) continue; c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); c.arc(x, y, 18 + (team === 'red' ? 5 : 0), 0, 6.283); c.stroke(); c.setLineDash([]); }
     c.textAlign = 'left'; const ln = (team === 'blue' ? 20 : 38); c.fillStyle = 'rgba(10,18,22,.85)'; c.fillRect(8, ln - 10, 380, 17); c.fillStyle = col; c.fillText((team === 'blue' ? 'Port' : BATTLE.redKind) + ': ' + (C.plan ? C.plan.kind : '-') + ' (' + C.pers + ') main ' + (C.plan && C.plan.main || '-') + ', ' + C.groups.length + ' groups, supply ' + Math.round(C.budget), 12, ln); c.textAlign = 'center'; }
   c.restore();
@@ -8251,7 +8449,7 @@ function bvFindSquad(v) {
   const pn = v.seats.filter(s => s.kind === 'pass').length; if (pn < 2) return null; const by = new Map();
   for (const q of people) { const b = q.bot; if (!b || b.team !== v.team || b.crew || b.dead || b.follow || q.vin || q.state === 'rag' || q.hp <= 0 || q.fp || q.hop || !b.sq) continue; let a = by.get(b.sq); if (!a) by.set(b.sq, a = []); a.push(q); }
   let best = null, bd = 1e9; for (const [id, mem] of by) { if (BV.sqBusy.has(id) || mem.length < 2) continue; let cx = 0, cz = 0; for (const q of mem) { cx += q.x; cz += q.z; } cx /= mem.length; cz /= mem.length; const d = Math.hypot(cx - v.x, cz - v.z); if (d > 75 || d >= bd) continue;
-    mem.sort((a, b) => (a.bot.sqi || 0) - (b.bot.sqi || 0)); const ob = mem[0].bot.obj; if (!ob || Math.hypot(ob.x - cx, ob.z - cz) < 120) continue; bd = d; best = { id, mem: mem.slice(0, pn), obj: ob }; }
+    mem.sort((a, b) => (a.bot.sqi || 0) - (b.bot.sqi || 0)); const ob = mem[0].bot.stage || mem[0].bot.obj; if (!ob || Math.hypot(ob.x - cx, ob.z - cz) < 120) continue; bd = d; best = { id, mem: mem.slice(0, pn), obj: ob }; }
   return best;
 }
 function bvAIPlan(v, x, z) { const A = v.ai; if (simT - (A.lastPlan || -9) < 3 || A.req) return false; A.lastPlan = simT; const r = { v, x, z }; A.req = r; A.path = null; A.arrived = false; BV.planQ.push(r); return true; }
@@ -12458,7 +12656,7 @@ function updateBomber(dt, t) {
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
 function qaTick(dt) { world.step(1 / 60, dt, 5); armedLayer(dt); updateBattle(dt); updatePeople(dt, simT); }      // test hook: one fixed simulation step without the renderer (the frame loop is paused with window.__qaHold)
-window.__sc = { senseEnemy, torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire, CMDR, CPERS, cmdrThink, cmdrKnow, cmdrSquads, cmdrContext, cmdrStr, cmdrPt, cmdrReset, cmdrPosture, cmdrSpend, cmdrSupport, cmdrObjectives, cmdrGroups, cmdrFrame };
+window.__sc = { senseEnemy, torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire, CMDR, CPERS, cmdrThink, cmdrKnow, cmdrSquads, cmdrContext, cmdrStr, cmdrPt, cmdrReset, cmdrPosture, cmdrSpend, cmdrSupport, cmdrObjectives, cmdrGroups, cmdrFrame, glThink, glLead, glAttack, glDefend, glReserve, glBound, glElements, glPickFP, glAssembly, glOrder, GL, cmdrStallCheck, cmdrReport, cmdrInbox, bvAIInit, bvFindSquad, cmdrGroupReset };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -12561,12 +12759,12 @@ function sqGo(q, b, x, z, run) {                                    // walk ther
 }
 function sqFace(q, yaw, dt) { if (!q.order) q.heading += wrap(yaw - q.heading) * Math.min(1, dt * 4); }
 function sqFireAt(q, b, x, y, z) {                                  // suppressive fire into an area: tracers and dust, and anyone there is pinned
-  const w = WPN[b.w]; if (b.reload > 0 || b.cool > 0 || SQD.hf) return; b.ammo--; b.cool = w.rate + w.bot * (0.9 + Math.random() * 0.9); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 5 : 99)) { b.burst = 0; b.cool += 0.5 + Math.random() * 0.5; }
+  const w = WPN[b.w]; if (b.reload > 0 || b.cool > 0 || (b.psq && SQD.hf)) return; b.ammo--; b.cool = w.rate + w.bot * (0.9 + Math.random() * 0.9); q.recoil = 1; b.burst++; if (b.burst >= (w.auto ? 5 : 99)) { b.burst = 0; b.cool += 0.5 + Math.random() * 0.5; }
   const dx = x - q.x, dz = z - q.z; q.heading = Math.atan2(dx, dz); const ex = x + rnd(-2.2, 2.2), ez = z + rnd(-2.2, 2.2), ey = y + rnd(0.3, 1.4);
   addTracer(q.x + Math.sin(q.heading) * 0.6, q.y + 1.3, q.z + Math.cos(q.heading) * 0.6, ex, ey, ez, { k: WK[b.w] || 'rifle', team: b.team }); ejectCasing(q.x, q.y + 1.2, q.z, q.heading);
   Snd.fx('wpn_' + wsnd(b.w) + '_fire_0' + (1 + Math.floor(Math.random() * 3)), q.x, q.z, { gain: 0.5, y: q.y + 1.4, gap: 0.03 }); impactFx('land', null, { x: ex, y: Math.max(heightAt(ex, ez), ey - 1), z: ez }, Math.hypot(dx, dz));
   for (const e of people) { if (e.state === 'rag' || !e.bot || teamOf(e) !== otherTeam(b.team)) continue; if (Math.hypot(e.x - x, e.z - z) < 7) { e.bot.supp = Math.min(1, (e.bot.supp || 0) + 0.12); e.bot.alert = Math.max(e.bot.alert, 3); } }
-  if (b.ammo <= 0) { b.reload = 2.2; b.reloadDur = b.reload; b.ammo = w.mag; vsay(q, 'reload', 1); }
+  if (b.ammo <= 0) { b.reload = 2.2; b.reloadDur = b.reload; b.ammo = w.mag; if (b.mags > 0) b.mags--; vsay(q, 'reload', 1); }
 }
 function shareContact(q, e) {                                       // anyone of the same side within 40 m hears about a sighting, whatever squad they are in
   const t = q.bot.team; for (const m of people) { const mb = m.bot; if (m === q || !mb || mb.team !== t || m.state === 'rag' || mb.dead || m.vin) continue; if (Math.abs(m.x - q.x) > 40 || Math.abs(m.z - q.z) > 40) continue; mb.alert = Math.max(mb.alert, 2); if (!mb.hint || simT - mb.hint.t > 4) mb.hint = { x: e.x, z: e.z, t: simT }; }

@@ -1,6 +1,9 @@
 // Command check (v9.9.13 onward): the theatre commander and everything under it. usage: node qa/command-check.mjs [a|b|c|d|all] [--baseline] [shots]
 // Everything runs on simulated time: the frame loop is paused (window.__qaHold) and the test steps the game itself with __sc.qaTick(1/60), the way qa/stance-check.mjs and qa/night-check.mjs do,
 // so results do not depend on the speed of the software renderer. Random numbers are not seeded, so the AI sections assert ranges and rules, not exact frames.
+//   d (v9.9.16): see qa/command-check-d.mjs (settings, take over and hand back, overrides, advisor, briefing, free play, end lines, plain labels, phone 48 px, performance).
+//   c (v9.9.15): see qa/command-check-c.mjs (supply budget, ammunition state, resupply, air drop, convoy, medevac, reinforcement choice, cheats, supply bar).
+//   b (v9.9.14): see qa/command-check-b.mjs (group leaders, fire and manoeuvre, reports, stall, reserve, fallback, mechanised, performance).
 //   a (v9.9.13): the commander thinks about once a second, picks objectives and a posture, fog of war, groups and reserve, orders reach the soldiers, support sequencing and budget accounting, performance, no console errors.
 // With --baseline the perf section runs on the previous release (git HEAD, it carries the qaTick hook already) so the cost of the commander is reported against it.
 // One headless Chrome, killed by PID at the end. At most three screenshots in all (with `shots`): the commander overlay on the tactical map, the commander view in overview, the briefing / advisor UI.
@@ -16,13 +19,15 @@ const fail = [], ok = (name, cond, detail) => { out((cond ? '  ok   ' : '  FAIL 
 const num = (v, d = 2) => +(+v).toFixed(d);
 const overrides = {};
 if (BASE) {                                                          // the previous release with the test hook patched in, served as /index.html
-  let html = execSync('git show HEAD:index.html', { cwd: ROOT, maxBuffer: 1 << 28 }).toString('utf8');
+  let html = execSync('git show ' + (process.env.BASEREF || 'HEAD') + ':index.html', { cwd: ROOT, maxBuffer: 1 << 28 }).toString('utf8');
   if (!html.includes('function qaTick(') || !html.includes('window.__qaHold')) throw new Error('the previous release has no qaTick hook');      // v9.9.12 and later carry the hook themselves
   overrides['/index.html'] = html;
 }
 const srv = await startServer(ROOT, 0, overrides), b = await launch({ name: 'check', ed: 'desktop', w: 900, h: 600, mobile: false, dpr: 1 });
 out('chrome pid ' + b.pid + ' (killed by PID at the end)');
 const J = async (expr) => { const n0 = b.errs.length, r = await b.ev(`JSON.stringify((()=>{ ${expr} })())`); if (!r) throw new Error('the page returned nothing: ' + b.errs.slice(n0).join(' / ').slice(0, 600) + ' :: ' + expr.slice(0, 160).replace(/\s+/g, ' ')); return JSON.parse(r); };
+const URL0 = `http://127.0.0.1:${srv.port}/index.html?map=port&nointro=1&gov=best&edition=desktop`;
+const reload = async () => { if (!await loadGame(b, URL0, 3)) throw new Error('no load'); await b.ev("document.getElementById('help').hidden=true; window.__qaHold=true; __sc.ensureWeapons && __sc.ensureWeapons(); 1"); await sleep(3000); };      // a clean page for the performance runs: staged scenarios can leave the physics engine in a state where a step throws
 const startBattle = async (size) => { await b.ev(`document.getElementById('help').hidden=true; __sc.BATTLE.size=${size}; __sc.battleStart(); 1`); await sleep(7000); };
 const tick = (n) => J(`for (let i=0;i<${n};i++) __sc.qaTick(1/60); return __sc.simTime()`);
 try {
@@ -143,17 +148,25 @@ try {
     await b.shot(path.join(ROOT, 'docs', 'cmdr_a_tactical_map.png')); log('screenshot docs/cmdr_a_tactical_map.png (tactical map open: ' + open + ')');
   }
 
+  if (run('b') && !BASE) { const { partB } = await import('./command-check-b.mjs'); await partB({ b, J, out, ok, num, startBattle, sleep, reload }); }
+
+  if (run('c') && !BASE) { const { partC } = await import('./command-check-c.mjs'); await partC({ b, J, out, ok, num, startBattle, sleep, reload }); }
+
+  let D_PHONE = null;
+  if (run('d') && !BASE) { const { partD } = await import('./command-check-d.mjs'); const r = await partD({ b, J, out, ok, num, startBattle, sleep, reload, SHOTS, srvPort: srv.port }); D_PHONE = r && r.phone; }
+
   if (run('a') && BASE) {
     await startBattle(30);
     const pBase = await J(`const sc = __sc; sc.BATTLE.size = 30; sc.BATTLE.tickets.blue = sc.BATTLE.tickets.red = 9999; const pt = sc.BATTLE.points.find(p => p.name === 'Town centre') || sc.BATTLE.points[0]; let nb = 0, nr = 0;
       for (const q of sc.people) { if (!q.bot || q.bot.crew) continue; const blue = q.bot.team === 'blue', k = blue ? nb++ : nr++; const a = (k % 15) * 0.4 - 2.8, d = blue ? -30 : 30; q.x = pt.x + Math.sin(a) * 18; q.z = pt.z + d + Math.cos(a) * 3 * (blue ? -1 : 1); q.y = sc.standY(q.x, q.z); q.order = null; q.route = null; }
       for (let i = 0; i < 60; i++) sc.qaTick(1/60); const ms = []; for (let i = 0; i < 1800; i++) { const t = performance.now(); sc.qaTick(1/60); ms.push(performance.now() - t); }
       ms.sort((a, b) => a - b); const mean = ms.reduce((a, c) => a + c, 0) / ms.length; return { bots: sc.people.filter(q => q.bot && q.state !== 'rag').length, mean, p95: ms[Math.floor(ms.length * 0.95)], p99: ms[Math.floor(ms.length * 0.99)] }`);
-    out('  perf BASELINE (previous release v9.9.12): ' + JSON.stringify({ bots: pBase.bots, meanMs: num(pBase.mean, 3), p95Ms: num(pBase.p95, 3), p99Ms: num(pBase.p99, 3) }));
+    out('  perf BASELINE (the previous build, BASEREF, default HEAD): ' + JSON.stringify({ bots: pBase.bots, meanMs: num(pBase.mean, 3), p95Ms: num(pBase.p95, 3), p99Ms: num(pBase.p99, 3) }));
   }
 
   const errs = b.errs.filter(e => !/favicon|ERR_FAILED|Failed to load resource|AudioContext|autoplay/i.test(e));
   ok('no console errors', errs.length === 0, errs.slice(0, 5));
+  if (D_PHONE) { await b.close(); await D_PHONE(); }          // the phone edition is a second Chrome, started only after the first one is gone
 } catch (e) { out('ERR ' + (e && e.stack || e)); fail.push('crash'); }
 finally { await b.close(); await srv.close(); }
 out(fail.length ? `\nFAILED (${fail.length}): ${fail.join(' | ')}` : '\nALL OK'); process.exit(fail.length ? 1 : 0);
