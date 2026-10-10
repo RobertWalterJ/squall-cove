@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squall Cove Atmosphere Viewer</title>
+<style>
+  :root { color-scheme: dark; --bg:#14161a; --panel:#1e2127; --line:#3a3f48; --ink:#f0f2f5; --mut:#b5bcc8; --acc:#7fc4ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.4 system-ui, Segoe UI, Arial, sans-serif; }
+  header { padding:12px 16px 4px; } h1 { margin:0 0 2px; font-size:23px; }
+  p.note { margin:0; color:var(--mut); font-size:15px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:14px; padding:10px 16px 24px; }
+  .controls { flex:1 1 310px; max-width:430px; display:grid; gap:10px; align-content:start; }
+  fieldset { border:1px solid var(--line); border-radius:8px; background:var(--panel); margin:0; padding:6px 12px 10px; }
+  legend { padding:0 6px; font-size:15px; color:var(--mut); }
+  label { display:inline-flex; align-items:center; gap:7px; margin:2px 12px 2px 0; font-size:17px; min-height:30px; cursor:pointer; }
+  input[type=radio], input[type=checkbox] { width:19px; height:19px; accent-color:var(--acc); }
+  input[type=range] { width:100%; height:30px; accent-color:var(--acc); }
+  select { font:inherit; width:100%; background:#2b3039; color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px; min-height:40px; }
+  .row { display:flex; justify-content:space-between; font-size:15px; color:var(--mut); }
+  button { font:inherit; color:var(--ink); background:#2b3039; border:1px solid var(--line); border-radius:8px; padding:7px 14px; cursor:pointer; min-height:42px; margin-right:6px; }
+  button:hover { background:#353b46; } button.on { background:#2d4a66; border-color:var(--acc); }
+  :focus-visible { outline:3px solid #6fb7ff; outline-offset:2px; }
+  .stage { flex:3 1 560px; min-width:300px; }
+  canvas { width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#000; }
+  #info { margin-top:8px; font-size:15px; color:var(--mut); white-space:pre-wrap; } #err { color:#ffb3a8; font-size:15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Squall Cove Atmosphere Viewer</h1>
+  <p class="note">Steam, mist and fog flipbooks from <code>assets/atmos</code>. Everything is built into this page, so it works by double-click.</p>
+</header>
+<div class="wrap">
+  <div class="controls">
+    <fieldset><legend>Demo</legend>
+      <button id="m_single" class="on" type="button">Single sprite</button><button id="m_fog" type="button">Fog layers</button><button id="m_land" type="button">Landscape</button>
+    </fieldset>
+    <fieldset id="fsSingle"><legend>Preset and clip</legend>
+      <select id="preset" aria-label="Preset"></select>
+      <select id="clip" aria-label="Clip" style="margin-top:6px"></select>
+      <div style="margin-top:6px"><button id="life" type="button">Lifecycle play-through</button><button id="pause" type="button">Pause</button></div>
+    </fieldset>
+    <fieldset><legend>Background and light</legend>
+      <label><input type="radio" name="bg" value="night"> Night</label>
+      <label><input type="radio" name="bg" value="day" checked> Day</label>
+      <label><input type="radio" name="bg" value="dusk"> Dusk</label>
+      <label><input type="radio" name="bg" value="bright"> Bright, backlit</label>
+    </fieldset>
+    <fieldset><legend>Sensor view</legend>
+      <label><input type="radio" name="look" value="normal" checked> Normal</label>
+      <label><input type="radio" name="look" value="thermal"> Thermal</label>
+      <label><input type="radio" name="look" value="nv"> Night vision</label>
+    </fieldset>
+    <fieldset><legend>Size, speed, wind</legend>
+      <div class="row"><label for="size">Size</label><span id="sizeV"></span></div><input id="size" type="range" min="0.3" max="2.5" step="0.05" value="1">
+      <div class="row"><label for="speed">Playback speed</label><span id="speedV"></span></div><input id="speed" type="range" min="0.1" max="2.5" step="0.05" value="1">
+      <div class="row"><label for="wind">Wind (shear and drift)</label><span id="windV"></span></div><input id="wind" type="range" min="-8" max="8" step="0.5" value="0">
+      <label><input id="low" type="checkbox"> Low (phone) atlas</label><label><input id="scat" type="checkbox" checked> Scatter layer</label>
+    </fieldset>
+    <div id="err" role="status"></div>
+  </div>
+  <div class="stage"><canvas id="cv" width="960" height="560" role="img" aria-label="Atmosphere preview"></canvas><div id="info" aria-live="polite"></div></div>
+</div>
+<script>
+const ATLAS = /*ATLAS_JSON*/null;
+const DATA = /*ATLAS_DATA*/{};
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const S = { mode:'single', preset:'steam_pipe', clip:null, bg:'day', look:'normal', size:1, speed:1, wind:0, low:false, scat:true, paused:false, t:0, life:false, lifeIdx:0, lifeT:0 };
+const imgs = {}, px = {}, cache = {};
+const GROUPS = [['Steam','steam_'],['Mist and spray','mist_'],['Mist and spray','splash_'],['Mist and spray','spray_'],['Fog','fog_']];
+function load(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('image failed')); i.src=src; }); }
+function pixels(img){ const c=document.createElement('canvas'); c.width=img.width; c.height=img.height; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0); return x.getImageData(0,0,img.width,img.height); }
+async function prep(name, low){
+  const key = name+(low?'L':'');
+  if (imgs[key]) return imgs[key];
+  const d = DATA[name]||{}, info = ATLAS.presets[name];
+  const L = info.layers;
+  const o = { info, main: pixels(await load(low?d.main_low:d.main)), scatter: pixels(await load(low?d.scatter_low:d.scatter)), heat: d.heat? pixels(await load(d.heat)):null };
+  o.lay = low ? L.main.low : L.main; o.slay = low ? L.scatter.low : L.scatter; o.hlay = L.heat||null;
+  imgs[key]=o; return o;
+}
+const LIGHT = { night:{k:'night'}, day:{k:'day'}, dusk:{k:'dusk'}, bright:{k:'backlit'} };
+const BGS = { night:['#06080d','#0d1220'], day:['#8ea6bd','#c9d6e2'], dusk:['#2b2a45','#e39a6b'], bright:['#d9e8ff','#fff3d0'] };
+function whiteHot(v){ const s=[[0,[4,4,14]],[0.2,[50,10,90]],[0.4,[160,20,70]],[0.6,[235,80,20]],[0.8,[255,200,50]],[0.93,[255,245,170]],[1,[255,255,255]]];
+  for(let i=1;i<s.length;i++) if(v<=s[i][0]){ const a=s[i-1],b=s[i],f=(v-a[0])/(b[0]-a[0]); return a[1].map((x,k)=>x+(b[1][k]-x)*f); } return [255,255,255]; }
+// Build a displayable atlas canvas for (preset, low, bg, look): tinted by the lighting entry, scatter added when backlit, or a sensor look.
+function tinted(o, name, low){
+  const key = [name,low,S.bg,S.look,S.scat].join('|');
+  if (cache[key]) return cache[key];
+  const info = o.info, lt = info.lighting[LIGHT[S.bg].k], W = o.main.width, H = o.main.height;
+  const out = new ImageData(W,H), m = o.main.data, sc = o.scatter.data, sw = o.scatter.width, sh = o.scatter.height;
+  const hd = o.heat, steam = info.family==='steam';
+  const tint = lt.tint, br = lt.brightness, sg = S.scat ? lt.scatter : 0;
+  for (let y=0;y<H;y++){ const sy=Math.min(sh-1,(y*sh/H)|0);
+    for (let x=0;x<W;x++){ const i=(y*W+x)*4, a=m[i+3]; if(a===0){ continue; }
+      const sx=Math.min(sw-1,(x*sw/W)|0), s=sc[(sy*sw+sx)*4]/255;
+      let r,g,b,al=a;
+      if (S.look==='thermal'){
+        if (steam && hd){ const hx=Math.min(hd.width-1,(x*hd.width/W)|0), hy=Math.min(hd.height-1,(y*hd.height/H)|0); const h=Math.pow(hd.data[(hy*hd.width+hx)*4]/255,1.25); [r,g,b]=whiteHot(Math.min(1,h*1.1)); al=Math.min(255,a*(0.15+0.95*h)); }
+        else { const g0=info.sensors.thermal.alpha_gain||0.1; r=40;g=20;b=90; al=a*g0; }
+      } else if (S.look==='nv'){
+        const wash = info.family==='fog'||info.layers.main.size_m[0]>20;
+        let v = (m[i]/255)*br*0.8 + s*(info.family==='steam'?0.3:0.9)*sg; v=Math.min(1,v); r=v*40; g=v*255; b=v*60; al = a*(wash?0.9:0.8);
+      } else {
+        const sun = (S.bg==='bright'||S.bg==='dusk') ? s*sg : s*sg*0.25;
+        r=m[i]*tint[0]*br + 255*sun*1.0; g=m[i]*tint[1]*br + 238*sun; b=m[i]*tint[2]*br + 190*sun;
+      }
+      out.data[i]=Math.min(255,r); out.data[i+1]=Math.min(255,g); out.data[i+2]=Math.min(255,b); out.data[i+3]=al;
+    } }
+  const c=document.createElement('canvas'); c.width=W; c.height=H; c.getContext('2d').putImageData(out,0,0);
+  cache[key]=c; return c;
+}
+function frameRect(lay,i){ const [fw,fh]=lay.frame_px; const r=Math.floor(i/lay.cols), c=i%lay.cols; return [c*fw,r*fh,fw,fh]; }
+function clipInfo(info,name){ return info.clips.find(c=>c.name===name); }
+// draw frame i of preset at anchor (ax, ay) in canvas px; pxPerM scale; shear = horizontal shift of the top per metre of height
+function drawFrame(name, frame, ax, ay, pxPerM, opts={}){
+  const o = imgs[name+(S.low?'L':'')]; if(!o) return;
+  const L = o.info.layers.main, c = tinted(o,name,S.low);
+  const [sx,sy,sw,sh] = frameRect(o.lay,frame);
+  const wm = L.size_m[0]*(opts.stretchX||1), hm = L.size_m[1];
+  const dw = wm*pxPerM, dh = hm*pxPerM;
+  const anc = opts.anchor||L.anchor;
+  const shear = opts.shear||0;
+  ctx.save(); ctx.globalAlpha = opts.alpha===undefined?1:opts.alpha;
+  if (opts.flip){ ctx.translate(ax,0); ctx.scale(-1,1); ctx.translate(-ax,0); }
+  // shear about the anchor: x' = x + shear*(ay - y)/pxPerM
+  ctx.transform(1,0,-shear/pxPerM*0+(-shear*0),1,0,0);
+  const strips = shear? Math.max(8,Math.round(dh/6)):1;
+  for (let k=0;k<strips;k++){ const y0=k/strips, y1=(k+1)/strips; const dy=ay-anc[1]*dh+y0*dh; const mid=ay-(dy+dh*(y1-y0)/2); const off = shear*Math.max(0,(ay-(dy+dh*(y1-y0)/2)))/pxPerM*0.0 + shear*(ay-(dy+dh*(y1-y0)/2))/ Math.max(1,dh) * dw*0.0;
+    const hgt = (ay-(dy+dh*(y1-y0)/2))/pxPerM; const xo = shear*hgt*(0.15+0.05*Math.min(hgt,10));
+    ctx.drawImage(c, sx, sy+sh*y0, sw, sh*(y1-y0)+0.5, ax-anc[0]*dw+xo, dy, dw, dh*(y1-y0)+0.8); }
+  ctx.restore();
+}
+function sky(){ const g=ctx.createLinearGradient(0,0,0,cv.height); g.addColorStop(0,BGS[S.bg][0]); g.addColorStop(1,BGS[S.bg][1]);
+  ctx.fillStyle = S.look==='thermal'?'#0a0618':S.look==='nv'?'#031006':g; ctx.fillRect(0,0,cv.width,cv.height); }
+// ------------------------------------------------------------------------------------------- single sprite
+let seq = [];
+function buildSeq(info){
+  const has = n=>clipInfo(info,n);
+  const q = [];
+  if (info.family==='fog'||info.kind==='strip'){ if(has('form')) q.push(['form',1]); q.push(['drift_a',2],['drift_b',1]); if(has('linger')) q.push(['linger',2]); q.push(['thin',1]); q.push(['fall',1]); }
+  else if (info.kind==='shot'){ info.clips.forEach(c=>q.push([c.name,1])); }
+  else if (info.kind==='blobs'){ info.clips.forEach(c=>q.push([c.name,2])); }
+  else { q.push(['start',1],['loop_a',2],['loop_b',2],['loop_c',2]); const f=info.clips.find(c=>c.stage==='fade'); if(f) q.push([f.name,1]); }
+  return q.filter(([n])=>has(n));
+}
+function clipTime(c){ return c.count/c.fps; }
+function currentFrame(info, c, t){
+  const dur = clipTime(c); let u = t*c.fps; let i = Math.floor(u), f = u-i;
+  if (c.loop) { i%=c.count; return [c.first+i, c.first+(i+1)%c.count, f]; }
+  i=Math.min(i,c.count-1); return [c.first+i, c.first+Math.min(c.count-1,i+1), c.interpolate?f:0];
+}
+function drawSingle(dt){
+  sky();
+  const name=S.preset, o=imgs[name+(S.low?'L':'')]; if(!o) return;
+  const info=o.info, L=info.layers.main;
+  let c, t=S.t;
+  if (S.life){ if(!seq.length) seq=buildSeq(info); const [n,rep]=seq[S.lifeIdx%seq.length]; c=clipInfo(info,n); const dur=clipTime(c)*(c.loop?rep:1);
+    S.lifeT+=dt*S.speed; if(S.lifeT>=dur+(c.loop?0:0.4)){ S.lifeT=0; S.lifeIdx=(S.lifeIdx+1)%seq.length; } t=S.lifeT; $('info').textContent = infoText(info)+'\nLifecycle: '+n+'  ('+(S.lifeIdx+1)+'/'+seq.length+')'; }
+  else { c=clipInfo(info,S.clip)||info.clips[0]; if(!c.loop && t>clipTime(c)+0.6) S.t=0; $('info').textContent = infoText(info)+'\nClip '+c.name+': '+c.count+' frames at '+c.fps+' fps'; }
+  const [a,b,f]=currentFrame(info,c,Math.min(t, c.loop?1e9:clipTime(c)));
+  const strip = info.kind==='strip';
+  const wm = L.size_m[0], hm=L.size_m[1];
+  const base = Math.min(cv.height*0.82/hm, (cv.width*0.9)/(strip?Math.min(wm*3,wm*1.2):wm)); const ppm = base*S.size;
+  const ax = cv.width/2, ay = cv.height*0.92;
+  ctx.fillStyle = S.look==='normal'?'rgba(30,34,40,0.55)':'rgba(0,0,0,0.3)'; ctx.fillRect(0,ay,cv.width,cv.height-ay);
+  const sh = S.wind*0.03;
+  if (strip){ const wpx=wm*ppm, off=((S.t*S.wind*8*(info.fog?1:0)+ (info.fog?info.fog.u_ref_mps:0)*S.t*ppm*0.2)%wpx+wpx)%wpx;
+    for (let k=-1;k*wpx<cv.width+wpx;k++){ const x = k*wpx+off; drawStrip(name,a,b,f,x,ay,ppm); } }
+  else { const o0={shear:sh}; drawFrame(name,a,ax,ay,ppm,o0); if(f>0.01) drawFrame(name,b,ax,ay,ppm,Object.assign({alpha:f},o0)); }
+  // scale bar
+  ctx.fillStyle='#fff'; ctx.fillRect(14,cv.height-24,Math.max(2,ppm*(hm>20?10:hm>4?2:0.5)),4); ctx.font='14px sans-serif'; ctx.fillText((hm>20?'10 m':hm>4?'2 m':'0.5 m'),14,cv.height-30);
+}
+function drawStrip(name,a,b,f,x0,ay,ppm){ const o=imgs[name+(S.low?'L':'')]; const L=o.info.layers.main;
+  const c=tinted(o,name,S.low); const [sx,sy,sw,sh]=frameRect(o.lay,a); const dw=L.size_m[0]*ppm, dh=L.size_m[1]*ppm;
+  ctx.drawImage(c,sx,sy,sw,sh,x0,ay-dh+dh*0.06,dw+1,dh);
+  if(f>0.01){ const [bx,by]=frameRect(o.lay,b); ctx.save(); ctx.globalAlpha=f; ctx.drawImage(c,bx,by,sw,sh,x0,ay-dh+dh*0.06,dw+1,dh); ctx.restore(); } }
+function infoText(info){ const L=info.layers.main; return info.title+'\nSprite '+L.size_m[0].toFixed(1)+' x '+L.size_m[1].toFixed(1)+' m, frame '+L.frame_px.join('x')+' px, '+((L.bytes+info.layers.scatter.bytes+(info.layers.heat?info.layers.heat.bytes:0))/1024).toFixed(0)+' KB (low '+((L.low_bytes+info.layers.scatter.low_bytes)/1024).toFixed(0)+' KB)'; }
+// ------------------------------------------------------------------------------------------- fog layers (parallax)
+const FOGSET = [['fog_bank',0.35,0.8,0.52,0.55],['fog_valley',0.6,1.0,0.7,0.8],['fog_ground',1.0,1.0,0.95,1.0]];
+function ridge(y0,amp,seed,col){ ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,cv.height); for(let x=0;x<=cv.width;x+=8){ ctx.lineTo(x,y0-amp*(Math.sin(x*0.011+seed)+0.6*Math.sin(x*0.027+seed*2)+0.3*Math.sin(x*0.07+seed*3))); } ctx.lineTo(cv.width,cv.height); ctx.closePath(); ctx.fill(); }
+function landscapeBg(){ sky(); const d=S.bg, cols = d==='night'?['#0b1018','#080c12','#05080c']: d==='dusk'?['#4a3a5a','#35304a','#1f1f30']: d==='bright'?['#9fb4c9','#8aa0b4','#6e8498']:['#7e92a6','#697d92','#52667a'];
+  if (S.look!=='normal'){ cols[0]=cols[1]=cols[2]=S.look==='thermal'?'#140a28':'#04160a'; }
+  ridge(cv.height*0.55,40,1,cols[0]); ridge(cv.height*0.65,30,4,cols[1]); ridge(cv.height*0.78,18,8,cols[2]); }
+function drawFogLayers(dt){
+  landscapeBg();
+  let order = FOGSET.slice();
+  order.forEach(([nm,speedF,ppmF,yF,alpha],i)=>{ const o=imgs[nm+(S.low?'L':'')]; if(!o) return; const info=o.info; const c=clipInfo(info,'drift_a'); const u=S.t*c.fps%c.count|0; const f=(S.t*c.fps)%1;
+    const L=info.layers.main; const ppm = cv.width/ (L.size_m[0]) * (nm==='fog_bank'?1.1:nm==='fog_valley'?1.25:2.2) * S.size * (nm==='fog_ground'?1:1);
+    const wpx=L.size_m[0]*ppm; const scroll=((S.t*S.wind*speedF*ppm*0.5 + info.fog.u_ref_mps*S.t*ppm*0.3*speedF)%wpx+wpx)%wpx; const ay=cv.height*yF;
+    ctx.save(); ctx.globalAlpha=alpha; for(let k=-1;k*wpx<cv.width+wpx;k++) drawStrip(nm,c.first+u,c.first+(u+1)%c.count,f,k*wpx+scroll,ay,ppm); ctx.restore(); });
+  $('info').textContent='Three fog layers (bank, valley, ground) scrolling at different speeds: wind slider sets the scroll; each is a tileable strip from the atlas.';
+}
+// ------------------------------------------------------------------------------------------- landscape overlay
+function loopFrame(nm, t, clip){ const info=ATLAS.presets[nm]; const c=clipInfo(info,clip||'loop_a')||info.clips[0]; const u=t*c.fps; return [c.first+Math.floor(u)%c.count, c.first+(Math.floor(u)+1)%c.count, u%1]; }
+function drawLand(dt){
+  landscapeBg(); const W=cv.width,H=cv.height, sea=H*0.8;
+  ctx.fillStyle = S.look==='normal'?(S.bg==='night'?'#0a1420':S.bg==='dusk'?'#3a3550':'#4d6a84'):(S.look==='thermal'?'#1a0c30':'#04200c'); ctx.fillRect(0,sea,W,H-sea);
+  const t=S.t, sh=S.wind*0.03;
+  // far fog bank
+  const strip=(nm,ay,ppm,alpha,speed)=>{ const o=imgs[nm+(S.low?'L':'')]; if(!o) return; const info=o.info; const cl=clipInfo(info,'drift_a'); const [a,b,f]=loopFrame(nm,t,'drift_a'); const L=info.layers.main; const wpx=L.size_m[0]*ppm; const off=((t*(S.wind*speed+0.4)*ppm*0.4)%wpx+wpx)%wpx; ctx.save(); ctx.globalAlpha=alpha; for(let k=-1;k*wpx<W+wpx;k++) drawStrip(nm,a,b,f,k*wpx+off,ay,ppm); ctx.restore(); };
+  strip('fog_bank',sea-6,W/160*0.9*S.size,0.8,0.6);
+  // pier and chimney with steam (right), boat with bow spray (left), engine wreck steam
+  ctx.fillStyle = S.bg==='night'?'#10151d':'#2a3340'; if(S.look!=='normal') ctx.fillStyle='#0b0b0b'; ctx.fillRect(W*0.68,sea-34,W*0.3,34); ctx.fillRect(W*0.8,sea-110,16,78);
+  const ppm = 26*S.size;
+  const need=['steam_pipe','mist_bow','splash_medium','steam_engine','mist_dawn','fog_sea'];
+  ctx.fillStyle = S.look==='normal'?'#1b2230':'#000'; ctx.beginPath(); ctx.moveTo(W*0.06,sea-18); ctx.lineTo(W*0.36,sea-18); ctx.lineTo(W*0.33,sea+6); ctx.lineTo(W*0.1,sea+6); ctx.closePath(); ctx.fill(); ctx.fillRect(W*0.2,sea-48,40,30);
+  const dr=(nm,clip,x,y,pp,opt)=>{ const [a,b,f]=loopFrame(nm,t,clip); drawFrame(nm,a,x,y,pp,Object.assign({shear:sh},opt||{})); if(f>0.01) drawFrame(nm,b,x,y,pp,Object.assign({alpha:f,shear:sh},opt||{})); };
+  dr('steam_pipe','loop_a',W*0.8+8,sea-108,ppm*1.3);
+  dr('steam_engine','loop_a',W*0.9,sea-34,ppm*0.9);
+  dr('mist_bow','loop_a',W*0.07,sea-8,ppm*0.9);
+  const it=Math.floor(t/2.6)%3; const spl=['splash_small','splash_medium','splash_large'][it]; { const info=ATLAS.presets[spl]; const c=info.clips[0]; const lt=t%2.6; if(lt<clipTime(c)){ const i=Math.floor(lt*c.fps); drawFrame(spl,c.first+i,W*(0.5+0.04*it),sea+10,ppm*(spl==='splash_large'?0.35:1)); } }
+  strip('mist_dawn',sea+14,W/ATLAS.presets.mist_dawn.layers.main.size_m[0]*1.3*S.size,0.85,0.4);
+  strip('fog_sea',sea+30,W/64*0.9*S.size,0.55,1.0);
+  $('info').textContent='Landscape: bow spray, pipe steam and engine steam, splash cycling small / medium / large, dawn mist and harbour fog drifting with the wind slider.';
+}
+// ------------------------------------------------------------------------------------------- loop
+let last=0;
+function frame(ts){ const dt=Math.min(0.1,(ts-last)/1000); last=ts; if(!S.paused) S.t+=dt*S.speed;
+  try { if(S.mode==='single') drawSingle(dt); else if(S.mode==='fog') drawFogLayers(dt); else drawLand(dt); } catch(e){ $('err').textContent=String(e); }
+  requestAnimationFrame(frame); }
+async function ensure(names){ await Promise.all(names.map(n=>prep(n,S.low))); }
+const ALL = ['steam_pipe','steam_engine','mist_bow','splash_small','splash_medium','splash_large','mist_dawn','fog_sea','fog_bank','fog_valley','fog_ground'];
+async function boot(){
+  const sel=$('preset'); const names=Object.keys(ATLAS.presets);
+  const seen={}; names.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=ATLAS.presets[n].title+'  ('+n+')'; sel.appendChild(o); });
+  S.preset=names[0]; sel.value=S.preset; await setPreset(S.preset);
+  requestAnimationFrame(frame);
+}
+async function setPreset(n){ S.preset=n; S.t=0; S.life=false; S.lifeIdx=0; S.lifeT=0; seq=[]; await prep(n,S.low); const cs=$('clip'); cs.innerHTML=''; ATLAS.presets[n].clips.forEach(c=>{ const o=document.createElement('option'); o.value=c.name; o.textContent=c.name+(c.loop?' (loop)':''); cs.appendChild(o); }); S.clip=ATLAS.presets[n].clips[0].name; cs.value=S.clip; $('life').classList.remove('on'); }
+async function setMode(m){ S.mode=m; ['single','fog','land'].forEach(x=>$('m_'+x).classList.toggle('on',x===m)); $('fsSingle').style.display=m==='single'?'':'none';
+  $('err').textContent='loading...'; if(m==='fog') await ensure(['fog_bank','fog_valley','fog_ground']); if(m==='land') await ensure(ALL.filter(n=>ATLAS.presets[n])); $('err').textContent=''; S.t=0; }
+$('preset').onchange=e=>setPreset(e.target.value); $('clip').onchange=e=>{S.clip=e.target.value;S.t=0;S.life=false;$('life').classList.remove('on');};
+$('life').onclick=()=>{ S.life=!S.life; S.lifeIdx=0; S.lifeT=0; seq=[]; $('life').classList.toggle('on',S.life); };
+$('pause').onclick=()=>{ S.paused=!S.paused; $('pause').textContent=S.paused?'Play':'Pause'; };
+['single','fog','land'].forEach(m=>$('m_'+m).onclick=()=>setMode(m));
+document.querySelectorAll('input[name=bg]').forEach(r=>r.onchange=()=>S.bg=r.value); document.querySelectorAll('input[name=look]').forEach(r=>r.onchange=()=>S.look=r.value);
+$('size').oninput=e=>{S.size=+e.target.value;$('sizeV').textContent=S.size.toFixed(2)+'x'}; $('speed').oninput=e=>{S.speed=+e.target.value;$('speedV').textContent=S.speed.toFixed(2)+'x'}; $('wind').oninput=e=>{S.wind=+e.target.value;$('windV').textContent=S.wind+' m/s'};
+$('low').onchange=async e=>{ S.low=e.target.checked; await prep(S.preset,S.low); if(S.mode!=='single') await setMode(S.mode); };
+$('scat').onchange=e=>S.scat=e.target.checked;
+$('sizeV').textContent='1.00x'; $('speedV').textContent='1.00x'; $('windV').textContent='0 m/s';
+boot().catch(e=>$('err').textContent=String(e));
+</script>
+</body>
+</html>
