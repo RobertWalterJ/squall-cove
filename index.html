@@ -12270,7 +12270,7 @@ const FW = (() => {
   const STRIDE = 20;
   const VS = [
     'attribute vec4 aP; attribute vec4 aS; attribute vec4 aF; attribute vec4 aT; attribute vec4 aL;',
-    'uniform vec2 uAnchor; varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
+    'uniform vec2 uAnchor; varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH; varying float vBF;',
     'void main(){',
     '  vec2 loc = position.xy - uAnchor; vec2 q = vec2(loc.x * aP.w * aL.z, loc.y) * aS.xy;',
     '  vec3 toCam = cameraPosition - aP.xyz; float dist = length(toCam); vec3 right; vec3 up = vec3(0.0, 1.0, 0.0); float fade = 1.0; float mq = aS.z;',
@@ -12281,19 +12281,20 @@ const FW = (() => {
     '  vec3 wp = aP.xyz + right * q.x + up * q.y;',
     '  float t = clamp(loc.y / max(1.0 - uAnchor.y, 0.001), 0.0, 1.0); wp.x += aL.x * t * t; wp.z += aL.y * t * t;',
     '  float sz = max(aS.x, aS.y); float nr = 0.25 * sz + 0.6; fade *= smoothstep(nr * 0.5, nr, dist);',
-    '  vUv = position.xy; vF = aF; vT = aT; vFade = fade; vH = t;',
+    '  vUv = position.xy; vF = aF; vT = aT; vFade = fade; vH = t; vBF = aL.w;',
     '  gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);',
     '}'].join('\n');
   const FS = [
-    'precision highp float; uniform sampler2D tAtlas; uniform vec2 uGrid; uniform vec2 uInset; uniform float uSensor; uniform float uMode; uniform vec3 uLit; uniform float uCool; uniform float uEdge;',
-    'varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
-    'vec4 frame(float fi, vec2 uv){ float c = mod(fi, uGrid.x); float r = floor(fi / uGrid.x); vec2 u = clamp(uv, uInset, 1.0 - uInset); return texture2D(tAtlas, vec2((c + u.x) / uGrid.x, (r + 1.0 - u.y) / uGrid.y)); }',
+    'precision highp float; uniform sampler2D tAtlas; uniform vec2 uGrid; uniform vec2 uInset; uniform float uSensor; uniform float uMode; uniform vec3 uLit; uniform float uCool; uniform float uEdge; uniform float uBlur;',
+    'varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH; varying float vBF;',
+    'vec4 frame1(float fi, vec2 uv){ float c = mod(fi, uGrid.x); float r = floor(fi / uGrid.x); vec2 u = clamp(uv, uInset, 1.0 - uInset); return texture2D(tAtlas, vec2((c + u.x) / uGrid.x, (r + 1.0 - u.y) / uGrid.y)); }',
+    'vec4 frame(float fi, vec2 uv){ if (uBlur > 0.0) { vec2 o = uInset * (uBlur / 0.6); vec4 a = frame1(fi, uv + o); vec4 b = frame1(fi, uv - o); return vec4((a.rgb + b.rgb) * 0.5, (a.a + b.a) * 0.5); } return frame1(fi, uv); }',
     'vec3 hotRamp(float v){ vec3 a = vec3(0.016, 0.016, 0.055); vec3 b = vec3(0.157, 0.04, 0.35); vec3 c = vec3(0.59, 0.08, 0.27); vec3 d = vec3(0.92, 0.27, 0.08); vec3 e = vec3(1.0, 0.75, 0.16); vec3 f = vec3(1.0, 0.96, 0.67);',
     '  return v < 0.18 ? mix(a, b, v / 0.18) : v < 0.38 ? mix(b, c, (v - 0.18) / 0.2) : v < 0.58 ? mix(c, d, (v - 0.38) / 0.2) : v < 0.78 ? mix(d, e, (v - 0.58) / 0.2) : mix(e, f, clamp((v - 0.78) / 0.14, 0.0, 1.0)); }',
     'void main(){',
     '  vec4 a = frame(vF.x, vUv); vec4 o = vec4(a.rgb * a.a, a.a);',
     '  if (vF.z > 0.002) { vec4 b = frame(vF.y, vUv); o = mix(o, vec4(b.rgb * b.a, b.a), vF.z); }',
-    '  float g = vF.w * vFade; if (uEdge > 0.0) g *= smoothstep(0.0, uEdge, vUv.x) * smoothstep(0.0, uEdge, 1.0 - vUv.x); vec3 rgb = o.rgb * vT.rgb; float al = o.a;',
+    '  float g = vF.w * vFade; if (uEdge > 0.0) g *= smoothstep(0.0, uEdge, vUv.x) * smoothstep(0.0, uEdge, 1.0 - vUv.x); if (vBF > 0.0) g *= smoothstep(0.0, vBF, vUv.y); if (uMode > 0.5 && uMode < 1.5) g *= smoothstep(1.0, 0.9, vUv.y); vec3 rgb = o.rgb * vT.rgb; float al = o.a;',
     '  if (uMode < 0.5) {',                                                                              // flame
     '    if (uSensor > 1.5) { float l = dot(o.rgb, vec3(0.3, 0.59, 0.11)); rgb = mix(vec3(l), vec3(1.0), 0.45) * al * 4.5; }',
     '    al *= (1.0 - vT.a);',
@@ -12318,7 +12319,7 @@ const FW = (() => {
     ['aP', 'aS', 'aF', 'aT', 'aL'].forEach((nm, i) => geo.setAttribute(nm, new THREE.InterleavedBufferAttribute(ib, 4, i * 4)));
     geo.instanceCount = 0;
     const mat = new THREE.ShaderMaterial({
-      uniforms: { tAtlas: { value: def.tex }, uAnchor: { value: new THREE.Vector2(def.anchor[0], 1 - def.anchor[1]) }, uGrid: { value: new THREE.Vector2(def.cols, def.rows) }, uInset: { value: new THREE.Vector2(0.6 / def.fw, 0.6 / def.fh) }, uSensor: SENSOR, uMode: { value: def.mode }, uLit: { value: new THREE.Vector3(1, 1, 1) }, uCool: { value: 0.1 }, uEdge: { value: def.edge || 0 } },
+      uniforms: { tAtlas: { value: def.tex }, uAnchor: { value: new THREE.Vector2(def.anchor[0], 1 - def.anchor[1]) }, uGrid: { value: new THREE.Vector2(def.cols, def.rows) }, uInset: { value: new THREE.Vector2(0.6 / def.fw, 0.6 / def.fh) }, uSensor: SENSOR, uMode: { value: def.mode }, uLit: { value: new THREE.Vector3(1, 1, 1) }, uCool: { value: 0.1 }, uEdge: { value: def.edge || 0 }, uBlur: { value: def.blur || 0 } },
       vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false,
       blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
     });
@@ -12331,17 +12332,19 @@ const FW = (() => {
   R.begin = () => { for (const k in R.combos) R.combos[k].n = 0; R.drawn = 0; };
   R.end = () => { let inst = 0, calls = 0; for (const k in R.combos) { const c = R.combos[k]; c.geo.instanceCount = c.n; c.ib.needsUpdate = c.n > 0 || c.lastN > 0; c.lastN = c.n; c.mesh.visible = c.n > 0; if (c.n > 0) { calls++; inst += c.n; } } R.inst = inst; R.calls = calls; };
   /* push one instance. q: 0 cylindrical billboard, 1 spherical with rotation rot, 2 fixed yaw (crossed quads), 3 flat on the ground (yaw rot) */
-  R.push = (c, x, y, z, w, h, fa, fb, mix, alpha, flip, q, rot, stretch, r, g, b, add, lx, lz) => {
+  R.push = (c, x, y, z, w, h, fa, fb, mix, alpha, flip, q, rot, stretch, r, g, b, add, lx, lz, bf) => {
     if (c.n >= c.cap) { R.dropped++; return; } const o = c.n++ * STRIDE, B = c.buf;
     B[o] = x; B[o + 1] = y; B[o + 2] = z; B[o + 3] = flip; B[o + 4] = w; B[o + 5] = h; B[o + 6] = q; B[o + 7] = rot; B[o + 8] = fa; B[o + 9] = fb; B[o + 10] = mix; B[o + 11] = alpha;
-    B[o + 12] = r; B[o + 13] = g; B[o + 14] = b; B[o + 15] = add; B[o + 16] = lx; B[o + 17] = lz; B[o + 18] = stretch; B[o + 19] = 0;
+    B[o + 12] = r; B[o + 13] = g; B[o + 14] = b; B[o + 15] = add; B[o + 16] = lx; B[o + 17] = lz; B[o + 18] = stretch; B[o + 19] = bf || 0;
   };
   /* ---- textures: fetched on demand, decoded with straight alpha (no premultiply: lossy WebP bleeds colour into the clear pixels), no mipmaps (they would mix neighbouring frames) */
-  R.loadTex = (url) => {
+  R.loadTex = (url, opt) => {
     let t = R.tex[url]; if (t) { t.last = performance.now(); return t.p; } t = R.tex[url] = { url, last: performance.now(), tex: null, bytes: 0 };
     t.p = fetch(url).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); }).then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(bm => {
-      const tx = new THREE.Texture(bm); tx.flipY = false; tx.premultiplyAlpha = false; tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter; tx.wrapS = tx.wrapT = THREE.ClampToEdgeWrapping; tx.colorSpace = THREE.NoColorSpace; tx.needsUpdate = true;
-      t.tex = tx; t.bytes = bm.width * bm.height * 4; R.loadN++; return tx;
+      let img = bm, bytes = bm.width * bm.height * 4;
+      if (opt && opt.blur) { try { const c = document.createElement('canvas'); c.width = bm.width; c.height = bm.height; const g2 = c.getContext('2d'); g2.filter = 'blur(' + opt.blur + 'px)'; g2.drawImage(bm, 0, 0); img = c; if (bm.close) bm.close(); } catch (e) { img = bm; } }
+      const tx = new THREE.Texture(img); tx.flipY = false; tx.premultiplyAlpha = false; tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter; tx.wrapS = tx.wrapT = THREE.ClampToEdgeWrapping; tx.colorSpace = THREE.NoColorSpace; tx.needsUpdate = true;
+      t.tex = tx; t.bytes = bytes; R.loadN++; return tx;
     }).catch(e => { delete R.tex[url]; throw e; });
     return t.p;
   };
@@ -12375,13 +12378,13 @@ const FW = (() => {
     T = F.types[name] = { name, info, state: 'loading', res, last: now, urls: [] };
     const jobs = LAYERS.filter(k => info.layers[k]).map(k => {
       const L = info.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/fire/' + use.file; T.urls.push(url);
-      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+      return R.loadTex(url, (k === 'smoke' && res === 'full') ? { blur: 0.9 } : undefined).then(tex => ({ k, L, use, tex }));
     });
     Promise.all(jobs).then(got => {
       T.layers = {};
       for (const g of got) {
         const key = 'fire:' + name + ':' + g.k + ':' + res, fwid = g.use.frame_px[0], fhid = g.use.frame_px[1];
-        const combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: fwid, fh: fhid, anchor: g.L.anchor, mode: g.k === 'flame' ? 0 : g.k === 'smoke' ? 1 : 2, order: ORDER[g.k], rule: g.k === 'heat' ? 'heat' : 'vis', edge: info.kind === 'tile' ? 0.24 : 0 });
+        const combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: fwid, fh: fhid, anchor: g.L.anchor, mode: g.k === 'flame' ? 0 : g.k === 'smoke' ? 1 : 2, order: ORDER[g.k], rule: g.k === 'heat' ? 'heat' : 'vis', edge: info.kind === 'tile' ? 0.24 : 0, blur: 0 });
         T.layers[g.k] = { combo, size: g.L.size_m, anchor: g.L.anchor };
       }
       const cl = info.clips, by = (st) => cl.filter(c => c.stage === st);
@@ -12868,8 +12871,8 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     const T = F.need('smoke_column'); if (!T || T.state !== 'ready') return; const LY = T.layers.smoke, clip = T.clips.loop[f.vi % T.clips.loop.length]; if (!LY || !clip.smoke) return;
     const fr = F.frameOf(clip.smoke, f.st * 0.9 + f.ph, true, true), base = f.sc * Math.sqrt(f.F), wl = F.wind, lk = Math.min(1, F.windMs * 0.09), A = F.amb, big = Math.min(1, f.F);
     for (let k = 0; k < 3; k++) {
-      const s = base * (0.9 + k * 0.95), hgt = LY.size[1] * base * (0.45 + k * 1.15), dx = wl.x * lk * hgt * 0.5, dz = wl.z * lk * hgt * 0.5;
-      R.push(LY.combo, f.x + dx, f.y + hgt, f.z + dz, LY.size[0] * s, LY.size[1] * s, fr[0], fr[1], fr[2], al * (0.55 - k * 0.12) * big, f.flip, 0, 0, 1, A.r * 0.55, A.g * 0.55, A.b * 0.55, 0, wl.x * lk * LY.size[1] * s * 0.5, wl.z * lk * LY.size[1] * s * 0.5);
+      const s = base * (0.9 + k * 0.9), hgt = LY.size[1] * base * (k === 0 ? 0 : k === 1 ? 0.8 : 2.0), dx = wl.x * lk * hgt * 0.35, dz = wl.z * lk * hgt * 0.35;
+      R.push(LY.combo, f.x + dx, f.y + hgt, f.z + dz, LY.size[0] * s, LY.size[1] * s, fr[0], fr[1], fr[2], al * (0.6 - k * 0.14) * big, f.flip, 0, 0, 1, A.r * 0.55, A.g * 0.55, A.b * 0.55, 0, wl.x * lk * LY.size[1] * s * 0.5, wl.z * lk * LY.size[1] * s * 0.5, k === 0 ? 0 : 0.4);
     }
   };
   /* ---- lava: ground fires where lava meets dry grass ---- */
@@ -13145,7 +13148,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     T = A.types[name] = { name, P, state: 'loading', res, last: now, urls: [] };
     const jobs = ['main', 'heat'].filter(k => P.layers[k]).map(k => {
       const L = P.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/atmos/' + use.file; T.urls.push(url);
-      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+      return R.loadTex(url, (k === 'main' && res === 'full' && P.family === 'steam') ? { blur: 0.8 } : undefined).then(tex => ({ k, L, use, tex }));
     });
     Promise.all(jobs).then(got => {
       T.layers = {}; const strip = P.kind === 'strip' || P.family === 'fog';
@@ -13254,6 +13257,19 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     f.x = fx; f.y = fy; f.z = fz; f.dir = [dx / len, dy / len, dz / len]; f.len = Math.min(len, 38); f.seen = simT; f.sx = Math.max(0.6, Math.min(6, f.len / 5.9));
   };
   F.hose = (bt, tgt) => { if (!bt.ffHead) return; bt.group.updateMatrixWorld(true); const from = bt.ffHead.localToWorld(_t3.set(bt.ffTipX, 0, 0)); const tp = tgt.body.position; F.hosePt(bt, from.x, from.y, from.z, tp.x, tp.y + 1.2, tp.z); };
+  /* surf mist along the shore near the camera, scaled by the wind (desktop High only) */
+  const surfT = { t: 0 }; A.surfFx = [];
+  A.surf = (dt) => {
+    surfT.t -= dt; const cam = camera.position, ws = F.windMs;
+    for (let i = A.surfFx.length - 1; i >= 0; i--) { const f = A.surfFx[i]; if (f.dead || Math.hypot(f.x - cam.x, f.z - cam.z) > 190 || ws < 1) { A.stop(f); A.surfFx.splice(i, 1); } else f.alpha = Math.min(1, 0.25 + ws * 0.1); }
+    if (surfT.t > 0 || PH || F.q !== 'high' || A.surfFx.length >= 3 || ws < 1.5) return; surfT.t = 2.5;
+    for (let k = 0; k < 12 && A.surfFx.length < 3; k++) {
+      const a = Math.random() * 6.283; let prev = heightAt(cam.x + Math.sin(a) * 15, cam.z + Math.cos(a) * 15);
+      for (let d = 18; d < 150; d += 6) { const x = cam.x + Math.sin(a) * d, z = cam.z + Math.cos(a) * d, h = heightAt(x, z);
+        if ((prev > 0.05 && h <= 0.05) || (prev <= 0.05 && h > 0.05)) { if (A.surfFx.every(f => Math.hypot(f.x - x, f.z - z) > 25)) { const f = A.spawn('mist_surf', x, 0.1, z, { sc: Math.min(1.1, 0.35 + ws * 0.08), dur: 9999, pri: 0.8, haze: false, flip: 1 }); if (f) { A.surfFx.push(f); A.stats.surf = (A.stats.surf || 0) + 1; } } break; }
+        prev = h; }
+    }
+  };
   /* rain on water */
   let rainS = 0;
   A.rain = (dt) => {
@@ -13300,7 +13316,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   function newTile(type, T, D, fc) {
     const P = T.P, heights = (P.game && P.game.layer_heights_m) || [0], scroll = (P.game && P.game.wind && P.game.wind.scroll_factor) || [1];
     for (let tries = 0; tries < 8; tries++) {
-      let x, z; if (D.where === 'bank') { const a = Math.random() * 6.283, r = 220 + Math.random() * 140; x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; } else { const a = Math.random() * 6.283, r = D.reach * Math.sqrt(0.04 + 0.96 * Math.random()); x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; }
+      let x, z; if (D.where === 'bank') { const a = Math.random() * 6.283, r = 220 + Math.random() * 140; x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; } else { const a = Math.random() < 0.65 ? A.yaw + (Math.random() - 0.5) * 2.2 : Math.random() * 6.283, r = D.reach * Math.sqrt(0.04 + 0.96 * Math.random()); x = fc.x + Math.sin(a) * r; z = fc.z + Math.cos(a) * r; }
       if (!okWhere(D.where, x, z)) continue;
       const k = (Math.random() * heights.length) | 0; return { id: ++tileId, type, x, z, lay: k, hgt: heights[k] || 0, scr: scroll[Math.min(k, scroll.length - 1)], age: 0, ph: Math.random() * 4, vi: (Math.random() * 2) | 0, flip: Math.random() < 0.5 ? -1 : 1, a: 0, aT: 1, th: Math.random(), phase: 'form', dying: false, blob: (Math.random() * 6) | 0, sc: D.kind === 'blob' ? 0.8 + Math.random() * 1.8 : 1, y: 0, d: 0 };
     }
@@ -13308,7 +13324,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   }
   let fogT = 0;
   A.fogStep = (dt) => {
-    if (F.q === 'off') { A.tiles.length = 0; return; } A.climate(); const fc = camera.position, ws = F.wind, scale = fogScale();
+    if (F.q === 'off') { A.tiles.length = 0; return; } A.climate(); camera.getWorldDirection(_cd); A.yaw = Math.atan2(_cd.x, _cd.z); const fc = camera.position, ws = F.wind, scale = fogScale();
     fogT -= dt; const doSpawn = fogT <= 0; if (doSpawn) fogT = 0.4;
     for (const type in FOG) {
       const D = FOG[type]; const want = (A.want[type] || 0), tgtN = Math.round(D.cap * scale * want);
@@ -13348,7 +13364,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
       else clip = T.clips.drift[t.vi % T.clips.drift.length] || T.clips.linger;
       if (!clip) continue; const fr = F.frameOf(clip, tm, loop, true), lit = lightFor(P); const col = [lit[0], lit[1], lit[2]]; addFire(t.x, t.z, t.y, col);
       const w = LY.size[0] * t.sc, h = LY.size[1] * t.sc;
-      R.push(LY.combo, t.x, t.y - 0.07 * h, t.z, w, h, fr[0], fr[1], fr[2], Math.min(1, t.a) * (D.kind === 'blob' ? 0.8 : 0.9), t.flip, 0, 0, 1, col[0], col[1], col[2], 0, 0, 0);
+      R.push(LY.combo, t.x, t.y - 0.07 * h, t.z, w, h, fr[0], fr[1], fr[2], Math.min(1, t.a) * (D.kind === 'blob' ? 0.85 : 1.0), t.flip, 0, 0, 1, col[0], col[1], col[2], 0, 0, 0);
       const H = T.layers.heat; if (H && false) { }
       n++;
     }
@@ -13386,7 +13402,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   const _cd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
   F.afters.push((dt) => {
     if (F.q === 'off' || F.legacyUntil) return; if (!A.json) { A.ensure(); return; }
-    try { A.owners(dt); A.bows(dt); A.rain(dt); A.fogStep(dt); A.step(dt); A.drawTiles(); A.sweepT = (A.sweepT || 0) + dt; if (A.sweepT > 6) { A.sweepT = 0; A.sweep(); } } catch (e) { A.err = String(e && e.stack || e); }
+    try { A.owners(dt); A.bows(dt); A.surf(dt); A.rain(dt); A.fogStep(dt); A.step(dt); A.drawTiles(); A.sweepT = (A.sweepT || 0) + dt; if (A.sweepT > 6) { A.sweepT = 0; A.sweep(); } } catch (e) { A.err = String(e && e.stack || e); }
   });
 /* a world reset (battle stop, calm): every sprite effect goes, the owners start clean */
   F.reset = () => {
@@ -13419,6 +13435,29 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   const NAMES = { tower: 'light_tower', flood: 'floodlight_pole_2', gen: 'generator_medium', string: 'string_lights_8m', search: 'searchlight_ground' };
   const FEED = { tower: 'cable_light_tower_ext', flood: 'cable_floodlight_pole_2_feed', lamp_cobra: 'cable_lamp_cobra', lamp_harbour: 'cable_lamp_harbour', string: 'cable_string_lights_8m_a', search: 'cable_searchlight_power' };
   const lensProxy = (meshes, ind) => ({ meshes, set material(m) { const pk = L4.pk; const mm = m === LENSON ? pk.on : m === GENON ? pk.indOn : (ind ? pk.indOff : pk.off); for (const x of this.meshes) x.material = mm; }, get material() { return this.meshes[0] ? this.meshes[0].material : null; } });
+
+  /* the pack's pieces are many small meshes; merge the static ones by material (and each lens group into one mesh) so a base costs a few draw calls, not a few hundred */
+  function mergeGeos(geos) {
+    let nv = 0, ni = 0; for (const g of geos) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
+    const pos = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0;
+    for (const g of geos) { pos.set(g.attributes.position.array, vo * 3); const n = g.attributes.position.count; if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.array[i] + vo; io += g.index.count; } else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; } vo += n; }
+    const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setIndex(new THREE.BufferAttribute(idx, 1)); out.computeBoundingSphere(); return out;
+  }
+  const _m4 = new THREE.Matrix4(), _inv = new THREE.Matrix4();
+  function mergeMeshes(root, meshes, mat) {
+    _inv.copy(root.matrixWorld).invert(); const geos = [];
+    for (const o of meshes) { const g = o.geometry.clone(); g.applyMatrix4(_m4.multiplyMatrices(_inv, o.matrixWorld)); geos.push(g); }
+    const m = new THREE.Mesh(mergeGeos(geos), mat || meshes[0].material); m.castShadow = false; m.receiveShadow = false; m.matrixAutoUpdate = false; m.frustumCulled = true; for (const g of geos) g.dispose(); return m;
+  }
+  function mergeModel(g, lensSets) {
+    g.updateMatrixWorld(true); const lensAll = new Set(); for (const set of lensSets) for (const m of set) lensAll.add(m);
+    const byMat = new Map(); g.traverse(o => { if (o.isMesh && !lensAll.has(o) && o.geometry && o.material) { const k = o.material.uuid; if (!byMat.has(k)) byMat.set(k, []); byMat.get(k).push(o); } });
+    const out = []; for (const arr of byMat.values()) out.push(mergeMeshes(g, arr));
+    const lensOut = lensSets.map(set => set.length ? [mergeMeshes(g, set)] : []);
+    for (const arr of byMat.values()) for (const o of arr) o.parent && o.parent.remove(o); for (const set of lensSets) for (const o of set) o.parent && o.parent.remove(o);
+    for (const m of out) g.add(m); for (const arr of lensOut) for (const m of arr) g.add(m);
+    return lensOut;
+  }
   F.fixModel = (kind, p) => {
     if (F.q === 'off' || !L4.pack) return null; const nm = kind === 'lamp' ? ((p && (p.type === 'harbour' || p.type === 'radio' || p.type === 'depot')) ? 'lamp_harbour' : 'lamp_cobra') : NAMES[kind]; if (!nm) return null;
     const src = nodeByName(L4.pack, nm); if (!src) return null; const g = new THREE.Group(), c = src.clone(true); g.add(c); g.userData.pkName = nm; g.userData.pkKind = kind;
@@ -13431,6 +13470,10 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
       g.userData.lens = [[lensProxy(groups.front)], [lensProxy(groups.back)]];
     } else if (kind === 'gen') g.userData.lens = [[lensProxy(ind, true)]];
     else g.userData.lens = [[lensProxy(lens)]];
+    if (kind !== 'search') {                                                  // static pieces merged; each lens group becomes one mesh the proxy can swap
+      const sets = kind === 'tower' ? [g.userData.lens[0][0].meshes, g.userData.lens[1][0].meshes] : kind === 'gen' ? [ind] : [lens], merged = mergeModel(g, sets);
+      if (kind === 'tower') { g.userData.lens = [[lensProxy(merged[0])], [lensProxy(merged[1])]]; } else if (kind === 'gen') g.userData.lens = [[lensProxy(merged[0], true)]]; else g.userData.lens = [[lensProxy(merged[0])]];
+    }
     g.userData.lpts = lpts; L4.stats.models++; return g;
   };
   /* what each fixture record learns from its model: lamp position, beam direction, cone and range from the pack's own empties */
@@ -13503,16 +13546,16 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     // flares: spherical billboards, size set in world metres from a pixel size
     FL = mkInst(caps.flare, [['aP', 4], ['aC', 4]], instMat(L4.fx.flare, 'attribute vec4 aP; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; vec3 toC = cameraPosition - aP.xyz; vec3 f = normalize(toC); vec3 r = normalize(cross(vec3(0.0, 1.0, 0.0), f) + vec3(1e-5, 0.0, 0.0)); vec3 u = cross(f, r); vec3 wp = aP.xyz + f * 0.25 + (r * position.x + u * position.y) * aP.w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; float l = max(t.r, max(t.g, t.b)); vec3 c = (t.a > 0.01 ? t.rgb : vec3(l)) * vC.rgb; gl_FragColor = vec4(c * a, a * 0.0); }', 0, {}), 8.4);
     // beam glow strips
-    GL = mkInst(caps.glow, [['aP', 4], ['aD', 4], ['aC', 4]], instMat(L4.fx.glow, 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ float s = position.x * 0.5 + 0.5; vUv = vec2(s, position.y * 0.5 + 0.5); vC = aC; vec3 mid = aP.xyz + aD.xyz * aD.w * 0.5; vec3 toC = normalize(cameraPosition - mid); vec3 side = cross(aD.xyz, toC); float sl = length(side); side = sl > 1e-4 ? side / sl : vec3(0.0, 1.0, 0.0); float w = aP.w * (0.25 + 0.75 * s); vec3 wp = aP.xyz + aD.xyz * aD.w * s + side * position.y * w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }', 0, {}), 8.3);
+    GL = mkInst(caps.glow, [['aP', 4], ['aD', 4], ['aC', 4]], instMat(L4.fx.glow, 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ float s = position.x * 0.5 + 0.5; vUv = vec2(s, position.y * 0.5 + 0.5); vC = aC; vec3 mid = aP.xyz + aD.xyz * aD.w * 0.5; vec3 toC = normalize(cameraPosition - mid); vec3 side = cross(aD.xyz, toC); float sl = length(side); side = sl > 1e-4 ? side / sl : vec3(0.0, 1.0, 0.0); float w = aP.w * (0.25 + 0.75 * s); vec3 wp = aP.xyz + aD.xyz * aD.w * s + side * position.y * w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }', 0, {}), 8.3);
     // ground pools and wet smears: flat quads on the ground
-    const flatVS = 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; float c = cos(aD.x), s = sin(aD.x); vec2 l = vec2(position.x * aD.y, position.y * aD.z); vec3 wp = vec3(aP.x + l.x * c - l.y * s, aP.y, aP.z + l.x * s + l.y * c); gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', flatFS = 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }';
+    const flatVS = 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; float c = cos(aD.x), s = sin(aD.x); vec2 l = vec2(position.x * aD.y, position.y * aD.z); vec3 wp = vec3(aP.x + l.x * c - l.y * s, aP.y, aP.z + l.x * s + l.y * c); gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', flatFS = 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }';
     const pm = instMat(L4.fx.pool, flatVS, flatFS, 0, {}); pm.polygonOffset = true; pm.polygonOffsetFactor = -3; pm.polygonOffsetUnits = -3; PL = mkInst(caps.pool, [['aP', 4], ['aD', 4], ['aC', 4]], pm, 2.1);
     const wm = instMat(L4.fx.wet, flatVS, flatFS, 0, {}); wm.polygonOffset = true; wm.polygonOffsetFactor = -4; wm.polygonOffsetUnits = -4; WT = mkInst(caps.wet || 1, [['aP', 4], ['aD', 4], ['aC', 4]], wm, 2.2);
     // cones: the open cone with the baked gradient, one mesh each (at most six), plus a thin hot core
     const seg = 24, pos = [], uv = [], idx = []; for (let i = 0; i <= seg; i++) { const a = i / seg * Math.PI * 2, c = Math.cos(a) * 0.5, s = Math.sin(a) * 0.5; pos.push(0, 0, 0, c, s, 1); uv.push(0, i / seg, 1, i / seg); } for (let i = 0; i < seg; i++) { const b = i * 2; idx.push(b, b + 1, b + 3, b, b + 3, b + 2); }
     coneGeo = new THREE.BufferGeometry(); coneGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); coneGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); coneGeo.setIndex(idx);
     for (let i = 0; i < caps.cone * 2; i++) {
-      const mat = new THREE.ShaderMaterial({ uniforms: { tMap: { value: L4.fx.cone }, uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.93, 0.78) }, uT: { value: 0 } }, vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * vec3(position.xy, -0.0)); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }', fragmentShader: 'precision highp float; uniform sampler2D tMap; uniform float uA; uniform vec3 uCol; uniform float uT; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vec4 t = texture2D(tMap, vec2(vUv.x, fract(vUv.y + uT))); float a = max(t.a, max(t.r, max(t.g, t.b))); float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.5); float al = a * e * uA; gl_FragColor = vec4(uCol * al, 0.0); }', transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
+      const mat = new THREE.ShaderMaterial({ uniforms: { tMap: { value: L4.fx.cone }, uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.93, 0.78) }, uT: { value: 0 } }, vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); float th = uv.y * 6.2831853; vN = normalize(normalMatrix * vec3(cos(th), sin(th), -0.5)); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }', fragmentShader: 'precision highp float; uniform sampler2D tMap; uniform float uA; uniform vec3 uCol; uniform float uT; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vec4 t = texture2D(tMap, vec2(vUv.x, fract(vUv.y + uT))); float a = t.a; float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.5); float al = a * e * uA; gl_FragColor = vec4(uCol * al, 0.0); }', transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
       const m = new THREE.Mesh(coneGeo, mat); m.frustumCulled = false; m.visible = false; m.renderOrder = 8.1; m.matrixAutoUpdate = true; scene.add(m); cones.push(m);
     }
     L4.fxReady = true;

@@ -16,13 +16,13 @@
     T = F.types[name] = { name, info, state: 'loading', res, last: now, urls: [] };
     const jobs = LAYERS.filter(k => info.layers[k]).map(k => {
       const L = info.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/fire/' + use.file; T.urls.push(url);
-      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+      return R.loadTex(url, (k === 'smoke' && res === 'full') ? { blur: 0.9 } : undefined).then(tex => ({ k, L, use, tex }));
     });
     Promise.all(jobs).then(got => {
       T.layers = {};
       for (const g of got) {
         const key = 'fire:' + name + ':' + g.k + ':' + res, fwid = g.use.frame_px[0], fhid = g.use.frame_px[1];
-        const combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: fwid, fh: fhid, anchor: g.L.anchor, mode: g.k === 'flame' ? 0 : g.k === 'smoke' ? 1 : 2, order: ORDER[g.k], rule: g.k === 'heat' ? 'heat' : 'vis', edge: info.kind === 'tile' ? 0.24 : 0 });
+        const combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: fwid, fh: fhid, anchor: g.L.anchor, mode: g.k === 'flame' ? 0 : g.k === 'smoke' ? 1 : 2, order: ORDER[g.k], rule: g.k === 'heat' ? 'heat' : 'vis', edge: info.kind === 'tile' ? 0.24 : 0, blur: 0 });
         T.layers[g.k] = { combo, size: g.L.size_m, anchor: g.L.anchor };
       }
       const cl = info.clips, by = (st) => cl.filter(c => c.stage === st);

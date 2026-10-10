@@ -23,6 +23,29 @@
   const NAMES = { tower: 'light_tower', flood: 'floodlight_pole_2', gen: 'generator_medium', string: 'string_lights_8m', search: 'searchlight_ground' };
   const FEED = { tower: 'cable_light_tower_ext', flood: 'cable_floodlight_pole_2_feed', lamp_cobra: 'cable_lamp_cobra', lamp_harbour: 'cable_lamp_harbour', string: 'cable_string_lights_8m_a', search: 'cable_searchlight_power' };
   const lensProxy = (meshes, ind) => ({ meshes, set material(m) { const pk = L4.pk; const mm = m === LENSON ? pk.on : m === GENON ? pk.indOn : (ind ? pk.indOff : pk.off); for (const x of this.meshes) x.material = mm; }, get material() { return this.meshes[0] ? this.meshes[0].material : null; } });
+
+  /* the pack's pieces are many small meshes; merge the static ones by material (and each lens group into one mesh) so a base costs a few draw calls, not a few hundred */
+  function mergeGeos(geos) {
+    let nv = 0, ni = 0; for (const g of geos) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
+    const pos = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0;
+    for (const g of geos) { pos.set(g.attributes.position.array, vo * 3); const n = g.attributes.position.count; if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.array[i] + vo; io += g.index.count; } else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; } vo += n; }
+    const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setIndex(new THREE.BufferAttribute(idx, 1)); out.computeBoundingSphere(); return out;
+  }
+  const _m4 = new THREE.Matrix4(), _inv = new THREE.Matrix4();
+  function mergeMeshes(root, meshes, mat) {
+    _inv.copy(root.matrixWorld).invert(); const geos = [];
+    for (const o of meshes) { const g = o.geometry.clone(); g.applyMatrix4(_m4.multiplyMatrices(_inv, o.matrixWorld)); geos.push(g); }
+    const m = new THREE.Mesh(mergeGeos(geos), mat || meshes[0].material); m.castShadow = false; m.receiveShadow = false; m.matrixAutoUpdate = false; m.frustumCulled = true; for (const g of geos) g.dispose(); return m;
+  }
+  function mergeModel(g, lensSets) {
+    g.updateMatrixWorld(true); const lensAll = new Set(); for (const set of lensSets) for (const m of set) lensAll.add(m);
+    const byMat = new Map(); g.traverse(o => { if (o.isMesh && !lensAll.has(o) && o.geometry && o.material) { const k = o.material.uuid; if (!byMat.has(k)) byMat.set(k, []); byMat.get(k).push(o); } });
+    const out = []; for (const arr of byMat.values()) out.push(mergeMeshes(g, arr));
+    const lensOut = lensSets.map(set => set.length ? [mergeMeshes(g, set)] : []);
+    for (const arr of byMat.values()) for (const o of arr) o.parent && o.parent.remove(o); for (const set of lensSets) for (const o of set) o.parent && o.parent.remove(o);
+    for (const m of out) g.add(m); for (const arr of lensOut) for (const m of arr) g.add(m);
+    return lensOut;
+  }
   F.fixModel = (kind, p) => {
     if (F.q === 'off' || !L4.pack) return null; const nm = kind === 'lamp' ? ((p && (p.type === 'harbour' || p.type === 'radio' || p.type === 'depot')) ? 'lamp_harbour' : 'lamp_cobra') : NAMES[kind]; if (!nm) return null;
     const src = nodeByName(L4.pack, nm); if (!src) return null; const g = new THREE.Group(), c = src.clone(true); g.add(c); g.userData.pkName = nm; g.userData.pkKind = kind;
@@ -35,6 +58,10 @@
       g.userData.lens = [[lensProxy(groups.front)], [lensProxy(groups.back)]];
     } else if (kind === 'gen') g.userData.lens = [[lensProxy(ind, true)]];
     else g.userData.lens = [[lensProxy(lens)]];
+    if (kind !== 'search') {                                                  // static pieces merged; each lens group becomes one mesh the proxy can swap
+      const sets = kind === 'tower' ? [g.userData.lens[0][0].meshes, g.userData.lens[1][0].meshes] : kind === 'gen' ? [ind] : [lens], merged = mergeModel(g, sets);
+      if (kind === 'tower') { g.userData.lens = [[lensProxy(merged[0])], [lensProxy(merged[1])]]; } else if (kind === 'gen') g.userData.lens = [[lensProxy(merged[0], true)]]; else g.userData.lens = [[lensProxy(merged[0])]];
+    }
     g.userData.lpts = lpts; L4.stats.models++; return g;
   };
   /* what each fixture record learns from its model: lamp position, beam direction, cone and range from the pack's own empties */
@@ -107,16 +134,16 @@
     // flares: spherical billboards, size set in world metres from a pixel size
     FL = mkInst(caps.flare, [['aP', 4], ['aC', 4]], instMat(L4.fx.flare, 'attribute vec4 aP; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; vec3 toC = cameraPosition - aP.xyz; vec3 f = normalize(toC); vec3 r = normalize(cross(vec3(0.0, 1.0, 0.0), f) + vec3(1e-5, 0.0, 0.0)); vec3 u = cross(f, r); vec3 wp = aP.xyz + f * 0.25 + (r * position.x + u * position.y) * aP.w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; float l = max(t.r, max(t.g, t.b)); vec3 c = (t.a > 0.01 ? t.rgb : vec3(l)) * vC.rgb; gl_FragColor = vec4(c * a, a * 0.0); }', 0, {}), 8.4);
     // beam glow strips
-    GL = mkInst(caps.glow, [['aP', 4], ['aD', 4], ['aC', 4]], instMat(L4.fx.glow, 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ float s = position.x * 0.5 + 0.5; vUv = vec2(s, position.y * 0.5 + 0.5); vC = aC; vec3 mid = aP.xyz + aD.xyz * aD.w * 0.5; vec3 toC = normalize(cameraPosition - mid); vec3 side = cross(aD.xyz, toC); float sl = length(side); side = sl > 1e-4 ? side / sl : vec3(0.0, 1.0, 0.0); float w = aP.w * (0.25 + 0.75 * s); vec3 wp = aP.xyz + aD.xyz * aD.w * s + side * position.y * w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }', 0, {}), 8.3);
+    GL = mkInst(caps.glow, [['aP', 4], ['aD', 4], ['aC', 4]], instMat(L4.fx.glow, 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ float s = position.x * 0.5 + 0.5; vUv = vec2(s, position.y * 0.5 + 0.5); vC = aC; vec3 mid = aP.xyz + aD.xyz * aD.w * 0.5; vec3 toC = normalize(cameraPosition - mid); vec3 side = cross(aD.xyz, toC); float sl = length(side); side = sl > 1e-4 ? side / sl : vec3(0.0, 1.0, 0.0); float w = aP.w * (0.25 + 0.75 * s); vec3 wp = aP.xyz + aD.xyz * aD.w * s + side * position.y * w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }', 0, {}), 8.3);
     // ground pools and wet smears: flat quads on the ground
-    const flatVS = 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; float c = cos(aD.x), s = sin(aD.x); vec2 l = vec2(position.x * aD.y, position.y * aD.z); vec3 wp = vec3(aP.x + l.x * c - l.y * s, aP.y, aP.z + l.x * s + l.y * c); gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', flatFS = 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }';
+    const flatVS = 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; float c = cos(aD.x), s = sin(aD.x); vec2 l = vec2(position.x * aD.y, position.y * aD.z); vec3 wp = vec3(aP.x + l.x * c - l.y * s, aP.y, aP.z + l.x * s + l.y * c); gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', flatFS = 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }';
     const pm = instMat(L4.fx.pool, flatVS, flatFS, 0, {}); pm.polygonOffset = true; pm.polygonOffsetFactor = -3; pm.polygonOffsetUnits = -3; PL = mkInst(caps.pool, [['aP', 4], ['aD', 4], ['aC', 4]], pm, 2.1);
     const wm = instMat(L4.fx.wet, flatVS, flatFS, 0, {}); wm.polygonOffset = true; wm.polygonOffsetFactor = -4; wm.polygonOffsetUnits = -4; WT = mkInst(caps.wet || 1, [['aP', 4], ['aD', 4], ['aC', 4]], wm, 2.2);
     // cones: the open cone with the baked gradient, one mesh each (at most six), plus a thin hot core
     const seg = 24, pos = [], uv = [], idx = []; for (let i = 0; i <= seg; i++) { const a = i / seg * Math.PI * 2, c = Math.cos(a) * 0.5, s = Math.sin(a) * 0.5; pos.push(0, 0, 0, c, s, 1); uv.push(0, i / seg, 1, i / seg); } for (let i = 0; i < seg; i++) { const b = i * 2; idx.push(b, b + 1, b + 3, b, b + 3, b + 2); }
     coneGeo = new THREE.BufferGeometry(); coneGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); coneGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); coneGeo.setIndex(idx);
     for (let i = 0; i < caps.cone * 2; i++) {
-      const mat = new THREE.ShaderMaterial({ uniforms: { tMap: { value: L4.fx.cone }, uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.93, 0.78) }, uT: { value: 0 } }, vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * vec3(position.xy, -0.0)); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }', fragmentShader: 'precision highp float; uniform sampler2D tMap; uniform float uA; uniform vec3 uCol; uniform float uT; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vec4 t = texture2D(tMap, vec2(vUv.x, fract(vUv.y + uT))); float a = max(t.a, max(t.r, max(t.g, t.b))); float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.5); float al = a * e * uA; gl_FragColor = vec4(uCol * al, 0.0); }', transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
+      const mat = new THREE.ShaderMaterial({ uniforms: { tMap: { value: L4.fx.cone }, uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.93, 0.78) }, uT: { value: 0 } }, vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); float th = uv.y * 6.2831853; vN = normalize(normalMatrix * vec3(cos(th), sin(th), -0.5)); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }', fragmentShader: 'precision highp float; uniform sampler2D tMap; uniform float uA; uniform vec3 uCol; uniform float uT; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vec4 t = texture2D(tMap, vec2(vUv.x, fract(vUv.y + uT))); float a = t.a; float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.5); float al = a * e * uA; gl_FragColor = vec4(uCol * al, 0.0); }', transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
       const m = new THREE.Mesh(coneGeo, mat); m.frustumCulled = false; m.visible = false; m.renderOrder = 8.1; m.matrixAutoUpdate = true; scene.add(m); cones.push(m);
     }
     L4.fxReady = true;

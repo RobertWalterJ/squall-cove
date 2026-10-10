@@ -24,7 +24,7 @@ const FW = (() => {
   const STRIDE = 20;
   const VS = [
     'attribute vec4 aP; attribute vec4 aS; attribute vec4 aF; attribute vec4 aT; attribute vec4 aL;',
-    'uniform vec2 uAnchor; varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
+    'uniform vec2 uAnchor; varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH; varying float vBF;',
     'void main(){',
     '  vec2 loc = position.xy - uAnchor; vec2 q = vec2(loc.x * aP.w * aL.z, loc.y) * aS.xy;',
     '  vec3 toCam = cameraPosition - aP.xyz; float dist = length(toCam); vec3 right; vec3 up = vec3(0.0, 1.0, 0.0); float fade = 1.0; float mq = aS.z;',
@@ -35,19 +35,20 @@ const FW = (() => {
     '  vec3 wp = aP.xyz + right * q.x + up * q.y;',
     '  float t = clamp(loc.y / max(1.0 - uAnchor.y, 0.001), 0.0, 1.0); wp.x += aL.x * t * t; wp.z += aL.y * t * t;',
     '  float sz = max(aS.x, aS.y); float nr = 0.25 * sz + 0.6; fade *= smoothstep(nr * 0.5, nr, dist);',
-    '  vUv = position.xy; vF = aF; vT = aT; vFade = fade; vH = t;',
+    '  vUv = position.xy; vF = aF; vT = aT; vFade = fade; vH = t; vBF = aL.w;',
     '  gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);',
     '}'].join('\n');
   const FS = [
-    'precision highp float; uniform sampler2D tAtlas; uniform vec2 uGrid; uniform vec2 uInset; uniform float uSensor; uniform float uMode; uniform vec3 uLit; uniform float uCool; uniform float uEdge;',
-    'varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
-    'vec4 frame(float fi, vec2 uv){ float c = mod(fi, uGrid.x); float r = floor(fi / uGrid.x); vec2 u = clamp(uv, uInset, 1.0 - uInset); return texture2D(tAtlas, vec2((c + u.x) / uGrid.x, (r + 1.0 - u.y) / uGrid.y)); }',
+    'precision highp float; uniform sampler2D tAtlas; uniform vec2 uGrid; uniform vec2 uInset; uniform float uSensor; uniform float uMode; uniform vec3 uLit; uniform float uCool; uniform float uEdge; uniform float uBlur;',
+    'varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH; varying float vBF;',
+    'vec4 frame1(float fi, vec2 uv){ float c = mod(fi, uGrid.x); float r = floor(fi / uGrid.x); vec2 u = clamp(uv, uInset, 1.0 - uInset); return texture2D(tAtlas, vec2((c + u.x) / uGrid.x, (r + 1.0 - u.y) / uGrid.y)); }',
+    'vec4 frame(float fi, vec2 uv){ if (uBlur > 0.0) { vec2 o = uInset * (uBlur / 0.6); vec4 a = frame1(fi, uv + o); vec4 b = frame1(fi, uv - o); return vec4((a.rgb + b.rgb) * 0.5, (a.a + b.a) * 0.5); } return frame1(fi, uv); }',
     'vec3 hotRamp(float v){ vec3 a = vec3(0.016, 0.016, 0.055); vec3 b = vec3(0.157, 0.04, 0.35); vec3 c = vec3(0.59, 0.08, 0.27); vec3 d = vec3(0.92, 0.27, 0.08); vec3 e = vec3(1.0, 0.75, 0.16); vec3 f = vec3(1.0, 0.96, 0.67);',
     '  return v < 0.18 ? mix(a, b, v / 0.18) : v < 0.38 ? mix(b, c, (v - 0.18) / 0.2) : v < 0.58 ? mix(c, d, (v - 0.38) / 0.2) : v < 0.78 ? mix(d, e, (v - 0.58) / 0.2) : mix(e, f, clamp((v - 0.78) / 0.14, 0.0, 1.0)); }',
     'void main(){',
     '  vec4 a = frame(vF.x, vUv); vec4 o = vec4(a.rgb * a.a, a.a);',
     '  if (vF.z > 0.002) { vec4 b = frame(vF.y, vUv); o = mix(o, vec4(b.rgb * b.a, b.a), vF.z); }',
-    '  float g = vF.w * vFade; if (uEdge > 0.0) g *= smoothstep(0.0, uEdge, vUv.x) * smoothstep(0.0, uEdge, 1.0 - vUv.x); vec3 rgb = o.rgb * vT.rgb; float al = o.a;',
+    '  float g = vF.w * vFade; if (uEdge > 0.0) g *= smoothstep(0.0, uEdge, vUv.x) * smoothstep(0.0, uEdge, 1.0 - vUv.x); if (vBF > 0.0) g *= smoothstep(0.0, vBF, vUv.y); if (uMode > 0.5 && uMode < 1.5) g *= smoothstep(1.0, 0.9, vUv.y); vec3 rgb = o.rgb * vT.rgb; float al = o.a;',
     '  if (uMode < 0.5) {',                                                                              // flame
     '    if (uSensor > 1.5) { float l = dot(o.rgb, vec3(0.3, 0.59, 0.11)); rgb = mix(vec3(l), vec3(1.0), 0.45) * al * 4.5; }',
     '    al *= (1.0 - vT.a);',
@@ -72,7 +73,7 @@ const FW = (() => {
     ['aP', 'aS', 'aF', 'aT', 'aL'].forEach((nm, i) => geo.setAttribute(nm, new THREE.InterleavedBufferAttribute(ib, 4, i * 4)));
     geo.instanceCount = 0;
     const mat = new THREE.ShaderMaterial({
-      uniforms: { tAtlas: { value: def.tex }, uAnchor: { value: new THREE.Vector2(def.anchor[0], 1 - def.anchor[1]) }, uGrid: { value: new THREE.Vector2(def.cols, def.rows) }, uInset: { value: new THREE.Vector2(0.6 / def.fw, 0.6 / def.fh) }, uSensor: SENSOR, uMode: { value: def.mode }, uLit: { value: new THREE.Vector3(1, 1, 1) }, uCool: { value: 0.1 }, uEdge: { value: def.edge || 0 } },
+      uniforms: { tAtlas: { value: def.tex }, uAnchor: { value: new THREE.Vector2(def.anchor[0], 1 - def.anchor[1]) }, uGrid: { value: new THREE.Vector2(def.cols, def.rows) }, uInset: { value: new THREE.Vector2(0.6 / def.fw, 0.6 / def.fh) }, uSensor: SENSOR, uMode: { value: def.mode }, uLit: { value: new THREE.Vector3(1, 1, 1) }, uCool: { value: 0.1 }, uEdge: { value: def.edge || 0 }, uBlur: { value: def.blur || 0 } },
       vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false,
       blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
     });
@@ -85,17 +86,19 @@ const FW = (() => {
   R.begin = () => { for (const k in R.combos) R.combos[k].n = 0; R.drawn = 0; };
   R.end = () => { let inst = 0, calls = 0; for (const k in R.combos) { const c = R.combos[k]; c.geo.instanceCount = c.n; c.ib.needsUpdate = c.n > 0 || c.lastN > 0; c.lastN = c.n; c.mesh.visible = c.n > 0; if (c.n > 0) { calls++; inst += c.n; } } R.inst = inst; R.calls = calls; };
   /* push one instance. q: 0 cylindrical billboard, 1 spherical with rotation rot, 2 fixed yaw (crossed quads), 3 flat on the ground (yaw rot) */
-  R.push = (c, x, y, z, w, h, fa, fb, mix, alpha, flip, q, rot, stretch, r, g, b, add, lx, lz) => {
+  R.push = (c, x, y, z, w, h, fa, fb, mix, alpha, flip, q, rot, stretch, r, g, b, add, lx, lz, bf) => {
     if (c.n >= c.cap) { R.dropped++; return; } const o = c.n++ * STRIDE, B = c.buf;
     B[o] = x; B[o + 1] = y; B[o + 2] = z; B[o + 3] = flip; B[o + 4] = w; B[o + 5] = h; B[o + 6] = q; B[o + 7] = rot; B[o + 8] = fa; B[o + 9] = fb; B[o + 10] = mix; B[o + 11] = alpha;
-    B[o + 12] = r; B[o + 13] = g; B[o + 14] = b; B[o + 15] = add; B[o + 16] = lx; B[o + 17] = lz; B[o + 18] = stretch; B[o + 19] = 0;
+    B[o + 12] = r; B[o + 13] = g; B[o + 14] = b; B[o + 15] = add; B[o + 16] = lx; B[o + 17] = lz; B[o + 18] = stretch; B[o + 19] = bf || 0;
   };
   /* ---- textures: fetched on demand, decoded with straight alpha (no premultiply: lossy WebP bleeds colour into the clear pixels), no mipmaps (they would mix neighbouring frames) */
-  R.loadTex = (url) => {
+  R.loadTex = (url, opt) => {
     let t = R.tex[url]; if (t) { t.last = performance.now(); return t.p; } t = R.tex[url] = { url, last: performance.now(), tex: null, bytes: 0 };
     t.p = fetch(url).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); }).then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(bm => {
-      const tx = new THREE.Texture(bm); tx.flipY = false; tx.premultiplyAlpha = false; tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter; tx.wrapS = tx.wrapT = THREE.ClampToEdgeWrapping; tx.colorSpace = THREE.NoColorSpace; tx.needsUpdate = true;
-      t.tex = tx; t.bytes = bm.width * bm.height * 4; R.loadN++; return tx;
+      let img = bm, bytes = bm.width * bm.height * 4;
+      if (opt && opt.blur) { try { const c = document.createElement('canvas'); c.width = bm.width; c.height = bm.height; const g2 = c.getContext('2d'); g2.filter = 'blur(' + opt.blur + 'px)'; g2.drawImage(bm, 0, 0); img = c; if (bm.close) bm.close(); } catch (e) { img = bm; } }
+      const tx = new THREE.Texture(img); tx.flipY = false; tx.premultiplyAlpha = false; tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter; tx.wrapS = tx.wrapT = THREE.ClampToEdgeWrapping; tx.colorSpace = THREE.NoColorSpace; tx.needsUpdate = true;
+      t.tex = tx; t.bytes = bytes; R.loadN++; return tx;
     }).catch(e => { delete R.tex[url]; throw e; });
     return t.p;
   };

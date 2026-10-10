@@ -17,7 +17,7 @@
     T = A.types[name] = { name, P, state: 'loading', res, last: now, urls: [] };
     const jobs = ['main', 'heat'].filter(k => P.layers[k]).map(k => {
       const L = P.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/atmos/' + use.file; T.urls.push(url);
-      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+      return R.loadTex(url, (k === 'main' && res === 'full' && P.family === 'steam') ? { blur: 0.8 } : undefined).then(tex => ({ k, L, use, tex }));
     });
     Promise.all(jobs).then(got => {
       T.layers = {}; const strip = P.kind === 'strip' || P.family === 'fog';
@@ -126,6 +126,19 @@
     f.x = fx; f.y = fy; f.z = fz; f.dir = [dx / len, dy / len, dz / len]; f.len = Math.min(len, 38); f.seen = simT; f.sx = Math.max(0.6, Math.min(6, f.len / 5.9));
   };
   F.hose = (bt, tgt) => { if (!bt.ffHead) return; bt.group.updateMatrixWorld(true); const from = bt.ffHead.localToWorld(_t3.set(bt.ffTipX, 0, 0)); const tp = tgt.body.position; F.hosePt(bt, from.x, from.y, from.z, tp.x, tp.y + 1.2, tp.z); };
+  /* surf mist along the shore near the camera, scaled by the wind (desktop High only) */
+  const surfT = { t: 0 }; A.surfFx = [];
+  A.surf = (dt) => {
+    surfT.t -= dt; const cam = camera.position, ws = F.windMs;
+    for (let i = A.surfFx.length - 1; i >= 0; i--) { const f = A.surfFx[i]; if (f.dead || Math.hypot(f.x - cam.x, f.z - cam.z) > 190 || ws < 1) { A.stop(f); A.surfFx.splice(i, 1); } else f.alpha = Math.min(1, 0.25 + ws * 0.1); }
+    if (surfT.t > 0 || PH || F.q !== 'high' || A.surfFx.length >= 3 || ws < 1.5) return; surfT.t = 2.5;
+    for (let k = 0; k < 12 && A.surfFx.length < 3; k++) {
+      const a = Math.random() * 6.283; let prev = heightAt(cam.x + Math.sin(a) * 15, cam.z + Math.cos(a) * 15);
+      for (let d = 18; d < 150; d += 6) { const x = cam.x + Math.sin(a) * d, z = cam.z + Math.cos(a) * d, h = heightAt(x, z);
+        if ((prev > 0.05 && h <= 0.05) || (prev <= 0.05 && h > 0.05)) { if (A.surfFx.every(f => Math.hypot(f.x - x, f.z - z) > 25)) { const f = A.spawn('mist_surf', x, 0.1, z, { sc: Math.min(1.1, 0.35 + ws * 0.08), dur: 9999, pri: 0.8, haze: false, flip: 1 }); if (f) { A.surfFx.push(f); A.stats.surf = (A.stats.surf || 0) + 1; } } break; }
+        prev = h; }
+    }
+  };
   /* rain on water */
   let rainS = 0;
   A.rain = (dt) => {
@@ -172,7 +185,7 @@
   function newTile(type, T, D, fc) {
     const P = T.P, heights = (P.game && P.game.layer_heights_m) || [0], scroll = (P.game && P.game.wind && P.game.wind.scroll_factor) || [1];
     for (let tries = 0; tries < 8; tries++) {
-      let x, z; if (D.where === 'bank') { const a = Math.random() * 6.283, r = 220 + Math.random() * 140; x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; } else { const a = Math.random() * 6.283, r = D.reach * Math.sqrt(0.04 + 0.96 * Math.random()); x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; }
+      let x, z; if (D.where === 'bank') { const a = Math.random() * 6.283, r = 220 + Math.random() * 140; x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; } else { const a = Math.random() < 0.65 ? A.yaw + (Math.random() - 0.5) * 2.2 : Math.random() * 6.283, r = D.reach * Math.sqrt(0.04 + 0.96 * Math.random()); x = fc.x + Math.sin(a) * r; z = fc.z + Math.cos(a) * r; }
       if (!okWhere(D.where, x, z)) continue;
       const k = (Math.random() * heights.length) | 0; return { id: ++tileId, type, x, z, lay: k, hgt: heights[k] || 0, scr: scroll[Math.min(k, scroll.length - 1)], age: 0, ph: Math.random() * 4, vi: (Math.random() * 2) | 0, flip: Math.random() < 0.5 ? -1 : 1, a: 0, aT: 1, th: Math.random(), phase: 'form', dying: false, blob: (Math.random() * 6) | 0, sc: D.kind === 'blob' ? 0.8 + Math.random() * 1.8 : 1, y: 0, d: 0 };
     }
@@ -180,7 +193,7 @@
   }
   let fogT = 0;
   A.fogStep = (dt) => {
-    if (F.q === 'off') { A.tiles.length = 0; return; } A.climate(); const fc = camera.position, ws = F.wind, scale = fogScale();
+    if (F.q === 'off') { A.tiles.length = 0; return; } A.climate(); camera.getWorldDirection(_cd); A.yaw = Math.atan2(_cd.x, _cd.z); const fc = camera.position, ws = F.wind, scale = fogScale();
     fogT -= dt; const doSpawn = fogT <= 0; if (doSpawn) fogT = 0.4;
     for (const type in FOG) {
       const D = FOG[type]; const want = (A.want[type] || 0), tgtN = Math.round(D.cap * scale * want);
@@ -220,7 +233,7 @@
       else clip = T.clips.drift[t.vi % T.clips.drift.length] || T.clips.linger;
       if (!clip) continue; const fr = F.frameOf(clip, tm, loop, true), lit = lightFor(P); const col = [lit[0], lit[1], lit[2]]; addFire(t.x, t.z, t.y, col);
       const w = LY.size[0] * t.sc, h = LY.size[1] * t.sc;
-      R.push(LY.combo, t.x, t.y - 0.07 * h, t.z, w, h, fr[0], fr[1], fr[2], Math.min(1, t.a) * (D.kind === 'blob' ? 0.8 : 0.9), t.flip, 0, 0, 1, col[0], col[1], col[2], 0, 0, 0);
+      R.push(LY.combo, t.x, t.y - 0.07 * h, t.z, w, h, fr[0], fr[1], fr[2], Math.min(1, t.a) * (D.kind === 'blob' ? 0.85 : 1.0), t.flip, 0, 0, 1, col[0], col[1], col[2], 0, 0, 0);
       const H = T.layers.heat; if (H && false) { }
       n++;
     }
@@ -258,7 +271,7 @@
   const _cd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
   F.afters.push((dt) => {
     if (F.q === 'off' || F.legacyUntil) return; if (!A.json) { A.ensure(); return; }
-    try { A.owners(dt); A.bows(dt); A.rain(dt); A.fogStep(dt); A.step(dt); A.drawTiles(); A.sweepT = (A.sweepT || 0) + dt; if (A.sweepT > 6) { A.sweepT = 0; A.sweep(); } } catch (e) { A.err = String(e && e.stack || e); }
+    try { A.owners(dt); A.bows(dt); A.surf(dt); A.rain(dt); A.fogStep(dt); A.step(dt); A.drawTiles(); A.sweepT = (A.sweepT || 0) + dt; if (A.sweepT > 6) { A.sweepT = 0; A.sweep(); } } catch (e) { A.err = String(e && e.stack || e); }
   });
 /* a world reset (battle stop, calm): every sprite effect goes, the owners start clean */
   F.reset = () => {

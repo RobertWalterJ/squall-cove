@@ -2,30 +2,30 @@
  "profile": "desktop",
  "perf": {
   "base": {
-   "mean": 5059.2,
-   "p95": 5144.7,
-   "min": 5005.8
+   "mean": 4108.7,
+   "p95": 4195,
+   "min": 4047
   },
   "fires": {
-   "mean": 4693.4,
-   "p95": 4771.7,
-   "min": 4607.1
+   "mean": 3949.5,
+   "p95": 4231.4,
+   "min": 3684.9
   },
-  "n": 38,
-  "inst": 315,
-  "calls": 27,
-  "drawCalls": 733,
-  "tris": 2313843,
-  "texMB": 227.7,
-  "nTypes": 32,
+  "n": 31,
+  "inst": 350,
+  "calls": 29,
+  "drawCalls": 471,
+  "tris": 2262086,
+  "texMB": 228.8,
+  "nTypes": 34,
   "cpu": {
    "without": {
-    "mean": 0.2,
-    "p95": 0.4
+    "mean": 0.35,
+    "p95": 0.6
    },
    "with30": {
-    "mean": 0.65,
-    "p95": 1
+    "mean": 0.51,
+    "p95": 0.9
    }
   }
  },
@@ -33,35 +33,33 @@
  "caps": {
   "fires": 100,
   "anim": 40,
-  "inst": 263,
-  "calls": 17,
+  "inst": 266,
+  "calls": 18,
   "capFires": 40,
   "capInst": 420,
   "dropped": 0
  },
  "spread": {
   "front": true,
-  "advance": 4.679978967854664,
-  "along": 4.679978967854666,
-  "speed": 0.78,
-  "hw": 2.964233783644294,
+  "advance": 4.605605745993064,
+  "along": 4.6056057459930635,
+  "speed": 0.7690050135348379,
+  "hw": 2.943016146539157,
   "cols": 4,
   "alive": 4
  },
  "sound": {
   "loops": [
-   "fw:camp:7:-5:n",
-   "fw:vehicle:7:-4:n",
-   "fw:grass:8:-5:n",
-   "fw:distant"
+   "fw:camp:7:-21:n",
+   "fw:vehicle:8:-20:n"
   ],
   "oneShot": {
    "played": true,
    "burst": 1,
    "shots": {
     "ignite_soft": 2,
-    "ignite_large": 8,
-    "pop": 13
+    "ignite_large": 5,
+    "pop": 14
    }
   }
  },
@@ -184,8 +182,8 @@
    "extra": {
     "fires": 100,
     "anim": 40,
-    "inst": 263,
-    "calls": 17,
+    "inst": 266,
+    "calls": 18,
     "capFires": 40,
     "capInst": 420,
     "dropped": 0
@@ -236,10 +234,10 @@
    "pass": true,
    "extra": {
     "front": true,
-    "advance": 4.679978967854664,
-    "along": 4.679978967854666,
-    "speed": 0.78,
-    "hw": 2.964233783644294,
+    "advance": 4.605605745993064,
+    "along": 4.6056057459930635,
+    "speed": 0.7690050135348379,
+    "hw": 2.943016146539157,
     "cols": 4,
     "alive": 4
    }
@@ -249,9 +247,9 @@
    "pass": true,
    "extra": {
     "tree": true,
-    "before": 0,
-    "after": 1,
-    "spots": 0,
+    "before": 2,
+    "after": 3,
+    "spots": 1,
     "patches": 6
    }
   },
@@ -263,12 +261,12 @@
     "last": {
      "kind": "fuel",
      "Rb": 11,
-     "x": 103.6887147219663,
-     "z": -61.884311213110394
+     "x": 317.2370031446754,
+     "z": 39.983862124540885
     },
-    "flaming": 43,
+    "flaming": 44,
     "deb": 60,
-    "parts": 86,
+    "parts": 96,
     "black": [
      "blast_fuel:fireball:true"
     ]
@@ -324,16 +322,44 @@
    }
   },
   {
+   "name": "a building catches fire: window fires, a doorway fire and a roof fire",
+   "pass": true,
+   "extra": {
+    "building": true,
+    "ok": true,
+    "id": "b-warehouse",
+    "windows": 6,
+    "doorway": 1,
+    "roof": 1,
+    "states": [
+     "burn"
+    ]
+   }
+  },
+  {
+   "name": "bow mist for a fast boat, a hose spray cone, a geyser column and surf mist on the shore are created",
+   "pass": true,
+   "extra": {
+    "boat": true,
+    "bow": true,
+    "hose": true,
+    "geyser": true,
+    "surf": 3,
+    "rainTick": true
+   }
+  },
+  {
    "name": "the Sky Fog control drives the fog: tiles form with Fog, fall away when it clears",
    "pass": true,
    "extra": {
     "n0": 0,
-    "n2": 56,
-    "n3": 2,
+    "n2": 65,
+    "n3": 3,
     "bank": 1,
     "sea": 1,
     "types": [
-     "fog_valley",
+     "fog_ground",
+     "mist_dawn",
      "fog_sea"
     ]
    }
@@ -356,7 +382,7 @@
    "extra": {
     "q": "low",
     "res": "low",
-    "inst": 164,
+    "inst": 10,
     "vis": true
    }
   },
@@ -378,16 +404,12 @@
    "pass": true,
    "extra": {
     "keys": [
-     "fw:camp:7:-5:n",
-     "fw:vehicle:7:-4:n",
-     "fw:grass:8:-5:n",
-     "fw:distant"
+     "fw:camp:7:-21:n",
+     "fw:vehicle:8:-20:n"
     ],
     "lv": [
-     0,
-     0,
-     0,
-     0
+     0.197,
+     0.119
     ],
     "loops": 3
    }
@@ -400,8 +422,8 @@
     "burst": 1,
     "shots": {
      "ignite_soft": 2,
-     "ignite_large": 8,
-     "pop": 13
+     "ignite_large": 5,
+     "pop": 14
     }
    }
   },
@@ -458,10 +480,10 @@
     "st": {
      "models": 54,
      "cables": 41,
-     "cones": 5,
+     "cones": 6,
      "flares": 12,
-     "glows": 13,
-     "pools": 9,
+     "glows": 9,
+     "pools": 14,
      "wets": 0
     }
    }
@@ -472,10 +494,10 @@
    "extra": {
     "models": 54,
     "cables": 41,
-    "cones": 5,
+    "cones": 6,
     "flares": 12,
-    "glows": 13,
-    "pools": 9,
+    "glows": 9,
+    "pools": 14,
     "wets": 0
    }
   },
@@ -484,30 +506,30 @@
    "pass": true,
    "extra": {
     "base": {
-     "mean": 5059.2,
-     "p95": 5144.7,
-     "min": 5005.8
+     "mean": 4108.7,
+     "p95": 4195,
+     "min": 4047
     },
     "fires": {
-     "mean": 4693.4,
-     "p95": 4771.7,
-     "min": 4607.1
+     "mean": 3949.5,
+     "p95": 4231.4,
+     "min": 3684.9
     },
-    "n": 38,
-    "inst": 315,
-    "calls": 27,
-    "drawCalls": 733,
-    "tris": 2313843,
-    "texMB": 227.7,
-    "nTypes": 32,
+    "n": 31,
+    "inst": 350,
+    "calls": 29,
+    "drawCalls": 471,
+    "tris": 2262086,
+    "texMB": 228.8,
+    "nTypes": 34,
     "cpu": {
      "without": {
-      "mean": 0.2,
-      "p95": 0.4
+      "mean": 0.35,
+      "p95": 0.6
      },
      "with30": {
-      "mean": 0.65,
-      "p95": 1
+      "mean": 0.51,
+      "p95": 0.9
      }
     }
    }
@@ -516,17 +538,17 @@
    "name": "decoded atlas memory is about 8 MB per full-size type (checked on this scene)",
    "pass": true,
    "extra": {
-    "texMB": 227.7,
-    "types": 32
+    "texMB": 228.8,
+    "types": 34
    }
   },
   {
    "name": "textures are dropped when no fire of that type is left (lazy load, lazy unload)",
    "pass": true,
    "extra": {
-    "before": 227.7,
+    "before": 228.8,
     "after": 2.2,
-    "n0": 32,
+    "n0": 34,
     "n1": 0
    }
   },
@@ -536,6 +558,6 @@
    "extra": []
   }
  ],
- "pass": 34,
+ "pass": 36,
  "fail": 0
 }

@@ -40,8 +40,8 @@
     const T = F.need('smoke_column'); if (!T || T.state !== 'ready') return; const LY = T.layers.smoke, clip = T.clips.loop[f.vi % T.clips.loop.length]; if (!LY || !clip.smoke) return;
     const fr = F.frameOf(clip.smoke, f.st * 0.9 + f.ph, true, true), base = f.sc * Math.sqrt(f.F), wl = F.wind, lk = Math.min(1, F.windMs * 0.09), A = F.amb, big = Math.min(1, f.F);
     for (let k = 0; k < 3; k++) {
-      const s = base * (0.9 + k * 0.95), hgt = LY.size[1] * base * (0.45 + k * 1.15), dx = wl.x * lk * hgt * 0.5, dz = wl.z * lk * hgt * 0.5;
-      R.push(LY.combo, f.x + dx, f.y + hgt, f.z + dz, LY.size[0] * s, LY.size[1] * s, fr[0], fr[1], fr[2], al * (0.55 - k * 0.12) * big, f.flip, 0, 0, 1, A.r * 0.55, A.g * 0.55, A.b * 0.55, 0, wl.x * lk * LY.size[1] * s * 0.5, wl.z * lk * LY.size[1] * s * 0.5);
+      const s = base * (0.9 + k * 0.9), hgt = LY.size[1] * base * (k === 0 ? 0 : k === 1 ? 0.8 : 2.0), dx = wl.x * lk * hgt * 0.35, dz = wl.z * lk * hgt * 0.35;
+      R.push(LY.combo, f.x + dx, f.y + hgt, f.z + dz, LY.size[0] * s, LY.size[1] * s, fr[0], fr[1], fr[2], al * (0.6 - k * 0.14) * big, f.flip, 0, 0, 1, A.r * 0.55, A.g * 0.55, A.b * 0.55, 0, wl.x * lk * LY.size[1] * s * 0.5, wl.z * lk * LY.size[1] * s * 0.5, k === 0 ? 0 : 0.4);
     }
   };
   /* ---- lava: ground fires where lava meets dry grass ---- */
