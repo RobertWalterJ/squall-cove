@@ -140,7 +140,7 @@ try {
   }
 
   // ================================================================ battle scaffold (ai and perf)
-  const startBattle = async (size) => { await b.ev(`document.getElementById('help').hidden=true; __sc.BATTLE.size=${size}; __sc.battleStart(); 1`); await sleep(7000); };
+  const startBattle = async (size) => { await b.ev(`document.getElementById('help').hidden=true; __sc.BATTLE.size=${size}; __sc.battleStart(); if (__sc.CMDR) __sc.CMDR.on = false; 1`); await sleep(7000); };          // the staged soldiers stand where they are put: the theatre commander (v9.9.13) would give them group orders, so it is off here (the perf run on the previous build has no commander to switch off)
   // ================================================================ AI
   if ((which === 'ai' || which === 'all') && !BASE) {
     await startBattle(9);

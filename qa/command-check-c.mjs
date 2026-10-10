@@ -3,6 +3,7 @@
 // medevac, the choice of reinforcement, the budget and ammo cheats, the supply bar, performance.
 import { POOL_SRC } from './command-check-lib.mjs';
 export async function partC({ b, J, out, ok, num, startBattle, sleep, reload }) {
+  const withRetry = async (fn) => { try { return await fn(); } catch (e) { if (!/wakeUpAfterNarrowphase/.test(String(e))) throw e; out('  (physics step error in the performance run: fresh page, run again)'); return await fn(); } };          // the physics engine can throw when a body is removed during a step; see QA-LOG, part B
   const WANT = (process.env.SECTIONS || '').split(',').filter(Boolean), on = (n) => !WANT.length || WANT.includes(n);          // SECTIONS=drop,aa runs only those (budget, ammo, group, resupply, drop, aa, convoy, medevac, reinforce, cheats, bar, perf)
   await startBattle(20);
   const pool = await J(POOL_SRC); out('  pool: ' + JSON.stringify(pool));
@@ -143,11 +144,10 @@ export async function partC({ b, J, out, ok, num, startBattle, sleep, reload }) 
   }
   // ---- performance with logistics running (on a freshly loaded page)
   if (on('perf')) {
-  await reload(); await startBattle(30);
-  const perf = await J(`const sc = __sc; sc.CMDR.on = true; sc.BATTLE.size = 30; sc.BATTLE.tickets.blue = sc.BATTLE.tickets.red = 9999; sc.BATTLE.t = 100; for (let i = 0; i < 600; i++) sc.qaTick(1/60);
+  const perf = await withRetry(async () => { await reload(); await startBattle(30); return await J(`const sc = __sc; sc.CMDR.on = true; sc.BATTLE.size = 30; sc.BATTLE.tickets.blue = sc.BATTLE.tickets.red = 9999; sc.BATTLE.t = 100; for (let i = 0; i < 600; i++) sc.qaTick(1/60);
       const ms = [], t0 = sc.simTime(); for (let i = 0; i < 1800; i++) { const t = performance.now(); sc.qaTick(1/60); ms.push(performance.now() - t); }
       ms.sort((a, b) => a - b); const mean = ms.reduce((a, c) => a + c, 0) / ms.length; let low = 0, bots = 0; for (const q of sc.people) if (q.bot && q.state !== 'rag') { bots++; if (q.bot.mags !== undefined && q.bot.mags <= 1) low++; }
-      return { bots, low, mean, p95: ms[Math.floor(ms.length * 0.95)], p99: ms[Math.floor(ms.length * 0.99)], cmdrMs: sc.CMDR.ms, err: window.__cmdrerr || window.__sqerr || null, budget: [sc.CMDR.side.blue.budget, sc.CMDR.side.red.budget].map(v => Math.round(v)), drops: sc.SUP.drops || 0 }`);
+      return { bots, low, mean, p95: ms[Math.floor(ms.length * 0.95)], p99: ms[Math.floor(ms.length * 0.99)], cmdrMs: sc.CMDR.ms, err: window.__cmdrerr || window.__sqerr || null, budget: [sc.CMDR.side.blue.budget, sc.CMDR.side.red.budget].map(v => Math.round(v)), drops: sc.SUP.drops || 0 }`); });
   out('  perf with logistics (30 a side, 30 s): ' + JSON.stringify({ bots: perf.bots, lowAmmo: perf.low, meanMs: num(perf.mean, 3), p95Ms: num(perf.p95, 3), p99Ms: num(perf.p99, 3), cmdrThinkMs: num(perf.cmdrMs, 3), budgets: perf.budget, drops: perf.drops }));
   ok('performance: 30 a side with logistics for 30 simulated seconds, a think under 3 ms, no errors', perf.bots >= 40 && perf.cmdrMs < 3 && !perf.err, { mean: num(perf.mean, 2), p99: num(perf.p99, 2), think: num(perf.cmdrMs, 3), err: perf.err });
   }

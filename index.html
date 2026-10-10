@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.15 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.16 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -1023,6 +1023,9 @@ body.ed-phone .actions > #burger{position:static!important;left:auto;top:auto;z-
 #cmdrCv.on{display:block}
 .bSup{display:inline-block;width:46px;height:6px;border-radius:3px;background:rgba(255,255,255,.22);margin:0 6px;vertical-align:middle;overflow:hidden}
 .bSup i{display:block;height:100%;background:#d9b43a}
+.gbars{display:grid;gap:4px;width:58px;align-self:center}.gb{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}.gb i{display:block;height:100%;background:#d9b43a}.gb.h i{background:#e0453a}
+#hqLine{position:fixed;left:50%;top:46px;transform:translateX(-50%);max-width:min(92vw,560px);padding:6px 12px;border-radius:10px;background:rgba(10,22,28,.8);color:#f1ece2;font:600 14px/1.35 var(--f-body);z-index:var(--z-hud);pointer-events:none;text-align:center}
+#hqLine[hidden]{display:none}
 #compass{position:absolute;left:50%;top:calc(14px + var(--safe-t));transform:translateX(-50%);width:min(400px,calc(100vw - 560px));min-width:240px;height:44px;pointer-events:none;z-index:var(--z-hud)}
 #compass canvas{display:block;width:100%;height:100%}
 #miniMap{position:absolute;right:12px;top:calc(70px + var(--safe-t));width:150px;height:150px;z-index:var(--z-hud);border-radius:16px;overflow:hidden;border:2px solid rgba(255,255,255,.6);box-shadow:0 2px 10px rgba(0,0,0,.55);background:#2f5f78;cursor:pointer}
@@ -1117,7 +1120,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
 <div id="fpScope" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 31vmin,#000 32vmin)"><div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.75)"></div></div>
 <div id="tablet" hidden role="dialog" aria-label="Command"><div class="tbHead"><b>Command</b><button type="button" class="rd" id="tbRead"><svg class="ic" aria-hidden="true"><use href="#i-read"/></svg>Read aloud</button><button type="button" id="tbClose"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>Close</button></div><div id="tbTabs" role="tablist" aria-label="Command sections"></div><div id="tbBody"></div></div>
 <div id="fireArm" hidden></div>
-<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bSideBtn" title="Pick which side you play">Side</button><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bGunB" title="Gunship station (O)"><svg class="ic" aria-hidden="true"><use href="#i-jet"/></svg>Gunship</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
+<div id="bHud" hidden><div id="bTick"></div><div id="bBtns"><button type="button" id="bSideBtn" title="Pick which side you play">Side</button><button type="button" id="bTab" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button><button type="button" id="bPlan" title="Plan: headquarters and your groups (Shift + T)"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg>Plan</button><button type="button" id="bAdv" hidden title="Headquarters has a suggestion">HQ suggests</button><button type="button" id="bJump" title="Jump in (J)"><svg class="ic" aria-hidden="true"><use href="#i-person"/></svg>Jump in</button><button type="button" id="bGunB" title="Gunship station (O)"><svg class="ic" aria-hidden="true"><use href="#i-jet"/></svg>Gunship</button><button type="button" id="bSpec" title="Watch next (K)"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>Watch next</button><button type="button" id="bOver" hidden><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>Overview</button></div><div id="bHint"></div></div><div id="bStat" hidden></div><div id="bHurt"></div><div id="bSpawn" hidden></div>
 <div id="feedCol"><div id="killFeed"></div><div id="sideFeed"></div><div id="notes" role="status" aria-live="polite"></div></div>
 <button id="cmdBtn" type="button" title="Command (T)"><svg class="ic" aria-hidden="true"><use href="#i-command"/></svg>Command</button>
 <div id="bTip" hidden role="note"><span id="bTipTxt"></span><button type="button" id="bTipX">Got it</button></div>
@@ -3080,7 +3083,8 @@ function onImpact(o, e) {
   const imp = Math.abs(e.contact.getImpactVelocityAlongNormal()); if (imp < 1.5) return;
   const mo = ob.mass, share = mo === 0 ? 1 : mo / (o.body.mass + mo), E = 0.5 * imp * imp * share, str = o.m.str * (o.m.soft && o.T > o.m.soft ? Math.max(0.2, 1 - (o.T - o.m.soft) / Math.max(1, (o.m.melt || 1250) - o.m.soft)) : 1);
   if (window.__dbgImp) window.__dbgImp.push([o.c.id, +imp.toFixed(2), +E.toFixed(1), +str.toFixed(1), mo]);
-  if (E > str) fracture(o, 'impact'); else if (simT - (o.hitT || -9) > 0.25) { o.hitT = simT; o.dmg += 0.3 * E / str; if (o.dmg > 1) fracture(o, 'impact'); }       // a landing fires one event per contact point: damage counts once per hit
+  const shatter = () => { if (o.fq || o.gone) return; o.fq = true; FRQ.push(o); };          // queued and applied after the step: fracturing removes the body (and, with 80 fragments about, removes old fragments too), and removing bodies inside the step made cannon-es throw
+  if (E > str) shatter(); else if (simT - (o.hitT || -9) > 0.25) { o.hitT = simT; o.dmg += 0.3 * E / str; if (o.dmg > 1) shatter(); }       // a landing fires one event per contact point: damage counts once per hit
 }
 function ashAt(x, z, r, a) { const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) { const d = Math.hypot(i, j); if (d > r) continue; const k = (gz + i) * TN + gx + j; if (k > 0 && k < TN * TN) ashData[k] = Math.max(ashData[k], a * (1 - d / (r + 1))); } ashTex.needsUpdate = true; }
 function updateStructures(dt) {
@@ -3749,7 +3753,7 @@ function giveBody(p) {
   b.addEventListener('collide', (e) => {                              // a heavy, fast thing knocks them down
     const o = e.body; if (!o || o.mass < 6 || p.state === 'rag') return;
     const imp = Math.abs(e.contact.getImpactVelocityAlongNormal());
-    { const E = imp * o.mass; if (E > 160) topple(p, new CANNON.Vec3(o.velocity.x * 0.6, 1.5 + imp * 0.3, o.velocity.z * 0.6)); else if (E > 28) stagger(p, new CANNON.Vec3(o.velocity.x * 0.6, 0, o.velocity.z * 0.6)); }
+    { const E = imp * o.mass; if (E > 160) TOPQ.push([p, 'topple', new CANNON.Vec3(o.velocity.x * 0.6, 1.5 + imp * 0.3, o.velocity.z * 0.6)]); else if (E > 28) TOPQ.push([p, 'stagger', new CANNON.Vec3(o.velocity.x * 0.6, 0, o.velocity.z * 0.6)]); }          // queued, applied after the step: toppling removes the standing body, and removing a body inside the step made cannon-es throw (wakeUpAfterNarrowphase)
   });
   world.addBody(b); p.body = b;
 }
@@ -4547,7 +4551,10 @@ function stepFoot(p, dt, t) {
   if (p.body) { const hh = p.height / 2; p.body.position.set(p.x, p.y + hh, p.z); p.body.velocity.set(0, 0, 0); p.body.interpolatedPosition.copy(p.body.position); }
 }
 const pTmp = new THREE.Vector3();
+const TOPQ = [], FRQ = [];
+function flushTopQ() { while (FRQ.length) { const o = FRQ.shift(); o.fq = false; if (!o.gone) fracture(o, 'impact'); } while (TOPQ.length) { const [p, k, v] = TOPQ.shift(); if (!people.includes(p) || p.state === 'rag') continue; if (k === 'topple') topple(p, v); else stagger(p, v); } }
 function updatePeople(dt, t) {
+  flushTopQ();
   for (const p of people.slice()) {
     if (p.hoist) continue;                                          // on the helicopter's cable
     if (p.state === 'rag') { if (p.climb || p.plat) ladRelease(p); updateRag(p, dt); continue; }
@@ -4845,7 +4852,7 @@ function spawnPlayer() {
   const p = makePerson(Math.floor(Math.random() * 16), best.x, best.z); p.y = standY(best.x, best.z); p.role = 'You'; return p;
 }
 function enterFP(p) {
-  if (fp.on) return; setFire(null);                                   // the overview fire control is not active in first person
+  if (fp.on) return; try { cmdmOnEnter(); } catch (e) { } setFire(null);                                   // the overview fire control is not active in first person
   if (!p) p = spawnPlayer(); if (!p) return;
   if (p.state === 'rag') { standUp(p); if (p.state === 'rag') { toast('Get them out of the water first'); return; } }
   if (p.hop) { toast('Wait until they are aboard'); return; }
@@ -5951,7 +5958,7 @@ function makeFlag(def) {
 function paintFlag(pt) { const c = pt.owner ? TEAMCOL[pt.owner] : 0xcccccc; pt.cloth.material.color.setHex(c); pt.ring.material.color.setHex(c); }
 function battleStart() {
   if (!isBattleMap()) { offerBattleMaps(); return; } if (CLR) CLR.undo = null;
-  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } try { voxPreload('sq'); } catch (e) { } battleStop(true); BATTLE.on = true; BATTLE.cheated = chAny(); BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); cmdrReset(); supReset(); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
+  ensureWeapons(); for (const g of ['weapons', 'people', 'weather']) { try { Snd.group(g); } catch (e) { } } try { voxPreload('sq'); } catch (e) { } battleStop(true); BATTLE.on = true; BATTLE.cheated = chAny(); BATTLE.lowSnd = false; BATTLE.over = false; BATTLE.tix0 = startTickets(); BATTLE.tickets = { blue: BATTLE.tix0, red: BATTLE.tix0 }; BATTLE.kills = { blue: 0, red: 0 }; BATTLE.myKills = 0; BATTLE.myDeaths = 0; BATTLE.feed = []; BATTLE.team = null; BATTLE.spawnN = { blue: 0, red: 0 }; BATTLE.sqObj = {}; BATTLE.won = null; sqdReset(); cmdrReset(); supReset(); CMDM.cmdSide = null; CMDM.selG = null; CMDM.ign = { blue: '', red: '' }; CMDM.tick++; BATTLE.brief = null; if (CMDM.want) cmdmTake(CMDM.want, true); CMD.cd.blue = CMD.cd.red = 0; BATTLE.t = 0; BATTLE.planT = 0; BATTLE.plan = {}; renderKillFeed();
   for (const q of people.slice()) if (!q.bot && !q.keepOnStart && !(fp.on && fp.p === q)) removePerson(q);                                              // the civilians clear off
   BATTLE.points = BM().points.map(makeFlag); BATTLE.points.forEach(paintFlag); const gen = BATTLE.gen = (BATTLE.gen || 0) + 1; ensureProps2().then(() => { if (BATTLE.on && BATTLE.gen === gen) layCover(); }).catch(() => { }); kitStart(gen);
   for (let i = 0; i < BATTLE.size; i++) { spawnBot('blue', true); spawnBot('red', true); }
@@ -5964,7 +5971,7 @@ function layCover() {
   for (const p of BATTLE.points) { for (let k = 0; k < 5; k++) { const a = k * 1.25 + p.x * 0.01, d = 8 + (k % 2) * 4; putc(k % 3 === 0 ? 'x-jersey_barrier' : 'x-sandbag_wall', p.x + Math.cos(a) * d, p.z + Math.sin(a) * d, -a + Math.PI / 2); } putc('x-ammo_crate', p.x + 3, p.z + 2, 0.4); putc('x-medkit_box', p.x - 3, p.z + 2, 0); }
 }
 function removeCover() { if (BATTLE.coverStart === undefined) return; for (let i = props.length - 1; i >= 0; i--) { const pr = props[i]; if (!pr.bcover) continue; scene.remove(pr.mesh); if (pr.body) world.removeBody(pr.body); props.splice(i, 1); } BATTLE.coverStart = undefined; }
-function battleStop(quiet) { CMDR.side.blue = CMDR.side.red = null; supReset(); try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); clearTracers(); lfClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0; try { acReset(); } catch (er) { }
+function battleStop(quiet) { CMDR.side.blue = CMDR.side.red = null; supReset(); CMDM.cmdSide = null; BATTLE.brief = null; try { fmReset(); } catch (er) { } sqdReset(); VOICE.q.length = 0; bvClear(); kitStop(); removeCover(); lifeClear(); clearTracers(); lfClear(); renderKillFeed(); for (const e of AAS) scene.remove(e.mesh); AAS.length = 0; MIS.length = 0; $('bSpawn').hidden = true; for (const u of AIR.list) scene.remove(u.g); AIR.list.length = 0; for (const c of AIR.chutes) { scene.remove(c.mesh); if (c.q) c.q.hoist = null; } AIR.chutes.length = 0; AIR.shells.length = 0; try { acReset(); } catch (er) { }
   BOMBS.length = 0; for (const n of NADES) scene.remove(n.mesh); NADES.length = 0; for (const c of CHARGES) { scene.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh.material.dispose(); } CHARGES.length = 0; for (const t of ['blue', 'red']) { for (const k in AIR.cd[t]) AIR.cd[t][k] = 0; AIR.off[t] = {}; } AIR.autoT = 10;      // nothing from this battle carries into the next
   for (const q of people.slice()) if (q.bot) removePerson(q); for (const p of BATTLE.points) { scene.remove(p.mesh); p.mesh.traverse(o => { if (o.isSprite) o.material.dispose(); }); } BATTLE.points = []; BATTLE.on = false; document.body.classList.remove('battle'); const h = $('bHud'); if (h) h.hidden = true; { const tp = $('bTip'); if (tp) tp.hidden = true; } const so = $('bSpawn'); if (so) so.hidden = true; if (!quiet) toast('The battle is over.');
 }
@@ -6856,7 +6863,7 @@ const FIRE_GROUPS = [
   ['Air', 'jet', [['strike', 'jet', 'Air strike run', 'a jet drops a line of bombs'], ['griffon', 'heli', 'Griffon cover', 'circles the spot, door gunner'], ['gunship', 'heli', 'Gunship cover', 'circles the spot, minigun and howitzer']]],
 ];
 const FIRE_NAMES = { lightning: 'lightning', storm: 'lightning storm', missile: 'missile', bomb: 'bomb', cluster: 'cluster bomb', incendiary: 'incendiary bomb', flechette: 'flechette strike', mortar: 'mortar rounds', arty: 'artillery', shock: 'shockwave', smoke: 'smoke screen', strike: 'air strike', griffon: 'Griffon cover', gunship: 'gunship cover' };
-function tbTabList() { const t = [['fire', 'Fire'], ['map', 'Map'], ['support', 'Support']]; if (fp.on && BATTLE.on) t.push(['squad', 'Squad']); if (BATTLE.on) t.push(['points', 'Points']); return t; }
+function tbTabList() { const t = [['fire', 'Fire'], ['map', 'Map'], ['support', 'Support']]; if (fp.on && BATTLE.on) t.push(['squad', 'Squad']); if (BATTLE.on) t.push(['plan', 'Plan']); if (BATTLE.on) t.push(['points', 'Points']); return t; }
 function renderTablet() {
   const body = $('tbBody'), keepY = body.scrollTop; body.textContent = ''; const team = tabletSide(), c = AIR.cd[team], off = AIR.off[team];
   const tl = tbTabList(); if (!tl.some(q => q[0] === tbTab)) tbTab = 'fire';
@@ -6913,6 +6920,8 @@ function renderTablet() {
       const fi = document.createElement('div'); fi.className = 'tbOpt'; const fl2 = document.createElement('span'); fl2.className = 'tbLab'; fl2.textContent = 'Fire'; fi.append(fl2);
       fi.append(mkB(SQD.hf ? 'Free fire' : 'Hold fire', '', () => { sqdToggleFire(); renderTablet(); }, { 'aria-pressed': String(SQD.hf) }), mkB('Ping crosshair', '', () => { sqdPing(); toggleTablet(false); })); body.append(fi);
     }
+  } else if (tbTab === 'plan') {
+    cmdmRenderTab(body, head, note);
   } else if (tbTab === 'points') {
     head('Capture points', 'flag'); note('Tap a name to fly there. Attack and Defend set your plan once you have joined a side.');
     for (const p of BATTLE.points) {
@@ -6925,10 +6934,10 @@ function renderTablet() {
   }
   body.scrollTop = keepY; tbSig = tbSigNow();
 }
-function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return fmSig() + '#' + tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0) + '|' + BV.bays.map(b => b.state[0]).join(''); }
+function tbSigNow() { const team = tabletSide(), c = AIR.cd[team]; return fmSig() + '#' + tbTab + '|' + team + '|' + (CMD.cd[team] > 0) + '|' + (c ? Object.keys(c).map(k => c[k] > 0 ? 1 : 0).join('') : '') + '|' + (BATTLE.on ? BATTLE.points.map(p => p.owner || '-').join('') : '') + '|' + (FIRE.armed || '') + '|' + (fp.on ? 1 : 0) + '|' + BV.bays.map(b => b.state[0]).join('') + '|' + (tbTab === 'plan' ? cmdmSig() : ''); }
 setInterval(() => { if ($('tablet').hidden) return; const s = tbSigNow(); if (s !== tbSig) renderTablet(); }, 700);
 $('tbClose').addEventListener('click', () => toggleTablet(false));
-onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === 't' && (mode === 'fp' || mode === 'god') && $('help').hidden) { if (e.shiftKey) openCommand('plan'); else toggleTablet(); e.preventDefault(); } else if (k === 'escape' && !$('tablet').hidden) toggleTablet(false); else if (k === 'escape' && FIRE.armed) setFire(null); else if (k === 'b' && mode === 'fp') detonateC4(); });
 function planBattle() {
   sqdMergeSmall();
   if (CMDR.on && (CMDR.side.blue || CMDR.side.red)) { for (const t of ['blue', 'red']) { const C = CMDR.side[t]; if (!C) continue; C.reviewT = -99; cmdrThink(C); } return; }         // the theatre commander plans; the old per-squad rules below are the fallback when it is off
@@ -6965,7 +6974,7 @@ const CMDR = { on: true, dbg: false, acc: 0, turn: 0, step: ED.phone ? 2 : 1, ma
 const cmdrPt = (name) => BATTLE.points.find(p => p.name === name) || null;
 const cmdrFree = (team) => (CHEAT.free || CHEAT.budget) && team === chMy();
 function cmdrMake(team, pers) {
-  return { team, pers, plan: null, groups: [], gid: 0, know: new Map(), obs: new Map(), lastN: new Map(), prep: new Map(), objs: [], reviewT: -99, ownSig: '', budget: 120, lastT: simT, supT: 0, log: [], mainPt: null, postureT: -99, squads: [], ctx: null, mayCall: true, bad: new Map(), commit: null, force: null, forceDef: 0, reports: [], rep: {}, inbox: [], ownPrev: new Map(), need: {} };
+  return { team, pers, plan: null, groups: [], gid: 0, know: new Map(), obs: new Map(), lastN: new Map(), prep: new Map(), objs: [], reviewT: -99, ownSig: '', budget: 120, lastT: simT, supT: 0, log: [], mainPt: null, postureT: -99, squads: [], ctx: null, mayCall: true, bad: new Map(), commit: null, force: null, forceDef: 0, reports: [], rep: {}, inbox: [], ownPrev: new Map(), need: {}, over: { posture: null, main: null }, human: false, ai: null, aiMain: null, advice: null, advT: -9, stats: { assaults: 0, stalls: 0, falls: 0, commits: 0, drops: 0, convoys: 0, medevacs: 0, reinf: 0, orders: 0 } };
 }
 function cmdrReset(pers) {
   const ks = Object.keys(CPERS); CMDR.acc = 0; CMDR.turn = 0; CMDR.ms = 0; CMDR.thinks = 0;
@@ -7039,7 +7048,8 @@ function cmdrPosture(C, X) {                                             // atta
   if (BATTLE.t < 40) kind = 'attack';                                    // the opening: everyone races for the points
   if (C.forceDef > simT && BATTLE.t >= 40) kind = 'defend';             // a stalled assault falls back to the defence lines for a while
   if (threatened.length && BATTLE.t >= 40) kind = 'reinforce';
-  return { kind, threatened };
+  const ai = kind; if (C.over && C.over.posture) kind = C.over.posture;                // the player's order beats the AI's own call
+  return { kind, ai, threatened };
 }
 function cmdrShare(n, ws) {                                              // split n squads across weights (largest remainder), the first weight always gets one if any are left
   const out = ws.map(() => 0), tot = ws.reduce((a, b) => a + b, 0) || 1; if (n <= 0) return out; let left = n;
@@ -7056,6 +7066,7 @@ function cmdrObjectives(C, X, post, sq) {                                // the 
   let main = att[0];
   if (C.mainPt) { const keep = att.find(a => a.p.name === C.mainPt); if (keep && keep.score * 1.25 >= (main ? main.score : 0)) main = keep; }
   if (C.force && C.force.until > simT) { const f = att.find(a => a.p.name === C.force.pt); if (f) main = f; }          // a point just lost is counter-attacked whatever it scores
+  C.aiMain = main ? main.p.name : null; if (C.over && C.over.main) { const f = att.find(a => a.p.name === C.over.main); if (f) main = f; }          // the AI's own pick is remembered for the advisor; the player's main effort beats it
   const sec = att.find(a => !main || a.p !== main.p), probe = att.find(a => a.es <= 2.5 && (!main || a.p !== main.p));
   const d1 = own[0], d2 = own.find(d => d !== d1);
   const add = (role, kind, p, w) => { if (p && w > 0) objs.push({ role, kind, pt: p.name, w }); };
@@ -7081,16 +7092,16 @@ function cmdrObjectives(C, X, post, sq) {                                // the 
 }
 function cmdrGroups(C, X, objs, sq) {                                    // keep groups over time: same role and point stays, a free group of the same role is re-pointed, squads stay where they are
   const byId = new Map(sq.map(s => [s.id, s])), live = new Set(byId.keys());
-  for (const g of C.groups) g.sq = g.sq.filter(id => live.has(id));
+  for (const g of C.groups) g.sq = g.sq.filter(id => live.has(id)); for (const g of C.groups) if (g.ovr && g.ovr.until <= simT) g.ovr = null;
   const used = new Set(), next = [];
   for (const o of objs) {
-    let g = C.groups.find(x => !used.has(x) && x.role === o.role && x.obj === o.pt) || C.groups.find(x => !used.has(x) && x.role === o.role);
-    if (!g) { g = { id: 'G' + (++C.gid) + C.team[0], team: C.team, role: o.role, kind: o.kind, obj: o.pt, sq: [], want: o.w, born: simT, state: 'forming', prog: 0, n: 0, cx: 0, cz: 0 }; cmdrLog(C, 'New group ' + g.id + ' as ' + o.role + ' for ' + o.pt); }
+    let g = C.groups.find(x => !used.has(x) && !x.ovr && x.role === o.role && x.obj === o.pt) || C.groups.find(x => !used.has(x) && !x.ovr && x.role === o.role);
+    if (!g) { g = { id: 'G' + (++C.gid) + C.team[0], name: cmdmNameFor(C, next), team: C.team, role: o.role, kind: o.kind, obj: o.pt, sq: [], want: o.w, born: simT, state: 'forming', prog: 0, n: 0, cx: 0, cz: 0 }; cmdrLog(C, 'New group ' + g.id + ' as ' + o.role + ' for ' + o.pt); }
     else if (g.obj !== o.pt) { { const old = cmdrPt(g.obj); if (old && old.owner === C.team && g.kind === 'attack' && g.role !== 'reserve' && g.ph !== 'secure') cmdrReport(C, g, 'secured'); } cmdrLog(C, g.id + ' (' + o.role + ') now goes for ' + o.pt); g.since = simT; g.obj = o.pt; g.prog = 0; g.born = simT; cmdrGroupReset(g); }
     { const cp = cmdrPt(g.obj); if (g.kind === 'attack' && o.kind === 'defend' && cp && cp.owner === C.team && g.role !== 'reserve') cmdrReport(C, g, 'secured'); }          // the objective is ours and the group turns to holding it
     g.kind = o.kind; g.want = o.w; used.add(g); next.push(g);
   }
-  for (const g of C.groups) if (!used.has(g)) { /* its squads fall into the pool below */ }
+  for (const g of C.groups) if (g.ovr && !used.has(g)) { const op = cmdrPt(g.ovr.pt); if (!op) { g.ovr = null; continue; } if (g.obj !== op.name) { g.obj = op.name; g.prog = 0; g.born = simT; cmdrGroupReset(g); } g.kind = g.ovr.kind; g.role = 'order'; g.want = g.sq.length; used.add(g); next.push(g); }          // a group under the player's order keeps its squads and goes where it was sent
   C.groups = next;
   const taken = new Set(); for (const g of C.groups) { const os = cmdrPt(g.obj); if (g.sq.length > g.want) { g.sq.sort((a, b) => { const A = byId.get(a), B = byId.get(b); return os ? Math.hypot(A.x - os.x, A.z - os.z) - Math.hypot(B.x - os.x, B.z - os.z) : 0; }); g.sq.length = g.want; } for (const id of g.sq) taken.add(id); }
   const pool = sq.filter(s => !taken.has(s.id));
@@ -7132,8 +7143,8 @@ function cmdrSupport(C, X) {                                             // supp
   if (X.aliveUs < BATTLE.size * 0.6 && BATTLE.t > 45 && BATTLE.tickets[team] > BATTLE.size) {         // thin: reinforcements by boat when the point nearest the fight is on the coast, otherwise by transport helicopter to that point
     const tx = p.x, tz = p.z, zone = BATTLE.points.filter(q => q.owner === team).sort((a, b) => Math.hypot(a.x - tx, a.z - tz) - Math.hypot(b.x - tx, b.z - tz))[0] || null;
     const coastal = !!zone && (zone.type === 'harbour' || [[60, 0], [-60, 0], [0, 60], [0, -60]].some(([dx, dz]) => heightAt(zone.x + dx, zone.z + dz) < 0.2)), boatOK = c.bt <= 0 && boatAllowed(team);
-    if (coastal && boatOK && cmdrSpend(C, 'boat')) { if (boatWave(team)) cmdrLog(C, 'Reinforcements by boat for ' + zone.name); else if (!cmdrFree(team)) C.budget += CCOST.boat; }
-    else if (c.pa <= 0 && cmdrSpend(C, 'para')) { if (paraWave(team, 5 + Math.floor(Math.random() * 3), zone)) cmdrLog(C, 'Reinforcements by transport helicopter' + (zone ? ' to ' + zone.name : '')); else if (!cmdrFree(team)) C.budget += CCOST.para; }
+    if (coastal && boatOK && cmdrSpend(C, 'boat')) { if (boatWave(team)) { C.stats.reinf++; cmdrLog(C, 'Reinforcements by boat for ' + zone.name); } else if (!cmdrFree(team)) C.budget += CCOST.boat; }
+    else if (c.pa <= 0 && cmdrSpend(C, 'para')) { if (paraWave(team, 5 + Math.floor(Math.random() * 3), zone)) { C.stats.reinf++; cmdrLog(C, 'Reinforcements by transport helicopter' + (zone ? ' to ' + zone.name : '')); } else if (!cmdrFree(team)) C.budget += CCOST.para; }
     else if (boatOK && cmdrSpend(C, 'boat')) { if (boatWave(team)) cmdrLog(C, 'Reinforcements by boat'); else if (!cmdrFree(team)) C.budget += CCOST.boat; }
   }
 }
@@ -7227,13 +7238,13 @@ function glRoles(C, g, p) {                                              // the 
 function glAttack(C, g, p) {                                             // assemble, base of fire, signal, assault (bounding, flanking), secure
   const T = C.team; glElements(g); const mem = g.mem; if (!mem.length) return; if (g.ride === mem.length) { g.ph = 'ride'; return; }
   const free = mem.filter(q => !q.vin);
-  if (p.owner === T) { if (g.ph !== 'secure') { g.ph = 'secure'; g.phT = simT; cmdrReport(C, g, 'secured'); } }
+  if (p.owner === T) { if (g.ph !== 'secure') { g.ph = 'secure'; g.phT = simT; cmdrReport(C, g, 'secured'); g.ovr = null; } }
   else if (!g.ph || g.ph === 'ride' || g.ph === 'secure') { g.ph = g.dist > 120 ? 'assemble' : 'bof'; g.phT = simT; g.ap = null; g.fp = null; }
   if (!g.ap) g.ap = glAssembly(g, p); for (const q of free) q.bot.stage = g.ph === 'assemble' ? g.ap : null;
   const ap = g.ap, fire = g.fire, move = g.move, fireAll = fire.concat(g.ow);
   if (g.ph === 'assemble') {
     free.forEach((q, i) => { if (q.bot.el === 'ow') return; const j = glJ(q, 8); glOrder(q, 'go', ap.x + j.x, ap.z + j.z, { tol: 6, g: g.id }); });
-    const fr = glFrac(free.filter(q => q.bot.el !== 'ow'), ap.x, ap.z, 30); if (fr >= 0.7 || g.dist <= 95 || (simT - g.phT > 50 && g.dist < 220)) { g.ph = 'bof'; g.phT = simT; g.fp = null; return glAttack(C, g, p); }            // the next phase's orders go out in the same breath, so nobody carries on with the old one
+    const fr = glFrac(free.filter(q => q.bot.el !== 'ow'), ap.x, ap.z, 30); if (g.pho !== 'hold' && (g.pho === 'advance' || fr >= 0.7 || g.dist <= 95 || (simT - g.phT > 50 && g.dist < 220))) { g.ph = 'bof'; g.phT = simT; g.fp = null; return glAttack(C, g, p); }            // the next phase's orders go out in the same breath, so nobody carries on with the old one
     glRoles(C, g, p); return;
   }
   if (g.ph === 'bof') {
@@ -7241,7 +7252,7 @@ function glAttack(C, g, p) {                                             // asse
     fire.forEach((q) => { const j = glJ(q, 5); glOrder(q, 'go', fp.x + j.x, fp.z + j.z, { tol: 6, g: g.id, then: 'suppress', tx, tz }); });
     for (const q of move) glHold(q, Math.atan2(p.x - q.x, p.z - q.z));
     glRoles(C, g, p); const inFp = fire.length ? glFrac(fire, fp.x, fp.z, 15) : 1;
-    if (!(g.ammo !== undefined && g.ammo < 0.25 && simT - g.phT < 45) && (inFp >= 0.7 || simT - g.phT > 28 || (!fire.length && simT - g.phT > 3))) { g.ph = 'assault'; g.phT = simT; g.signal = simT; g.asT = simT; g.p0 = g.prog; g.bound = null; g.fw = null; g.pinT = 0; g.n0 = Math.max(1, g.n); g.lost = 0; return glAttack(C, g, p); }
+    if (g.pho !== 'hold' && (g.pho === 'advance' || (!(g.ammo !== undefined && g.ammo < 0.25 && simT - g.phT < 45) && (inFp >= 0.7 || simT - g.phT > 28 || (!fire.length && simT - g.phT > 3))))) { g.ph = 'assault'; g.phT = simT; g.signal = simT; g.asT = simT; g.p0 = g.prog; g.bound = null; g.fw = null; g.pinT = 0; g.n0 = Math.max(1, g.n); g.lost = 0; if (g.pho === 'advance') g.pho = null; C.stats.assaults++; return glAttack(C, g, p); }
     return;
   }
   if (g.ph === 'assault') {
@@ -7280,7 +7291,7 @@ function glDefend(C, g, p) {                                             // hold
   const fr = mem.filter(q => Math.hypot(q.x - p.x, q.z - p.z) < 40).length, lossF = g.n0 ? g.lost / g.n0 : 0;
   if (g.ph !== 'fall' && ((en >= 3 && en >= fr * 2 && lossF >= 0.35) || (fr <= 1 && en >= 2 && g.n >= 2 && simT - g.born > 20))) {
     const own = BATTLE.points.filter(o => o !== p && o.owner === T).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0], toward = own || BATTLE.points.find(o => o.owner === T && o.type === 'hq') || { x: p.x - 80, z: p.z }, dx = toward.x - p.x, dz = toward.z - p.z, L = Math.hypot(dx, dz) || 1;
-    g.fb = glSpot(p.x + dx / L * 75, p.z + dz / L * 75); g.ph = 'fall'; g.phT = simT; cmdrReport(C, g, 'fallback', { en, fr });
+    g.fb = glSpot(p.x + dx / L * 75, p.z + dz / L * 75); g.ph = 'fall'; g.phT = simT; C.stats.falls++; cmdrReport(C, g, 'fallback', { en, fr });
   }
   if (g.ph === 'fall') {
     const fb = g.fb, a0 = Math.atan2(p.z - fb.z, p.x - fb.x); mem.forEach((q, i) => { const s = glRing(fb, i, mem.length, 5 + (i % 2) * 3, a0 + Math.PI, 3.2); const o = glOrder(q, 'go', s.x, s.z, { tol: 4, g: g.id, face: a0 }); o.face = a0; });
@@ -7309,9 +7320,9 @@ function cmdrStallCheck(C, g, X) {                                       // an a
   if (g.kind !== 'attack' || g.role === 'reserve' || g.ph !== 'assault' || !g.asT) return; const p = cmdrPt(g.obj); if (!p || p.owner === C.team) return;
   const T = GL.stall[C.pers] * (CDIFF[CMDR.diff] || 1), loss = g.n0 ? g.lost / g.n0 : 0, gain = g.prog - (g.p0 || 0);
   if (g.stalled && simT - g.stalled < 30) return; if (!((simT - g.asT > T && gain < 0.08) || loss >= 0.5)) return;
-  g.stalled = simT; C.bad.set(g.obj, simT + 90); cmdrReport(C, g, 'stalled', { loss: +loss.toFixed(2), gain: +gain.toFixed(2) });
+  g.stalled = simT; C.stats.stalls++; C.bad.set(g.obj, simT + 90); cmdrReport(C, g, 'stalled', { loss: +loss.toFixed(2), gain: +gain.toFixed(2) });
   const resv = C.groups.find(x => x.role === 'reserve' && x.sq.length);
-  if (resv && loss < 0.65 && !(C.commit && C.commit.until > simT)) { C.commit = { until: simT + 50, to: g.obj, why: 'stalled' }; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: reserve committed'); g.asT = simT; g.p0 = g.prog; g.lost = 0; g.n0 = Math.max(1, g.n); }
+  if (resv && loss < 0.65 && !(C.commit && C.commit.until > simT)) { C.commit = { until: simT + 50, to: g.obj, why: 'stalled' }; C.stats.commits++; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: reserve committed'); g.asT = simT; g.p0 = g.prog; g.lost = 0; g.n0 = Math.max(1, g.n); }
   else if (X.att.some(a => a.p.name !== g.obj && a.score > 0.1 && !(C.bad.get(a.p.name) > simT))) { C.mainPt = null; C.force = null; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: main effort moves'); g.ph = null; }
   else { C.forceDef = simT + 40; cmdrLog(C, 'Assault on ' + g.obj + ' stalled: falling back to defence lines'); }
   C.reviewT = -99;
@@ -7411,7 +7422,7 @@ function cmdrConvoy(C, g) {                                              // a sp
   if (!v) return false; const own = BATTLE.points.filter(p => p.owner === team).sort((a, b) => Math.hypot(a.x - g.cx, a.z - g.cz) - Math.hypot(b.x - g.cx, b.z - g.cz))[0]; if (!own || Math.hypot(own.x - g.cx, own.z - g.cz) > 260) return false;
   if (!cmdrSpend(C, 'convoy')) return false; if (!bvCrew(v)) { if (!cmdrFree(team)) C.budget += CCOST.convoy; return false; }
   const A = v.ai, s = bvStand(v, own, 24); A.kind = 'convoy'; A.goal = s; A.st = 'go'; A.path = null; A.req = null; A.arrived = false; A.fails = 0; A.lastPlan = -9; bvAIPlan(v, s.x, s.z);
-  SUP.convoy[team] = { v, dest: own.name, t: simT, gid: g.id }; cmdrLog(C, 'Supply truck sent to ' + own.name + ' for ' + g.id); return true;
+  SUP.convoy[team] = { v, dest: own.name, t: simT, gid: g.id }; C.stats.convoys++; cmdrLog(C, 'Supply truck sent to ' + own.name + ' for ' + g.id); return true;
 }
 function cmdrLogistics(C, X) {                                           // answers to the groups' needs: ammunition, the wounded, a thin line. Supply and medevac are not combat calls, so they are arranged for the player's side as well.
   const team = C.team, c = AIR.cd[team], mine = team === BATTLE.team; let low = null, hurt = null;
@@ -7422,24 +7433,150 @@ function cmdrLogistics(C, X) {                                           // answ
     else if (simT - (C.need.dropT || -99) > 60) {
       C.need.dropT = simT; let did = false;
       if (cmdrConvoy(C, low)) did = true;
-      else { const dz = cmdrDropZone(C, low); if (dz && c.dr <= 0 && cmdrSpend(C, 'drop')) { if (cmdrAirDrop(team, dz)) { did = true; cmdrLog(C, 'Supply drop called for ' + low.id); if (mine) noteOnce('dropcalled' + Math.floor(simT / 30), 'Some of your people are low on ammunition. Headquarters has called a supply drop: look for the coloured smoke.'); } else if (!cmdrFree(team)) C.budget += CCOST.drop; } }
+      else { const dz = cmdrDropZone(C, low); if (dz && c.dr <= 0 && cmdrSpend(C, 'drop')) { if (cmdrAirDrop(team, dz)) { did = true; C.stats.drops++; cmdrLog(C, 'Supply drop called for ' + low.id); if (mine) noteOnce('dropcalled' + Math.floor(simT / 30), 'Some of your people are low on ammunition. Headquarters has called a supply drop: look for the coloured smoke.'); } else if (!cmdrFree(team)) C.budget += CCOST.drop; } }
       if (!did && mine) noteOnce('nodrop' + Math.floor(simT / 60), 'Some of your people are low on ammunition and no supplies can reach them yet.');
     }
   }
-  if (hurt && c.md <= 0 && simT - (C.need.medT || -99) > 70 && cmdrSpend(C, 'medevac')) { C.need.medT = simT; if (callAir(team, 'medevac', { x: hurt.cx, z: hurt.cz })) { cmdrLog(C, 'Medevac to ' + hurt.id); if (mine) noteOnce('medevac' + Math.floor(simT / 40), 'A medevac helicopter is on its way to your wounded.'); } else if (!cmdrFree(team)) C.budget += CCOST.medevac; }
+  if (hurt && c.md <= 0 && simT - (C.need.medT || -99) > 70 && cmdrSpend(C, 'medevac')) { C.need.medT = simT; if (callAir(team, 'medevac', { x: hurt.cx, z: hurt.cz })) { C.stats.medevacs++; cmdrLog(C, 'Medevac to ' + hurt.id); if (mine) noteOnce('medevac' + Math.floor(simT / 40), 'A medevac helicopter is on its way to your wounded.'); } else if (!cmdrFree(team)) C.budget += CCOST.medevac; }
   if (mine && C.budget < 8) noteOnce('supempty' + Math.floor(simT / 90), 'Headquarters is out of supplies for the moment. Hold the points you have: they bring more in.');
   else if (mine && C.budget < SUPMAX * 0.3 && C.budget > 0) noteOnce('suplow' + Math.floor(simT / 120), 'Supplies are running low.');
 }
+/* ================================================================ the player's part (v9.9.16)
+   Three independent settings, all off by default, so the AI commands both sides and nothing changes for anyone who does not want more:
+   COMMANDER MODE (Battle setup or Menu: Off, Port, Raiders; or the Take over and Hand back to AI buttons in the Plan tab): the overview player commands one side. The AI plan keeps running; the player overrides
+   pieces of it (the posture, the main effort, one group's objective, a phase order) and everything is carried out by the same group leaders. The battle never pauses. The commanded side's fire support is the player's
+   (the tablet), supply and medevac stay with headquarters. AI ADVISOR: headquarters briefs the player in plain words and suggests a plan, with Accept, Edit and Ignore; it never blocks and never acts by itself.
+   FREE PLAY: the player can jump into a soldier or the gunship station at any time without giving up command; with it off, jumping in hands the side back to the AI.
+   Whatever the settings, a player who deploys as a soldier gets a short briefing and an objective from headquarters (shown on the compass and the maps, plain words in the HUD line) and can follow or ignore it. */
+const CMDM = { cmdSide: null, want: null, advisor: false, freePlay: false, selG: null, ign: { blue: '', red: '' }, tick: 0 };
+try { const o = JSON.parse(localStorage.getItem('squall-cove-cmdopt') || '{}'); CMDM.advisor = !!o.advisor; CMDM.freePlay = !!o.freePlay; } catch (e) { }
+const cmdmSave = () => { try { localStorage.setItem('squall-cove-cmdopt', JSON.stringify({ advisor: CMDM.advisor, freePlay: CMDM.freePlay })); } catch (e) { } };
+const GNAMES = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf'];
+const CMWORD = { assemble: 'gathering', bof: 'in position', assault: 'assaulting', secure: 'securing', hold: 'holding', fall: 'falling back', ride: 'riding in', ready: 'ready' };
+const CMROLEW = { main: 'main effort', second: 'second effort', defence: 'defence', probe: 'probing', reserve: 'reserve', order: 'on your order' };
+const cmdmSideN = (t) => t === 'blue' ? 'the Port' : 'the ' + BATTLE.redKind, cmdmSideS = (t) => t === 'blue' ? 'Port' : BATTLE.redKind;
+const cmdmNameFor = (C, extra) => { const used = new Set(C.groups.concat(extra || []).map(g => g.name)); return GNAMES.find(n => !used.has(n)) || ('Group ' + (C.groups.length + 1)); };
+function cmdmTake(team, quiet) {                                         // the player takes command of a side: nothing else changes, the AI plan keeps running until it is overridden
+  const C = CMDR.side[team]; if (!BATTLE.on || !C) return false; if (CMDM.cmdSide && CMDM.cmdSide !== team) cmdmBack(CMDM.cmdSide, true);
+  CMDM.cmdSide = team; C.human = true; C.mayCall = false; FIRE.team = team; CMDM.selG = null; CMDM.tick++; cmdrLog(C, 'The player took command');
+  if (!quiet) toast('You command ' + cmdmSideN(team) + '. The AI plan keeps running until you change something.'); try { battleHud(true); if (!$('tablet').hidden) renderTablet(); } catch (e) { } return true;
+}
+function cmdmBack(team, quiet) {                                         // hand a side back: every override is dropped and the AI plan is the plan
+  const C = CMDR.side[team]; if (C) { C.human = false; C.over = { posture: null, main: null }; for (const g of C.groups) { g.ovr = null; g.pho = null; } C.reviewT = -99; cmdrLog(C, 'The player handed command back'); }
+  if (CMDM.cmdSide === team) CMDM.cmdSide = null; CMDM.selG = null; CMDM.tick++; if (!quiet) toast('The AI commands ' + cmdmSideN(team) + ' again.'); try { battleHud(true); if (!$('tablet').hidden) renderTablet(); } catch (e) { }
+}
+function cmdmSetMode(v) { CMDM.want = v === 'off' || !v ? null : v; if (!BATTLE.on) return; if (!CMDM.want) { if (CMDM.cmdSide) cmdmBack(CMDM.cmdSide); } else cmdmTake(CMDM.want); }
+function cmdmSetAdvisor(on) { CMDM.advisor = !!on; cmdmSave(); CMDM.tick++; try { battleHud(true); } catch (e) { } }
+function cmdmSetFree(on) { CMDM.freePlay = !!on; cmdmSave(); CMDM.tick++; }
+function cmdmOnEnter() {                                                 // you jumped into a soldier or the gunship: without Free play that hands the side back
+  if (!BATTLE.on || !CMDM.cmdSide || CMDM.freePlay) return; const t = CMDM.cmdSide; cmdmBack(t, true); toast('You left command, so the AI commands ' + cmdmSideN(t) + ' again. Turn on Free play to keep command while you fight.');
+}
+function cmdmOrder(C, g, ptName, kind) {                                 // send one group to a point: attack it if we do not hold it, hold it if we do
+  const p = cmdrPt(ptName); if (!C || !g || !p) return false; const k = kind || (p.owner === C.team ? 'defend' : 'attack'); g.ovr = { pt: p.name, kind: k, until: simT + 240 }; g.pho = null; C.stats.orders++; C.reviewT = -99; CMDM.tick++;
+  cmdrLog(C, 'Order to ' + g.name + ': ' + (k === 'attack' ? 'attack ' : 'hold ') + p.name); return true;
+}
+function cmdmRelease(C, g) { if (!g) return; g.ovr = null; g.pho = null; C.stats.orders++; C.reviewT = -99; CMDM.tick++; cmdrLog(C, g.name + ' is left to the AI'); }
+function cmdmPosture(C, kind) { C.over.posture = kind || null; C.stats.orders++; C.reviewT = -99; CMDM.tick++; cmdrLog(C, kind ? 'Plan ordered: ' + kind : 'Plan left to the AI'); }
+function cmdmMain(C, ptName) { C.over.main = ptName || null; if (!ptName) C.mainPt = null; C.stats.orders++; C.reviewT = -99; CMDM.tick++; cmdrLog(C, ptName ? 'Main effort ordered: ' + ptName : 'Main effort left to the AI'); }
+function cmdmPhase(C, k) {                                               // a phase order for every attacking group: advance now (the signal), hold in position, or carry on by themselves
+  for (const g of C.groups) if (g.kind === 'attack' && g.role !== 'reserve') g.pho = k === 'clear' ? null : k; C.stats.orders++; CMDM.tick++; cmdrLog(C, k === 'advance' ? 'Phase order: advance now' : k === 'hold' ? 'Phase order: hold in position' : 'Phase order cleared');
+}
+function cmdmFallBack(C) {                                               // every attacking group falls back to hold the nearest point we hold
+  const own = BATTLE.points.filter(p => p.owner === C.team); if (!own.length) return; let n = 0;
+  for (const g of C.groups) { if (g.kind !== 'attack' || g.role === 'reserve' || !g.n) continue; const p = own.slice().sort((a, b) => Math.hypot(a.x - g.cx, a.z - g.cz) - Math.hypot(b.x - g.cx, b.z - g.cz))[0]; if (cmdmOrder(C, g, p.name, 'defend')) n++; }
+  if (n) cmdrLog(C, 'Phase order: fall back');
+}
+function cmdmAdvice(C) {                                                 // headquarters' view for the player's side: a plan, what differs from the player's own orders, and anything worth knowing. Plain words only.
+  const team = C.team, mine = CMDM.cmdSide === team || (!CMDM.cmdSide && BATTLE.team === team) || (!CMDM.cmdSide && !BATTLE.team && team === 'blue'); if (!CMDM.advisor || !mine) { C.advice = null; return; }
+  const held = BATTLE.points.filter(p => p.owner === team).length, n = BATTLE.points.length, seen = [...C.know.values()].filter(k => simT - k.t < 25).length, kind = C.ai ? C.ai.kind : (C.plan ? C.plan.kind : 'attack'), main = C.aiMain;
+  const kw = { attack: 'Attack', hold: 'Hold what we have and probe', defend: 'Defend', reinforce: 'Reinforce the threatened point' };
+  const res = C.groups.filter(g => g.role === 'reserve').reduce((a, g) => a + g.sq.length, 0);
+  const text = (kw[kind] || 'Attack') + (kind === 'attack' && main ? ': the main effort goes for ' + main : '') + (res ? ', with a reserve held back' : '') + '.';
+  const lines = ['We hold ' + held + ' of ' + n + ' points.', seen ? 'Our soldiers can see ' + (seen === 1 ? 'one enemy' : 'some enemies') + ' right now.' : 'We cannot see any enemy right now.', 'Supply is ' + supWord(C) + '.'];
+  const warn = []; for (const g of C.groups) { if (!g.n) continue; if (g.ammo !== undefined && g.ammo < 0.3) warn.push(g.name + ' is low on ammunition.'); if (g.hurt > 0.3) warn.push(g.name + ' has many hurt.'); if (g.stalled && simT - g.stalled < 60) warn.push(g.name + ' has stalled at ' + g.obj + '.'); }
+  const o = C.over || {}, differs = !!((o.posture && o.posture !== kind) || (o.main && o.main !== main) || C.groups.some(g => g.ovr)), sig = kind + '|' + main + '|' + differs;
+  C.advice = { team, text, lines, warn, differs, sig, kind, main, ignored: CMDM.ign[team] === sig };
+}
+function cmdmAccept(C) {                                                 // Accept: do what headquarters suggests, which means dropping every override
+  C.over = { posture: null, main: null }; for (const g of C.groups) { g.ovr = null; g.pho = null; } C.stats.orders++; C.reviewT = -99; CMDM.tick++; cmdrLog(C, 'Headquarters suggestion accepted'); toast('Plan accepted. Headquarters carries it out.');
+}
+function cmdrBrief(team) {                                               // the short briefing a soldier gets: the objective of the group nearest him, in plain words
+  const C = CMDR.side[team]; if (!C || !C.groups.length) return { pt: null, role: 'none', text: 'Headquarters: no orders yet. Hold the points we have and take the others.' };
+  const me = fp.on && fp.p ? fp.p : { x: god.tgt.x, z: god.tgt.z }; let best = null, bd = 1e9; for (const g of C.groups) { if (!g.n) continue; const d = Math.hypot(g.cx - me.x, g.cz - me.z); if (d < bd) { bd = d; best = g; } }
+  const g = best || C.groups[0], p = cmdrPt(g.obj); if (!p) return { pt: null, role: 'none', text: 'Headquarters: stand by.' };
+  const dir = COMPASS8[Math.round(cmpDeg(p.x - g.cx, p.z - g.cz) / 45) % 8], threat = C.know.size ? [...C.know.values()].filter(k => simT - k.t < 25).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0] : null;
+  const tdir = threat ? COMPASS8[Math.round(cmpDeg(threat.x - p.x, threat.z - p.z) / 45) % 8] : null;
+  let text, role = g.role === 'reserve' ? 'reserve' : g.kind === 'defend' ? 'defend' : 'attack';
+  if (role === 'reserve') text = 'Headquarters: stand by at ' + p.name + '. You are in reserve.';
+  else if (role === 'defend') text = 'Headquarters: hold ' + p.name + '.' + (tdir ? ' Enemy movement to the ' + tdir + '.' : ' Nothing seen yet.');
+  else text = 'Headquarters: take ' + p.name + '.' + (g.role === 'main' ? ' This is the main effort.' : '') + ' We are going in from the ' + dir + '.';
+  return { pt: p.name, role, text, group: g.name };
+}
+function hqVoice(text) { try { if (typeof window.__hqVoice === 'function') window.__hqVoice(text); } catch (e) { } }       // the hook for a recorded headquarters voice: set window.__hqVoice(text). Without it nothing is spoken by itself; the Plan tab has Read aloud
+function cmdmBriefPlayer(force) {                                        // at deploy, and again when headquarters changes the soldier's objective
+  const team = BATTLE.team; if (!BATTLE.on || !team || !CMDR.side[team]) return; const b = cmdrBrief(team), old = BATTLE.brief;
+  if (!force && old && old.team === team && old.pt === b.pt && old.role === b.role) return; if (old && old.team === team && !force && simT - old.t < 12) return;
+  BATTLE.brief = { team, pt: b.pt, role: b.role, text: b.text, t: simT }; noteOnce('hqbrief' + Math.floor(simT / 5), b.text); hqVoice(b.text); try { bHudSig.h = null; } catch (e) { }
+}
+function cmdmBars(a, h) {                                                // two thin bars and words for a group: ammunition (gold) and the hurt (red)
+  const aw = a > 0.6 ? 'plenty' : a > 0.3 ? 'some' : 'low', hw = h <= 0 ? 'no one hurt' : h <= 0.25 ? 'a few hurt' : 'many hurt', s = document.createElement('span'); s.className = 'gbars'; s.setAttribute('role', 'img'); s.setAttribute('aria-label', 'Ammunition ' + aw + ', ' + hw);
+  s.innerHTML = '<span class="gb"><i style="width:' + Math.round(clamp(a, 0, 1) * 100) + '%"></i></span><span class="gb h"><i style="width:' + Math.round(clamp(h, 0, 1) * 100) + '%"></i></span>'; return s;
+}
+function cmdmSig() { const t = CMDM.cmdSide || BATTLE.team || 'blue', C = CMDR.side[t]; if (!C) return ''; return t + CMDM.tick + '|' + (CMDM.selG || '') + '|' + C.groups.map(g => g.id + g.n + (g.ph || '') + Math.round((g.ammo === undefined ? 1 : g.ammo) * 5) + Math.round((g.hurt || 0) * 4) + (g.ovr ? 'o' : '')).join(',') + '|' + (C.advice ? C.advice.sig + C.advice.warn.length + C.advice.ignored : '') + '|' + (C.plan ? C.plan.kind + C.plan.main : ''); }
+function cmdmRenderTab(body, head, note) {                               // the Plan tab: who commands, the plan, phase orders, the groups and what headquarters advises
+  const team = CMDM.cmdSide || (BATTLE.team || 'blue'), C = CMDR.side[team], human = CMDM.cmdSide === team;
+  const row = () => { const d = document.createElement('div'); d.className = 'tbOpt'; body.append(d); return d; };
+  head('Headquarters', 'flag');
+  note(CMDM.cmdSide ? 'You command ' + cmdmSideN(CMDM.cmdSide) + '. The AI plan keeps running until you change something, and the battle never pauses.' : 'The AI commands both sides. Take over a side to give orders to its groups.');
+  { const d = row(); for (const t of ['blue', 'red']) { const on = CMDM.cmdSide === t; d.append(mkB((on ? 'Hand back to AI: ' : 'Take over: ') + cmdmSideS(t), on ? 'btn-d' : '', () => { if (on) cmdmBack(t); else cmdmTake(t); renderTablet(); }, { 'aria-pressed': String(on) })); } }
+  if (!C) { note('Start a battle to see its plan.'); return; }
+  if (CMDM.advisor && C.advice) {
+    const a = C.advice, card = document.createElement('div'); card.className = 'tmCard'; const b = document.createElement('b'); b.textContent = 'Headquarters advises'; card.append(b);
+    for (const t of [a.text].concat(a.lines, a.warn)) { const p = document.createElement('p'); p.className = 'tbNote'; p.style.margin = '4px 0'; p.textContent = t; card.append(p); } body.append(card);
+    const d = row(); if (human && a.differs) d.append(mkB('Accept the suggestion', 'btn-p', () => { cmdmAccept(C); renderTablet(); })); else if (!human) d.append(mkB('Take over: ' + cmdmSideS(team), '', () => { cmdmTake(team); renderTablet(); }));
+    d.append(mkB('Edit the plan', '', () => { CMDM.ign[team] = ''; renderTablet(); $('tbBody').scrollTop = 0; })); d.append(mkB('Ignore', '', () => { CMDM.ign[team] = a.sig; CMDM.tick++; try { battleHud(true); } catch (e) { } renderTablet(); }, { 'aria-pressed': String(a.ignored) }));
+  } else if (!CMDM.advisor) note('The AI advisor is off. Turn it on in the Battle setup or the Menu for a briefing and suggestions.');
+  head('Plan', 'chevrons');
+  const kw = { attack: 'attack', hold: 'hold and probe', defend: 'defend', reinforce: 'reinforce' }, ai = C.ai ? C.ai.kind : (C.plan ? C.plan.kind : 'attack');
+  note('AI plan: ' + (kw[ai] || ai) + (C.aiMain && ai === 'attack' ? ', main effort ' + C.aiMain : '') + '.' + (human && (C.over.posture || C.over.main) ? ' Your orders: ' + [C.over.posture ? (kw[C.over.posture] || C.over.posture) : null, C.over.main ? 'main effort ' + C.over.main : null].filter(Boolean).join(', ') + '.' : ''));
+  if (human) {
+    { const d = row(); const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = 'Posture'; d.append(l); for (const [k, n] of [['attack', 'Attack'], ['hold', 'Hold'], ['defend', 'Defend'], ['reinforce', 'Reinforce']]) d.append(mkB(n, '', () => { cmdmPosture(C, C.over.posture === k ? null : k); renderTablet(); }, { 'aria-pressed': String(C.over.posture === k) })); d.append(mkB('AI decides', '', () => { cmdmPosture(C, null); renderTablet(); }, { 'aria-pressed': String(!C.over.posture) })); }
+    head('Main effort', 'flag'); { const d = row(); for (const p of BATTLE.points) { if (p.owner === team) continue; d.append(mkB(p.name, '', () => { cmdmMain(C, C.over.main === p.name ? null : p.name); renderTablet(); }, { 'aria-pressed': String(C.over.main === p.name) })); } d.append(mkB('AI chooses', '', () => { cmdmMain(C, null); renderTablet(); }, { 'aria-pressed': String(!C.over.main) })); }
+    head('Phase order', 'chevrons'); { const d = row(); d.append(mkB('Advance now', '', () => { cmdmPhase(C, 'advance'); renderTablet(); }), mkB('Hold in position', '', () => { cmdmPhase(C, 'hold'); renderTablet(); }), mkB('Fall back', '', () => { cmdmFallBack(C); renderTablet(); }), mkB('Carry on', '', () => { cmdmPhase(C, 'clear'); renderTablet(); })); }
+  }
+  head('Groups', 'person');
+  if (!C.groups.length) note('No groups yet.');
+  for (const g of C.groups) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'wrow'; b.innerHTML = ic('person') + '<span><b></b><small></small></span>'; b.querySelector('b').textContent = g.name + ', ' + (CMROLEW[g.role] || g.role) + (g.ovr ? ' (your order)' : '');
+    b.querySelector('small').textContent = g.n + (g.n === 1 ? ' soldier' : ' soldiers') + ', ' + (CMWORD[g.ph] || (g.kind === 'defend' ? 'holding' : 'moving')) + ' at ' + g.obj + (g.pho ? ', ' + (g.pho === 'hold' ? 'told to hold' : 'told to advance') : ''); b.append(cmdmBars(g.ammo === undefined ? 1 : g.ammo, g.hurt || 0));
+    if (human) { b.setAttribute('aria-pressed', String(CMDM.selG === g.id)); b.addEventListener('click', () => { CMDM.selG = CMDM.selG === g.id ? null : g.id; CMDM.tick++; renderTablet(); }); } body.append(b);
+    if (human && CMDM.selG === g.id) { const d = row(); const l = document.createElement('span'); l.className = 'tbLab'; l.textContent = 'Send ' + g.name + ' to'; d.append(l); for (const p of BATTLE.points) d.append(mkB(p.name + (p.owner === team ? ' (hold)' : ' (attack)'), '', () => { cmdmOrder(C, g, p.name); renderTablet(); }, { 'aria-pressed': String(g.ovr && g.ovr.pt === p.name) })); d.append(mkB('Leave to the AI', '', () => { cmdmRelease(C, g); renderTablet(); })); }
+  }
+  note('Bars: gold is ammunition, red is the hurt. Reserve groups wait until headquarters commits them.');
+}
+function cmdmHqLine() {                                                  // the briefing as one plain line at the top of the first-person view, while it is your objective
+  let el = $('hqLine'); if (!el) { el = document.createElement('div'); el.id = 'hqLine'; el.hidden = true; el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+  const b = BATTLE.brief, show = !!(BATTLE.on && fp.on && b && b.team === BATTLE.team && b.text); if (show && el.textContent !== b.text) el.textContent = b.text; if (el.hidden === show) el.hidden = !show;
+}
+function cmdmChips() {                                                   // the Plan and HQ chips in the battle HUD
+  const adv = $('bAdv'); if (!adv) return; const t = CMDM.cmdSide || BATTLE.team || 'blue', C = CMDR.side[t]; const show = !!(BATTLE.on && CMDM.advisor && C && C.advice && C.advice.differs && !C.advice.ignored); if (adv.hidden === show) adv.hidden = !show;
+}
+function cmdmEndRows(rows) {                                             // the end screen: one plain line per commander
+  for (const t of ['blue', 'red']) { const C = CMDR.side[t]; if (!C) continue; const s = C.stats, p = [], pl = (n, w, ws) => n + ' ' + (n === 1 ? w : ws || w + 's');
+    if (s.assaults) p.push(pl(s.assaults, 'assault')); if (s.stalls) p.push(pl(s.stalls, 'stall')); if (s.commits) p.push('reserve committed ' + pl(s.commits, 'time')); if (s.falls) p.push(pl(s.falls, 'fallback'));
+    if (s.drops) p.push(pl(s.drops, 'supply drop')); if (s.convoys) p.push(pl(s.convoys, 'convoy')); if (s.medevacs) p.push(pl(s.medevacs, 'medevac')); if (s.reinf) p.push(pl(s.reinf, 'reinforcement wave'));
+    rows.push([cmdmSideS(t) + ' commander', C.pers + ', ' + (p.length ? p.join(', ') : 'no major moves') + (C.human ? ', commanded by you' + (s.orders ? ' (' + pl(s.orders, 'order') + ')' : '') : '')]); }
+}
 function cmdrThink(C) {
   if (!C || !BATTLE.on || BATTLE.over) return; const t0 = performance.now(), team = C.team, dt = Math.min(5, simT - C.lastT); C.lastT = simT;
-  C.mayCall = team !== BATTLE.team; C.budget = Math.min(SUPMAX, C.budget + dt * supIncome(team)); if (CHEAT.budget && team === chMy()) C.budget = SUPMAX; if (CHEAT.ammo && team === chMy()) for (const q of people) { const b = q.bot; if (b && b.team === team) b.mags = MAGS; }
+  C.mayCall = team !== BATTLE.team && !C.human; C.budget = Math.min(SUPMAX, C.budget + dt * supIncome(team)); if (CHEAT.budget && team === chMy()) C.budget = SUPMAX; if (CHEAT.ammo && team === chMy()) for (const q of people) { const b = q.bot; if (b && b.team === team) b.mags = MAGS; }
   cmdrInbox(C); const sq = cmdrSquads(team); C.squads = sq; const fr = cmdrKnow(C);
-  for (const p of BATTLE.points) { const prev = C.ownPrev.get(p.name); if (prev === team && p.owner !== team && BATTLE.t > 20) { C.commit = { until: simT + 60, to: p.name, why: 'lost' }; C.force = { pt: p.name, until: simT + 60 }; cmdrLog(C, p.name + ' lost: counter-attack, reserve committed'); C.reviewT = -99; } C.ownPrev.set(p.name, p.owner); }
+  for (const p of BATTLE.points) { const prev = C.ownPrev.get(p.name); if (prev === team && p.owner !== team && BATTLE.t > 20) { C.commit = { until: simT + 60, to: p.name, why: 'lost' }; C.stats.commits++; C.force = { pt: p.name, until: simT + 60 }; cmdrLog(C, p.name + ' lost: counter-attack, reserve committed'); C.reviewT = -99; } C.ownPrev.set(p.name, p.owner); }
   const X = cmdrContext(C, sq, fr); C.ctx = X;
   const sig = BATTLE.points.map(p => p.owner || '-').join('') + sq.length; const flip = sig !== C.ownSig; C.ownSig = sig;
   if (!C.plan || flip || simT - C.reviewT >= 3) {
-    C.reviewT = simT; const post = cmdrPosture(C, X);
-    if (!C.plan || post.kind !== C.plan.kind) { if (!C.plan || simT - C.postureT > 12 || post.kind === 'reinforce') { C.postureT = simT; cmdrLog(C, 'Plan: ' + post.kind); C.plan = { kind: post.kind, since: simT, threatened: post.threatened.map(d => d.p.name) }; } }
+    C.reviewT = simT; const post = cmdrPosture(C, X); C.ai = { kind: post.ai };
+    if (!C.plan || post.kind !== C.plan.kind) { const byOver = !!(C.over && C.over.posture); if (!C.plan || simT - C.postureT > 12 || post.kind === 'reinforce' || byOver || C.plan.byOver) { C.postureT = simT; cmdrLog(C, 'Plan: ' + post.kind + (byOver ? ' (your order)' : '')); C.plan = { kind: post.kind, since: simT, threatened: post.threatened.map(d => d.p.name), byOver }; } }          // the player's order and its withdrawal take effect at once; the AI's own changes wait out the 12 s band
     else C.plan.threatened = post.threatened.map(d => d.p.name);
     C.objs = cmdrObjectives(C, X, { kind: C.plan.kind, threatened: post.threatened }, sq); cmdrGroups(C, X, C.objs, sq);
     const m = C.groups.find(g => g.role === 'main'); C.plan.main = m ? m.obj : null; C.plan.mainKind = m ? m.kind : null;
@@ -7448,6 +7585,7 @@ function cmdrThink(C) {
   for (const g of C.groups) { try { glLead(C, g); } catch (er) { window.__cmdrerr = String(er && er.stack || er); if (guardN++ < 6) console.error('group leader error', er); } }
   for (const g of C.groups) cmdrStallCheck(C, g, X);
   if (simT - C.supT >= 4) { C.supT = simT; try { cmdrLogistics(C, X); } catch (er) { window.__cmdrerr = String(er && er.stack || er); if (guardN++ < 6) console.error('logistics error', er); } cmdrSupport(C, X); }
+  if (simT - C.advT >= 4) { C.advT = simT; try { cmdmAdvice(C); if (team === BATTLE.team && fp.on) cmdmBriefPlayer(); cmdmChips(); } catch (er) { window.__cmdrerr = String(er && er.stack || er); if (guardN++ < 6) console.error('advisor error', er); } }
   CMDR.thinks++; CMDR.ms += (performance.now() - t0 - CMDR.ms) * 0.05;
 }
 function cmdrFrame(dt) {                                                 // the two sides take turns, so each one thinks about once a second (every other second on the phone)
@@ -7455,31 +7593,32 @@ function cmdrFrame(dt) {                                                 // the 
   const team = (CMDR.turn++ & 1) ? 'red' : 'blue'; try { cmdrThink(CMDR.side[team]); } catch (er) { window.__cmdrerr = String(er && er.stack || er); if (guardN++ < 6) console.error('commander error', er); }
 }
 /* ---- the debug overlay (cheat code cmdr): plans, objectives and groups of both sides, on the tactical map and on the overview */
-const CMCOL = { blue: '#6aa8ff', red: '#ff7a66' }, CMROLE = { main: 'M', second: 'S', defence: 'D', probe: 'P', reserve: 'R' };
+const CMCOL = { blue: '#6aa8ff', red: '#ff7a66' }, CMROLE = { main: 'M', second: 'S', defence: 'D', probe: 'P', reserve: 'R', order: 'O' };
 function cmdrArrow(c, x0, y0, x1, y1, w, dash) {
   const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0); if (L < 4) return; c.lineWidth = w; if (dash) c.setLineDash([8, 6]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); c.setLineDash([]);
   const h = 6 + w * 1.6; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x1 - Math.cos(a - 0.45) * h, y1 - Math.sin(a - 0.45) * h); c.lineTo(x1 - Math.cos(a + 0.45) * h, y1 - Math.sin(a + 0.45) * h); c.closePath(); c.fill();
 }
-function cmdrDraw(c, P) {                                                // P(x, z) turns a world position into [screen x, screen y], or [NaN, NaN] when it is off screen
+function cmdrDraw(c, P, only) {                                                // P(x, z) turns a world position into [screen x, screen y], or [NaN, NaN] when it is off screen
   c.save(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 12px sans-serif';
-  for (const team of ['blue', 'red']) { const C = CMDR.side[team]; if (!C) continue; const col = CMCOL[team]; c.strokeStyle = col; c.fillStyle = col;
+  for (const team of ['blue', 'red']) { if (only && team !== only) continue; const C = CMDR.side[team]; if (!C) continue; const col = CMCOL[team]; c.strokeStyle = col; c.fillStyle = col;
     for (const g of C.groups) { const p = cmdrPt(g.obj); if (!p || !g.n) continue; const [x0, y0] = P(g.cx, g.cz), [x1, y1] = P(p.x, p.z); if (!isFinite(x0) || !isFinite(x1)) continue;
       cmdrArrow(c, x0, y0, x1, y1, g.role === 'main' ? 4 : g.role === 'reserve' ? 1.5 : 2.5, g.kind !== 'attack');
       c.fillStyle = 'rgba(10,18,22,.9)'; c.beginPath(); c.arc(x0, y0, 14, 0, 6.283); c.fill(); c.lineWidth = 2; c.stroke(); c.fillStyle = '#fff'; c.fillText((CMROLE[g.role] || '?') + '·' + g.n + (g.ph ? ' ' + g.ph[0] : ''), x0, y0 + 1); c.fillStyle = col;
       if (g.ammo !== undefined) { c.fillStyle = 'rgba(10,18,22,.9)'; c.fillRect(x0 - 14, y0 + 16, 28, 8); c.fillStyle = '#d9b43a'; c.fillRect(x0 - 13, y0 + 17, 26 * g.ammo, 2.5); c.fillStyle = '#e0453a'; c.fillRect(x0 - 13, y0 + 20.5, 26 * (g.hurt || 0), 2.5); c.fillStyle = col; }
+      if (only && g.ap && g.kind === 'attack') { const dx = p.x - g.ap.x, dz = p.z - g.ap.z, L = Math.hypot(dx, dz) || 1, px = -dz / L * 32, pz = dx / L * 32, [lx, ly] = P(g.ap.x + px, g.ap.z + pz), [mx, my] = P(g.ap.x - px, g.ap.z - pz); if (isFinite(lx) && isFinite(mx)) { c.setLineDash([2, 5]); c.lineWidth = 2; c.beginPath(); c.moveTo(lx, ly); c.lineTo(mx, my); c.stroke(); c.setLineDash([]); c.font = '600 11px sans-serif'; c.fillText('Start line', (lx + mx) / 2, (ly + my) / 2 - 9); c.font = '700 12px sans-serif'; } }
       if (g.ap && g.kind === 'attack') { const [ax, ay] = P(g.ap.x, g.ap.z); if (isFinite(ax)) { c.beginPath(); c.moveTo(ax, ay - 6); c.lineTo(ax + 6, ay + 5); c.lineTo(ax - 6, ay + 5); c.closePath(); c.fill(); } }
       if (g.fp && g.kind === 'attack') { const [fx, fy] = P(g.fp.x, g.fp.z); if (isFinite(fx)) c.fillRect(fx - 5, fy - 5, 10, 10); }
       if (g.fw) { const [wx, wy] = P(g.fw.x, g.fw.z); if (isFinite(wx)) { c.beginPath(); c.moveTo(wx, wy - 7); c.lineTo(wx + 7, wy); c.lineTo(wx, wy + 7); c.lineTo(wx - 7, wy); c.closePath(); c.fill(); } } }
     for (const o of C.objs) { const p = cmdrPt(o.pt); if (!p || o.role === 'reserve') continue; const [x, y] = P(p.x, p.z); if (!isFinite(x)) continue; c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); c.arc(x, y, 18 + (team === 'red' ? 5 : 0), 0, 6.283); c.stroke(); c.setLineDash([]); }
-    c.textAlign = 'left'; const ln = (team === 'blue' ? 20 : 38); c.fillStyle = 'rgba(10,18,22,.85)'; c.fillRect(8, ln - 10, 380, 17); c.fillStyle = col; c.fillText((team === 'blue' ? 'Port' : BATTLE.redKind) + ': ' + (C.plan ? C.plan.kind : '-') + ' (' + C.pers + ') main ' + (C.plan && C.plan.main || '-') + ', ' + C.groups.length + ' groups, supply ' + Math.round(C.budget), 12, ln); c.textAlign = 'center'; }
+    c.textAlign = 'left'; const ln = only ? 20 : (team === 'blue' ? 20 : 38); c.fillStyle = 'rgba(10,18,22,.85)'; c.fillRect(8, ln - 10, 380, 17); c.fillStyle = col; c.fillText((team === 'blue' ? 'Port' : BATTLE.redKind) + ': ' + (C.plan ? C.plan.kind : '-') + ' (' + C.pers + ') main ' + (C.plan && C.plan.main || '-') + ', ' + C.groups.length + ' groups, supply ' + Math.round(C.budget), 12, ln); c.textAlign = 'center'; }
   c.restore();
 }
 function cmdrOverlay(on) {                                               // the overview version: a transparent canvas above the scene
-  let cv = CMDR.cv; if (!on || !CMDR.dbg || !BATTLE.on) { if (cv && cv.classList.contains('on')) cv.classList.remove('on'); return; }
+  let cv = CMDR.cv; if (!on || !(CMDR.dbg || CMDM.cmdSide || CMDM.advisor) || !BATTLE.on) { if (cv && cv.classList.contains('on')) cv.classList.remove('on'); return; }
   if (!cv) { cv = CMDR.cv = document.createElement('canvas'); cv.id = 'cmdrCv'; cv.setAttribute('aria-hidden', 'true'); document.body.appendChild(cv); } if (!cv.classList.contains('on')) cv.classList.add('on');
   const W = innerWidth, H = innerHeight, dpr = Math.min(1.5, window.devicePixelRatio || 1); if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H); camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
-  const v = new THREE.Vector3(); cmdrDraw(c, (x, z) => { v.set(x, Math.max(heightAt(x, z), 0) + 4, z).project(camera); return v.z < 1 && v.z > -1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : [NaN, NaN]; });
+  const v = new THREE.Vector3(), only = CMDR.dbg ? null : (CMDM.cmdSide || BATTLE.team || 'blue'); cmdrDraw(c, (x, z) => { v.set(x, Math.max(heightAt(x, z), 0) + 4, z).project(camera); return v.z < 1 && v.z > -1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : [NaN, NaN]; }, only);
 }
 function updateBattle(dt) {
   specUpdate(dt); updateManQ(dt); updateAir(dt); try { fmFrame(dt); } catch (er) { window.__fmerr = String(er && er.stack || er); if (guardN++ < 6) console.error('fire mission error', er); } updateBV(dt); try { ladFrame(dt); } catch (er) { window.__sqerr = String(er && er.stack || er); if (guardN++ < 6) console.error('squad or ladder error', er); } updateTracers(dt); if (!BATTLE.on) return; airAuto(dt); updateKit(dt); BATTLE.t += dt; { const was = (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2; CMD.cd.blue = Math.max(0, CMD.cd.blue - dt); CMD.cd.red = Math.max(0, CMD.cd.red - dt); if (was !== (CMD.cd.blue > 0) + (CMD.cd.red > 0) * 2) { const tb = $('tablet'); if (tb && !tb.hidden) renderTablet(); } } BATTLE.hurtT = Math.max(0, BATTLE.hurtT - dt); const hv = $('bHurt'); if (hv && BATTLE.hurtT <= 0) hv.style.opacity = Math.max(0, +hv.style.opacity - dt * 2);
@@ -7504,6 +7643,7 @@ function endScreen() {                                              // the round
   const h = document.createElement('h3'); h.textContent = won === 'blue' ? 'The Port wins' : 'The ' + redN + ' win'; so.append(h);
   const sub = document.createElement('p'); sub.textContent = BATTLE.team ? (won === BATTLE.team ? 'Your side held the day.' : 'Your side was overrun.') : 'The battle is decided.'; so.append(sub);
   const rows = [['Tickets left', 'Port ' + BATTLE.tickets.blue + ' · ' + redN + ' ' + BATTLE.tickets.red], ['Knock-outs', 'Port ' + BATTLE.kills.blue + ' · ' + redN + ' ' + BATTLE.kills.red], ['Points held', 'Port ' + held('blue') + ' · ' + redN + ' ' + held('red')], ['Battle length', mins + (mins === 1 ? ' minute' : ' minutes')]];
+  cmdmEndRows(rows);
   if (BATTLE.team) rows.push(['Your knock-outs', String(BATTLE.myKills || 0)], ['Times you fell', String(BATTLE.myDeaths || 0)]);
   if (BATTLE.cheated || chAny()) rows.push(['Cheats used', 'Yes. This round is not a clean result.']);
   const st = document.createElement('div'); st.className = 'endStats'; for (const [a, b] of rows) { const x = document.createElement('span'); x.textContent = a; const y = document.createElement('span'); y.textContent = b; st.append(x, y); } so.append(st);
@@ -7582,11 +7722,12 @@ const bHudSig = { t: '', s: '', h: '', o: null, x: '' };
 function objectiveHint() {                                          // one plain line for the battle HUD: what to do next
   if (!BATTLE.on) return ''; if (BATTLE.over) return 'The battle is decided.';
   const sp = BATTLE.spec && people.includes(BATTLE.spec) ? BATTLE.spec : null; if (sp) return 'Watching a ' + (sp.role || 'soldier').toLowerCase() + '. Jump in to take over, or go back to the overview.';
-  const team = BATTLE.team || FIRE.team; if (!team) return 'Capture points to run the other side out of tickets.';
+  const team = BATTLE.team || FIRE.team; if (!team) return 'Capture points to run the other side out of tickets.'; if (fp.on && BATTLE.brief && BATTLE.brief.team === team && BATTLE.brief.text) return BATTLE.brief.text;
   const pos = fp.on && fp.p ? fp.p : { x: god.tgt.x, z: god.tgt.z }; let best = null, bd = 1e9; for (const p of BATTLE.points) if (p.owner !== team) { const d = Math.hypot(p.x - pos.x, p.z - pos.z); if (d < bd) { bd = d; best = p; } }
   return best ? (best.owner ? 'Take ' + best.name + ' back' : 'Capture ' + best.name) : 'Your side holds every point. Hold on.';
 }
 function battleHud(force) {
+  try { cmdmHqLine(); } catch (e) { }
   const h = $('bHud'); if (!h || h.hidden) return; { const sb = $('bSideBtn'), sl = 'Side: ' + (BATTLE.team === 'blue' ? 'Port' : BATTLE.team === 'red' ? BATTLE.redKind : 'watching'); if (sb && sb.textContent !== sl) sb.textContent = sl; }
   const tickH = '<span class="bB">Port ' + BATTLE.tickets.blue + '</span><span class="bPts">' + BATTLE.points.map(p => '<i style="background:' + (p.owner ? (p.owner === 'blue' ? '#2f5d9f' : '#c0392b') : '#999') + (p.nb || p.nr ? ';outline:2px solid #fff' : '') + '" title="' + p.name + ' (' + POINT_TYPES[p.type].name + ')"></i>').join('') + '</span><span class="bR">' + BATTLE.redKind + ' ' + BATTLE.tickets.red + '</span>' + supBarHtml();
   if (tickH !== bHudSig.t) { bHudSig.t = tickH; $('bTick').innerHTML = tickH; }
@@ -7624,7 +7765,7 @@ function deployMenu() {                                             // knocked o
 function deploy(p) {
   const me = fp.p || people.find(q => q.role === 'You'); if (!me) return; let x = p.x, z = p.z; for (let n = 0; n < 12; n++) { const a = Math.random() * 6.283, d = 3 + Math.random() * 8, xx = p.x + Math.cos(a) * d, zz = p.z + Math.sin(a) * d; if (standY(xx, zz) > 0.5) { x = xx; z = zz; break; } }
   me.hp = 100; me.koUntil = 0; me.x = x; me.z = z; me.y = standY(x, z); if (me.state === 'rag') standUp(me); me.x = x; me.z = z; me.y = standY(x, z); BATTLE.down = false; Snd.ui('ui_respawn', 0.7); $('bSpawn').hidden = true; fp.ammo = {}; fp.reload = 0; fp.vx = fp.vz = 0;
-  sqdBind(me); fp.nades = 3; fp.c4 = 3; fp.smokes = 2; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
+  sqdBind(me); try { cmdmBriefPlayer(true); } catch (e) { } fp.nades = 3; fp.c4 = 3; fp.smokes = 2; if (fp.on) { fpSetTool(kitTools()[0]); if (!isTouch) lockPointer(); }
   if (BATTLE.kit === 'gunship' && fp.on && BATTLE.team) setTimeout(() => { try { if (fp.on && BATTLE.kit === 'gunship') stnOpenFor(BATTLE.team, { op: true, free: true }); } catch (e) { window.__sqerr = String(e && e.stack || e); } }, 80);
 }
 function playBattle(team) {
@@ -10000,13 +10141,15 @@ const KEYMAP = [
   ['over', 'Shift + drag', 'Box-select. Double-click picks every one on screen. Ctrl + A selects all. Ctrl + 5 to 9 saves a group, 5 to 9 recalls it', 'h'],
   ['over', '1 to 4', 'Tools: Select, Place, Land, Sky'],
   ['over', 'Esc', 'Stand down fire control, leave the helm, deselect, or open this menu'],
-  ['over', 'T', 'Command: fire, support, squad and points', 'h'],
+  ['over', 'T', 'Command: fire, support, squad, plan and points', 'h'],
+  ['over', 'Shift + T', 'Command, Plan tab: who commands each side, the AI plan, your orders, the groups and what headquarters advises'],
   ['over', ';', 'Pause or resume the clock (Sky tool, Time passes). Time passes: Off, Slow, Normal (a full day in 24 minutes), Fast, Real time, or your own speed; the sky, sun, moon, stars and lights follow the clock'],
   ['fp', ';', 'Pause or resume the clock when Time passes is on'],
   ['over', 'L', 'Tactical map: the whole battlefield with a grid, range rings, fire data and adjust fire. Drag to pan, wheel or pinch to zoom, tap to mark a target', 'h'],
   ['over', 'Symbols', 'More, then Symbols: from far away, friends show as a blue rectangle and hostile units as a red diamond, each with a small picture inside (crossed lines infantry, oval armour, dot gun, wings aircraft, waves boat). A letter marks each point. Squads show as one mark with the squad name when you zoom in. Many marks merge into one with a count'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
+  ['over', 'Menu, Settings, Command', 'Commander mode (Off, Port, Raiders), AI advisor (Off, On) and Free play (Off, On). All off by default, independent of one another, and none pauses the battle. Free play lets you jump into a soldier or the gunship without giving up command'],
   ['over', 'Menu, Settings, Air distortion', 'Bends the air over big blasts (a quick ripple that passes through the view) and over fires, lava and hot engines (a soft shimmer). On by default on desktop, off on the phone, off when your device asks for less motion, and it pauses itself if play gets slow. Also seen through the gunship sensor views'],
   ['over', '` (backtick)', 'Cheat prompt: a one-line box at the foot of the screen, here and in every other mode (first person, vehicles, the helm, the gunship station). Type a few letters, Tab completes, Enter runs, Esc closes. Type ? for every code, or panel for the full panel (also Menu, Settings)'],
   ['over', 'Enter, then /', 'Cheat prompt, the same as the backtick key'],
@@ -10058,6 +10201,7 @@ const KEYMAP = [
   ['fp', 'K', 'Squad hold fire, or free fire'],
   ['fp', 'E at a ladder', 'Climb a ladder (stand at its foot and face it, or stand at the top to go down). W and S climb, Space jumps off, E lets go. You can look 50 degrees either way and your weapon is put away', 'h'],
   ['fp', 'T', 'Command'],
+  ['fp', 'Shift + T', 'Command, Plan tab: headquarters, the plan and the groups'],
   ['fp', 'L', 'Tactical map (the same map as in the overview). Esc or L closes it'],
   ['fp', 'B', 'Detonate placed charges'],
   ['fp', 'Y', 'Swap to the nearest friendly soldier'],
@@ -10092,6 +10236,7 @@ const KEYMAP = [
   ['stn', 'M, T, Esc', 'Gunship station: M also steps the sensor, T tracks or releases the unit under the reticle, Esc leaves the station and releases the mouse'],
   ['tab', 'Fire', 'Lightning, missile, bomb, mortar rounds, artillery, air strike, Griffon or gunship cover. From the overview, arm one then tap the map. Esc stands down. In a battle each call costs tickets (1, 2 or 3 by size) and the whole side then waits for the command to recharge; the Battle tab can set Command power to free'],
   ['tab', 'Fire mission', 'Marking a target opens a fire mission. The Fire tab lists what could fire on it (mortar pits, howitzers, vehicles, aircraft, your squad, snipers, anti-armour teams, gun nests). Tick any number and press Execute. Cease fire stops them. A destroyed person or vehicle clears the marker by itself. Ground cover fire carries on until you cease it'],
+  ['tab', 'Plan', 'Headquarters. Take over a side or hand it back to the AI (the battle never pauses), see the AI plan and your own orders (posture, main effort, a phase order: advance now, hold in position, fall back, carry on), send a group to a point, and read what the AI advisor suggests: Accept, Edit or Ignore. Bars show each group\'s ammunition (gold) and the hurt (red)'],
   ['tab', 'Map', 'Opens the tactical map (also the L key). Range rings, fire data (bearing, elevation, flight time, spread), danger close warning, shell types and adjust fire'],
   ['tab', 'Support', 'Calls for your side, with Ready, Recharging or Offline shown: Griffon, gunship, attack helicopter, medevac, air strike, artillery, battery barrage, troop transport, boat landing. Shot-down aircraft stay offline for a while'],
   ['tab', 'Squad', 'Follow me, hold here, move to your crosshair, attack that, defend this point, take cover, fall back, suppress, heal me, mount up or dismount, plus formation (wedge, line, column), hold fire and ping. The same orders as the ring (hold N)'],
@@ -12775,7 +12920,7 @@ function updateBomber(dt, t) {
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
 function qaTick(dt) { world.step(1 / 60, dt, 5); armedLayer(dt); updateBattle(dt); updatePeople(dt, simT); }      // test hook: one fixed simulation step without the renderer (the frame loop is paused with window.__qaHold)
-window.__sc = { senseEnemy, torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire, CMDR, CPERS, cmdrThink, cmdrKnow, cmdrSquads, cmdrContext, cmdrStr, cmdrPt, cmdrReset, cmdrPosture, cmdrSpend, cmdrSupport, cmdrObjectives, cmdrGroups, cmdrFrame, glThink, glLead, glAttack, glDefend, glReserve, glBound, glElements, glPickFP, glAssembly, glOrder, GL, cmdrStallCheck, cmdrReport, cmdrInbox, bvAIInit, bvFindSquad, cmdrGroupReset, SUP, supplyStep, supplyGive, cmdrAirDrop, cmdrLogistics, cmdrConvoy, cmdrDropZone, supplySource, glResupply, supIncome, ammoK, SUPMAX, MAGS, cargoStep, supWord, CCOST, supBarHtml, bvAIThink };
+window.__sc = { senseEnemy, torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire, CMDR, CPERS, cmdrThink, cmdrKnow, cmdrSquads, cmdrContext, cmdrStr, cmdrPt, cmdrReset, cmdrPosture, cmdrSpend, cmdrSupport, cmdrObjectives, cmdrGroups, cmdrFrame, glThink, glLead, glAttack, glDefend, glReserve, glBound, glElements, glPickFP, glAssembly, glOrder, GL, cmdrStallCheck, cmdrReport, cmdrInbox, bvAIInit, bvFindSquad, cmdrGroupReset, SUP, supplyStep, supplyGive, cmdrAirDrop, cmdrLogistics, cmdrConvoy, cmdrDropZone, supplySource, glResupply, supIncome, ammoK, SUPMAX, MAGS, cargoStep, supWord, CCOST, supBarHtml, bvAIThink, CMDM, cmdmTake, cmdmBack, cmdmSetMode, cmdmSetAdvisor, cmdmSetFree, cmdmOrder, cmdmRelease, cmdmPosture, cmdmMain, cmdmPhase, cmdmFallBack, cmdmAdvice, cmdmAccept, cmdmBriefPlayer, cmdrBrief, cmdmRenderTab, cmdmSig, cmdmEndRows, cmdmOnEnter, hqVoice, battleHud, renderTablet, toggleTablet, openCommand, deploy, jumpIn };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -12795,6 +12940,9 @@ function renderSetup() {
   { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick a map. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
     for (const k of BATTLE_KEYS) { if (ED.phone && k !== 'port' && MAP.t !== k) continue; const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
   { const g = grp('Sides and enemy'); say1(g, 'You fight for, or command, this side.'); chips(g, [['blue', 'Port'], ['red', redN]], side, v => { SETUP.side = v; }); say1(g, 'Port is always the blue side. The red side is:', true); chips(g, [['Raiders', 'Raiders'], ['Invaders', 'Invaders']], redN, v => { BATTLE.redKind = v; }); }
+  { const g = grp('Command', 'The AI commands both sides unless you change this. None of these pauses the battle.'); say1(g, 'Commander mode: command one side from the overview and give orders to its groups.'); chips(g, [['off', 'Off'], ['blue', 'Port'], ['red', redN]], CMDM.want || 'off', v => cmdmSetMode(v));
+    say1(g, 'AI advisor: headquarters briefs you and suggests a plan. It never blocks anything.', true); chips(g, [['off', 'Off'], ['on', 'On']], CMDM.advisor ? 'on' : 'off', v => cmdmSetAdvisor(v === 'on'));
+    say1(g, 'Free play: jump into a soldier or the gunship at any time without giving up command.', true); chips(g, [['off', 'Off'], ['on', 'On']], CMDM.freePlay ? 'on' : 'off', v => cmdmSetFree(v === 'on')); }
   { const g = grp('Time of day', 'The sky follows the clock. Time passes: Normal is a full day in 24 real minutes.'); chips(g, [['dawn', 'Dawn'], ['day', 'Day'], ['golden', 'Golden'], ['dusk', 'Dusk'], ['night', 'Night']], wx.sky, v => { wx.sky = v; });
     chips(g, [['off', 'Time: fixed'], ['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']], tod.run ? tod.preset : 'off', v => { todSetMode(v); });
     { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = 0; i.max = 23.75; i.step = 0.25; i.value = Math.floor(todHour() * 4) / 4; i.setAttribute('aria-label', 'Start time'); l.textContent = 'Start time: ' + todClockText(+i.value);
@@ -12815,7 +12963,7 @@ $('tbRead').addEventListener('click', () => say($('tbBody').innerText));
 onKey((e) => { if (e.key === 'Escape' && !$('bSetup').hidden) { closeSetup(); e.preventDefault(); } });
 /* the persistent Command button and the other entrances: one panel, one name */
 $('cmdBtn').addEventListener('click', () => { if ($('tablet').hidden) openCommand('fire'); else toggleTablet(false); });
-$('bSideBtn').addEventListener('click', () => sidePicker((t) => { battleHud(true); })); $('bTab').addEventListener('click', () => openCommand('fire')); $('fpTab').addEventListener('click', () => openCommand('fire'));
+$('bSideBtn').addEventListener('click', () => sidePicker((t) => { battleHud(true); })); $('bTab').addEventListener('click', () => openCommand('fire')); $('bPlan').addEventListener('click', () => openCommand('plan')); $('bAdv').addEventListener('click', () => openCommand('plan')); $('fpTab').addEventListener('click', () => openCommand('fire'));
 $('mFire').addEventListener('click', () => { closeMenu(); openCommand('fire'); });
 $('mBattle').addEventListener('click', () => { closeMenu(); openBattleSetup(); });
 $('bJump').addEventListener('click', () => { jumpIn(); battleHud(); }); $('bGunB').addEventListener('click', () => gunshipFromOverview()); $('bGun').addEventListener('click', () => gunshipFromOverview()); $('bSpec').addEventListener('click', () => { specNext(1); battleHud(); }); $('bOver').addEventListener('click', () => battleHud());
@@ -12838,6 +12986,14 @@ paintDistort();
 applyLook();
 /* the Menu in four tabs: Play, Settings, Help, App */
 { const tabs = menuMain.querySelectorAll('.mtabs button'), secs = menuMain.querySelectorAll('.mtab'); const show = (id) => { tabs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mt === id))); secs.forEach(s => { s.hidden = s.dataset.mt !== id; }); }; tabs.forEach(b => b.addEventListener('click', () => show(b.dataset.mt))); show('play'); }
+(function cmdmMenuInit() {                                               // the three settings in the Menu, Settings tab
+  const st = menuMain.querySelector('.mtab[data-mt="settings"]'); if (!st) return; const h = document.createElement('div'); h.className = 'mhead'; h.textContent = 'Command'; const g = document.createElement('div'); g.className = 'mgrid';
+  const mk = (id) => { const b = document.createElement('button'); b.type = 'button'; b.id = id; return b; }, bm = mk('mCmdMode'), ba = mk('mAdvisor'), bf = mk('mFreePlay');
+  const paint = () => { bm.textContent = 'Commander mode: ' + (CMDM.cmdSide || CMDM.want ? cmdmSideS(CMDM.cmdSide || CMDM.want) : 'Off'); bm.setAttribute('aria-pressed', String(!!(CMDM.cmdSide || CMDM.want))); ba.textContent = 'AI advisor: ' + (CMDM.advisor ? 'On' : 'Off'); ba.setAttribute('aria-pressed', String(CMDM.advisor)); bf.textContent = 'Free play: ' + (CMDM.freePlay ? 'On' : 'Off'); bf.setAttribute('aria-pressed', String(CMDM.freePlay)); };
+  bm.addEventListener('click', () => { const cur = CMDM.cmdSide || CMDM.want || 'off'; cmdmSetMode(cur === 'off' ? 'blue' : cur === 'blue' ? 'red' : 'off'); paint(); }); ba.addEventListener('click', () => { cmdmSetAdvisor(!CMDM.advisor); paint(); }); bf.addEventListener('click', () => { cmdmSetFree(!CMDM.freePlay); paint(); });
+  g.append(bm, ba, bf); const nt = document.createElement('p'); nt.className = 'mnote'; nt.textContent = 'Commander mode lets you command one side from the overview. The AI advisor briefs you and suggests plans. Free play lets you jump into a soldier or the gunship without giving up command. All three are off until you turn them on, and none of them pauses the battle.'; st.append(h, g, nt); paint(); st.addEventListener('click', () => setTimeout(paint, 0));
+  window.__cmdmPaint = paint;
+})();
 /* ================================================================ the player's own squad: binding, orders, formation, markers, command ring, HUD
    Tuning constants (all in one place): SQD_MAX 5 mates (4 on a phone); regroup beyond 35 m; slot tolerance 5.5 m; bounding switches every 3.2 s;
    Suppress lasts 8 s; Take cover and Fall back lapse after 20 s; the squad thinks every frame but only re-plans a walk every 0.6 s; markers show to 70 m. */
@@ -14760,6 +14916,7 @@ function tmDraw() {
   const tcol = team === 'blue' ? '#6aa8ff' : '#ff7a66', ecol = team === 'blue' ? '#ff7a66' : '#6aa8ff';
   if (BATTLE.on) for (const p of BATTLE.points) { const x = X(p.x), z = Z(p.z), r = Math.max(6, p.r * s), oc = p.owner === 'blue' ? '#6aa8ff' : p.owner === 'red' ? '#ff7a66' : '#bfc4c4'; c.fillStyle = oc + '26'; c.strokeStyle = oc; c.lineWidth = 2; c.beginPath(); c.arc(x, z, r, 0, 6.283); c.fill(); c.stroke();
     c.fillStyle = 'rgba(12,20,24,0.85)'; c.beginPath(); c.arc(x, z, 11, 0, 6.283); c.fill(); c.strokeStyle = oc; c.lineWidth = 2; c.stroke(); c.fillStyle = '#f1ece2'; c.font = '700 13px sans-serif'; c.textAlign = 'center'; c.fillText(POINT_TYPES[p.type].ch || '·', x, z + 1); c.textAlign = 'left'; c.font = '600 12px sans-serif'; c.fillStyle = '#f1ece2'; c.fillText(p.name, x + 14, z - 12); }
+  if (BATTLE.on && BATTLE.brief && BATTLE.brief.team === team) { const bp = BATTLE.points.find(q => q.name === BATTLE.brief.pt); if (bp) { c.strokeStyle = '#ffd23f'; c.lineWidth = 3; c.setLineDash([6, 4]); c.beginPath(); c.arc(X(bp.x), Z(bp.z), Math.max(14, bp.r * s) + 6, 0, 6.283); c.stroke(); c.setLineDash([]); } }          // headquarters' objective for you
   // range rings for every gun you can use: dashed, in the gun's colour, labelled
   if (TMAP.rings !== 'off') { let li = 0; for (const g of GUNS) { const sel = TMAP.sel.has(g.id); if (TMAP.rings === 'sel' && !sel) continue; const x = X(g.x), z = Z(g.z); c.setLineDash([7, 6]); c.strokeStyle = g.col; c.globalAlpha = sel ? 1 : 0.45; c.lineWidth = sel ? 2.4 : 1.4;
       c.beginPath(); c.arc(x, z, g.max * s, 0, 6.283); c.stroke(); if (g.min > 5) { c.beginPath(); c.arc(x, z, g.min * s, 0, 6.283); c.stroke(); } c.setLineDash([]);
@@ -14789,7 +14946,7 @@ function tmDraw() {
     if (TMAP.aim) { c.strokeStyle = '#ffe45c'; c.lineWidth = 2; c.beginPath(); c.arc(ax, az, 6, 0, 6.283); c.moveTo(ax - 12, az); c.lineTo(ax + 12, az); c.moveTo(ax, az - 12); c.lineTo(ax, az + 12); c.stroke(); } }
   for (const g of GUNS) { const x = X(g.x), z = Z(g.z), sel = TMAP.sel.has(g.id); if (sel) { c.strokeStyle = '#ffffff'; c.lineWidth = 2.5; c.beginPath(); c.arc(x, z, 11, 0, 6.283); c.stroke(); } }
   if (fp.on && fp.p) { const x = X(fp.p.x), z = Z(fp.p.z); c.save(); c.translate(x, z); c.rotate(Math.atan2(Math.sin(fp.yaw), -Math.cos(fp.yaw))); c.fillStyle = '#ffffff'; c.strokeStyle = '#10181b'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(0, -9); c.lineTo(6.5, 7); c.lineTo(0, 3.5); c.lineTo(-6.5, 7); c.closePath(); c.fill(); c.stroke(); c.restore(); }
-  if (CMDR.dbg && BATTLE.on) cmdrDraw(c, (x, z) => [X(x), Z(z)]);
+  if ((CMDR.dbg || CMDM.cmdSide || CMDM.advisor) && BATTLE.on) cmdrDraw(c, (x, z) => [X(x), Z(z)], CMDR.dbg ? null : (CMDM.cmdSide || tabletSide()));
   // scale bar and north
   let L = 500; for (const cand of [10, 20, 50, 100, 200, 500]) if (cand * s >= 70) { L = cand; break; } c.fillStyle = 'rgba(8,16,20,0.75)'; c.fillRect(10, H - 38, L * s + 20, 24); c.fillStyle = '#f1ece2'; c.fillRect(20, H - 22, L * s, 3); c.font = '600 12px sans-serif'; c.fillText(L + ' m', 22, H - 28);
   c.fillStyle = 'rgba(8,16,20,0.75)'; c.beginPath(); c.arc(W - 28, 34, 18, 0, 6.283); c.fill(); c.fillStyle = '#f1ece2'; c.textAlign = 'center'; c.font = '700 13px sans-serif'; c.fillText('N', W - 28, 24); c.beginPath(); c.moveTo(W - 28, 29); c.lineTo(W - 23, 44); c.lineTo(W - 33, 44); c.closePath(); c.fill(); c.textAlign = 'left';
@@ -14982,6 +15139,7 @@ let stnBuilt = false;
 function stnPick(team) { return AIR.list.find(a => a.kind === 'gunship' && a.team === team && !a.down) || null; }
 const S0op = (o) => !!(o && o.op);
 function stnOpenFor(team, o) {
+  try { cmdmOnEnter(); } catch (e) { }
   o = o || {}; if (STN.on) return true; if (BATTLE.over) return false; team = team || BATTLE.team || 'blue';
   let u = stnPick(team); const hot = hotSpot(team), st0 = o.at ? { x: o.at.x, z: o.at.z } : fp.on && S0op(o) ? (hot || { x: fp.p.x, z: fp.p.z }) : (!fp.on && Math.abs(god.tgt.x) < EXT && Math.abs(god.tgt.z) < EXT ? { x: god.tgt.x, z: god.tgt.z } : (hot || { x: 0, z: 0 }));
   if (!u) {
@@ -15564,7 +15722,7 @@ var SA = null;
     const rel = (dx, dz) => { let d = brg(dx, dz) - hd; d = ((d + 540) % 360) - 180; return d; };
     const mk = (kind, d, draw, clampIt) => { if (!clampIt && Math.abs(d) > span / 2) return; const x = edge(d, 9), off = Math.abs(d) > span / 2; c.globalAlpha = off ? 0.55 : 1; draw(x, sy); c.globalAlpha = 1; marks.push({ k: kind, brg: ((hd + d) % 360 + 360) % 360, off }); };
     c.lineJoin = 'round';
-    for (const o of OBJ_NEAR(ox, oz)) mk('obj', rel(o.p.x - ox, o.p.z - oz), (x, y) => { c.fillStyle = 'rgba(12,20,24,.9)'; c.beginPath(); c.arc(x, y, 8, 0, 6.283); c.fill(); c.lineWidth = 2.4; c.strokeStyle = o.col; c.stroke(); c.fillStyle = '#fff'; c.font = '700 11px sans-serif'; c.fillText(o.ch, x, y + 0.5); }, true);
+    for (const o of OBJ_NEAR(ox, oz)) mk('obj', rel(o.p.x - ox, o.p.z - oz), (x, y) => { c.fillStyle = 'rgba(12,20,24,.9)'; c.beginPath(); c.arc(x, y, 8, 0, 6.283); c.fill(); c.lineWidth = o.brief ? 3.8 : 2.4; c.strokeStyle = o.brief ? '#ffd23f' : o.col; c.stroke(); c.fillStyle = '#fff'; c.font = '700 11px sans-serif'; c.fillText(o.ch, x, y + 0.5); if (o.brief) { c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(x - 5, y - 15); c.lineTo(x + 5, y - 15); c.lineTo(x, y - 9); c.closePath(); c.fill(); } }, true);
     const lead = SQD.on && fp.on ? sqdLeader() : null;
     for (const q of mates()) { const d = rel(q.x - ox, q.z - oz); mk(q === lead ? 'leader' : 'squad', d, (x, y) => { c.fillStyle = '#6fa8ff'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); if (q === lead) c.rect(x - 4.5, y - 4.5, 9, 9); else c.arc(x, y, 3.6, 0, 6.283); c.fill(); c.stroke(); }, q === lead); }
     for (const e of contacts(ox, oz)) mk('enemy', rel(e.x - ox, e.z - oz), (x, y) => { c.fillStyle = '#ff4b3a'; c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y - 6); c.lineTo(x + 6, y); c.lineTo(x, y + 6); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke(); }, false);
@@ -15576,7 +15734,7 @@ var SA = null;
   }
   function OBJ_NEAR(ox, oz) {                                                       // the nearest three points, by their letters
     if (!BATTLE.on) return []; const my = myTeam(), r = BATTLE.points.map((p, i) => ({ p, ch: ptLetter(i), d: Math.hypot(p.x - ox, p.z - oz), col: p.owner === 'blue' ? OWN.blue : p.owner === 'red' ? OWN.red : OWN.none }));
-    r.sort((a, b) => a.d - b.d); void my; return r.slice(0, 3);
+    r.sort((a, b) => a.d - b.d); void my; const out = r.slice(0, 3), bp = BATTLE.brief && BATTLE.brief.team === my && BATTLE.brief.pt; if (bp) { const f = r.find(x => x.p.name === bp); if (f) { f.brief = true; if (!out.includes(f)) out.push(f); } } return out;
   }
 
   /* ---- the corner map and the Quick map: the same drawing at two sizes */
@@ -15687,7 +15845,7 @@ var SA = null;
   addEventListener('DOMContentLoaded', symBtn);
   { const b = $('bSym'); if (b) b.addEventListener('click', () => { setSym(!symOn()); toast(symOn() ? 'Symbols on.' : 'Symbols off.'); }); }
   build(); /* made at load, hidden until first person, so every control exists from the start */
-  SA = { TMAP, tmKey, S, collect, qmOpen, qmClose, setMini, setSym, symOn, miniOn, headingDeg, brg, drawCompass, drawMap, build, contacts, origin, merge, fitTeam, buildAtlas, drawSymbols, frame, qmPaint };
+  SA = { TMAP, tmKey, S, collect, qmOpen, qmClose, setMini, setSym, symOn, miniOn, headingDeg, brg, drawCompass, drawMap, build, contacts, origin, merge, fitTeam, buildAtlas, drawSymbols, frame, qmPaint, OBJ_NEAR };
   window.__sc.SA = SA;
 })();
 /*SA-END*/

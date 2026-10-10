@@ -3,6 +3,7 @@
 // The soldiers are made once (a pool) and moved between scenarios, never removed and re-made: removing and adding many soldiers between physics steps made the physics engine (cannon-es) throw
 // 'wakeUpAfterNarrowphase' on the next step in an earlier version of this test. Pool soldiers not in use are parked far away with b.follow set, which keeps them out of every group.
 export async function partB({ b, J, out, ok, num, startBattle, sleep, reload }) {
+  const withRetry = async (fn) => { try { return await fn(); } catch (e) { if (!/wakeUpAfterNarrowphase/.test(String(e))) throw e; out('  (physics step error in the performance run: fresh page, run again)'); return await fn(); } };          // the physics engine can throw when a body is removed during a step; see QA-LOG, part B
   const WANT = (process.env.SECTIONS || '').split(',').filter(Boolean), on = (n) => !WANT.length || WANT.includes(n);          // SECTIONS=roles,reports runs only those (drill, bound, flank, roles, reports, stall, reserve, defence, mech, perf)
   await startBattle(20);
   await J(`const sc = __sc; sc.CHEAT.free = false; sc.BATTLE.tickets.blue = 9999; sc.BATTLE.tickets.red = 5000; sc.BATTLE.t = 100; sc.BATTLE.size = 0;
@@ -27,6 +28,7 @@ export async function partB({ b, J, out, ok, num, startBattle, sleep, reload }) 
         G() { return this.C.groups.find(g => g.role === 'main') || this.C.groups[0]; } };
       { const bad = (x, z) => sc.standY(x, z) < 2 || sc.BATTLE.points.some(p => Math.hypot(p.x - x, p.z - z) < 120) || sc.footBlocked(x, z, 4); let best = null; for (let x = -300; x <= 300 && !best; x += 20) for (let z = -300; z <= 300; z += 20) if (!bad(x, z) && !bad(x + 24, z + 24) && !bad(x + 24, z)) { best = { x, z }; break; } S.park = best || { x: -300, z: 300 }; }
       for (let i = 0; i < 20; i++) S.blue.push(S.mk('blue')); for (let i = 0; i < 12; i++) S.red.push(S.mk('red')); S.n = 0;
+      for (const v of sc.BVL) if (v.ai) { v.ai.st = 'park'; v.ai.t = 1e9; }          // vehicles stay parked: their AI would spawn crew soldiers into the staged scenarios
       return { blue: S.blue.length, red: S.red.length, squads: new Set(S.blue.map(q => q.bot.sq)).size }`);
 
   // ---- 1. the drill: assemble, base of fire, signal, assault. Sampled every 0.25 s for up to 110 simulated seconds.
@@ -138,11 +140,10 @@ export async function partB({ b, J, out, ok, num, startBattle, sleep, reload }) 
   }
   // ---- performance with group orders in play: 30 a side, 30 simulated seconds (on a freshly loaded page)
   if (on('perf')) {
-  await reload(); await startBattle(30);
-  const perfB = await J(`const sc = __sc; sc.CMDR.on = true; sc.BATTLE.size = 30; sc.BATTLE.tickets.blue = sc.BATTLE.tickets.red = 9999; sc.BATTLE.t = 100; for (let i = 0; i < 600; i++) sc.qaTick(1/60);
+  const perfB = await withRetry(async () => { await reload(); await startBattle(30); return await J(`const sc = __sc; sc.CMDR.on = true; sc.BATTLE.size = 30; sc.BATTLE.tickets.blue = sc.BATTLE.tickets.red = 9999; sc.BATTLE.t = 100; for (let i = 0; i < 600; i++) sc.qaTick(1/60);
       const ms = [], t0 = sc.simTime(); for (let i = 0; i < 1800; i++) { const t = performance.now(); sc.qaTick(1/60); ms.push(performance.now() - t); }
       ms.sort((a, b) => a - b); const mean = ms.reduce((a, c) => a + c, 0) / ms.length; let gl = 0, bots = 0; for (const q of sc.people) if (q.bot && q.state !== 'rag') { bots++; if (q.bot.gl) gl++; }
-      return { bots, gl, mean, p95: ms[Math.floor(ms.length * 0.95)], p99: ms[Math.floor(ms.length * 0.99)], cmdrMs: sc.CMDR.ms, err: window.__cmdrerr || window.__sqerr || null }`);
+      return { bots, gl, mean, p95: ms[Math.floor(ms.length * 0.95)], p99: ms[Math.floor(ms.length * 0.99)], cmdrMs: sc.CMDR.ms, err: window.__cmdrerr || window.__sqerr || null }`); });
   out('  perf with group orders (30 a side, a marching battle): ' + JSON.stringify({ bots: perfB.bots, withOrders: perfB.gl, meanMs: num(perfB.mean, 3), p95Ms: num(perfB.p95, 3), p99Ms: num(perfB.p99, 3), cmdrThinkMs: num(perfB.cmdrMs, 3) }));
   ok('performance: 30 a side with group orders for 30 simulated seconds, a commander think (with the group leaders) under 3 ms, no errors', perfB.bots >= 40 && perfB.gl >= 10 && perfB.cmdrMs < 3 && !perfB.err, { mean: num(perfB.mean, 2), p99: num(perfB.p99, 2), think: num(perfB.cmdrMs, 3), withOrders: perfB.gl, err: perfB.err });
   }

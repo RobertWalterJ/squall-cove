@@ -136,13 +136,16 @@
     "fp|T",
     "tab|Fire",
     "tab|Support",
-    "tab|Squad"
+    "tab|Squad",
+    "over|Shift + T",
+    "fp|Shift + T",
+    "tab|Plan"
    ],
    "desktop": {
-    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire"
+    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire,#bPlan,#bAdv"
    },
    "phone": {
-    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire"
+    "sel": "#bTab,#cmdBtn,#tbClose,#tbRead,#mFire,#bPlan,#bAdv"
    }
   },
   {
@@ -601,12 +604,14 @@
   {
    "id": "settings",
    "what": "Settings: sandbox, quality, colours, easy read, air distortion, voices, captions, hide buttons",
-   "covers": [],
+   "covers": [
+    "over|Menu, Settings, Command"
+   ],
    "desktop": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest,#mCmdMode,#mAdvisor,#mFreePlay"
    },
    "phone": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest,#mCmdMode,#mAdvisor,#mFreePlay"
    }
   },
   {
