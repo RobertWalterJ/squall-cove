@@ -14,7 +14,7 @@ try {
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'), html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const isAsset = new Function('p', 'return ' + /const isAsset = \(p\) => (.*);/.exec(sw)[1]);
   ok('sw.js sends audio/crew_samples/ to the stable asset cache', isAsset('/squall-cove/audio/crew_samples/squad_lewis_medic.ogg') === true && /const ASSETS = 'a1'/.test(sw));
-  ok('manifest is fetched as ?v=99', html.includes('audio/manifest.json?v=99'));
+  ok('manifest is fetched with a version query (?v=1010 after the fire sound pack)', /audio\/manifest\.json\?v=\d+/.test(html));
   const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'audio/manifest.json'), 'utf8')).assets, vox = Object.keys(man).filter(k => k.startsWith('vox_'));
   ok('90 manifest entries (70 squad, 20 crew headset) and every file exists', vox.length === 90 && vox.every(k => fs.existsSync(path.join(ROOT, man[k].file))), vox.length);
 

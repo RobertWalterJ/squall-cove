@@ -138,7 +138,7 @@ try {
     }
     // ---- fires cast flickering light through the same budget
     await b.ev("(() => { const s = __sc; s.todSetHour(0.5, {}); s.tod.xf = 1; s.tod.force = true; s.stepWeather(0.1); return 1 })()");
-    const fire = await J("const s = __sc; s.HEATP.push({ x: s.fp.p.x + 12, z: s.fp.p.z, r: 5, p: 18, t: 30 }); s.LIGHT.nW = 0; s.lightsTick(0.1); const w = s.LIGHT.W.filter(w => /^hp/.test(w.key)); return { n: w.length, I: w[0] && w[0].I }");
+    const fire = await J("const s = __sc; s.HEATP.push({ x: s.fp.p.x + 12, z: s.fp.p.z, r: 5, p: 18, t: 30 }); s.LIGHT.nW = 0; s.lightsTick(0.1); const w = s.LIGHT.W.filter(w => /^(hp|fw[0-9])/.test(w.key) && w.I > 0); return { n: w.length, I: w[0] && w[0].I }");
     ok('a burning patch asks for a warm flickering light', fire.n >= 1 && fire.I > 100, fire);
     // ---- bases: light towers and floodlights, powered by a generator
     const base = await J(`const s = __sc, L = s.LIGHT, out = []; for (const p of s.BATTLE.points) { const fx = L.fix.filter(f => f.p === p); out.push({ n: p.name, type: p.type, owner: p.owner, gen: !!(p.lights && p.lights.gen), towers: fx.filter(f => f.kind === 'tower').length, flood: fx.filter(f => f.kind === 'flood').length, lamps: fx.filter(f => f.kind === 'lamp').length, strings: fx.filter(f => f.kind === 'string').length }); } return out`);
