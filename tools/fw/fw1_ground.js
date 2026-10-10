@@ -53,7 +53,7 @@
     // burning trees light the grass under them (downwind), and fires heat nearby buildings
     if (F.q !== 'off') { G.treeT = (G.treeT || 0) - dt; if (G.treeT <= 0) { G.treeT = 0.7; treeToGround(); } }
     G.bldT -= dt; if (G.bldT <= 0) { G.bldT = 1.0; buildingSpread(); }
-    for (let i = G.bld.length - 1; i >= 0; i--) { const b = G.bld[i]; b.t += dt; if (b.t > b.life + 6) G.bld.splice(i, 1); }
+    for (let i = G.bld.length - 1; i >= 0; i--) { const b = G.bld[i]; b.t += dt; if (!b.col && b.t > b.life) { b.col = true; if (F.sndEv) { F.sndEv('collapse', b.p.x, b.p.z, { y: 3 }); F.sndEv('clatter', b.p.x, b.p.z, { delay: 0.9 }); F.sndEv('clatter', b.p.x + 2, b.p.z, { delay: 1.8, gain: 0.7 }); } } if (b.t > b.life + 6) G.bld.splice(i, 1); }
   };
   function treeToGround() {
     for (const t of burning) {
@@ -127,7 +127,7 @@
     F.onBuilding && F.onBuilding(rec); return true;
   };
   /* delayed fires of a building start after their delay: handled in the per-frame pre step */
-  F.pre = (dt) => { for (const b of G.bld) for (const f of b.fires) if (f.hold > 0) { f.hold -= dt; if (f.hold <= 0) { f.alphaK = undefined; f.st = 0; f.state = 'ignite'; } else { f.alphaK = 0; f.st = 0; } } };
+  F.pre = (dt) => { for (const b of G.bld) for (const f of b.fires) if (f.hold > 0) { f.hold -= dt; if (f.hold <= 0) { f.alphaK = undefined; f.st = 0; f.state = 'ignite'; if (f.name === 'window' && F.sndEv) F.sndEv('glass', f.x, f.z, { y: f.y }); } else { f.alphaK = 0; f.st = 0; } } };
   /* fires close to a building may set it alight: the front, burning vehicles, fuel pools, flaming debris, burning trees */
   F.igniteNear = (x, z, r, p) => {
     if (F.q === 'off') return false; G.bldC = G.bldC || { t: -9, l: [] }; if (simT - G.bldC.t > 4) { G.bldC.t = simT; G.bldC.l = bldList(); }

@@ -1,0 +1,530 @@
+{
+ "profile": "portrait",
+ "perf": {
+  "base": {
+   "mean": 1397,
+   "p95": 1407.2,
+   "min": 1378.6
+  },
+  "fires": {
+   "mean": 1419.7,
+   "p95": 1436.7,
+   "min": 1393.4
+  },
+  "n": 36,
+  "inst": 181,
+  "calls": 28,
+  "drawCalls": 441,
+  "tris": 1641944,
+  "texMB": 35.1,
+  "nTypes": 14,
+  "cpu": {
+   "without": {
+    "mean": 0.35,
+    "p95": 0.3
+   },
+   "with30": {
+    "mean": 0.34,
+    "p95": 0.8
+   }
+  }
+ },
+ "notes": [],
+ "caps": {
+  "fires": 36,
+  "anim": 8,
+  "inst": 101,
+  "calls": 17,
+  "capFires": 8,
+  "capInst": 80,
+  "dropped": 0
+ },
+ "spread": {
+  "front": true,
+  "advance": 2.34,
+  "along": 2.3400000000000034,
+  "speed": 0.39,
+  "hw": 2.298120000000003,
+  "cols": 4,
+  "alive": 4
+ },
+ "sound": {
+  "loops": [
+   "fw:camp:15:-7:n",
+   "fw:vehicle:16:-6:n",
+   "fw:grass:16:-7:n"
+  ],
+  "oneShot": {
+   "played": true,
+   "burst": 1,
+   "shots": {
+    "ignite_soft": 2,
+    "ignite_large": 5,
+    "pop": 14
+   }
+  }
+ },
+ "lights": {
+  "pack": true,
+  "failed": false,
+  "fix": 47,
+  "glb": 47,
+  "kinds": [
+   "generator_medium",
+   "light_tower",
+   "floodlight_pole_2",
+   "lamp_cobra",
+   "string_lights_8m",
+   "searchlight_ground",
+   "lamp_harbour"
+  ],
+  "cables": 32,
+  "search": 3,
+  "models": 40
+ },
+ "results": [
+  {
+   "name": "atlas json loaded, quality is low by default",
+   "pass": true,
+   "extra": {
+    "ready": true,
+    "q": "low",
+    "types": [
+     "blast_small",
+     "debris_med"
+    ],
+    "cap": {
+     "fires": 8,
+     "inst": 80,
+     "front": 2
+    }
+   }
+  },
+  {
+   "name": "lazy: no torch, campfire or barrel atlas fetched before the first such fire",
+   "pass": true,
+   "extra": {
+    "before": 0
+   }
+  },
+  {
+   "name": "lazy: the campfire type loads on first use, torch still untouched",
+   "pass": true,
+   "extra": {
+    "hits": [
+     "fire_campfire_smoke_low.webp",
+     "fire_campfire_flame_low.webp",
+     "fire_campfire_heat.webp"
+    ],
+    "tor": 0
+   }
+  },
+  {
+   "name": "phone loads the low atlases",
+   "pass": true,
+   "extra": [
+    "fire_campfire_smoke_low.webp",
+    "fire_campfire_flame_low.webp",
+    "fire_campfire_heat.webp"
+   ]
+  },
+  {
+   "name": "lifecycle: ignite, grow, burn, decay, out in order",
+   "pass": true,
+   "extra": {
+    "seq": [
+     "ignite",
+     "grow",
+     "burn",
+     "decay"
+    ],
+    "tIgn": 1.2500000000000004,
+    "tGrow": 3.7499999999999947,
+    "tDecay": 10.25000000000001,
+    "tOut": 12.800000000000047
+   }
+  },
+  {
+   "name": "lifecycle durations: ignite 1.25 s, growth 2.5 s, decay 2.5 s once the fuel (9 s of burning) runs low",
+   "pass": true,
+   "extra": {
+    "seq": [
+     "ignite",
+     "grow",
+     "burn",
+     "decay"
+    ],
+    "tIgn": 1.2500000000000004,
+    "tGrow": 3.7499999999999947,
+    "tDecay": 10.25000000000001,
+    "tOut": 12.800000000000047
+   }
+  },
+  {
+   "name": "water extinguishes: the extinguish clip plays and the fire ends",
+   "pass": true,
+   "extra": {
+    "s1": "extinguish",
+    "cn": "extinguish",
+    "clipNow": "extinguish",
+    "dead": true,
+    "ext": 1
+   }
+  },
+  {
+   "name": "caps hold with 100 ignitions (fires at most 2 x cap + 20, animated at most cap, draw calls few)",
+   "pass": true,
+   "extra": {
+    "fires": 36,
+    "anim": 8,
+    "inst": 101,
+    "calls": 17,
+    "capFires": 8,
+    "capInst": 80,
+    "dropped": 0
+   }
+  },
+  {
+   "name": "heat haze: one DIST source per visible fire type descriptor (when the distortion engine is live)",
+   "pass": true,
+   "extra": {
+    "live": true,
+    "hs": 28,
+    "types": [
+     "grass",
+     "tree_crown",
+     "vehicle",
+     "barrel",
+     "campfire"
+    ]
+   }
+  },
+  {
+   "name": "thermal view draws the heat atlases only (flame and smoke hidden)",
+   "pass": true,
+   "extra": {
+    "heat": 34,
+    "flame": 0,
+    "smoke": 0
+   }
+  },
+  {
+   "name": "night vision sets the sensor uniform and keeps the flames (they bloom in the shader)",
+   "pass": true,
+   "extra": {
+    "uniform": 2,
+    "flame": 33
+   }
+  },
+  {
+   "name": "colour view draws flames and hides the heat layer",
+   "pass": true,
+   "extra": {
+    "heat": 0,
+    "flame": 33
+   }
+  },
+  {
+   "name": "a spot fire grows into a front and the front advances downwind",
+   "pass": true,
+   "extra": {
+    "front": true,
+    "advance": 2.34,
+    "along": 2.3400000000000034,
+    "speed": 0.39,
+    "hw": 2.298120000000003,
+    "cols": 4,
+    "alive": 4
+   }
+  },
+  {
+   "name": "a burning chunk that lands ignites a tree beside it",
+   "pass": true,
+   "extra": {
+    "tree": true,
+    "before": 0,
+    "after": 1,
+    "spots": 1,
+    "patches": 6
+   }
+  },
+  {
+   "name": "blast() starts a baked fireball with embers, and flames on a share of the thrown chunks",
+   "pass": true,
+   "extra": {
+    "n": 1,
+    "last": {
+     "kind": "fuel",
+     "Rb": 11,
+     "x": 226.9262430519339,
+     "z": -90.18411243238417
+    },
+    "flaming": 38,
+    "deb": 58,
+    "parts": 40,
+    "black": [
+     "blast_fuel:fireball:true"
+    ]
+   }
+  },
+  {
+   "name": "thrown fuel splashes and spills become pool fires",
+   "pass": true,
+   "extra": {
+    "n0": 3,
+    "n1": 8
+   }
+  },
+  {
+   "name": "a burning vehicle gets an engine fire first and then the whole-vehicle fire",
+   "pass": true,
+   "extra": {
+    "v": true,
+    "r1": [
+     "vehicle_engine"
+    ],
+    "r2": [
+     "vehicle_engine",
+     "vehicle_small"
+    ]
+   }
+  },
+  {
+   "name": "a boat on fire gets deck fires, and they go out when the fire is put out",
+   "pass": true,
+   "extra": {
+    "boat": true,
+    "n": 1,
+    "ext": 1
+   }
+  },
+  {
+   "name": "putting a fire out with water makes a steam burst (with a haze descriptor)",
+   "pass": true,
+   "extra": {
+    "nb": 1,
+    "nb2": 2,
+    "hs": true,
+    "haze": 1
+   }
+  },
+  {
+   "name": "a water splash plays a baked splash clip instead of the procedural column",
+   "pass": true,
+   "extra": {
+    "r": true,
+    "fx": 1
+   }
+  },
+  {
+   "name": "the Sky Fog control drives the fog: tiles form with Fog, fall away when it clears",
+   "pass": true,
+   "extra": {
+    "n0": 0,
+    "n2": 19,
+    "n3": 0,
+    "bank": 1,
+    "sea": 1,
+    "types": []
+   }
+  },
+  {
+   "name": "dawn mist and valley fog come with the time of day (early morning, and valley fog on still nights), not at noon",
+   "pass": true,
+   "extra": {
+    "dawn": 0.8017492711370262,
+    "valley": 0.8017492711370262,
+    "mist": 0.8017492711370262,
+    "noon": 0,
+    "noonValley": 0,
+    "nightValley": 0.5
+   }
+  },
+  {
+   "name": "Fire quality Low reloads the low atlases and still draws",
+   "pass": true,
+   "extra": {
+    "q": "low",
+    "res": "low",
+    "inst": 105,
+    "vis": true
+   }
+  },
+  {
+   "name": "Fire quality Off draws nothing from FW and leaves the old particle fires",
+   "pass": true,
+   "extra": {
+    "q": "off",
+    "fires": 0,
+    "inst": 0,
+    "drawn": false,
+    "treeDrawn": false,
+    "legacy": true,
+    "back": "low"
+   }
+  },
+  {
+   "name": "fire loops play by size class, near and far twins (camp, vehicle, grass) through Snd.set",
+   "pass": true,
+   "extra": {
+    "keys": [
+     "fw:camp:15:-7:n",
+     "fw:vehicle:16:-6:n",
+     "fw:grass:16:-7:n"
+    ],
+    "lv": [
+     0.197,
+     0.118,
+     0.126
+    ],
+    "loops": 3
+   }
+  },
+  {
+   "name": "one-shots play (ignite_large) and the voice limits hold (12 pops in one frame start at most 3)",
+   "pass": true,
+   "extra": {
+    "played": true,
+    "burst": 1,
+    "shots": {
+     "ignite_soft": 2,
+     "ignite_large": 5,
+     "pop": 14
+    }
+   }
+  },
+  {
+   "name": "lights pack loads",
+   "pass": true,
+   "extra": {
+    "pack": true,
+    "failed": false,
+    "fix": 47,
+    "glb": 47,
+    "kinds": [
+     "generator_medium",
+     "light_tower",
+     "floodlight_pole_2",
+     "lamp_cobra",
+     "string_lights_8m",
+     "searchlight_ground",
+     "lamp_harbour"
+    ],
+    "cables": 32,
+    "search": 3,
+    "models": 40
+   }
+  },
+  {
+   "name": "modelled fixtures replace the procedural ones (towers, floods, lamps, generators, strings), with cables",
+   "pass": true,
+   "extra": {
+    "glb": 47,
+    "kinds": [
+     "generator_medium",
+     "light_tower",
+     "floodlight_pole_2",
+     "lamp_cobra",
+     "string_lights_8m",
+     "searchlight_ground",
+     "lamp_harbour"
+    ],
+    "cables": 32,
+    "search": 3,
+    "models": 40
+   }
+  },
+  {
+   "name": "lamps are lit at night (emissive material) and a shot-out lamp goes dark",
+   "pass": true,
+   "extra": {
+    "lit": 35,
+    "m0": "MeshBasicMaterial",
+    "m1": "MeshStandardMaterial",
+    "dead": true,
+    "gens": 5,
+    "st": {
+     "models": 40,
+     "cables": 32,
+     "cones": 0,
+     "flares": 6,
+     "glows": 4,
+     "pools": 6,
+     "wets": 0
+    }
+   }
+  },
+  {
+   "name": "strong-light effects draw at night: flares, pools and (desktop) cones or beam glow",
+   "pass": true,
+   "extra": {
+    "models": 40,
+    "cables": 32,
+    "cones": 0,
+    "flares": 6,
+    "glows": 4,
+    "pools": 6,
+    "wets": 0
+   }
+  },
+  {
+   "name": "performance measured: 30 fires against none (software renderer; see the report)",
+   "pass": true,
+   "extra": {
+    "base": {
+     "mean": 1397,
+     "p95": 1407.2,
+     "min": 1378.6
+    },
+    "fires": {
+     "mean": 1419.7,
+     "p95": 1436.7,
+     "min": 1393.4
+    },
+    "n": 36,
+    "inst": 181,
+    "calls": 28,
+    "drawCalls": 441,
+    "tris": 1641944,
+    "texMB": 35.1,
+    "nTypes": 14,
+    "cpu": {
+     "without": {
+      "mean": 0.35,
+      "p95": 0.3
+     },
+     "with30": {
+      "mean": 0.34,
+      "p95": 0.8
+     }
+    }
+   }
+  },
+  {
+   "name": "phone budgets: draw calls at most 700, atlas memory under 60 MB, fires at most the phone cap",
+   "pass": true,
+   "extra": {
+    "drawCalls": 441,
+    "texMB": 35.1,
+    "n": 36
+   }
+  },
+  {
+   "name": "textures are dropped when no fire of that type is left (lazy load, lazy unload)",
+   "pass": true,
+   "extra": {
+    "before": 35.1,
+    "after": 2.2,
+    "n0": 14,
+    "n1": 0
+   }
+  },
+  {
+   "name": "no console errors",
+   "pass": true,
+   "extra": []
+  }
+ ],
+ "pass": 34,
+ "fail": 0
+}

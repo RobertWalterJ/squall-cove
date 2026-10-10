@@ -600,13 +600,13 @@
   },
   {
    "id": "settings",
-   "what": "Settings: sandbox, quality, colours, easy read, air distortion, voices, captions, hide buttons",
+   "what": "Settings: sandbox, quality, colours, easy read, air distortion, fire quality, voices, captions, hide buttons",
    "covers": [],
    "desktop": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mFireQ,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
    },
    "phone": {
-    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
+    "sel": "#mSandbox,#bQual,#mTheme,#mEasy,#mDistort,#mFireQ,#mHide,#hudOn,#mVoice,#mCaps,#mVtest"
    }
   },
   {
@@ -621,6 +621,20 @@
    "phone": {
     "sel": "#mDistort",
     "gesture": "Menu, Settings, Air distortion: one button, same behaviour, Off until you turn it on"
+   }
+  },
+  {
+   "id": "fire-quality",
+   "what": "Fire quality (FW branch): the realistic baked fire, steam, mist and fog. Settings button cycles High, Low, Off, remembered (squall-cove-firequality); High on desktop and Low on the phone by default, reduced motion lowers High to Low, a slow frame rate steps it down and the old particle fire takes over for a while",
+   "covers": [
+    "over|Menu, Settings, Fire quality"
+   ],
+   "desktop": {
+    "sel": "#mFireQ"
+   },
+   "phone": {
+    "sel": "#mFireQ",
+    "gesture": "Menu, Settings, Fire quality: one button, same behaviour, Low until you choose High"
    }
   },
   {

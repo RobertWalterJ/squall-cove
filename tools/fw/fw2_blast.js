@@ -127,6 +127,6 @@
   F.lfSkip = (lf) => { for (const q of F.fires) if (q.mode === 'blast' && q.vis && Math.abs(q.x - lf.x) < 4 && Math.abs(q.z - lf.z) < 4) return true; return false; };
   F.afters.push((dt) => { F.debrisStep(dt); stepParticles(dt); });
   const _pre = F.pre; let preloaded = false;
-  F.pre = (dt) => { if (_pre) _pre(dt); if (!preloaded && typeof BATTLE !== 'undefined' && BATTLE.on) { preloaded = true; for (const n of PH ? ['blast_small', 'debris_med'] : ['blast_small', 'blast_medium', 'blast_ground', 'debris_slow', 'debris_med', 'debris_fast', 'smoke_column']) F.need(n); F.needParticles(); } };
+  F.pre = (dt) => { if (_pre) _pre(dt); if (!preloaded && typeof BATTLE !== 'undefined' && BATTLE.on) { preloaded = true; for (const n of PH ? ['blast_small', 'debris_med'] : ['blast_small', 'blast_medium', 'blast_ground', 'blast_fuel', 'debris_slow', 'debris_med', 'debris_fast', 'smoke_column']) F.need(n); F.needParticles(); } };
 })();
 /*FW-END part2*/

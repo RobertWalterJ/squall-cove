@@ -4,7 +4,7 @@ import { ROOT, sleep, startServer, launch, loadGame, clickText, PROFILES } from 
 export { ROOT, sleep, PROFILES };
 export const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 export async function boot(profile = 'desktop', extra = '') {
-  const P = PROFILES[profile], srv = await startServer(), b = await launch(P);
+  const P = PROFILES[profile], srv = await startServer(), b = await launch({ ...P, extraArgs: ['--autoplay-policy=no-user-gesture-required'] });
   const ok = await loadGame(b, `http://127.0.0.1:${srv.port}/index.html?map=port&nointro=1&gov=best&edition=${P.ed}${extra}`); if (!ok) throw new Error('no load');
   await b.ev("(document.getElementById('help')||{}).hidden=true;1", true);
   await b.ev("__sc.openCommand();1"); await sleep(500);

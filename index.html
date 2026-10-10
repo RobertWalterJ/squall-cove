@@ -4605,13 +4605,13 @@ function sparks(x, y, z, n) { for (let i = 0; i < n; i++) fxG.emit(x, y, z, rnd(
 const WSP = [];                                                       // live splash columns and rings
 let wspGeo = null, wspMat = null, wspRingGeo = null;
 function waterSplash(x, z, big) {                                      // a tangible splash: a tapered column of spray that shoots up and collapses, two rings on the surface, droplets and foam
-  if (Math.hypot(x - fxPos().x, z - fxPos().z) > 260) return; const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7));
+  if (Math.hypot(x - fxPos().x, z - fxPos().z) > 260) return; const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7)); const fwS = FW.splash(x, z, y, b); /*FW-HOOK*/
   if (!wspGeo) { wspGeo = new THREE.CylinderGeometry(0.55, 1, 1, 14, 1, true); wspGeo.translate(0, 0.5, 0); wspMat = new THREE.MeshBasicMaterial({ color: 0xe6f4ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, fog: true }); wspRingGeo = new THREE.RingGeometry(0.82, 1, 32).rotateX(-Math.PI / 2); }
   if (WSP.length > 24) { const o = WSP.shift(); scene.remove(o.m); o.m.material.dispose(); }
-  const col = new THREE.Mesh(wspGeo, wspMat.clone()); col.position.set(x, y, z); col.scale.set(0.2 * b, 0.1, 0.2 * b); col.renderOrder = 5; scene.add(col); WSP.push({ m: col, t: 0, life: 0.55 + 0.14 * b, h: 0.7 + 0.9 * b, r: 0.35 + 0.28 * b, col: true });
+  const col = new THREE.Mesh(wspGeo, wspMat.clone()); col.position.set(x, y, z); col.scale.set(0.2 * b, 0.1, 0.2 * b); col.renderOrder = 5; scene.add(col); WSP.push({ m: col, t: 0, life: 0.55 + 0.14 * b, h: 0.7 + 0.9 * b, r: 0.35 + 0.28 * b, col: true }); if (fwS) { scene.remove(col); WSP.pop(); col.material.dispose(); }
   for (let k = 0; k < 2; k++) { const rg = new THREE.Mesh(wspRingGeo, new THREE.MeshBasicMaterial({ color: 0xf2fbff, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false })); rg.position.set(x, y + 0.04 + k * 0.01, z); rg.scale.setScalar(0.3); rg.renderOrder = 4; scene.add(rg); WSP.push({ m: rg, t: -k * 0.12, life: 1.0 + 0.15 * b, r: 1.2 + 1.6 * b, ring: true }); }
-  const n = Math.round(14 + 10 * b); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, sp = (0.5 + Math.random()) * (0.8 + 0.5 * b); fxS.emit(x + Math.cos(a) * 0.2, y + 0.1, z + Math.sin(a) * 0.2, Math.cos(a) * sp, (2.5 + Math.random() * 4) * Math.sqrt(b + 0.4), Math.sin(a) * sp, 0.8 + Math.random() * 0.8, 0.09 + 0.07 * Math.random() * Math.sqrt(b + 0.5), 0.3, [0.9, 0.96, 1, 0.85], 11, 0.2); }
-  fxS.emit(x, y + 0.15, z, 0, 0.4, 0, 1.6, 0.9 + 0.8 * b, 2.4, [0.95, 0.99, 1, 0.5], 0, 1);
+  const n = fwS ? Math.round(2 + b) : Math.round(14 + 10 * b); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, sp = (0.5 + Math.random()) * (0.8 + 0.5 * b); fxS.emit(x + Math.cos(a) * 0.2, y + 0.1, z + Math.sin(a) * 0.2, Math.cos(a) * sp, (2.5 + Math.random() * 4) * Math.sqrt(b + 0.4), Math.sin(a) * sp, 0.8 + Math.random() * 0.8, 0.09 + 0.07 * Math.random() * Math.sqrt(b + 0.5), 0.3, [0.9, 0.96, 1, 0.85], 11, 0.2); }
+  if (!fwS) fxS.emit(x, y + 0.15, z, 0, 0.4, 0, 1.6, 0.9 + 0.8 * b, 2.4, [0.95, 0.99, 1, 0.5], 0, 1);
 }
 function updateSplashes(dt) {
   for (let i = WSP.length - 1; i >= 0; i--) { const o = WSP[i]; o.t += dt; if (o.t < 0) { o.m.visible = false; continue; } o.m.visible = true; const u = Math.min(1, o.t / o.life);
@@ -5928,7 +5928,7 @@ function fx2Update(dt) {
   }
   hzUpdate(dt);
 }
-function lfClear() { LF.list.length = 0; for (const o of SHK.list) { o.m.visible = false; o.t = 9; } HZ.q.length = 0; }
+function lfClear() { FW.reset(); LF.list.length = 0; for (const o of SHK.list) { o.m.visible = false; o.t = 9; } HZ.q.length = 0; }
 /* the rest of the war, heard and seen far off: flashes on the horizon and the thump that follows them */
 const HZ = { t: 3, q: [] };
 function hzUpdate(dt) {
@@ -9906,7 +9906,7 @@ function updateLake(dt) {
     for (let k = 0; k < TN * TN; k++) { const w = WD[k]; lakeData[k * 2] = HGT[k] + w; lakeData[k * 2 + 1] = w; }
     lakeTex.needsUpdate = true; lakeMesh.visible = lakeWet > 0;
   }
-  for (const s of springs) { const t = simT; s.jet.scale.y = 0.8 + 0.25 * Math.sin(t * 9 + s.x); s.jet.rotation.y += dt * 2; if (s.geyser && geyserBurst(s) && Math.random() < dt * 20) puffSmoke(s.x + rnd(-0.5, 0.5), Math.max(standY(s.x, s.z), 0) + 2, s.z + rnd(-0.5, 0.5), 1, false, 1.4); }
+  for (const s of springs) { const t = simT; s.jet.scale.y = 0.8 + 0.25 * Math.sin(t * 9 + s.x); s.jet.rotation.y += dt * 2; if (s.geyser && geyserBurst(s)) FW.geyser(s); if (s.geyser && geyserBurst(s) && !(s._fwg && !s._fwg.dead) && Math.random() < dt * 20) puffSmoke(s.x + rnd(-0.5, 0.5), Math.max(standY(s.x, s.z), 0) + 2, s.z + rnd(-0.5, 0.5), 1, false, 1.4); }
 }
 function addSpring(x, z, rate) {
   const g = new THREE.Group(), y = Math.max(standY(x, z), 0), big = Math.abs(rate) > 6;
@@ -10023,7 +10023,7 @@ function updateDisasters(dt, t) {
 }
 const ease = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
 
-function calm0() { clearLavaVents(); burning.length = 0; clearFirefighting(); clearIce(); clearMaterials(); clearVolcanoes(); clearClimate(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
+function calm0() { FW.reset(); clearLavaVents(); burning.length = 0; clearFirefighting(); clearIce(); clearMaterials(); clearVolcanoes(); clearClimate(); dis.deluge = 0; dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0; dis.shake = 0; surge.level = 0; }
 const shakeV = new THREE.Vector3();
 
 /* ================================================================ v4.8: volcano. Stand it in deep water and it builds an island. */
@@ -11127,7 +11127,7 @@ function updateFirefighting(dt, t) {
     const tgt = bt.ffTarget;
     if (!tgt || tgt.sunk || !boats.includes(tgt) || tgt.fire <= 0.02) { if (tgt && !tgt.sunk && tgt.fire <= 0.02 && boats.includes(tgt)) { tgt.fire = 0; tgt.fireT = 0; noteOnce('out' + tgt.id, 'The fire on the ' + tgt.sp.name + ' is out.'); } bt.ffTarget = null; continue; }
     const lt = toBoatLocal(bt, tgt.body.position.x, tgt.body.position.z); bt.ffMesh.rotation.y = Math.atan2(-(lt.z - 0), lt.x - ffSpec(bt).lx);
-    bt.ffAcc = (bt.ffAcc || 0) + ffSpec(bt).rate * dt; const n = Math.floor(bt.ffAcc); bt.ffAcc -= n; if (n) ffSpray(bt, tgt, n);
+    bt.ffAcc = (bt.ffAcc || 0) + ffSpec(bt).rate * dt; const n = Math.floor(bt.ffAcc); bt.ffAcc -= n; if (n) ffSpray(bt, tgt, n); FW.hose(bt, tgt);
   }
   // the water in the air
   ffImp.clear();
@@ -11596,7 +11596,7 @@ function vehWork(v, dt) {
   const k = v.key; v.work += dt;
   if (v.target && v.target.gone) v.target = null;
   if (k === 'ambulance' && v.target && v.arrived !== undefined) { const q = v.target; if (people.includes(q) && Math.hypot(q.x - v.x, q.z - v.z) < 5) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 4) { q.cold = Math.min(q.cold || 0, 0.2); q.heat = Math.min(q.heat || 0, 0.2); q.frozen = false; if (q.state === 'rag' && standY(q.x, q.z) > 0.2) standUp(q); q.claimedBy = null; agentStat.helped++; npcEv('ambulanceSave'); noteOnce('amb', 'The ambulance treated someone and got them back on their feet.'); v.target = null; v.hold = false; v.holdT = 0; v.path = null; } } else v.hold = false; }
-  if (k === 'firetruck' && v.target) { const t = v.target; if (t.burn > 0 && Math.hypot(t.x - v.x, t.z - v.z) < 15) { v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt; if (Math.random() < dt * 12) fxG.emit(v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, (t.x - v.x) * 0.5, 4, (t.z - v.z) * 0.5, 0.8, 0.5, 0.4, [0.7, 0.85, 1, 0.8], 9, 0.5); if (v.sprayT > 1.2) { v.sprayT = 0; FW.water(t.x, t.z, 9, 2.5); for (const b of burning.slice()) if (Math.hypot(b.x - t.x, b.z - t.z) < 9) { extinguishTree(b); npcEv('truckFire'); } } } else { v.hold = false; v.spraying = false; } }
+  if (k === 'firetruck' && v.target) { const t = v.target; if (t.burn > 0 && Math.hypot(t.x - v.x, t.z - v.z) < 15) { v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt; FW.hosePt(v, v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, t.x, Math.max(heightAt(t.x, t.z), 0) + 2, t.z); if (Math.random() < dt * 12) fxG.emit(v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, (t.x - v.x) * 0.5, 4, (t.z - v.z) * 0.5, 0.8, 0.5, 0.4, [0.7, 0.85, 1, 0.8], 9, 0.5); if (v.sprayT > 1.2) { v.sprayT = 0; FW.water(t.x, t.z, 9, 2.5); for (const b of burning.slice()) if (Math.hypot(b.x - t.x, b.z - t.z) < 9) { extinguishTree(b); npcEv('truckFire'); } } } else { v.hold = false; v.spraying = false; } }
   if (k === 'forklift' || k === 'cargotruck') {
     const o = v.target; if (o && !o.gone && objects.includes(o) && !v.load.some(l => l.o === o) && Math.hypot(o.body.position.x - v.x, o.body.position.z - v.z) < 4.2) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 2.2) { v.load.push({ c: o.c, contraband: !!o.contraband, o }); o.salv = true; removeObj(o); updateCount(); v.target = null; v.hold = false; v.holdT = 0; v.path = null; npcEv('vehLoad'); } } else if (!o) v.hold = false;
     if (v.load.length && v.deliver && Math.hypot(v.deliver.x - v.x, v.deliver.z - v.z) < 6) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 1.6) { for (const l of v.load) { const x = v.deliver.x + rnd(-2.5, 2.5), z = v.deliver.z + rnd(-2.5, 2.5); if (v.deliver.site && BLOCKS.has(l.c.id)) { spawn(l.c, x, standY(x, z) + 1, z); const nb = objects[objects.length - 1]; if (placeBlock(v.deliver.site, nb)) npcEv('blockPlaced'); } else { spawn(l.c, x, standY(x, z) + 1.2, z); if (l.contraband) { objects[objects.length - 1].contraband = false; ECON.seized++; npcEv('drumsSeized'); } agentStat.crates++; const ys = vehHome(v); } } npcEv('vehDelivered', v.load.length); v.load = []; v.hold = false; v.holdT = 0; v.deliver = null; v.path = null; } }
@@ -12262,7 +12262,7 @@ const FW = (() => {
   F.setPref = (q) => { if (!QORD.includes(q)) return; F.pref = q; try { localStorage.setItem(QKEY, q); } catch (e) { } F.govLow = false; F.applyQ(); };
   F.CAP = { high: PH ? { fires: 14, inst: 160, front: 3 } : { fires: 40, inst: 420, front: 8 }, low: PH ? { fires: 8, inst: 80, front: 2 } : { fires: 18, inst: 200, front: 4 } };
   F.cap = () => F.CAP[F.q] || F.CAP.low;
-  F.applyQ = () => { F.q = F.eff(); if (F.q === 'off') for (const f of F.fires.slice()) F.kill(f, true); };
+  F.applyQ = () => { F.q = F.eff(); if (F.q === 'off') { if (F.reset) F.reset(); else for (const f of F.fires.slice()) F.kill(f, true); } };
 
   /* ---- the sprite renderer ---- */
   const R = { combos: {}, tex: {}, loadN: 0, drawn: 0, inst: 0, dropped: 0 };
@@ -12500,7 +12500,7 @@ const FW = (() => {
   };
   const _o = { q: 0, rot: 0, stretch: 1, loop: false, blend: false, cross: false, yaw: 0, noSmoke: false, fire: null, warm: 0 };
   function drawFire(f, T, rank, animated) {
-    const clip = clipFor(f, T); if (!clip) return; if (f.state !== 'out') f.lastClip = clip;
+    const clip = clipFor(f, T); if (!clip) return; if (f.state !== 'out') f.lastClip = clip; f.cn = clip.name;
     const S = f.sc * Math.sqrt(f.F), loopish = isLoopState(f.state), spd = (f.state === 'burn' ? 0.8 + 0.2 * f.F : 1);
     const t = animated ? f.st * spd : f.ph, al = f.fade * (f.alphaK === undefined ? 1 : f.alphaK);
     _o.q = 0; _o.rot = 0; _o.stretch = 1; _o.loop = loopish && f.state !== 'out' ? true : false; _o.blend = F.q === 'high'; _o.cross = (f.quads || 1) > 1 && F.q === 'high' && animated; _o.yaw = f.yaw;
@@ -12522,7 +12522,7 @@ const FW = (() => {
   F.frame = (dt) => {
     dt = Math.min(dt, 0.1);
     F.q = F.eff();
-    if (F.q === 'off') { if (F.fires.length) for (const f of F.fires.slice()) F.kill(f, true); R.begin(); R.end(); return; }
+    if (F.q === 'off') { if (F.fires.length) for (const f of F.fires.slice()) F.kill(f, true); R.begin(); R.end(); if (F.lightsFx) { try { F.lightsFx(dt); } catch (e) { } } return; }
     // wind (m/s): the game's wind vector
     F.wind.x = wind.v.x; F.wind.z = wind.v.z; F.windMs = Math.hypot(wind.v.x, wind.v.z);
     updateAmb();
@@ -12571,6 +12571,9 @@ const FW = (() => {
       const cy = f.y + Math.min(6, (T.layers.flame ? T.layers.flame.size[1] : 2) * f.sc * 0.35);
       lightWant('fw' + f.id, 'point', f.x, cy, f.z, col[0], col[1] * (0.85 + 0.15 * Math.min(1, e)), col[2], I, rng, 1.3, { glow: 0, pool: Math.min(rng * 0.25, 9), fl: Math.min(1.3, e), k: dk * f.fade }); n++;
     }
+    // far or tiny fires: no animation and no real light, a glow sprite only (the game draws these for lights within about 260 m)
+    let g = 0; for (const f of F.alive || []) { if (g >= (PH ? 3 : 8)) break; if (f.noLight || f.fade < 0.1 || !f._T || f.px >= 14 || f._d < 40 || f._d > 600 || f.F < 0.6) continue; const L = f._T.info.light; if (!L) continue; const col = L.color || [1, 0.5, 0.1], S = f.sc * Math.sqrt(f.F), hh = (f._T.layers.flame ? f._T.layers.flame.size[1] : 2) * S;
+      lightWant('fwg' + f.id, 'point', f.x, f.y + hh * 0.3, f.z, col[0], col[1], col[2], 0, 1, 0.5, { glow: Math.min(8, Math.max(1.2, hh * 0.45)), glowA: 0.55 * f.fade * Math.min(1, f.F), k: dk }); g++; }
     return n;
   };
   /* ---- heat haze: every fire type's own descriptor feeds the DIST engine ---- */
@@ -12596,7 +12599,7 @@ const FW = (() => {
     const name = kind === 'shrub' ? 'shrub' : kind === 'palm' ? 'tree_trunk' : 'tree_crown';
     const sc = kind === 'shrub' ? 0.7 + 0.4 * t.sc : kind === 'palm' ? 1.0 + 0.25 * t.sc : 0.52 + 0.3 * t.sc;
     const f = F.spawn(name, t.x, gy + 0.05, t.z, { sc, F: 1, pri: 2, dur: Infinity, quads: (name === 'tree_crown') ? 2 : 1, state: (t.burn > 11 ? 'ignite' : 'ignite'),
-      own: { kind: 'tree', ref: t, endIn: () => t.burn, sync: (f) => { if (f.state === 'burn' || f.state === 'ignite' || f.state === 'grow') { if (t.dead || t.burn <= 0) { if (t.dead) { f.state = 'decay'; f.st = 0; if (!F.types[f.name] || !F.types[f.name].clips || !F.types[f.name].clips.decay) f.state = 'out'; } else F.extinguish(f); } } } } });
+      own: { kind: 'tree', ref: t, endIn: () => t.burn, sync: (f) => { if (f.state === 'burn' || f.state === 'ignite' || f.state === 'grow') { if (t.dead || t.burn <= 0 || !burning.includes(t)) { if (t.dead) { f.state = 'decay'; f.st = 0; if (!F.types[f.name] || !F.types[f.name].clips || !F.types[f.name].clips.decay) f.state = 'out'; } else F.extinguish(f); } } } } });
     return f;
   }
   /* ---- hot patches (incendiary bombs, fire missions): a few fuel and grass fires over the area, for as long as the patch lasts ---- */
@@ -12641,7 +12644,7 @@ const FW = (() => {
         while (bt._fwb.length < nf) {
           const k = bt._fwb.length, lx = (k - (nf - 1) / 2) * Math.min(L * 0.3, 7), lz = rnd(-0.2, 0.2) * (bt.sp.B || 4), ly = deckLy(bt, lx, lz) + 0.2;
           const f = F.spawn('boat_deck', 0, 0, 0, { sc: Math.max(0.5, Math.min(1.5, L / 22)), F: 0.6 + bt.fire, pri: 2.5, quads: 2, dur: Infinity, follow: (f) => { const w = worldOfDeck(bt, lx, ly, lz, tv); f.x = w.x; f.y = w.y; f.z = w.z; f.F = 0.55 + Math.min(1, bt.fire) * 0.9; },
-            own: { kind: 'boat', ref: bt, multi: true, endIn: () => 1e9, sync: (f) => { if (!(bt.fire > 0.05) && f.state === 'burn') F.extinguish(f); else if (bt.sunk && bt.sinkT > 4 && f.state === 'burn') { f.state = 'decay'; f.st = 0; } } } });
+            own: { kind: 'boat', ref: bt, multi: true, endIn: () => 1e9, sync: (f) => { const live = f.state === 'burn' || f.state === 'grow' || f.state === 'ignite'; if (!boats.includes(bt)) { F.kill(f, true); return; } if (!(bt.fire > 0.05) && live) F.extinguish(f); else if (bt.sunk && bt.sinkT > 4 && live) { f.state = 'decay'; f.st = 0; } } } });
           if (!f) break; f.black = true; bt._fwb.push(f);
         }
       }
@@ -12679,7 +12682,7 @@ const FW = (() => {
 window.__sc.FW = FW;
 /*FW-END part1x*/
 /*FW-START part1y: qa handles*/
-Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boats, props, lavaVents, fxS, fxG, puffSmoke, heightAt, camera, scene, renderer, extinguishTree, windAt, wind });
+Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boats, props, lavaVents, fxS, fxG, puffSmoke, heightAt, camera, scene, renderer, extinguishTree, windAt, wind, Snd, DEB, waveH, layPointLights, updateDebris, lightsClear, fixPlace });
 /*FW-END part1y*/
 /*FW-START part1d: ground fires (spot fires, spreading fronts), buildings, spread rules*/
 (() => {
@@ -12736,7 +12739,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     // burning trees light the grass under them (downwind), and fires heat nearby buildings
     if (F.q !== 'off') { G.treeT = (G.treeT || 0) - dt; if (G.treeT <= 0) { G.treeT = 0.7; treeToGround(); } }
     G.bldT -= dt; if (G.bldT <= 0) { G.bldT = 1.0; buildingSpread(); }
-    for (let i = G.bld.length - 1; i >= 0; i--) { const b = G.bld[i]; b.t += dt; if (b.t > b.life + 6) G.bld.splice(i, 1); }
+    for (let i = G.bld.length - 1; i >= 0; i--) { const b = G.bld[i]; b.t += dt; if (!b.col && b.t > b.life) { b.col = true; if (F.sndEv) { F.sndEv('collapse', b.p.x, b.p.z, { y: 3 }); F.sndEv('clatter', b.p.x, b.p.z, { delay: 0.9 }); F.sndEv('clatter', b.p.x + 2, b.p.z, { delay: 1.8, gain: 0.7 }); } } if (b.t > b.life + 6) G.bld.splice(i, 1); }
   };
   function treeToGround() {
     for (const t of burning) {
@@ -12810,7 +12813,7 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
     F.onBuilding && F.onBuilding(rec); return true;
   };
   /* delayed fires of a building start after their delay: handled in the per-frame pre step */
-  F.pre = (dt) => { for (const b of G.bld) for (const f of b.fires) if (f.hold > 0) { f.hold -= dt; if (f.hold <= 0) { f.alphaK = undefined; f.st = 0; f.state = 'ignite'; } else { f.alphaK = 0; f.st = 0; } } };
+  F.pre = (dt) => { for (const b of G.bld) for (const f of b.fires) if (f.hold > 0) { f.hold -= dt; if (f.hold <= 0) { f.alphaK = undefined; f.st = 0; f.state = 'ignite'; if (f.name === 'window' && F.sndEv) F.sndEv('glass', f.x, f.z, { y: f.y }); } else { f.alphaK = 0; f.st = 0; } } };
   /* fires close to a building may set it alight: the front, burning vehicles, fuel pools, flaming debris, burning trees */
   F.igniteNear = (x, z, r, p) => {
     if (F.q === 'off') return false; G.bldC = G.bldC || { t: -9, l: [] }; if (simT - G.bldC.t > 4) { G.bldC.t = simT; G.bldC.l = bldList(); }
@@ -13120,9 +13123,443 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   F.lfSkip = (lf) => { for (const q of F.fires) if (q.mode === 'blast' && q.vis && Math.abs(q.x - lf.x) < 4 && Math.abs(q.z - lf.z) < 4) return true; return false; };
   F.afters.push((dt) => { F.debrisStep(dt); stepParticles(dt); });
   const _pre = F.pre; let preloaded = false;
-  F.pre = (dt) => { if (_pre) _pre(dt); if (!preloaded && typeof BATTLE !== 'undefined' && BATTLE.on) { preloaded = true; for (const n of PH ? ['blast_small', 'debris_med'] : ['blast_small', 'blast_medium', 'blast_ground', 'debris_slow', 'debris_med', 'debris_fast', 'smoke_column']) F.need(n); F.needParticles(); } };
+  F.pre = (dt) => { if (_pre) _pre(dt); if (!preloaded && typeof BATTLE !== 'undefined' && BATTLE.on) { preloaded = true; for (const n of PH ? ['blast_small', 'debris_med'] : ['blast_small', 'blast_medium', 'blast_ground', 'blast_fuel', 'debris_slow', 'debris_med', 'debris_fast', 'smoke_column']) F.need(n); F.needParticles(); } };
 })();
 /*FW-END part2*/
+/*FW-START part3: baked steam, mist and spray, and fog (assets/atmos), driven by the weather and time systems*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone;
+  const A = F.A = { json: null, types: {}, fx: [], tiles: [], stats: { fx: 0, tiles: 0, steam: 0, splash: 0, bow: 0 }, k: {}, lit: {} };
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const resWant = () => (PH || F.q === 'low') ? 'low' : 'full';
+  A.ensure = () => A.jp || (A.jp = R.loadJson('assets/atmos/atmos_atlas.json?v=fw1').then(j => { A.json = j; return j; }).catch(e => { A.err = String(e); A.jp = null; return null; }));
+  A.need = (name) => {
+    const now = performance.now(); let T = A.types[name]; const res = resWant();
+    if (T && T.state === 'ready' && T.res === res) { T.last = now; return T; }
+    if (T && (T.state === 'loading' || T.state === 'bad')) return null;
+    if (!A.json) { A.ensure(); return null; }
+    const P = A.json.presets[name]; if (!P) { A.types[name] = { name, state: 'bad' }; return null; }
+    if (T && T.state === 'ready') A.unload(name);
+    T = A.types[name] = { name, P, state: 'loading', res, last: now, urls: [] };
+    const jobs = ['main', 'heat'].filter(k => P.layers[k]).map(k => {
+      const L = P.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/atmos/' + use.file; T.urls.push(url);
+      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+    });
+    Promise.all(jobs).then(got => {
+      T.layers = {}; const strip = P.kind === 'strip' || P.family === 'fog';
+      for (const g0 of got) { const g = g0; if (g.k === 'heat') g.L = Object.assign({}, g.L, { size_m: P.layers.main.size_m, anchor: P.layers.main.anchor });
+        const key = 'atm:' + name + ':' + g.k + ':' + res, combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: g.use.frame_px[0], fh: g.use.frame_px[1], anchor: g.L.anchor, mode: g.k === 'main' ? 3 : 2, order: g.k === 'heat' ? 6.45 : (P.family === 'fog' ? 5.9 : 6.1), rule: g.k === 'heat' ? 'heat' : 'any', edge: strip ? 0.14 : 0 });
+        if (g.k === 'main') combo.mat.uniforms.uCool.value = (P.sensors && P.sensors.thermal && P.sensors.thermal.alpha_gain) || 0.1;
+        T.layers[g.k] = { combo, size: g.L.size_m, anchor: g.L.anchor };
+      }
+      const by = (st) => P.clips.filter(c => c.stage === st);
+      T.clips = { start: by('start')[0], loop: by('loop'), fade: by('fade')[0], shot: by('shot'), form: by('form')[0], drift: by('drift'), linger: by('linger')[0], thin: by('thin')[0], fall: by('fall')[0], blob: by('blob') };
+      T.state = 'ready'; T.last = performance.now(); A.stats.loaded = (A.stats.loaded || 0) + 1;
+    }).catch(e => { T.state = 'bad'; T.err = String(e); });
+    return null;
+  };
+  A.unload = (name) => {
+    const T = A.types[name]; if (!T) return; for (const u of T.urls || []) R.dropTex(u);
+    for (const k of ['main', 'heat']) { const key = 'atm:' + name + ':' + k + ':' + T.res, c = R.combos[key]; if (c) { c.n = 0; scene.remove(c.mesh); c.geo.dispose(); c.mat.dispose(); delete R.combos[key]; } }
+    delete A.types[name];
+  };
+  A.sweep = () => { const now = performance.now(); const live = new Set([...A.fx.map(f => f.type), ...A.tiles.map(t => t.type)]); for (const nm in A.types) { const T = A.types[nm]; if (T.state === 'ready' && !live.has(nm) && now - T.last > (PH ? 25000 : 90000)) A.unload(nm); } };
+
+  /* ---- lighting: the preset's own day, dusk and night tints, plus the colour of any fire or lamp close by ---- */
+  const lightFor = (P) => {
+    const k = A.k, L = P.lighting || {}; const d = L.day || { tint: [1, 1, 1], brightness: 1 }, du = L.dusk || d, n = L.night || { tint: [0.5, 0.58, 0.78], brightness: 0.22 };
+    const wd = k.day, wn = k.night, wu = Math.max(0, 1 - wd - wn), s = wd + wn + wu || 1; const out = [0, 0, 0];
+    for (let i = 0; i < 3; i++) out[i] = (wd * d.tint[i] * d.brightness + wu * du.tint[i] * du.brightness + wn * n.tint[i] * n.brightness) / s * (1 - 0.22 * k.rain);
+    return out;
+  };
+  const addFire = (x, z, y, out) => {                                       // the warm light of the nearest FW fires on a bit of mist or steam
+    let n = 0; for (const f of F.alive || []) { if (n >= 5) break; if (f.noLight || !f.vis || f.fade < 0.1 || !f._T) continue; const dx = f.x - x, dz = f.z - z, d2 = dx * dx + dz * dz; const L = f._T.info.light; const rng = Math.max(6, (L && L.range_m || 6) * 1.2); if (d2 > rng * rng) continue; const c = L && L.color || [1, 0.5, 0.1], k = Math.pow(1 - Math.sqrt(d2) / rng, 2) * 1.1 * Math.min(1.2, f.e || 1) * Math.min(1.4, f.F) * f.fade * (0.25 + 0.75 * k_dark()); out[0] += c[0] * k; out[1] += c[1] * k * 0.8; out[2] += c[2] * k * 0.5; n++; }
+  };
+  const k_dark = () => 1 - A.k.day;
+
+  /* ---- effects: steam jets, bow mist, splashes, hose spray. One list, one frame step. ---- */
+  A.capFx = () => PH ? 12 : F.q === 'low' ? 20 : 40;
+  A.spawn = (type, x, y, z, o) => {
+    o = o || {}; if (F.q === 'off' || !F.ready) return null; A.need(type); if (A.fx.length >= A.capFx()) { let w = null; for (const f of A.fx) if (!w || f.pri < w.pri) w = f; if (w && w.pri < (o.pri || 1)) A.kill(w); else return null; }
+    const f = { id: ++A.n, type, x, y, z, sc: o.sc || 1, sx: o.sx || 1, state: o.shot ? 'shot' : 'start', st: 0, vi: (Math.random() * 3) | 0, flip: o.flip || (Math.random() < 0.5 ? -1 : 1), dur: o.dur === undefined ? 3 : o.dur, alpha: o.alpha === undefined ? 1 : o.alpha, q: o.q || 0, yaw: o.yaw || 0, rot: o.rot || 0, follow: o.follow || null, pri: o.pri || 1, own: o.own || null, haze: o.haze !== false, k: 1, kT: 1, dead: false, ph: Math.random() * 3, tint: o.tint || null, hold: false };
+    A.fx.push(f); return f;
+  }; A.n = 0;
+  A.kill = (f) => { f.dead = true; const i = A.fx.indexOf(f); if (i >= 0) A.fx.splice(i, 1); };
+  A.stop = (f) => { if (f && !f.dead && f.state !== 'fade' && f.state !== 'shot') { f.state = 'fade'; f.st = 0; f.dur = 0; } };
+  F.steam = (type, x, y, z, o) => { const f = A.spawn(type, x, y, z, o); if (f) A.stats.steam++; return f; };
+  F.steamAt = (size, x, z, k) => A.spawn(size === 'small' ? 'steam_pipe' : 'steam_burst', x, gnd(x, z) + 0.2, z, { sc: size === 'small' ? (k || 0.6) : (k || 0.4), dur: size === 'small' ? 1.2 : 2.5, pri: 0.5, flip: 1 });
+  let burstN = 0;
+  const prevExt = F.afterExtinguish;
+  F.afterExtinguish = (f) => {
+    if (prevExt) prevExt(f); if (F.q === 'off') return; const T = f._T || F.types[f.name], S = f.sc * Math.sqrt(f.F), w = T && T.layers && T.layers.flame ? T.layers.flame.size[0] * S : 2;
+    if (A.fx.filter(q => q.type === 'steam_burst' && !q.dead).length >= (PH ? 2 : 4)) return;
+    const sc = Math.max(0.12, Math.min(0.9, w / 9)); A.spawn('steam_burst', f.x, f.y + 0.2, f.z, { sc, dur: 1.5 + 2 * sc, pri: 2, flip: 1 }); A.stats.burst = (A.stats.burst || 0) + 1;
+  };
+  /* lava reaching water: a huge steam column (small at first) */
+  F.lavaWet = (x, z) => {
+    if (F.q === 'off' || !F.ready) return; A.lavaT = (A.lavaT || 0); if (simT - A.lavaT < 5) return; let water = false, wx0 = 0, wz0 = 0;
+    for (let a = 0; a < 8 && !water; a++) { const ang = a * 0.785, px = x + Math.cos(ang) * 3.2, pz = z + Math.sin(ang) * 3.2; if (heightAt(px, pz) < 0.1) { water = true; wx0 = px; wz0 = pz; } }
+    if (!water) return; A.lavaT = simT; if (A.fx.filter(q => q.type === 'steam_lava' && !q.dead).length >= 2) return;
+    A.spawn('steam_lava', wx0, Math.max(0.05, waveH(wx0, wz0, simT)), wz0, { sc: 0.28, dur: 7, pri: 1.5, flip: 1 });
+  };
+  F.geyser = (s) => {
+    if (F.q === 'off' || !F.ready) return; const f = s._fwg; if (f && !f.dead) { f.dur = Math.max(f.dur, 1.2); return; }
+    s._fwg = A.spawn('steam_geyser', s.x, gnd(s.x, s.z) + 0.1, s.z, { sc: 1.8, dur: 2, pri: 1.5, flip: 1 }); if (s._fwg) s._fwg.vis = true;
+  };
+  /* damaged engines (vehicles, boats) and hot wrecks that have just been put out */
+  const engT = { t: 0 };
+  A.owners = (dt) => {
+    engT.t -= dt; if (engT.t > 0) return; engT.t = 0.5;
+    for (const v of BVL) {
+      const hot = !v.heli && ((!v.dead && !v.burn && v.hp < v.hpMax * 0.45) || (v.dead && !v.burn && v.wreckT > 14 && v.wreckT < 55 && v._fwNo));
+      if (hot && !(v._fwst && !v._fwst.dead)) { if (Math.hypot(v.x - camera.position.x, v.z - camera.position.z) < 120) { const s = Math.sin(v.yaw || 0), c = Math.cos(v.yaw || 0); v._fwst = A.spawn('steam_engine', v.x + s * 1.4, v.y + v.sp.cy * 0.9, v.z + c * 1.4, { sc: 0.9, dur: 9999, pri: 1, follow: (f) => { f.x = v.x + Math.sin(v.yaw || 0) * 1.4; f.y = v.y + v.sp.cy * 0.9; f.z = v.z + Math.cos(v.yaw || 0) * 1.4; if (!BVL.includes(v) || v.burn || !((!v.dead && v.hp < v.hpMax * 0.45) || v.dead)) A.stop(f); } }); } }
+    }
+    for (const bt of boats) {
+      if (bt.sunk || !bt.hpMax) continue; const hot = bt.hp < bt.hpMax * 0.4 && !(bt.fire > 0.05) && bt.sp && bt.sp.kind === 'motor';
+      if (hot && !(bt._fwst && !bt._fwst.dead) && Math.hypot(bt.body.position.x - camera.position.x, bt.body.position.z - camera.position.z) < 140) {
+        bt._fwst = A.spawn('steam_engine', 0, 0, 0, { sc: Math.max(0.8, (bt.sp.L || 10) / 12), dur: 9999, pri: 1, follow: (f) => { const w = worldOfDeck(bt, -(bt.sp.L || 10) * 0.25, deckLy(bt, 0, 0) + 0.8, 0, _t3); f.x = w.x; f.y = w.y; f.z = w.z; if (bt.sunk || bt.fire > 0.05 || bt.hp >= bt.hpMax * 0.4) A.stop(f); } });
+      }
+    }
+  };
+  const _t3 = new THREE.Vector3();
+  /* bow mist: a fast boat throws spray at the bow; start, loop while fast, settle when it slows */
+  const bowT = { t: 0 };
+  A.bows = (dt) => {
+    bowT.t -= dt; if (bowT.t > 0) return; bowT.t = 0.25; const cam = camera.position; let n = 0;
+    for (const bt of boats) {
+      if (bt.sunk || !bt.body) continue; const v = bt.body.velocity, sp = Math.hypot(v.x, v.z), d = Math.hypot(bt.body.position.x - cam.x, bt.body.position.z - cam.z);
+      const want = sp > 2.6 && d < (PH ? 70 : 130) && n < (PH ? 2 : 6); const fx = bt._fwbow && !bt._fwbow.dead ? bt._fwbow : null;
+      if (want) { n++; if (!fx) { bt._fwbow = A.spawn('mist_bow', 0, 0, 0, { sc: 1, dur: 9999, pri: 1.2, q: 2, haze: false, follow: (f) => bowFollow(bt, f) }); A.stats.bow++; } else { fx.kT = Math.min(1.4, (sp - 2) / 5); } }
+      else if (fx && fx.state !== 'fade') A.stop(fx);
+    }
+  };
+  const _q = new THREE.Quaternion(), _fv = new THREE.Vector3();
+  function bowFollow(bt, f) {
+    const L = bt.sp.L || 10; _fv.set(1, 0, 0).applyQuaternion(bt.group.quaternion); const fxd = _fv.x, fzd = _fv.z, l = Math.hypot(fxd, fzd) || 1; const bx = bt.body.position.x + fxd / l * L * 0.46, bz = bt.body.position.z + fzd / l * L * 0.46;
+    f.x = bx; f.z = bz; f.y = waveH(bx, bz, simT) + 0.15; f.yaw = Math.atan2(fzd / l, -fxd / l); f.sc = Math.max(0.45, Math.min(2.6, L / 16)) * Math.min(1.3, f.kT || 1); const sp = Math.hypot(bt.body.velocity.x, bt.body.velocity.z); f.kT = Math.min(1.4, (sp - 2) / 5); if (bt.sunk) A.stop(f);
+  }
+  /* splashes: baked small, medium and large instead of the old procedural column */
+  F.splash = (x, z, y, b) => {
+    if (F.q === 'off' || !F.ready || F.legacyUntil) return false; const name = b < 0.8 ? 'splash_small' : b < 2.4 ? 'splash_medium' : 'splash_large', T = A.need(name); if (!T) return false;
+    const sc = name === 'splash_small' ? 0.5 + b * 1.1 : name === 'splash_medium' ? Math.max(0.6, b / 1.6) : Math.max(0.4, Math.min(1.4, b / 5)); const f = A.spawn(name, x, y + 0.05, z, { shot: true, sc, pri: 1.5, flip: 1, haze: false });
+    if (f) { f.vi = (Math.random() * 3) | 0; A.stats.splash++; } return !!f;
+  };
+  /* hose and monitor spray: a cone from the nozzle toward the target, held while the jet runs */
+  const hoseMap = new WeakMap();
+  F.hosePt = (key, fx, fy, fz, tx, ty, tz) => {
+    if (F.q === 'off' || !F.ready) return; let f = hoseMap.get(key); const dx = tx - fx, dy = ty - fy, dz = tz - fz, len = Math.hypot(dx, dy, dz) || 1;
+    if (!f || f.dead) { f = A.spawn('spray_cone', fx, fy, fz, { sc: 1, dur: 9999, pri: 1.4, q: 1, haze: false }); if (!f) return; hoseMap.set(key, f); f.flip = 1; }
+    f.x = fx; f.y = fy; f.z = fz; f.dir = [dx / len, dy / len, dz / len]; f.len = Math.min(len, 38); f.seen = simT; f.sx = Math.max(0.6, Math.min(6, f.len / 5.9));
+  };
+  F.hose = (bt, tgt) => { if (!bt.ffHead) return; bt.group.updateMatrixWorld(true); const from = bt.ffHead.localToWorld(_t3.set(bt.ffTipX, 0, 0)); const tp = tgt.body.position; F.hosePt(bt, from.x, from.y, from.z, tp.x, tp.y + 1.2, tp.z); };
+  /* rain on water */
+  let rainS = 0;
+  A.rain = (dt) => {
+    if (PH || F.q !== 'high' || wx.rainAmt < 0.5) return; rainS -= dt; if (rainS > 0) return; rainS = 0.22 / Math.min(1.5, wx.rainAmt); if (A.fx.length > A.capFx() - 8) return;
+    const fc = (typeof lightFocus === 'function') ? lightFocus() : camera.position;
+    for (let i = 0; i < 3; i++) { const a = Math.random() * 6.283, r = 4 + Math.random() * 16, x = fc.x + Math.cos(a) * r, z = fc.z + Math.sin(a) * r; if (heightAt(x, z) < 0) { F.splash(x, z, waveH(x, z, simT), 0.12); break; } }
+  };
+
+  /* ---- fog: world-anchored tiles of the baked strips, layered with parallax, drifting with the wind; their number follows the Sky Fog control, the time of day and the weather ---- */
+  const FOG = {
+    mist_dawn: { reach: 110, cap: 22, where: 'water', kind: 'strip' },
+    fog_sea: { reach: 200, cap: 12, where: 'water', kind: 'strip' },
+    fog_ground: { reach: 90, cap: 22, where: 'low', kind: 'strip' },
+    fog_valley: { reach: 260, cap: 8, where: 'valley', kind: 'strip' },
+    fog_wisps: { reach: 140, cap: 10, where: 'any', kind: 'strip' },
+    fog_forest: { reach: 100, cap: 8, where: 'forest', kind: 'strip' },
+    fog_bank: { reach: 380, cap: 3, where: 'bank', kind: 'strip' },
+    fog_blobs: { reach: 70, cap: 12, where: 'any', kind: 'blob' },
+  };
+  A.FOG = FOG;
+  const fogScale = () => (PH ? 0.4 : F.q === 'low' ? 0.5 : 1);
+  const treeCells = { t: -99, s: new Set() };
+  const nearTree = (x, z) => {
+    if (simT - treeCells.t > 12) { treeCells.t = simT; treeCells.s.clear(); for (const t of trees) if (!t.dead) treeCells.s.add(Math.round(t.x / 16) * 100000 + Math.round(t.z / 16)); }
+    const cx = Math.round(x / 16), cz = Math.round(z / 16); return treeCells.s.has(cx * 100000 + cz);
+  };
+  const okWhere = (w, x, z) => {
+    const h = heightAt(x, z);
+    switch (w) { case 'water': return h < -0.1; case 'low': return h > 0.4 && h < 10; case 'valley': return h > 0.4 && h < 7; case 'forest': return h > 1.5 && nearTree(x, z); case 'bank': return h < -0.1; default: return true; }
+  };
+  /* what fraction of the fog types is wanted now: the Sky control, dawn mist, valley fog, rain, calm air */
+  A.climate = () => {
+    const e = tod.e, k = A.k, ws = F.windMs; k.rain = clamp01(wx.rainAmt);
+    k.day = sm(6, 20, e); k.night = 1 - sm(-8, 2, e); k.fogSky = [0, 0.5, 1][Math.max(0, Math.min(2, wx.fog | 0))];
+    const calm = 1 - clamp01((ws - 1) / 6); k.calm = calm;
+    k.dawn = tod.am ? sm(-8, -1, e) * (1 - sm(4, 14, e)) : 0;                                         // mist over the water as the sun comes up, burning off by mid morning
+    k.valley = Math.max(k.night * 0.5, k.dawn) * calm;                                               // valley fog pools on still nights and early mornings
+    k.damp = Math.max(k.rain * 0.7, k.fogSky * 0.6, k.dawn * 0.5);
+    A.want = { mist_dawn: clamp01(k.dawn * (0.4 + 0.6 * calm) + k.fogSky * 0.3), fog_sea: clamp01(k.fogSky * (k.fogSky > 0.4 ? 1 : 0) + k.dawn * 0.15), fog_ground: clamp01(k.fogSky * 0.85 + k.valley * 0.45 + k.rain * 0.12), fog_valley: clamp01(k.valley * 0.9 + k.fogSky * 0.35), fog_wisps: clamp01(k.fogSky * 0.7 + k.rain * 0.25 + k.dawn * 0.25), fog_forest: clamp01(k.damp * 0.8), fog_bank: k.fogSky > 0.9 ? 1 : 0, fog_blobs: clamp01(k.fogSky * 0.7 + k.valley * 0.2) };
+    if (F.q === 'low') { A.want.fog_forest = 0; A.want.fog_blobs = 0; A.want.fog_wisps *= 0.5; }
+  };
+  let tileId = 0;
+  const poolOf = (type) => A.tiles.filter(t => t.type === type);
+  function newTile(type, T, D, fc) {
+    const P = T.P, heights = (P.game && P.game.layer_heights_m) || [0], scroll = (P.game && P.game.wind && P.game.wind.scroll_factor) || [1];
+    for (let tries = 0; tries < 8; tries++) {
+      let x, z; if (D.where === 'bank') { const a = Math.random() * 6.283, r = 220 + Math.random() * 140; x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; } else { const a = Math.random() * 6.283, r = D.reach * Math.sqrt(0.04 + 0.96 * Math.random()); x = fc.x + Math.cos(a) * r; z = fc.z + Math.sin(a) * r; }
+      if (!okWhere(D.where, x, z)) continue;
+      const k = (Math.random() * heights.length) | 0; return { id: ++tileId, type, x, z, lay: k, hgt: heights[k] || 0, scr: scroll[Math.min(k, scroll.length - 1)], age: 0, ph: Math.random() * 4, vi: (Math.random() * 2) | 0, flip: Math.random() < 0.5 ? -1 : 1, a: 0, aT: 1, th: Math.random(), phase: 'form', dying: false, blob: (Math.random() * 6) | 0, sc: D.kind === 'blob' ? 0.8 + Math.random() * 1.8 : 1, y: 0, d: 0 };
+    }
+    return null;
+  }
+  let fogT = 0;
+  A.fogStep = (dt) => {
+    if (F.q === 'off') { A.tiles.length = 0; return; } A.climate(); const fc = camera.position, ws = F.wind, scale = fogScale();
+    fogT -= dt; const doSpawn = fogT <= 0; if (doSpawn) fogT = 0.4;
+    for (const type in FOG) {
+      const D = FOG[type]; const want = (A.want[type] || 0), tgtN = Math.round(D.cap * scale * want);
+      if (want <= 0.02 && !A.tiles.some(t => t.type === type)) continue; const T = A.need(type); if (!T) continue;
+      const pool = poolOf(type);
+      if (doSpawn) {
+        const live = pool.filter(t => !t.dying);
+        if (live.length < tgtN) { const t = newTile(type, T, D, fc); if (t) A.tiles.push(t); }
+        // thin: as the wanted amount falls, tiles with a high threshold begin to thin and fall (each ends in its own time)
+        for (const t of live) if (t.th > want + 0.08 && !t.dying) { t.dying = true; t.phase = T.clips.thin ? 'thin' : 'fall'; t.age2 = 0; }
+        if (live.length > tgtN + 2) { const t = live[(Math.random() * live.length) | 0]; if (t && !t.dying) { t.dying = true; t.phase = 'thin'; t.age2 = 0; } }
+      }
+    }
+    const uref = (T) => (T.P.fog && T.P.fog.u_ref_mps) || 0, wl = Math.hypot(ws.x, ws.z) || 1, wux = ws.x / wl, wuz = ws.z / wl;
+    for (let i = A.tiles.length - 1; i >= 0; i--) {
+      const t = A.tiles[i], T = A.types[t.type], D = FOG[t.type]; if (!T || T.state !== 'ready') { t.age += dt; continue; }
+      t.age += dt; const sp = t.scr * F.windMs + uref(T) * 0.5; t.x += wux * sp * dt; t.z += wuz * sp * dt;
+      const dx = t.x - fc.x, dz = t.z - fc.z, d = Math.hypot(dx, dz); t.d = d;
+      if (d > D.reach * 1.18 && D.where !== 'bank' || (D.where === 'bank' && d > 420)) { A.tiles.splice(i, 1); continue; }
+      if (t.dying) { t.age2 += dt; const tc = t.phase === 'thin' ? T.clips.thin : T.clips.fall; const dur = tc ? tc.count / tc.fps : 3; if (t.phase === 'thin' && t.age2 > dur) { t.phase = 'fall'; t.age2 = 0; } else if (t.phase === 'fall' && t.age2 > (T.clips.fall ? T.clips.fall.count / T.clips.fall.fps : 3) + 1.5) { A.tiles.splice(i, 1); continue; } }
+      const fadeIn = Math.min(1, t.age / 3.5), edge = 1 - sm(0.78, 1.0, d / D.reach), near = 1;
+      const dyingA = t.dying ? Math.max(0, 1 - (t.age2 / ((t.phase === 'thin' ? (T.clips.thin ? T.clips.thin.count / T.clips.thin.fps : 3) : 3) + (T.clips.fall ? T.clips.fall.count / T.clips.fall.fps : 3))) * 1.0) : 1;
+      t.a = fadeIn * edge * dyingA * (0.4 + 0.6 * Math.max(A.want[t.type] || 0, 0.3));
+      if (!okWhere(D.where, t.x, t.z) && D.where !== 'any') t.a *= 0.0;
+      const onW = heightAt(t.x, t.z) < 0; t.y = (onW ? waveH(t.x, t.z, simT) : gnd(t.x, t.z)) + t.hgt;
+    }
+    A.stats.tiles = A.tiles.length;
+  };
+  A.drawTiles = () => {
+    const cam = camera.position, list = A.tiles.filter(t => t.a > 0.01).sort((a, b) => b.d - a.d), lw = F.windMs; let n = 0;
+    for (const t of list) {
+      const T = A.types[t.type]; if (!T || T.state !== 'ready') continue; const LY = T.layers.main; if (!LY) continue; const P = T.P, D = FOG[t.type];
+      let clip, loop = true, tm = t.age + t.ph;
+      if (D.kind === 'blob') clip = T.clips.blob[t.blob % T.clips.blob.length];
+      else if (t.dying) { clip = t.phase === 'thin' ? T.clips.thin : T.clips.fall; tm = t.age2; loop = false; if (!clip) clip = T.clips.drift[0]; }
+      else if (t.age < (T.clips.form ? T.clips.form.count / T.clips.form.fps : 0)) { clip = T.clips.form; tm = t.age; loop = false; }
+      else clip = T.clips.drift[t.vi % T.clips.drift.length] || T.clips.linger;
+      if (!clip) continue; const fr = F.frameOf(clip, tm, loop, true), lit = lightFor(P); const col = [lit[0], lit[1], lit[2]]; addFire(t.x, t.z, t.y, col);
+      const w = LY.size[0] * t.sc, h = LY.size[1] * t.sc;
+      R.push(LY.combo, t.x, t.y - 0.07 * h, t.z, w, h, fr[0], fr[1], fr[2], Math.min(1, t.a) * (D.kind === 'blob' ? 0.8 : 0.9), t.flip, 0, 0, 1, col[0], col[1], col[2], 0, 0, 0);
+      const H = T.layers.heat; if (H && false) { }
+      n++;
+    }
+    A.stats.drawn = n;
+  };
+  /* ---- stepping and drawing the effects ---- */
+  const _o = {};
+  A.step = (dt) => {
+    const cam = camera.position, wl = F.wind, ws = F.windMs;
+    for (let i = A.fx.length - 1; i >= 0; i--) {
+      const f = A.fx[i]; const T = A.types[f.type]; if (!T || T.state !== 'ready') { if (T && T.state === 'bad') { A.kill(f); } continue; }
+      if (f.follow) f.follow(f); if (f.dead) continue; f.st += dt; const C = T.clips;
+      if (f.seen !== undefined && simT - f.seen > 0.35 && f.state !== 'fade') A.stop(f);                       // a hose that is no longer refreshed settles
+      if (f.state === 'start') { if (!C.start || f.st >= C.start.duration_s) { f.state = 'loop'; f.st = 0; } }
+      else if (f.state === 'loop') { if (f.dur < 9000) { f.dur -= dt; if (f.dur <= 0) { f.state = C.fade ? 'fade' : 'dead'; f.st = 0; } } const lc = C.loop[f.vi % C.loop.length]; if (lc && f.st >= lc.duration_s) f.st -= lc.duration_s; }
+      else if (f.state === 'fade') { if (!C.fade || f.st >= C.fade.duration_s) { A.kill(f); continue; } }
+      else if (f.state === 'shot') { const sc = C.shot[f.vi % C.shot.length]; if (!sc || f.st >= sc.duration_s) { A.kill(f); continue; } }
+      else if (f.state === 'dead') { A.kill(f); continue; }
+      const d = Math.hypot(f.x - cam.x, f.z - cam.z); if (d > 260) continue;
+      let clip, loop = false; const st = f.state;
+      clip = st === 'start' ? C.start : st === 'loop' ? C.loop[f.vi % C.loop.length] : st === 'fade' ? C.fade : C.shot[f.vi % C.shot.length]; loop = st === 'loop'; if (!clip) continue;
+      const LY = T.layers.main; if (!LY) continue; const P = T.P, S = f.sc, lit = lightFor(P); const col = [lit[0], lit[1], lit[2]]; addFire(f.x, f.z, f.y, col);
+      const w = LY.size[0] * S * f.sx, h = LY.size[1] * S; const wg = P.game && P.game.wind || {}; const lean = Math.min(wg.max_lean_deg || 45, (wg.lean_deg_per_mps || 5) * ws) * 0.01745, off = Math.tan(Math.min(1.2, lean)) * h * (wg.drift_top || 0.8) * 0.5;
+      const lx = ws > 0.05 ? wl.x / ws * off : 0, lz = ws > 0.05 ? wl.z / ws * off : 0; const fr = F.frameOf(clip, f.st, loop, true);
+      let al = f.alpha * (st === 'loop' ? Math.min(1, f.k * 1) : 1) * Math.min(1, Math.max(0.15, f.kT));
+      if (f.state === 'fade' && f.type === 'mist_bow') al *= 1;
+      let q = f.q, rot = f.rot, yaw = f.yaw;
+      if (f.type === 'spray_cone' && f.dir) { camera.getWorldDirection(_cd); _cr.crossVectors(_cd, _up).normalize(); _cu.crossVectors(_cr, _cd).normalize(); const vr = f.dir[0] * _cr.x + f.dir[1] * _cr.y + f.dir[2] * _cr.z, vu = f.dir[0] * _cu.x + f.dir[1] * _cu.y + f.dir[2] * _cu.z; q = 1; rot = Math.atan2(vu, vr); }
+      R.push(LY.combo, f.x, f.y, f.z, w, h, fr[0], fr[1], fr[2], Math.min(1, al), f.flip, q, q === 2 ? yaw : rot, 1, col[0], col[1], col[2], 0, f.type === 'spray_cone' || f.type === 'mist_bow' ? 0 : lx, f.type === 'spray_cone' || f.type === 'mist_bow' ? 0 : lz);
+      const H = T.layers.heat, hc = clip; if (H) { const fr2 = F.frameOf(hc, f.st, loop, true); R.push(H.combo, f.x, f.y, f.z, H.size[0] * S * f.sx, H.size[1] * S, fr2[0], fr2[1], fr2[2], Math.min(1, al), f.flip, q, q === 2 ? yaw : rot, 1, 1, 1, 1, 0, lx, lz); }
+      // the hot gas above a steam source bends the air (descriptor from the preset)
+      if (f.haze && P.haze && DIST.live && st !== 'shot') { const H0 = P.haze, k = Math.min(1, H0.strength * Math.min(1, al) * (st === 'start' ? Math.min(1, f.st / (C.start ? C.start.duration_s : 1)) : 1)); if (k > 0.04) DIST.haze(DIST.idOf(f), f.x, f.y + 0.3 + ((simT * (H0.rise_speed_mps || 0.3)) % 1), f.z, k, Math.max(0.6, H0.height_m * S), Math.max(0.3, H0.radius_m * S)); }
+    }
+  };
+  const _cd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+  F.afters.push((dt) => {
+    if (F.q === 'off' || F.legacyUntil) return; if (!A.json) { A.ensure(); return; }
+    try { A.owners(dt); A.bows(dt); A.rain(dt); A.fogStep(dt); A.step(dt); A.drawTiles(); A.sweepT = (A.sweepT || 0) + dt; if (A.sweepT > 6) { A.sweepT = 0; A.sweep(); } } catch (e) { A.err = String(e && e.stack || e); }
+  });
+/* a world reset (battle stop, calm): every sprite effect goes, the owners start clean */
+  F.reset = () => {
+    for (const f of F.fires.slice()) F.kill(f, true); if (F.G) { F.G.fronts.length = 0; F.G.spots.length = 0; F.G.bld.length = 0; } if (F.A) { F.A.fx.length = 0; } if (F.P) F.P.list.length = 0; for (const t of burning) t._fw = null; for (const h of HEATP) h._fws = null;
+  };
+})();
+/*FW-END part3*/
+/*FW-START part4: lights pack (modelled towers, floodlights, lamps, generators, strings, searchlights, cables) and strong-light effects (cones, beam glow, flares, ground pools, wet smears)*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone;
+  const L4 = F.L = { pack: null, loading: null, failed: false, pk: null, fx: null, cables: [], beams: [], search: [], stats: { models: 0, cables: 0, cones: 0, flares: 0, glows: 0, pools: 0, wets: 0 } };
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  /* ---- the pack: loaded once, on the first battle (fixtures wait for it), 0.4 MB ---- */
+  F.pack = () => {
+    if (L4.pack) return Promise.resolve(L4.pack); if (L4.loading) return L4.loading;
+    L4.loading = loadGLB('lights_pack').then(g => {
+      L4.pack = g;
+      const off = new THREE.MeshStandardMaterial({ color: 0xd8cfbf, roughness: 0.4, metalness: 0.1 }), on = new THREE.MeshBasicMaterial({ color: 0xfff0c0, toneMapped: false }), indOff = new THREE.MeshStandardMaterial({ color: 0x1d3a22, roughness: 0.4 }), indOn = new THREE.MeshBasicMaterial({ color: 0x66ff88, toneMapped: false });
+      g.scene.traverse(o => { if (o.isMesh && o.material) { const n = o.material.name; if (n === 'lamp_off') { off.copy(o.material); off.name = 'lamp_off'; } else if (n === 'ind_off') { indOff.copy(o.material); } } });
+      L4.pk = { off, on, indOff, indOn };
+      L4.meta = {}; g.scene.traverse(o => { if (o.name && /^(lightpt_|cable_|smoke_|pivot_|searchlight_)/.test(o.name)) L4.meta[o.name] = true; });
+      return g;
+    }).catch(e => { L4.failed = true; L4.err = String(e); return null; });
+    return L4.loading;
+  };
+  /* a fixture builder asks to wait for the pack once; if it cannot load, the procedural models are used */
+  F.packWait = (fn) => { if (F.q === 'off' || L4.pack || L4.failed) return false; if (L4.waiting) return true; L4.waiting = true; F.pack().then(() => { L4.waiting = false; fn(); }, () => { L4.waiting = false; fn(); }); return true; };
+  const NAMES = { tower: 'light_tower', flood: 'floodlight_pole_2', gen: 'generator_medium', string: 'string_lights_8m', search: 'searchlight_ground' };
+  const FEED = { tower: 'cable_light_tower_ext', flood: 'cable_floodlight_pole_2_feed', lamp_cobra: 'cable_lamp_cobra', lamp_harbour: 'cable_lamp_harbour', string: 'cable_string_lights_8m_a', search: 'cable_searchlight_power' };
+  const lensProxy = (meshes, ind) => ({ meshes, set material(m) { const pk = L4.pk; const mm = m === LENSON ? pk.on : m === GENON ? pk.indOn : (ind ? pk.indOff : pk.off); for (const x of this.meshes) x.material = mm; }, get material() { return this.meshes[0] ? this.meshes[0].material : null; } });
+  F.fixModel = (kind, p) => {
+    if (F.q === 'off' || !L4.pack) return null; const nm = kind === 'lamp' ? ((p && (p.type === 'harbour' || p.type === 'radio' || p.type === 'depot')) ? 'lamp_harbour' : 'lamp_cobra') : NAMES[kind]; if (!nm) return null;
+    const src = nodeByName(L4.pack, nm); if (!src) return null; const g = new THREE.Group(), c = src.clone(true); g.add(c); g.userData.pkName = nm; g.userData.pkKind = kind;
+    const lens = [], ind = []; g.updateMatrixWorld(true);
+    const lpts = []; c.traverse(o => { if (o.name && o.name.startsWith('lightpt_') && o.userData && o.userData.light) lpts.push(o); });
+    c.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; const n = o.material && o.material.name; if (n === 'lamp_off') lens.push(o); else if (n === 'ind_off') ind.push(o); } });
+    if (kind === 'tower') {                                                  // two groups, front and back, like the two bars before
+      const groups = { front: [], back: [] }; const pf = lpts.filter(o => o.userData.light.group === 'front'), pb = lpts.filter(o => o.userData.light.group === 'back'); const mid = (arr) => { const v = new THREE.Vector3(); for (const o of arr) { const w = new THREE.Vector3(); o.getWorldPosition(w); v.add(w); } return v.multiplyScalar(1 / Math.max(1, arr.length)); }, zf = mid(pf).z, zb = mid(pb).z;
+      for (const m of lens) { const w = new THREE.Vector3(); m.getWorldPosition(w); (Math.abs(w.z - zf) < Math.abs(w.z - zb) ? groups.front : groups.back).push(m); }
+      g.userData.lens = [[lensProxy(groups.front)], [lensProxy(groups.back)]];
+    } else if (kind === 'gen') g.userData.lens = [[lensProxy(ind, true)]];
+    else g.userData.lens = [[lensProxy(lens)]];
+    g.userData.lpts = lpts; L4.stats.models++; return g;
+  };
+  /* what each fixture record learns from its model: lamp position, beam direction, cone and range from the pack's own empties */
+  const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _d = new THREE.Vector3();
+  F.fixFit = (f, g, kind, sp, yaw) => {
+    if (!g.userData.pkName) return; g.updateMatrixWorld(true); const lp = g.userData.lpts || [];
+    f.glb = true; f.pkName = g.userData.pkName; f.glow = (f.glow || 1) * 0.35; f.pool = 0;
+    let mine = lp.filter(o => o.userData.light.type !== 'indicator'); if (kind === 'tower') { const gi = g.userData.lens.indexOf(f.lens); const grp = gi === 0 ? 'front' : 'back'; mine = mine.filter(o => o.userData.light.group === grp); }
+    if (kind === 'gen' || !mine.length) { return; }
+    let cx = 0, cy = 0, cz = 0, dx = 0, dy = 0, dz = 0, cone = 0, range = 0; for (const o of mine) { o.getWorldPosition(_p); o.getWorldQuaternion(_q); _d.set(0, 0, 1).applyQuaternion(_q); cx += _p.x; cy += _p.y; cz += _p.z; dx += _d.x; dy += _d.y; dz += _d.z; cone = Math.max(cone, o.userData.light.cone_deg || 60); range = Math.max(range, o.userData.light.range || 30); }
+    const n = mine.length, dl = Math.hypot(dx, dy, dz) || 1; f.x = cx / n; f.y = cy / n; f.z = cz / n; f.beam = { dx: dx / dl, dy: dy / dl, dz: dz / dl, cone, range, lens: kind === 'tower' ? 0.6 : kind === 'search' ? 0.7 : kind === 'flood' ? 0.4 : 0.28 };
+    if (kind === 'search') { const y = nodeByName({ scene: g }, 'searchlight_yoke'), h = nodeByName({ scene: g }, 'searchlight_head'); f.yoke = y; f.head = h; f.swA = Math.random() * 6; f.swYaw = yaw; f.beamPt = lp.find(o => o.userData.light.type === 'spot'); L4.search.push(f); }
+  };
+  /* ---- cables: from a generator socket to each light it feeds, lying on the ground (a sagged tube through sampled terrain heights) ---- */
+  const cableMat = new THREE.MeshStandardMaterial({ color: 0x1b1d1f, roughness: 0.9, metalness: 0.05 });
+  function merge(list) {
+    let nv = 0, ni = 0; for (const g of list) { nv += g.attributes.position.count; ni += g.index.count; } const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0;
+    for (const g of list) { pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3); for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.array[i] + vo; vo += g.attributes.position.count; io += g.index.count; g.dispose(); }
+    const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); out.setIndex(new THREE.BufferAttribute(idx, 1)); return out;
+  }
+  const emptyW = (g, name) => { let e = null; g.traverse(o => { if (!e && o.name === name) e = o; }); if (!e) return null; e.updateWorldMatrix(true, false); return e.getWorldPosition(new THREE.Vector3()); };
+  function tube(a, b) {
+    const pts = [a.clone()], dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz), n = Math.max(2, Math.round(len / 1.6)), ux = dx / (len || 1), uz = dz / (len || 1);
+    pts.push(new THREE.Vector3(a.x + ux * 0.5, gnd(a.x + ux * 0.5, a.z + uz * 0.5) + 0.05, a.z + uz * 0.5));
+    for (let i = 1; i < n; i++) { const t = i / n, x = a.x + dx * t, z = a.z + dz * t; pts.push(new THREE.Vector3(x, gnd(x, z) + 0.045 + 0.02 * Math.sin(t * 9), z)); }
+    pts.push(new THREE.Vector3(b.x - ux * 0.5, gnd(b.x - ux * 0.5, b.z - uz * 0.5) + 0.05, b.z - uz * 0.5)); pts.push(b.clone());
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal'); return new THREE.TubeGeometry(curve, pts.length * 3, 0.026, 5, false);
+  }
+  F.fixCables = (p) => {
+    if (F.q === 'off' || !L4.pack || !p.lights) return; const gen = p.lights.gen; if (!gen || !gen.model || !gen.model.userData.pkName) return;
+    const geos = []; let gi = 0;
+    for (const f of LIGHT.fix) {
+      if (f.p !== p || f.gen !== gen || !f.glb || f === gen) continue; const feed = f.pkName === 'lamp_cobra' ? FEED.lamp_cobra : f.pkName === 'lamp_harbour' ? FEED.lamp_harbour : FEED[f.model.userData.pkKind];
+      const A = emptyW(gen.model, 'cable_generator_medium_out_' + (gi++ % 4)), B = feed && emptyW(f.model, feed); if (!A || !B) continue; geos.push(tube(A, B));
+    }
+    if (geos.length) { const m = new THREE.Mesh(merge(geos), cableMat); m.frustumCulled = false; m.castShadow = false; scene.add(m); L4.cables.push(m); p._fwCable = m; L4.stats.cables += geos.length; }
+    // a searchlight sweeping over the base, fed from the same generator, at the bigger points
+    if (['hq', 'airfield', 'harbour'].includes(p.type) && !p._fwSearch) { p._fwSearch = true; const a0 = p.x * 0.011 + p.z * 0.009 + 2.3; try { const s = fixPlace(p, 'search', a0 + 2.4, 20, gen, 'out'); if (s) { fixCablesOne(p, gen, s); } } catch (e) { L4.err = String(e); } }
+  };
+  function fixCablesOne(p, gen, f) { if (!f.glb) return; const A = emptyW(gen.model, 'cable_generator_medium_out_3'), B = emptyW(f.model, FEED.search); if (!A || !B) return; const m = new THREE.Mesh(merge([tube(A, B)]), cableMat); m.frustumCulled = false; scene.add(m); L4.cables.push(m); L4.stats.cables++; }
+  F.fixClear = () => { for (const m of L4.cables) { scene.remove(m); m.geometry.dispose(); } L4.cables.length = 0; L4.search.length = 0; };
+  /* a searchlight sweeps: yaw back and forth, a little pitch; its beam feeds a spot light and the strong-light effects */
+  const _sw = new THREE.Vector3(), _sq = new THREE.Quaternion();
+  F.fixWant = (f, lk) => {
+    if (!f.glb || f.kind !== 'search') return false; if (f.on < 0.02) return true;
+    const dt = F.lastDt || 0.016; f.swA += dt * 0.3; if (f.yoke) f.yoke.rotation.y = f.swYaw + Math.sin(f.swA) * 1.15 + f.swA * 0.0; if (f.head) f.head.rotation.x = -0.14 - 0.06 * Math.sin(f.swA * 1.7);
+    f.model.updateMatrixWorld(true); const o = f.beamPt; if (!o) return true; o.getWorldPosition(_sw); o.getWorldQuaternion(_sq); _d.set(0, 0, 1).applyQuaternion(_sq);
+    f.x = _sw.x; f.y = _sw.y; f.z = _sw.z; f.beam.dx = _d.x; f.beam.dy = _d.y; f.beam.dz = _d.z;
+    lightWant('fx' + f.id, 'spot', f.x, f.y, f.z, 1, 0.96, 0.88, f.I * f.on, 190, 2.2, { dx: _d.x, dy: _d.y, dz: _d.z, ang: 0.13, glow: 0.4, glowA: 0.9, k: f.on }); return true;
+  };
+
+  /* ---- the strong-light effects ---- */
+  const TEX = {};
+  const loadFxTex = (name) => R.loadTex('assets/' + name);
+  F.fxLoad = () => {
+    if (L4.fx || L4.fxLoading) return; L4.fxLoading = true;
+    Promise.all(['lights_fx_cone.png', 'lights_fx_beam_glow.png', 'lights_fx_flare.png', 'lights_fx_pool.png', 'lights_fx_wet.png'].map(loadFxTex)).then(([cone, glow, flare, pool, wet]) => { L4.fx = { cone, glow, flare, pool, wet }; initFx(); }).catch(e => { L4.fxErr = String(e); L4.fxLoading = false; });
+  };
+  const CAPS = () => ({ cone: PH ? 0 : 6, flare: PH ? 6 : 12, glow: PH ? 4 : 16, pool: PH ? 6 : 14, wet: PH ? 0 : 8 });
+  let fxMesh = null, coneGeo = null; const cones = [];
+  const instMat = (tex, vs, fs, order, extra) => new THREE.ShaderMaterial({ uniforms: Object.assign({ tMap: { value: tex }, uPx: { value: 800 } }, extra || {}), vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
+  function mkInst(cap, attrs, mat, order) {
+    const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]), 3)); g.setIndex([0, 1, 2, 0, 2, 3]); const bufs = {};
+    for (const [nm, n] of attrs) { const a = new Float32Array(cap * n); const at = new THREE.InstancedBufferAttribute(a, n); at.setUsage(THREE.DynamicDrawUsage); g.setAttribute(nm, at); bufs[nm] = at; } g.instanceCount = 0;
+    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = order; scene.add(m); return { g, m, bufs, n: 0, cap };
+  }
+  let FL = null, GL = null, PL = null, WT = null;
+  function initFx() {
+    const caps = CAPS();
+    // flares: spherical billboards, size set in world metres from a pixel size
+    FL = mkInst(caps.flare, [['aP', 4], ['aC', 4]], instMat(L4.fx.flare, 'attribute vec4 aP; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; vec3 toC = cameraPosition - aP.xyz; vec3 f = normalize(toC); vec3 r = normalize(cross(vec3(0.0, 1.0, 0.0), f) + vec3(1e-5, 0.0, 0.0)); vec3 u = cross(f, r); vec3 wp = aP.xyz + f * 0.25 + (r * position.x + u * position.y) * aP.w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = t.a * vC.a; float l = max(t.r, max(t.g, t.b)); vec3 c = (t.a > 0.01 ? t.rgb : vec3(l)) * vC.rgb; gl_FragColor = vec4(c * a, a * 0.0); }', 0, {}), 8.4);
+    // beam glow strips
+    GL = mkInst(caps.glow, [['aP', 4], ['aD', 4], ['aC', 4]], instMat(L4.fx.glow, 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ float s = position.x * 0.5 + 0.5; vUv = vec2(s, position.y * 0.5 + 0.5); vC = aC; vec3 mid = aP.xyz + aD.xyz * aD.w * 0.5; vec3 toC = normalize(cameraPosition - mid); vec3 side = cross(aD.xyz, toC); float sl = length(side); side = sl > 1e-4 ? side / sl : vec3(0.0, 1.0, 0.0); float w = aP.w * (0.25 + 0.75 * s); vec3 wp = aP.xyz + aD.xyz * aD.w * s + side * position.y * w; gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }', 0, {}), 8.3);
+    // ground pools and wet smears: flat quads on the ground
+    const flatVS = 'attribute vec4 aP; attribute vec4 aD; attribute vec4 aC; varying vec2 vUv; varying vec4 vC; void main(){ vUv = position.xy * 0.5 + 0.5; vC = aC; float c = cos(aD.x), s = sin(aD.x); vec2 l = vec2(position.x * aD.y, position.y * aD.z); vec3 wp = vec3(aP.x + l.x * c - l.y * s, aP.y, aP.z + l.x * s + l.y * c); gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0); }', flatFS = 'precision highp float; uniform sampler2D tMap; varying vec2 vUv; varying vec4 vC; void main(){ vec4 t = texture2D(tMap, vUv); float a = max(t.a, max(t.r, max(t.g, t.b))) * vC.a; gl_FragColor = vec4(vC.rgb * a, 0.0); }';
+    const pm = instMat(L4.fx.pool, flatVS, flatFS, 0, {}); pm.polygonOffset = true; pm.polygonOffsetFactor = -3; pm.polygonOffsetUnits = -3; PL = mkInst(caps.pool, [['aP', 4], ['aD', 4], ['aC', 4]], pm, 2.1);
+    const wm = instMat(L4.fx.wet, flatVS, flatFS, 0, {}); wm.polygonOffset = true; wm.polygonOffsetFactor = -4; wm.polygonOffsetUnits = -4; WT = mkInst(caps.wet || 1, [['aP', 4], ['aD', 4], ['aC', 4]], wm, 2.2);
+    // cones: the open cone with the baked gradient, one mesh each (at most six), plus a thin hot core
+    const seg = 24, pos = [], uv = [], idx = []; for (let i = 0; i <= seg; i++) { const a = i / seg * Math.PI * 2, c = Math.cos(a) * 0.5, s = Math.sin(a) * 0.5; pos.push(0, 0, 0, c, s, 1); uv.push(0, i / seg, 1, i / seg); } for (let i = 0; i < seg; i++) { const b = i * 2; idx.push(b, b + 1, b + 3, b, b + 3, b + 2); }
+    coneGeo = new THREE.BufferGeometry(); coneGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); coneGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); coneGeo.setIndex(idx);
+    for (let i = 0; i < caps.cone * 2; i++) {
+      const mat = new THREE.ShaderMaterial({ uniforms: { tMap: { value: L4.fx.cone }, uA: { value: 0 }, uCol: { value: new THREE.Color(1, 0.93, 0.78) }, uT: { value: 0 } }, vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * vec3(position.xy, -0.0)); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }', fragmentShader: 'precision highp float; uniform sampler2D tMap; uniform float uA; uniform vec3 uCol; uniform float uT; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vec4 t = texture2D(tMap, vec2(vUv.x, fract(vUv.y + uT))); float a = max(t.a, max(t.r, max(t.g, t.b))); float e = pow(abs(dot(normalize(vN), normalize(vV))), 1.5); float al = a * e * uA; gl_FragColor = vec4(uCol * al, 0.0); }', transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor });
+      const m = new THREE.Mesh(coneGeo, mat); m.frustumCulled = false; m.visible = false; m.renderOrder = 8.1; m.matrixAutoUpdate = true; scene.add(m); cones.push(m);
+    }
+    L4.fxReady = true;
+  }
+  const haze = () => {
+    const A = F.A ? F.A.k : {}; let smoke = 0; for (const f of F.alive || []) { if (f.black && f.vis && f.px > 30) smoke += 0.3; } smoke = Math.min(1, smoke);
+    const fog = (A.fogSky || 0), mist = Math.max(A.dawn || 0, A.valley || 0) * 0.7, rain = wx.rainAmt;
+    return Math.max(0.1, Math.min(1, 0.15 + 1.0 * fog + 0.8 * mist + 1.2 * smoke * 0.5 + 0.5 * rain));
+  };
+  L4.haze = haze;
+  const _cam = new THREE.Vector3(), _cq = new THREE.Quaternion();
+  const put = (S, nm, i, a, b, c, d) => { const o = S.bufs[nm]; const v = o.array, k = i * o.itemSize; v[k] = a; v[k + 1] = b; v[k + 2] = c; v[k + 3] = d; };
+  F.lightsFx = (dt) => {
+    F.lastDt = dt;
+    if (F.q === 'off') { if (fxMesh !== 'off' && L4.fxReady) { for (const m of cones) m.visible = false; for (const S of [FL, GL, PL, WT]) if (S) { S.g.instanceCount = 0; } fxMesh = 'off'; } return; } fxMesh = null;
+    if (!LIGHT.fix.some(f => f.glb)) return; if (!L4.fxReady) { F.fxLoad(); return; }
+    const lk = LIGHT.lampK, H = haze(), cam = camera.position, caps = CAPS(); const Kpx = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    camera.getWorldDirection(_d); const wet = Math.min(1, wx.rainAmt * 1.3);
+    const cand = []; for (const f of LIGHT.fix) { if (!f.glb || f.kind === 'gen' || f.dead || f.on < 0.04) continue; const d = Math.hypot(f.x - cam.x, f.y - cam.y, f.z - cam.z); if (d > 700) continue; f._fd = d; cand.push(f); }
+    cand.sort((a, b) => a._fd - b._fd); let nF = 0, nG = 0, nP = 0, nW = 0, nC = 0;
+    for (const m of cones) m.visible = false;
+    for (const f of cand) {
+      const b = f.beam; if (!b) continue; const d = f._fd, on = f.on * lk, col = f.col || [1, 0.93, 0.78], toCx = (cam.x - f.x) / (d || 1), toCy = (cam.y - f.y) / (d || 1), toCz = (cam.z - f.z) / (d || 1);
+      const facing = Math.max(0, b.dx * toCx + b.dy * toCy + b.dz * toCz), omni = b.cone > 100;
+      // flare: bigger in haze, none from behind a spot lamp
+      if (nF < caps.flare) { const px = Math.max(12, Math.min(220, 900 * b.lens / Math.max(d, 1))) * (d > 400 ? Math.max(0.4, 1 - (d - 400) / 300) : 1) * (1 + 0.8 * H); const a = on * (omni ? 0.8 : Math.pow(facing, 2) * 0.9 + 0.08) * (0.6 + 0.4 * H); if (a > 0.01) { put(FL, 'aP', nF, f.x, f.y, f.z, px * d / Kpx * 0.5); put(FL, 'aC', nF, col[0], col[1], col[2], Math.min(1, a)); nF++; } }
+      if (!omni) {
+        // cone near, beam strip beyond about 150 m, only the flare beyond about 400 m
+        if (d < 150 && nC < caps.cone && !PH) { const len = Math.min(b.range * 0.85, 60), r = 2 * Math.tan(b.cone * 0.5 * Math.PI / 180) * len; const rx = cam.x - f.x, ry = cam.y - f.y, rz = cam.z - f.z, tt = rx * b.dx + ry * b.dy + rz * b.dz; let inside = 1; if (tt > 0 && tt < len) { const ex = rx - b.dx * tt, ey = ry - b.dy * tt, ez = rz - b.dz * tt, rad = Math.tan(b.cone * 0.5 * Math.PI / 180) * tt; if (Math.hypot(ex, ey, ez) < rad * 1.05) inside = 0.12; } const m0 = cones[nC * 2], m1 = cones[nC * 2 + 1]; if (m0) { for (const [mm, sc, k] of [[m0, 1, 0.5], [m1, 0.35, 0.35]]) { mm.visible = true; mm.position.set(f.x, f.y, f.z); _sw.set(f.x + b.dx, f.y + b.dy, f.z + b.dz); mm.lookAt(_sw); mm.scale.set(r * sc, r * sc, len); mm.material.uniforms.uA.value = on * k * (0.02 + 0.98 * H * H) * (1 - sm(110, 150, d)) * inside; mm.material.uniforms.uCol.value.setRGB(col[0], col[1], col[2]); mm.material.uniforms.uT.value = (simT * 0.01) % 1; } nC++; } }
+        else if (d >= 100 && nG < caps.glow) { const len = Math.min(b.range, 120); put(GL, 'aP', nG, f.x, f.y, f.z, len * Math.tan(b.cone * 0.5 * Math.PI / 180) * 0.9 + 0.5); put(GL, 'aD', nG, b.dx, b.dy, b.dz, len); put(GL, 'aC', nG, col[0], col[1], col[2], on * (0.2 + 0.8 * H) * 0.7 * sm(100, 160, d) * (1 - sm(500, 700, d))); nG++; }
+      }
+      // ground pool: where the beam lands, long axis along the beam's ground projection; round for a lamp
+      if (d < 130 && nP < caps.pool) {
+        const gy = gnd(f.x, f.z); let cx = f.x, cz = f.z, ang = 0, a = b.range * 0.55, bb = b.range * 0.5;
+        if (!omni) { const t = b.dy < -0.05 ? Math.min(b.range, (f.y - gy) / -b.dy) : b.range * 0.6; cx = f.x + b.dx * t; cz = f.z + b.dz * t; const tilt = Math.max(0.3, Math.cos(Math.asin(Math.min(0.95, Math.abs(b.dy))))); ang = Math.atan2(b.dz, b.dx); a = Math.min(b.range * 0.7, b.range * Math.tan(b.cone * 0.5 * Math.PI / 180) * 0.5 / tilt) ; bb = a * 0.6; } else { cx = f.x; cz = f.z; a = bb = b.range * 0.55; }
+        put(PL, 'aP', nP, cx, gnd(cx, cz) + 0.06, cz, 1); put(PL, 'aD', nP, -ang, a, bb, 1); put(PL, 'aC', nP, col[0], col[1], col[2], on * 0.3 * (1 - 0.3 * H)); nP++;
+      }
+      // wet ground: a reflection smear under the lamp, pointing away from the camera
+      if (wet > 0.05 && d < 70 && nW < caps.wet) { const gy = gnd(f.x, f.z), len = Math.max(2, 1.5 * (f.y - gy)), ax = f.x - cam.x, az = f.z - cam.z, al = Math.hypot(ax, az) || 1; put(WT, 'aP', nW, f.x + ax / al * len * 0.5, gy + 0.07, f.z + az / al * len * 0.5, 1); put(WT, 'aD', nW, -Math.atan2(az, ax), len * 0.5, 0.9, 1); put(WT, 'aC', nW, col[0], col[1], col[2], on * wet * 0.7); nW++; }
+    }
+    const fin = (S, n) => { S.g.instanceCount = n; for (const k in S.bufs) S.bufs[k].needsUpdate = true; S.n = n; };
+    fin(FL, nF); fin(GL, nG); fin(PL, nP); fin(WT, nW); L4.stats.flares = nF; L4.stats.glows = nG; L4.stats.pools = nP; L4.stats.wets = nW; L4.stats.cones = nC;
+  };
+  F.afters.push((dt) => { try { F.lightsFx(dt); } catch (e) { L4.err = String(e && e.stack || e); } });
+  F.pre0 = F.pre; F.pre = (dt) => { if (F.pre0) F.pre0(dt); if (!L4.pack && !L4.failed && !L4.loading && typeof BATTLE !== 'undefined' && (BATTLE.on || (typeof LP !== 'undefined'))) F.pack(); };
+})();
+/*FW-END part4*/
 /*FW-REGION-END*/
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
@@ -14438,7 +14875,7 @@ function fixTry(p, ang, dist, r) {
 }
 function fixPlace(p, kind, ang, dist, gen, yawTo) {
   const sp = fixTry(p, ang, dist, kind === 'tower' || kind === 'gen' ? 1.8 : 0.8); if (!sp) return null;
-  const g = kind === 'tower' ? buildTower() : kind === 'flood' ? buildFlood() : kind === 'lamp' ? buildLamp() : kind === 'gen' ? buildGen() : buildStrings(6); g.position.set(sp.x, sp.y - 0.02, sp.z);
+  const g = FW.fixModel(kind, p) || (kind === 'tower' ? buildTower() : kind === 'flood' ? buildFlood() : kind === 'lamp' ? buildLamp() : kind === 'gen' ? buildGen() : buildStrings(6)); g.position.set(sp.x, sp.y - 0.02, sp.z); /*FW-HOOK*/
   const yaw = yawTo === 'in' ? Math.atan2(p.x - sp.x, p.z - sp.z) : yawTo === 'out' ? Math.atan2(sp.x - p.x, sp.z - p.z) : (yawTo || 0); g.rotation.y = yaw; if (kind === 'lamp') g.rotation.y = Math.atan2(-(p.z - sp.z), p.x - sp.x); scene.add(g);
   const FX = { LAMPFX: 1 };
   const mk = (k, hx, hy, hz, lensI, I, range, glow, pool, col, hp) => ({ kind: k, x: sp.x + hx, y: sp.y + hy, z: sp.z + hz, g, p, gen, lens: g.userData.lens[lensI] || [], I, range, glow, pool, col, on: 0, hp: hp || 40, hp0: hp || 40, dead: false, id: ++LIGHT.n || (LIGHT.n = 1) });
@@ -14448,11 +14885,12 @@ function fixPlace(p, kind, ang, dist, gen, yawTo) {
   else if (kind === 'lamp') { const f = mk('lamp', Math.cos(g.rotation.y) * 0.8, 4.1, -Math.sin(g.rotation.y) * 0.8, 0, 190, 27, 0.9, 7.5, [1, 0.8, 0.5], 25); out.push(f); }
   else if (kind === 'string') { const f = mk('string', 0, 2.2, 0, 0, 70, 12, 0.7, 5, [1, 0.82, 0.5], 20); f.bulbs = g.userData.bulbs; out.push(f); }
   else if (kind === 'gen') { const f = mk('gen', 0, 0.9, 0, 0, 0, 1, 0.3, 0, [0.3, 1, 0.4], 260); f.kind = 'gen'; out.push(f); gen = f; }
-  for (const f of out) { f.model = g; LIGHT.fix.push(f); }
+  else if (kind === 'search') out.push(mk('search', 0, 1.1, 0, 0, 2400, 190, 1.2, 0, [1, 0.96, 0.88], 60));
+  for (const f of out) { f.model = g; FW.fixFit(f, g, kind, sp, yaw); LIGHT.fix.push(f); }
   return out[0];
 }
 function layPointLights() {
-  lightsInit(); for (const p of BATTLE.points) { try { layPointFix(p); } catch (e) { window.__lterr = String(e && e.stack || e); } }
+  lightsInit(); if (FW.packWait(layPointLights)) return; for (const p of BATTLE.points) { try { layPointFix(p); FW.fixCables(p); } catch (e) { window.__lterr = String(e && e.stack || e); } } /*FW-HOOK*/
 }
 function layPointFix(p) {
   const T = p.type, a0 = p.x * 0.011 + p.z * 0.009 + 2.3, R = (n) => isTouch ? Math.max(1, Math.ceil(n / 2)) : n; p.lights = { gen: null };
@@ -14468,7 +14906,7 @@ function layPointFix(p) {
   else if (T === 'battery') { put('lamp', 0.6, 10, 'in', 2, 1.6); put('string', 3.3, 10, 0, 1); }
   else { put('lamp', 0.9, 8, 'in', 2, 1.8); }
 }
-function lightsClear() {
+function lightsClear() { FW.fixClear();
   for (const f of LIGHT.fix) if (f.model && f.model.parent) { scene.remove(f.model); f.model.traverse(o => { if (o.isMesh && o.geometry && !Object.values(FIXG).includes(o.geometry) && o.geometry !== lensGeo) { } }); f.model = null; }
   LIGHT.fix.length = 0; for (const c of LIGHT.chem) { scene.remove(c.m); } LIGHT.chem.length = 0; LIGHT.flares.length = 0;
 }
@@ -14499,7 +14937,7 @@ function fixtureTick(dt) {
     for (const l of f.lens) l.material = f.dead ? LENSOFF : f.on > 0.3 ? LENSON : LENSOFF; if (f.bulbs) { f.bulbs.visible = f.on > 0.3; }
     if (f.on < 0.01) continue; const d2 = (f.x - fc.x) * (f.x - fc.x) + (f.z - fc.z) * (f.z - fc.z); if (d2 > 320 * 320) continue;
     const fl = f.kind === 'lamp' && Math.random() < 0.0 ? 0.9 : 1;
-    lightWant('fx' + f.id, 'point', f.x, f.y, f.z, f.col[0], f.col[1], f.col[2], f.I * f.on, f.range, f.kind === 'tower' ? 3 : f.kind === 'flood' ? 2.5 : 1.5, { glow: f.glow, glowA: 0.85, pool: f.pool, k: f.on });
+    if (!(f.glb && FW.fixWant(f, lk))) lightWant('fx' + f.id, 'point', f.x, f.y, f.z, f.col[0], f.col[1], f.col[2], f.I * f.on, f.range, f.kind === 'tower' ? 3 : f.kind === 'flood' ? 2.5 : 1.5, { glow: f.glow, glowA: 0.85, pool: f.pool, k: f.on });
   }
 }
 function lightAt(x, z) {                                                               // how brightly lit a spot of ground is, from lamps, flares, fires, chemical lights and torches: 0 is dark, 1 is as bright as a lamp-lit street. The bots use it.

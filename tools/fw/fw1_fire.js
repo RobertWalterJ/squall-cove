@@ -141,7 +141,7 @@
   };
   const _o = { q: 0, rot: 0, stretch: 1, loop: false, blend: false, cross: false, yaw: 0, noSmoke: false, fire: null, warm: 0 };
   function drawFire(f, T, rank, animated) {
-    const clip = clipFor(f, T); if (!clip) return; if (f.state !== 'out') f.lastClip = clip;
+    const clip = clipFor(f, T); if (!clip) return; if (f.state !== 'out') f.lastClip = clip; f.cn = clip.name;
     const S = f.sc * Math.sqrt(f.F), loopish = isLoopState(f.state), spd = (f.state === 'burn' ? 0.8 + 0.2 * f.F : 1);
     const t = animated ? f.st * spd : f.ph, al = f.fade * (f.alphaK === undefined ? 1 : f.alphaK);
     _o.q = 0; _o.rot = 0; _o.stretch = 1; _o.loop = loopish && f.state !== 'out' ? true : false; _o.blend = F.q === 'high'; _o.cross = (f.quads || 1) > 1 && F.q === 'high' && animated; _o.yaw = f.yaw;
@@ -163,7 +163,7 @@
   F.frame = (dt) => {
     dt = Math.min(dt, 0.1);
     F.q = F.eff();
-    if (F.q === 'off') { if (F.fires.length) for (const f of F.fires.slice()) F.kill(f, true); R.begin(); R.end(); return; }
+    if (F.q === 'off') { if (F.fires.length) for (const f of F.fires.slice()) F.kill(f, true); R.begin(); R.end(); if (F.lightsFx) { try { F.lightsFx(dt); } catch (e) { } } return; }
     // wind (m/s): the game's wind vector
     F.wind.x = wind.v.x; F.wind.z = wind.v.z; F.windMs = Math.hypot(wind.v.x, wind.v.z);
     updateAmb();
@@ -212,6 +212,9 @@
       const cy = f.y + Math.min(6, (T.layers.flame ? T.layers.flame.size[1] : 2) * f.sc * 0.35);
       lightWant('fw' + f.id, 'point', f.x, cy, f.z, col[0], col[1] * (0.85 + 0.15 * Math.min(1, e)), col[2], I, rng, 1.3, { glow: 0, pool: Math.min(rng * 0.25, 9), fl: Math.min(1.3, e), k: dk * f.fade }); n++;
     }
+    // far or tiny fires: no animation and no real light, a glow sprite only (the game draws these for lights within about 260 m)
+    let g = 0; for (const f of F.alive || []) { if (g >= (PH ? 3 : 8)) break; if (f.noLight || f.fade < 0.1 || !f._T || f.px >= 14 || f._d < 40 || f._d > 600 || f.F < 0.6) continue; const L = f._T.info.light; if (!L) continue; const col = L.color || [1, 0.5, 0.1], S = f.sc * Math.sqrt(f.F), hh = (f._T.layers.flame ? f._T.layers.flame.size[1] : 2) * S;
+      lightWant('fwg' + f.id, 'point', f.x, f.y + hh * 0.3, f.z, col[0], col[1], col[2], 0, 1, 0.5, { glow: Math.min(8, Math.max(1.2, hh * 0.45)), glowA: 0.55 * f.fade * Math.min(1, f.F), k: dk }); g++; }
     return n;
   };
   /* ---- heat haze: every fire type's own descriptor feeds the DIST engine ---- */

@@ -8,7 +8,7 @@
     const name = kind === 'shrub' ? 'shrub' : kind === 'palm' ? 'tree_trunk' : 'tree_crown';
     const sc = kind === 'shrub' ? 0.7 + 0.4 * t.sc : kind === 'palm' ? 1.0 + 0.25 * t.sc : 0.52 + 0.3 * t.sc;
     const f = F.spawn(name, t.x, gy + 0.05, t.z, { sc, F: 1, pri: 2, dur: Infinity, quads: (name === 'tree_crown') ? 2 : 1, state: (t.burn > 11 ? 'ignite' : 'ignite'),
-      own: { kind: 'tree', ref: t, endIn: () => t.burn, sync: (f) => { if (f.state === 'burn' || f.state === 'ignite' || f.state === 'grow') { if (t.dead || t.burn <= 0) { if (t.dead) { f.state = 'decay'; f.st = 0; if (!F.types[f.name] || !F.types[f.name].clips || !F.types[f.name].clips.decay) f.state = 'out'; } else F.extinguish(f); } } } } });
+      own: { kind: 'tree', ref: t, endIn: () => t.burn, sync: (f) => { if (f.state === 'burn' || f.state === 'ignite' || f.state === 'grow') { if (t.dead || t.burn <= 0 || !burning.includes(t)) { if (t.dead) { f.state = 'decay'; f.st = 0; if (!F.types[f.name] || !F.types[f.name].clips || !F.types[f.name].clips.decay) f.state = 'out'; } else F.extinguish(f); } } } } });
     return f;
   }
   /* ---- hot patches (incendiary bombs, fire missions): a few fuel and grass fires over the area, for as long as the patch lasts ---- */
@@ -53,7 +53,7 @@
         while (bt._fwb.length < nf) {
           const k = bt._fwb.length, lx = (k - (nf - 1) / 2) * Math.min(L * 0.3, 7), lz = rnd(-0.2, 0.2) * (bt.sp.B || 4), ly = deckLy(bt, lx, lz) + 0.2;
           const f = F.spawn('boat_deck', 0, 0, 0, { sc: Math.max(0.5, Math.min(1.5, L / 22)), F: 0.6 + bt.fire, pri: 2.5, quads: 2, dur: Infinity, follow: (f) => { const w = worldOfDeck(bt, lx, ly, lz, tv); f.x = w.x; f.y = w.y; f.z = w.z; f.F = 0.55 + Math.min(1, bt.fire) * 0.9; },
-            own: { kind: 'boat', ref: bt, multi: true, endIn: () => 1e9, sync: (f) => { if (!(bt.fire > 0.05) && f.state === 'burn') F.extinguish(f); else if (bt.sunk && bt.sinkT > 4 && f.state === 'burn') { f.state = 'decay'; f.st = 0; } } } });
+            own: { kind: 'boat', ref: bt, multi: true, endIn: () => 1e9, sync: (f) => { const live = f.state === 'burn' || f.state === 'grow' || f.state === 'ignite'; if (!boats.includes(bt)) { F.kill(f, true); return; } if (!(bt.fire > 0.05) && live) F.extinguish(f); else if (bt.sunk && bt.sinkT > 4 && live) { f.state = 'decay'; f.st = 0; } } } });
           if (!f) break; f.black = true; bt._fwb.push(f);
         }
       }
@@ -91,5 +91,5 @@
 window.__sc.FW = FW;
 /*FW-END part1x*/
 /*FW-START part1y: qa handles*/
-Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boats, props, lavaVents, fxS, fxG, puffSmoke, heightAt, camera, scene, renderer, extinguishTree, windAt, wind });
+Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boats, props, lavaVents, fxS, fxG, puffSmoke, heightAt, camera, scene, renderer, extinguishTree, windAt, wind, Snd, DEB, waveH, layPointLights, updateDebris, lightsClear, fixPlace });
 /*FW-END part1y*/

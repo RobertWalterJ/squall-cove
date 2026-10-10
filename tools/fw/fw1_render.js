@@ -16,7 +16,7 @@ const FW = (() => {
   F.setPref = (q) => { if (!QORD.includes(q)) return; F.pref = q; try { localStorage.setItem(QKEY, q); } catch (e) { } F.govLow = false; F.applyQ(); };
   F.CAP = { high: PH ? { fires: 14, inst: 160, front: 3 } : { fires: 40, inst: 420, front: 8 }, low: PH ? { fires: 8, inst: 80, front: 2 } : { fires: 18, inst: 200, front: 4 } };
   F.cap = () => F.CAP[F.q] || F.CAP.low;
-  F.applyQ = () => { F.q = F.eff(); if (F.q === 'off') for (const f of F.fires.slice()) F.kill(f, true); };
+  F.applyQ = () => { F.q = F.eff(); if (F.q === 'off') { if (F.reset) F.reset(); else for (const f of F.fires.slice()) F.kill(f, true); } };
 
   /* ---- the sprite renderer ---- */
   const R = { combos: {}, tex: {}, loadN: 0, drawn: 0, inst: 0, dropped: 0 };

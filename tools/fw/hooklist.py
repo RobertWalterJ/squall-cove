@@ -36,3 +36,30 @@ HOOKS += [
  ('LF residue acc', "f.acc += dt * FXK * fade * up * (6 + f.R);", "if (!FW.lfSkip(f)) f.acc += dt * FXK * fade * up * (6 + f.R);"),
  ('LF residue haze', "    DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);", "    if (!FW.lfSkip(f)) DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);"),
 ]
+
+HOOKS += [
+ ('splash baked', "const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7));", "const y = waveH(x, z, simT), b = Math.max(0.25, Math.min(big, 7)); const fwS = FW.splash(x, z, y, b); /*FW-HOOK*/"),
+ ('splash col off', "r: 0.35 + 0.28 * b, col: true });", "r: 0.35 + 0.28 * b, col: true }); if (fwS) { scene.remove(col); WSP.pop(); col.material.dispose(); }"),
+ ('splash droplets', "const n = Math.round(14 + 10 * b);", "const n = fwS ? Math.round(2 + b) : Math.round(14 + 10 * b);"),
+ ('splash foam', "  fxS.emit(x, y + 0.15, z, 0, 0.4, 0, 1.6, 0.9 + 0.8 * b, 2.4, [0.95, 0.99, 1, 0.5], 0, 1);", "  if (!fwS) fxS.emit(x, y + 0.15, z, 0, 0.4, 0, 1.6, 0.9 + 0.8 * b, 2.4, [0.95, 0.99, 1, 0.5], 0, 1);"),
+ ('monitor hose', "if (n) ffSpray(bt, tgt, n);", "if (n) ffSpray(bt, tgt, n); FW.hose(bt, tgt);"),
+ ('truck hose', "v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt;", "v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt; FW.hosePt(v, v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, t.x, Math.max(heightAt(t.x, t.z), 0) + 2, t.z);"),
+]
+
+HOOKS += [
+ ('geyser steam', "if (s.geyser && geyserBurst(s) && Math.random() < dt * 20) puffSmoke(s.x + rnd(-0.5, 0.5),", "if (s.geyser && geyserBurst(s)) FW.geyser(s); if (s.geyser && geyserBurst(s) && !(s._fwg && !s._fwg.dead) && Math.random() < dt * 20) puffSmoke(s.x + rnd(-0.5, 0.5),"),
+]
+
+HOOKS += [
+ ('fix model', "const g = kind === 'tower' ? buildTower() : kind === 'flood' ? buildFlood() : kind === 'lamp' ? buildLamp() : kind === 'gen' ? buildGen() : buildStrings(6); g.position.set(sp.x, sp.y - 0.02, sp.z);", "const g = FW.fixModel(kind, p) || (kind === 'tower' ? buildTower() : kind === 'flood' ? buildFlood() : kind === 'lamp' ? buildLamp() : kind === 'gen' ? buildGen() : buildStrings(6)); g.position.set(sp.x, sp.y - 0.02, sp.z); /*FW-HOOK*/"),
+ ('fix search', "f.kind = 'gen'; out.push(f); gen = f; }", "f.kind = 'gen'; out.push(f); gen = f; }\n  else if (kind === 'search') out.push(mk('search', 0, 1.1, 0, 0, 2400, 190, 1.2, 0, [1, 0.96, 0.88], 60));"),
+ ('fix fit', "for (const f of out) { f.model = g; LIGHT.fix.push(f); }", "for (const f of out) { f.model = g; FW.fixFit(f, g, kind, sp, yaw); LIGHT.fix.push(f); }"),
+ ('fix want', "lightWant('fx' + f.id, 'point', f.x, f.y, f.z, f.col[0], f.col[1], f.col[2], f.I * f.on, f.range, f.kind === 'tower' ? 3 : f.kind === 'flood' ? 2.5 : 1.5, { glow: f.glow, glowA: 0.85, pool: f.pool, k: f.on });", "if (!(f.glb && FW.fixWant(f, lk))) lightWant('fx' + f.id, 'point', f.x, f.y, f.z, f.col[0], f.col[1], f.col[2], f.I * f.on, f.range, f.kind === 'tower' ? 3 : f.kind === 'flood' ? 2.5 : 1.5, { glow: f.glow, glowA: 0.85, pool: f.pool, k: f.on });"),
+ ('lay wait', "lightsInit(); for (const p of BATTLE.points) { try { layPointFix(p); } catch (e) { window.__lterr = String(e && e.stack || e); } }", "lightsInit(); if (FW.packWait(layPointLights)) return; for (const p of BATTLE.points) { try { layPointFix(p); FW.fixCables(p); } catch (e) { window.__lterr = String(e && e.stack || e); } } /*FW-HOOK*/"),
+ ('lights clear', "function lightsClear() {", "function lightsClear() { FW.fixClear();"),
+]
+
+HOOKS += [
+ ('reset lf', "function lfClear() { LF.list.length = 0;", "function lfClear() { FW.reset(); LF.list.length = 0;"),
+ ('reset calm', "function calm0() { clearLavaVents(); burning.length = 0;", "function calm0() { FW.reset(); clearLavaVents(); burning.length = 0;"),
+]
