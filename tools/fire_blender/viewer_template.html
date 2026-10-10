@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fire sprite viewer</title>
+<style>
+  :root { --bg:#14161a; --panel:#1e2128; --ink:#eceff4; --muted:#aab2bf; --accent:#ffb36b; --line:#3a404c; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, "Segoe UI", sans-serif; }
+  header { padding:14px 20px 4px; }
+  h1 { margin:0; font-size:22px; }
+  h2 { font-size:18px; margin:0 0 8px; color:var(--accent); }
+  p.lead { margin:4px 0 0; color:var(--muted); max-width:75ch; }
+  main { display:flex; flex-wrap:wrap; gap:18px; padding:14px 20px 8px; align-items:flex-start; }
+  .stage { background:#000; border:1px solid var(--line); border-radius:8px; padding:10px; max-width:100%; overflow:auto; }
+  canvas { display:block; max-width:100%; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-width:300px; max-width:430px; flex:1 1 300px; }
+  fieldset { border:0; margin:0 0 14px; padding:0; }
+  legend { font-weight:600; margin-bottom:4px; color:var(--accent); }
+  label { display:flex; align-items:center; gap:8px; margin:3px 0; min-height:28px; }
+  select, button { font:inherit; padding:6px 10px; background:#2a2f39; color:var(--ink); border:1px solid var(--line); border-radius:6px; cursor:pointer; }
+  button.row { margin:2px 4px 2px 0; }
+  input[type=range] { width:100%; }
+  :focus-visible { outline:3px solid #7cc4ff; outline-offset:2px; }
+  .info { color:var(--muted); margin-top:6px; }
+  .err { color:#ff9c9c; }
+  section.demo { padding:6px 20px 22px; }
+  .demo .stage { display:inline-block; }
+  .stagelabel { font-weight:600; color:var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fire sprite viewer</h1>
+  <p class="lead">Looping flipbooks baked from Blender's Mantaflow gas simulator, plus lifecycle, spread-front and explosion demos. Everything runs in the page with no server and no countdown display.</p>
+</header>
+<main>
+  <div class="stage" id="stage"><canvas id="cv" width="384" height="576" aria-label="Fire animation preview"></canvas></div>
+  <section class="panel" aria-label="Controls">
+    <fieldset>
+      <legend>Fire</legend>
+      <label for="preset">Type <select id="preset"></select></label>
+      <label for="variant">Variant <select id="variant"></select></label>
+      <label for="quality">Quality <select id="quality"><option value="">Full size</option><option value="_low">Phone (half size)</option></select></label>
+      <div class="info" id="desc"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Layers shown</legend>
+      <label><input type="radio" name="mode" value="combined" checked> Flame and smoke together</label>
+      <label><input type="radio" name="mode" value="flame"> Flame only</label>
+      <label><input type="radio" name="mode" value="smoke"> Smoke only</label>
+      <label><input type="radio" name="mode" value="heat"> Heat layer (grey)</label>
+    </fieldset>
+    <fieldset>
+      <legend>Camera type</legend>
+      <label><input type="radio" name="cam" value="normal" checked> Normal</label>
+      <label><input type="radio" name="cam" value="thermal"> Thermal (white-hot, from the heat layer)</label>
+      <label><input type="radio" name="cam" value="nv"> Night vision (green)</label>
+    </fieldset>
+    <fieldset>
+      <legend>Background</legend>
+      <label><input type="radio" name="bg" value="night" checked> Night, dark</label>
+      <label><input type="radio" name="bg" value="day"> Day, grey</label>
+      <label><input type="radio" name="bg" value="dusk"> Dusk, gradient</label>
+    </fieldset>
+    <fieldset>
+      <legend>Size and speed</legend>
+      <label for="size">Size: <span id="sizeOut"></span></label>
+      <input type="range" id="size" min="0.5" max="3" step="0.25" value="2">
+      <label for="speed">Speed: <span id="speedOut"></span></label>
+      <input type="range" id="speed" min="0.25" max="2" step="0.25" value="1">
+      <label><input type="checkbox" id="glow" checked> Light glow on the ground (uses the flicker data)</label>
+      <button type="button" id="pause">Pause</button>
+    </fieldset>
+    <fieldset>
+      <legend>Lifecycle</legend>
+      <div>
+        <button type="button" class="row" data-stage="ignite">Ignite</button>
+        <button type="button" class="row" data-stage="growth">Grow</button>
+        <button type="button" class="row" data-stage="developed">Burn</button>
+        <button type="button" class="row" data-stage="decay">Die down</button>
+        <button type="button" class="row" data-stage="extinguish">Water</button>
+      </div>
+      <button type="button" id="playthrough">Play through all stages</button>
+      <button type="button" id="stagestop">Back to looping</button>
+      <label for="fuel">Fuel load (flame size): <span id="fuelOut"></span></label>
+      <input type="range" id="fuel" min="0.4" max="1.6" step="0.1" value="1">
+      <div class="info">Stage: <span class="stagelabel" id="stagename">looping</span></div>
+      <div class="info">Stages are curves applied to the loop (scale, brightness, erosion, smoke). The viewer approximates erosion with contrast; in the game a shader does it exactly.</div>
+    </fieldset>
+    <div class="info" id="meta"></div>
+    <div class="info err" id="err" role="alert"></div>
+  </section>
+</main>
+
+<section class="demo" aria-label="Fire front spread demo">
+  <h2>Spread front (grass fire)</h2>
+  <p class="info">Seamless front tiles placed side by side, a leading piece at the advancing end, a trailing piece at the dying end and a smouldering burnt strip behind.</p>
+  <label for="tiles" style="display:inline-flex">Front length: <span id="tilesOut"></span></label>
+  <input type="range" id="tiles" min="1" max="6" step="1" value="3" style="max-width:320px">
+  <button type="button" id="advance">Advance front</button>
+  <div class="stage" style="margin-top:8px"><canvas id="cv2" width="900" height="260" aria-label="Spread front demo"></canvas></div>
+</section>
+
+<section class="demo" aria-label="Explosion demo">
+  <h2>Explosion with flaming debris</h2>
+  <p class="info">One-shot fireball, then debris on ballistic arcs. Each chunk carries a stretched ember streak that follows its velocity and cools; a shock ring and heat haze expand with the blast.</p>
+  <button type="button" id="boom">Explode</button>
+  <label for="debris" style="display:inline-flex">Debris chunks: <span id="debrisOut"></span></label>
+  <input type="range" id="debris" min="4" max="30" step="2" value="14" style="max-width:260px">
+  <div class="stage" style="margin-top:8px"><canvas id="cv3" width="900" height="420" aria-label="Explosion demo"></canvas></div>
+</section>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="thermal" color-interpolation-filters="sRGB">
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0 0.25 0.65 0.95 1 1 1"/>
+      <feFuncG type="table" tableValues="0 0 0.05 0.35 0.7 0.95 1"/>
+      <feFuncB type="table" tableValues="0 0.35 0.45 0.15 0.1 0.55 1"/>
+    </feComponentTransfer>
+  </filter>
+  <filter id="nv" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0 0 0 0 0.02  0.9 1.5 0.5 0 0.04  0 0 0 0 0.02  0 0 0 1 0"/>
+  </filter>
+</svg>
+<script>
+const ATLAS = /*ATLAS_JSON*/null;
+const BASE = '../assets/fire_blender/';
+const FPS = ATLAS.fps;
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const cv2 = $('cv2'), c2 = cv2.getContext('2d');
+const cv3 = $('cv3'), c3 = cv3.getContext('2d');
+const cache = {};          // file -> Image
+let current = null, paused = false, phase = 0, last = performance.now();
+let stage = null;          // {list:[names], idx, t}
+const clipByName = p => Object.fromEntries(p.clips.map(c => [c.name, c]));
+
+function val(name) { return document.querySelector('input[name=' + name + ']:checked').value; }
+function loadImg(file) {
+  if (cache[file]) return cache[file];
+  cache[file] = new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => { $('err').textContent = 'Could not load ' + file + ' (expected in ../assets/fire_blender/ next to the docs folder).'; res(null); };
+    im.src = BASE + file;
+  });
+  return cache[file];
+}
+const names = Object.keys(ATLAS.presets);
+names.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k.replace(/_/g, ' '); $('preset').appendChild(o); });
+ATLAS.presets[names[0]].variants.forEach((v, i) => { const o = document.createElement('option'); o.value = i; o.textContent = 'Variant ' + v.name + (v.flip ? ' (mirrored)' : ''); $('variant').appendChild(o); });
+
+async function setPreset() {
+  const k = $('preset').value, p = ATLAS.presets[k], q = $('quality').value;
+  const files = {};
+  for (const lay of ['flame', 'smoke', 'heat']) {
+    const f = p.files[lay + q] || p.files[lay];
+    files[lay] = { img: await loadImg(f.file), grid: f.grid };
+  }
+  const fs = q ? p.lowFrameSize : p.frameSize;
+  current = { k, p, files, fw: fs[0], fh: fs[1], q };
+  $('desc').textContent = p.desc + '. Frame covers ' + p.worldWidth + ' by ' + p.worldHeight + ' metres.' + (p.loop ? '' : ' One-shot clip, not a loop.');
+  const f = p.files.flame, s = p.files.smoke, h = p.files.heat;
+  $('meta').textContent = p.frames + ' frames at ' + FPS + ' per second. File sizes: flame ' + Math.round(f.bytes / 1024) + ' KB, smoke ' + Math.round(s.bytes / 1024) + ' KB, heat ' + Math.round(h.bytes / 1024) + ' KB. Heat haze: strength ' + p.haze.strength + ', radius ' + p.haze.radiusM + ' m, height ' + p.haze.heightM + ' m, rise ' + p.haze.riseSpeed + ' m per second.';
+  resize();
+}
+function resize() {
+  if (!current) return;
+  const s = parseFloat($('size').value);
+  const wpx = current.p.frameSize[0], hpx = current.p.frameSize[1];
+  cv.width = Math.round(wpx * s); cv.height = Math.round(hpx * s);
+  $('sizeOut').textContent = s + ' times (' + cv.width + ' by ' + cv.height + ' pixels)';
+  $('speedOut').textContent = $('speed').value + ' times';
+  $('fuelOut').textContent = $('fuel').value + ' times';
+}
+function paintBg(g, w, h, kind, thermal) {
+  if (thermal) { g.fillStyle = '#000'; g.fillRect(0, 0, w, h); return; }
+  if (kind === 'night') { g.fillStyle = '#05070b'; g.fillRect(0, 0, w, h); }
+  else if (kind === 'day') { g.fillStyle = '#a2a8ae'; g.fillRect(0, 0, w, h); }
+  else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1d2a52'); gr.addColorStop(0.6, '#8a4f6a'); gr.addColorStop(1, '#e08a5a'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }
+}
+function drawCell(g, L, i, dx, dy, dw, dh) {
+  if (!L || !L.img) return;
+  const cols = L.grid[0], c = i % cols, r = Math.floor(i / cols);
+  g.drawImage(L.img, c * current.fw, r * current.fh, current.fw, current.fh, dx, dy, dw, dh);
+}
+// lifecycle: interpolate a clip's [a,b] curve
+const lerp = (ab, t) => ab[0] + (ab[1] - ab[0]) * t;
+function stageState() {
+  const fuel = parseFloat($('fuel').value);
+  if (!stage) return { sx: fuel, sy: fuel, fg: 1, sg: 1, er: 0 };
+  const cl = clipByName(current.p)[stage.list[stage.idx]];
+  const t = Math.min(1, stage.t / cl.duration);
+  return { sx: lerp(cl.scaleX, t) * fuel, sy: lerp(cl.scaleY, t) * fuel, fg: lerp(cl.flameGain, t), sg: lerp(cl.smokeGain, t), er: lerp(cl.erosion, t), cl };
+}
+function advanceStage(dt) {
+  if (!stage) return;
+  stage.t += dt;
+  const cl = clipByName(current.p)[stage.list[stage.idx]];
+  if (stage.t >= cl.duration) {
+    if (stage.idx < stage.list.length - 1) { stage.idx++; stage.t = 0; }
+    else if (stage.list.length === 1 && cl.loop) { stage.t = 0; }
+    else if (stage.hold) { stage.t = cl.duration; }
+    else { stage = null; $('stagename').textContent = 'looping'; return; }
+  }
+  $('stagename').textContent = stage.list[stage.idx];
+}
+function startStages(list, hold) { stage = { list, idx: 0, t: 0, hold }; $('stagename').textContent = list[0]; }
+
+function render(now) {
+  requestAnimationFrame(render);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (!current) return;
+  const sp = parseFloat($('speed').value);
+  if (!paused) { phase += dt * FPS * sp; advanceStage(dt * sp); }
+  const n = current.p.frames;
+  const vr = ATLAS.presets[current.k].variants[parseInt($('variant').value) || 0];
+  let i = Math.floor(phase) + vr.offset;
+  i = current.p.loop ? ((i % n) + n) % n : Math.min(n - 1, Math.floor(phase) % (n + 24));
+  drawSpread(now); drawBoom(now);
+  const mode = val('mode'), cam = val('cam'), bg = val('bg'), F = current.files;
+  const st = stageState();
+  const w = cv.width, h = cv.height;
+  ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const thermal = cam === 'thermal';
+  paintBg(ctx, w, h, bg, thermal);
+  cv.style.filter = thermal ? 'url(#thermal)' : (cam === 'nv' ? 'url(#nv)' : 'none');
+  // sprite transform: anchor bottom centre, flip for mirrored variants, scale for fuel load and stage
+  const place = () => {
+    ctx.translate(w / 2, h); if (vr.flip) ctx.scale(-1, 1);
+    ctx.scale(Math.max(0.02, st.sx), Math.max(0.02, st.sy)); ctx.translate(-w / 2, -h);
+  };
+  const eroF = st.er > 0 ? 'contrast(' + (1 + st.er * 1.6) + ') brightness(' + (1 - st.er * 0.55) + ')' : 'none';
+  if (thermal || mode === 'heat') {
+    ctx.save(); place(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, st.fg); ctx.filter = eroF; drawCell(ctx, F.heat, i, 0, 0, w, h); ctx.restore(); return;
+  }
+  const showSmoke = mode === 'combined' || mode === 'smoke', showFlame = mode === 'combined' || mode === 'flame';
+  if ($('glow').checked && showFlame) {
+    const L = current.p.light, fl = (current.p.flicker[i % current.p.flicker.length] || 1) * Math.min(1, st.fg) * Math.min(1.4, st.sy);
+    const rad = Math.min(w * 1.2, h * 0.5), inten = Math.min(0.55, 0.09 * L.intensity * fl);
+    const g = ctx.createRadialGradient(w / 2, h, 0, w / 2, h, rad), col = L.color.map(v => Math.round(v * 255));
+    g.addColorStop(0, 'rgba(' + col + ',' + inten + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  }
+  if (showSmoke) { ctx.save(); place(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = Math.min(1, st.sg); drawCell(ctx, F.smoke, i, 0, 0, w, h); ctx.restore(); }
+  if (showFlame) { ctx.save(); place(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, st.fg); ctx.filter = eroF; drawCell(ctx, F.flame, i, 0, 0, w, h); ctx.restore(); }
+}
+
+// ---------------------------------------------------------------- spread demo
+let front = 0.5;                 // 0..1 progress of the advancing front across the ground
+let advancing = false;
+let spreadAssets = null;
+async function loadSpread() {
+  const e = ATLAS.extras.spread_grass; if (!e) return;
+  const f = e.files;
+  spreadAssets = { e, front: await loadImg(f.front.file), lead: await loadImg(f.lead.file), trail: await loadImg(f.trail.file), bed: await loadImg(f.burnt_bed.file), smoke: await loadImg(f.front_smoke.file) };
+}
+function cellOf(img, grid, fw, fh, i, g, dx, dy, dw, dh) {
+  if (!img) return; const cols = grid[0], c = i % cols, r = Math.floor(i / cols);
+  g.drawImage(img, c * fw, r * fh, fw, fh, dx, dy, dw, dh);
+}
+function drawSpread(now) {
+  if (!spreadAssets) return;
+  const s = spreadAssets, e = s.e, W = cv2.width, H = cv2.height;
+  if (advancing && !paused) front = Math.min(0.78, front + 0.0006);
+  c2.setTransform(1, 0, 0, 1, 0, 0); c2.globalCompositeOperation = 'source-over';
+  const gr = c2.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#0a0d16'); gr.addColorStop(1, '#1a1410'); c2.fillStyle = gr; c2.fillRect(0, 0, W, H);
+  const tw = e.tileFrameSize[0] * 1.0, th = e.tileFrameSize[1] * 1.0, ground = H - 20;
+  c2.fillStyle = '#2a2018'; c2.fillRect(0, ground, W, 20);
+  const nT = parseInt($('tiles').value); $('tilesOut').textContent = nT + ' tiles (' + (nT * e.tileWorldWidth).toFixed(1) + ' metres)';
+  const n = ATLAS.presets.grass.frames, i = Math.floor(phase) % n;
+  const fx = Math.round(40 + front * (W - 120 - tw * (nT + 2)));      // left edge of the lead piece's span start
+  const startX = fx;
+  const gridF = e.files.front.grid;
+  // burnt strip behind the front (to the left)
+  const bw = e.burntStripFrameSize[0], bh = e.burntStripFrameSize[1];
+  for (let x = 0; x < startX + tw * 0.5; x += bw) {
+    c2.globalCompositeOperation = 'source-over'; c2.fillStyle = '#0d0907'; c2.fillRect(x, ground - 2, Math.min(bw, startX + tw * 0.5 - x), 6);
+    c2.globalCompositeOperation = 'lighter'; cellOf(s.bed, e.files.burnt_bed.grid, bw, bh, i % e.burntStripFrames, c2, x, ground - bh + 10, bw, bh);
+  }
+  // pieces: trail, tiles, lead
+  const x0 = startX;
+  c2.globalCompositeOperation = 'lighter';
+  cellOf(s.trail, e.files.trail.grid, tw, th, i, c2, x0, ground - th + 6, tw, th);
+  for (let k = 0; k < nT; k++) {
+    const idx = (i + k * 17) % n;
+    c2.globalCompositeOperation = 'source-over'; cellOf(s.smoke, e.files.front_smoke.grid, tw, th, idx, c2, x0 + tw * (k + 1), ground - th + 6, tw, th);
+    c2.globalCompositeOperation = 'lighter'; cellOf(s.front, gridF, tw, th, idx, c2, x0 + tw * (k + 1), ground - th + 6, tw, th);
+  }
+  cellOf(s.lead, e.files.lead.grid, tw, th, (i + 9) % n, c2, x0 + tw * (nT + 1), ground - th + 6, tw, th);
+  c2.globalCompositeOperation = 'source-over';
+}
+
+// ---------------------------------------------------------------- explosion demo
+let boom = null, boomAssets = null;
+async function loadBoom() {
+  const p = ATLAS.presets.fireball; if (!p) return;
+  boomAssets = { p, flame: await loadImg(p.files.flame.file), smoke: await loadImg(p.files.smoke.file), streak: await loadImg(ATLAS.extras.ember_streak.files.streak.file), em: ATLAS.extras.ember_streak,
+                 spat: ATLAS.extras.spatter ? await loadImg(ATLAS.extras.spatter.files.spatter.file) : null };
+}
+function startBoom() {
+  const n = parseInt($('debris').value);
+  const chunks = [];
+  for (let k = 0; k < n; k++) {
+    const a = (Math.random() * 0.8 + 0.1) * Math.PI, sp = 260 + Math.random() * 520;
+    chunks.push({ vx: Math.cos(a) * sp * (Math.random() < 0.5 ? -1 : 1), vy: -Math.sin(a) * sp, burn: Math.random() < 0.6, life: 1.2 + Math.random() * 1.6, spin: Math.random() * 6 });
+  }
+  boom = { t: 0, chunks };
+}
+function drawBoom(now) {
+  if (!boomAssets) return;
+  const W = cv3.width, H = cv3.height, ground = H - 30;
+  if (boom && !paused) boom.t += 1 / 60 * parseFloat($('speed').value);
+  c3.setTransform(1, 0, 0, 1, 0, 0); c3.globalCompositeOperation = 'source-over';
+  const gr = c3.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#05070d'); gr.addColorStop(1, '#17120e'); c3.fillStyle = gr; c3.fillRect(0, 0, W, H);
+  c3.fillStyle = '#241b14'; c3.fillRect(0, ground, W, 30);
+  if (!boom) return;
+  const p = boomAssets.p, fw = p.frameSize[0], fh = p.frameSize[1], t = boom.t;
+  const fi = Math.min(p.frames - 1, Math.floor(t * FPS));
+  const sc = (H * 0.95) / fh, dw = fw * sc, dh = fh * sc;
+  const cx = W / 2;
+  // shock ring and haze
+  if (t < 1.2) { const r = t * 520; c3.strokeStyle = 'rgba(255,255,255,' + Math.max(0, 0.5 - t * 0.42) + ')'; c3.lineWidth = 3; c3.beginPath(); c3.ellipse(cx, ground, r, r * 0.22, 0, 0, 7); c3.stroke(); }
+  c3.globalCompositeOperation = 'lighter';
+  const flash = Math.max(0, 1 - t * 5); if (flash > 0) { c3.fillStyle = 'rgba(255,230,190,' + flash * 0.6 + ')'; c3.fillRect(0, 0, W, H); }
+  c3.globalCompositeOperation = 'source-over';
+  const gc = p.files.smoke.grid[0], gf = p.files.flame.grid[0];
+  const cell = (img, gcols, i) => { const c = i % gcols, r = Math.floor(i / gcols); c3.drawImage(img, c * fw, r * fh, fw, fh, cx - dw / 2, ground - dh + 6, dw, dh); };
+  if (boomAssets.smoke) cell(boomAssets.smoke, gc, fi);
+  c3.globalCompositeOperation = 'lighter';
+  if (boomAssets.flame) cell(boomAssets.flame, gf, fi);
+  // debris with carried-flame streaks
+  const em = boomAssets.em, sw = em.frameSize[0], sh = em.frameSize[1], sg = ATLAS.extras.ember_streak.files.streak.grid[0];
+  boom.chunks.forEach(c => {
+    const tt = t - 0.05; if (tt < 0 || tt > c.life) return;
+    const x = cx + c.vx * tt, y = ground - 20 + c.vy * tt + 0.5 * 700 * tt * tt;
+    if (y > ground) return;
+    const vx = c.vx, vy = c.vy + 700 * tt, speed = Math.hypot(vx, vy), ang = Math.atan2(vy, vx);
+    const cool = 1 - tt / c.life;
+    c3.save(); c3.translate(x, y);
+    if (c.burn) {                                   // stretched streak: tail points back along -velocity
+      const len = Math.min(190, 18 + speed * 0.22);
+      c3.rotate(ang);
+      c3.globalAlpha = Math.max(0, cool);
+      const i = Math.floor(t * FPS) % em.frames;
+      c3.drawImage(boomAssets.streak, (i % sg) * sw, Math.floor(i / sg) * sh, sw, sh, -len, -len * sh / sw / 2, len, len * sh / sw);
+      c3.rotate(-ang);
+    }
+    c3.globalAlpha = 1; c3.globalCompositeOperation = 'source-over'; c3.fillStyle = 'rgb(' + Math.round(40 + 120 * cool) + ',' + Math.round(30 + 40 * cool) + ',24)'; c3.fillRect(-3, -3, 6, 6);
+    c3.restore(); c3.globalCompositeOperation = 'lighter';
+  });
+  c3.globalCompositeOperation = 'source-over'; c3.globalAlpha = 1;
+}
+
+// ---------------------------------------------------------------- wiring
+$('preset').addEventListener('change', setPreset);
+$('quality').addEventListener('change', setPreset);
+$('size').addEventListener('input', resize);
+$('speed').addEventListener('input', resize);
+$('fuel').addEventListener('input', resize);
+$('pause').addEventListener('click', () => { paused = !paused; $('pause').textContent = paused ? 'Play' : 'Pause'; });
+document.querySelectorAll('button[data-stage]').forEach(b => b.addEventListener('click', () => startStages([b.dataset.stage], b.dataset.stage !== 'developed')));
+$('playthrough').addEventListener('click', () => { phase = 0; startStages(['ignite', 'growth', 'developed', 'decay', 'extinguish'], true); });
+$('stagestop').addEventListener('click', () => { stage = null; $('stagename').textContent = 'looping'; });
+$('advance').addEventListener('click', () => { advancing = !advancing; $('advance').textContent = advancing ? 'Stop front' : 'Advance front'; if (advancing && front > 0.7) front = 0.05; });
+$('tiles').addEventListener('input', () => {});
+$('boom').addEventListener('click', startBoom);
+$('debris').addEventListener('input', () => { $('debrisOut').textContent = $('debris').value; });
+$('debrisOut').textContent = $('debris').value;
+resize(); setPreset(); loadSpread(); loadBoom(); requestAnimationFrame(render);
+</script>
+</body>
+</html>
