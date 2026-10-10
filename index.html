@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.9 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.10 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -2176,12 +2176,26 @@ const skyTex = imgTex(D.sky[1], true); skyTex.wrapT = THREE.ClampToEdgeWrapping;
   FOG.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
 }
 scene.fog = new THREE.FogExp2(FOG, 0.0009);
+const sunAz0 = Math.atan2(sunDir.z, sunDir.x);
 const EQUI = `vec2 equirectUv2(vec3 d){ return vec2(atan(d.z, d.x) * 0.15915494 + 0.5, asin(clamp(d.y, -1.0, 1.0)) * 0.31830989 + 0.5); }`;
 const skyMat = new THREE.ShaderMaterial({
-  uniforms: { tSky: { value: skyTex }, uTint: { value: new THREE.Color(1, 1, 1) } }, side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { tSky: { value: skyTex }, uTint: { value: new THREE.Color(1, 1, 1) }, uSun: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color(1, 0.86, 0.7) }, uSunVis: { value: 1 }, uMoon: { value: new THREE.Vector3(0, -1, 0) }, uMoonA: { value: 3 }, uMoonVis: { value: 0 }, uMoonGlow: { value: 1 }, uBake: { value: new THREE.Vector3(Math.cos(0.1222) * Math.cos(sunAz0), Math.sin(0.1222), Math.cos(0.1222) * Math.sin(sunAz0)) }, uKeep: { value: 1 } }, side: THREE.BackSide, depthWrite: false, fog: false,
   vertexShader: `varying vec3 vDir; void main(){ vDir = position; vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position = p.xyww; }`,
-  fragmentShader: `uniform sampler2D tSky; uniform vec3 uTint; varying vec3 vDir; ${EQUI}
-    void main(){ vec3 d = normalize(vDir); gl_FragColor = vec4(textureLod(tSky, equirectUv2(d), 0.0).rgb * uTint, 1.0);   // explicit LOD: no mip seam where u wraps
+  fragmentShader: `uniform sampler2D tSky; uniform vec3 uTint, uSun, uSunCol, uMoon, uBake; uniform float uSunVis, uMoonA, uMoonVis, uMoonGlow, uKeep; varying vec3 vDir; ${EQUI}
+    void main(){ vec3 d = normalize(vDir); vec3 col = textureLod(tSky, equirectUv2(d), 0.0).rgb;   // explicit LOD: no mip seam where u wraps
+      float ab = acos(clamp(dot(d, uBake), -1.0, 1.0)); float m = exp(-ab * ab / 0.18) * (1.0 - uKeep);   // the sunset glow painted into the panorama fades out when the sun is elsewhere
+      if (m > 0.003) col = mix(col, textureLod(tSky, equirectUv2(vec3(-d.x, d.y, -d.z)), 0.0).rgb, m);
+      col *= uTint;
+      float as = acos(clamp(dot(d, uSun), -1.0, 1.0));
+      col += uSunCol * (exp(-as * as / 0.012) * 0.5 + exp(-as * 14.0) * 0.16) * uSunVis;
+      col += mix(uSunCol, vec3(1.0), 0.55) * smoothstep(0.0165, 0.0115, as) * 3.2 * uSunVis;
+      float am = acos(clamp(dot(d, uMoon), -1.0, 1.0)); const float R = 0.0215;
+      col += vec3(0.45, 0.55, 0.8) * exp(-am * am / 0.0035) * 0.16 * uMoonGlow * uMoonVis;
+      if (am < R * 1.2) { vec3 rt = normalize(cross(uMoon, vec3(0.0, 1.0, 0.0))); vec3 up2 = cross(rt, uMoon); vec2 q = vec2(dot(d, rt), dot(d, up2)) / sin(R); float r2 = dot(q, q);
+        if (r2 < 1.0) { vec3 n = vec3(q, sqrt(1.0 - r2)); vec3 L = vec3(sin(uMoonA), 0.0, -cos(uMoonA)); float lit = smoothstep(-0.03, 0.07, dot(n, L));
+          float mar = smoothstep(0.1, 0.7, sin(q.x * 3.1 + 0.5) * sin(q.y * 2.7 - 0.3) + 0.3 * sin(q.x * 7.0 + q.y * 5.0)); float alb = mix(0.98, 0.6, mar * 0.7);
+          vec3 mc = vec3(0.96, 0.97, 1.0) * (alb * lit + 0.03) * 1.15; col = mix(col, mc, smoothstep(1.0, 0.94, sqrt(r2)) * uMoonVis); } }
+      gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
     }`,
 });
@@ -8330,20 +8344,113 @@ function specNext(dir) {
 }
 function specUpdate(dt) { const q = BATTLE.spec; if (!q) return; if (!people.includes(q) || fp.on) { BATTLE.spec = null; return; } const k = 1 - Math.exp(-dt * 4); god.tgt.x += (q.x - god.tgt.x) * k; god.tgt.z += (q.z - god.tgt.z) * k; god.tgt.y = q.y; god.yaw += (wrap(q.heading + Math.PI - god.yaw)) * k * 0.5; }
 $('bOver').addEventListener('click', () => { BATTLE.spec = null; god.dist = Math.max(god.dist, 160 * CELL); toast('Overview'); battleHud(); });
-onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); else if (k === 'o') gunshipFromOverview(); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
+onKey((e) => { if (e.metaKey || e.ctrlKey || e.altKey || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return; const k = e.key.toLowerCase(); if (k === ';' && (mode === 'god' || mode === 'fp') && $('help').hidden) { if (tod.run) { todPause(); toast(tod.paused ? 'Clock paused at ' + todClock() : 'Clock running'); renderTray(); } else toast('Time is fixed. Pick a speed in the Sky tool.'); return; } if (mode === 'god' && $('help').hidden) { if (k === 'j') jumpIn(); else if (k === 'k') specNext(1); else if (k === 'o') gunshipFromOverview(); } else if (mode === 'fp' && k === 'y') { const me = fp.p, nf = nearestFriend(me.x, me.z, me); exitFP(); if (nf) possess(nf); } });
 
 combatReady = true; boats.forEach(setupBoatCombat);
 
-/* ================================================================ weather and time of day */
-const SKIES = {
-  dawn:   { envI: 0.6, el: 6,  az: 2.4,  sun: 0xffb38a, sunI: 1.5, hemiI: 0.26, exp: 0.95, tint: [0.88, 0.80, 0.90], fog: [0.95, 0.86, 0.9] },
-  day:    { envI: 1.1, el: 52, az: 0.6,  sun: 0xfff3e2, sunI: 3.0, hemiI: 0.55, exp: 1.0,  tint: [1.10, 1.14, 1.22], fog: [1.05, 1.1, 1.2] },
-  golden: { envI: 1.0, el: 19, az: 0.0,  sun: 0xffdcb4, sunI: 2.4, hemiI: 0.35, exp: 1.0,  tint: [1, 1, 1], fog: [1, 1, 1] },
-  dusk:   { envI: 0.5, el: 3,  az: -0.4, sun: 0xff9466, sunI: 1.1, hemiI: 0.22, exp: 0.88, tint: [0.78, 0.6, 0.68], fog: [0.75, 0.58, 0.66] },
-  night:  { envI: 0.28, el: 38, az: 1.8,  sun: 0xa9bcff, sunI: 0.95, hemiI: 0.38, exp: 1.0, tint: [0.16, 0.2, 0.34], fog: [0.14, 0.18, 0.3] },
-};
+/* ================================================================ weather and time of day (v9.9.10: a clock, and a sky that follows it)
+   The sky is one continuous function of the clock hour: sun and moon positions (the moon has phases), sky tint, sunrise and sunset glow, stars, key light
+   colour and strength, haze tint. The five Time of day chips only set the clock to a preset hour. "Time passes" runs the clock: Off keeps it where it is.
+   The whole thing updates at 10 Hz (the clock itself every frame) and a preset change cross-fades over about a second and a half. */
+const SKY_HOUR = { dawn: 5.8, day: 12.5, golden: 17.0, dusk: 18.6, night: 1.0 };
 const sky0 = { az: Math.atan2(sunDir.z, sunDir.x) };
-const wx = { sky: 'golden', rain: 0, fog: 0, dirMode: 'auto', base: Math.PI, cur: { ...SKIES.golden }, rainAmt: 0, imp: { rain: false, fog: false } };   // imp: the player has imposed rain or fog; otherwise the climate model decides
+const SKY_LAT = THREE.MathUtils.degToRad(43.5), SKY_DEC = THREE.MathUtils.degToRad(12), MOON_DEC = THREE.MathUtils.degToRad(10);
+const SKYG = (() => {                                   // celestial axes (hour-angle frame) in game axes; the sunset is turned onto the glow baked into the panorama
+  const sl = Math.sin(SKY_LAT), cl = Math.cos(SKY_LAT), Hs = Math.acos(-Math.tan(SKY_LAT) * Math.tan(SKY_DEC));
+  const east = -Math.cos(SKY_DEC) * Math.sin(Hs), north = Math.sin(SKY_DEC) * cl - Math.cos(SKY_DEC) * sl * Math.cos(Hs), off = sky0.az - Math.atan2(east, north), co = Math.cos(off), so = Math.sin(off);
+  return { bx: [-sl * co, cl, -sl * so], by: [-so, 0, co], bz: [cl * co, sl, cl * so], hs: Hs };
+})();
+function skyCelest(H, dec, out) {                       // hour angle and declination -> a unit vector in game axes
+  const X = Math.cos(dec) * Math.cos(H), Y = -Math.cos(dec) * Math.sin(H), Z = Math.sin(dec), g = SKYG;
+  return out.set(X * g.bx[0] + Y * g.by[0] + Z * g.bz[0], X * g.bx[1] + Y * g.by[1] + Z * g.bz[1], X * g.bx[2] + Y * g.by[2] + Z * g.bz[2]);
+}
+// rows: elevation of the sun in degrees, sun light, hemisphere light, exposure, environment, sky tint, haze tint, sun colour. Mornings differ from evenings a little (dawn is pinker, dusk is oranger).
+const TOD_PM = [
+  [-18, 0, 0.30, 1.0, 0.28, [0.16, 0.20, 0.34], [0.14, 0.18, 0.30], [1.0, 0.60, 0.40]],
+  [-9, 0, 0.30, 1.0, 0.30, [0.20, 0.22, 0.38], [0.18, 0.20, 0.34], [1.0, 0.50, 0.40]],
+  [-4, 0, 0.30, 0.95, 0.36, [0.45, 0.38, 0.52], [0.40, 0.34, 0.50], [1.0, 0.55, 0.35]],
+  [-1, 0.35, 0.30, 0.92, 0.44, [0.66, 0.52, 0.62], [0.62, 0.50, 0.60], [1.0, 0.52, 0.34]],
+  [3, 1.1, 0.29, 0.88, 0.50, [0.78, 0.60, 0.68], [0.75, 0.58, 0.66], [1.0, 0.58, 0.40]],
+  [10, 1.9, 0.30, 0.95, 0.80, [0.92, 0.84, 0.88], [0.90, 0.82, 0.86], [1.0, 0.76, 0.58]],
+  [19, 2.4, 0.35, 1.0, 1.0, [1, 1, 1], [1, 1, 1], [1.0, 0.86, 0.71]],
+  [45, 3.0, 0.55, 1.0, 1.1, [1.10, 1.14, 1.22], [1.05, 1.1, 1.2], [1.0, 0.95, 0.89]],
+];
+const TOD_AM = TOD_PM.map(r => r.slice());
+TOD_AM[2] = [-4, 0, 0.30, 0.95, 0.36, [0.40, 0.36, 0.55], [0.36, 0.34, 0.52], [1.0, 0.60, 0.50]];
+TOD_AM[3] = [-1, 0.35, 0.30, 0.92, 0.44, [0.66, 0.56, 0.72], [0.64, 0.54, 0.70], [1.0, 0.62, 0.50]];
+TOD_AM[4] = [3, 1.3, 0.29, 0.93, 0.55, [0.86, 0.76, 0.88], [0.92, 0.82, 0.88], [1.0, 0.66, 0.52]];
+TOD_AM[5] = [10, 1.9, 0.30, 0.95, 0.80, [0.95, 0.90, 0.97], [0.96, 0.90, 0.95], [1.0, 0.78, 0.62]];
+// the fields of one sky state, packed so two states can be blended
+const SKF = { dx: 0, dy: 1, dz: 2, keyI: 3, kr: 4, kg: 5, kb: 6, hemi: 7, exp: 8, env: 9, tr: 10, tg: 11, tb: 12, fr: 13, fg: 14, fb: 15, sr: 16, sg: 17, sb: 18, sx: 19, sy: 20, sz: 21, mx: 22, my: 23, mz: 24, stars: 25, sunVis: 26, moonVis: 27, moonGlow: 28, keep: 29, n: 30 };
+const todOut = new Float32Array(SKF.n), todRaw = new Float32Array(SKF.n), todSnap = new Float32Array(SKF.n);
+const tod = { t: 17.0, mul: 60, run: false, paused: false, preset: 'off', phase0: 0.62, acc: 0, force: true, xf: 1, xfDur: 1.6, have: false, e: 19, am: false, moonEl: 0, phase: 0.62, ill: 1, label: 'golden', starM: new THREE.Matrix4() };
+const TOD_SPEEDS = { off: 0, slow: 30, normal: 60, fast: 120, real: 1 };
+const TOD_SPEED_NAMES = { slow: 'Slow', normal: 'Normal', fast: 'Fast', real: 'Real time' };
+const todHour = () => ((tod.t % 24) + 24) % 24;
+const todClock = () => { const h = todHour(), m = Math.floor((h % 1) * 60 + 1e-6); return String(Math.floor(h + 1e-9)).padStart(2, '0') + ':' + String(m).padStart(2, '0'); };
+const todDays = () => Math.floor(tod.t / 24);
+const todPhase = () => (((tod.phase0 + tod.t / 24 / 29.53) % 1) + 1) % 1;
+const MOON_NAMES = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
+const todMoonName = () => MOON_NAMES[Math.floor(todPhase() * 8 + 0.5) % 8];
+const todPerDay = () => tod.mul > 0 ? 1440 / tod.mul : 0;                  // real minutes for a full day
+const todSpeedText = () => !tod.run ? 'Off' : tod.paused ? 'Paused' : (tod.preset !== 'custom' && TOD_SPEED_NAMES[tod.preset] ? TOD_SPEED_NAMES[tod.preset] + ', ' : '') + (todPerDay() >= 100 ? Math.round(todPerDay()) : +todPerDay().toFixed(1)) + ' min a day';
+function todLabel(e, am) { return e >= 35 ? 'day' : e >= 9 ? 'golden' : e >= -4 ? (am ? 'dawn' : 'dusk') : 'night'; }
+function todRows(tab, e, o) {                                                // piecewise-linear in elevation; o = [sunI, hemi, exp, env, tint3, fog3, sunC3]
+  let a = tab[0], b = tab[tab.length - 1];
+  if (e <= a[0]) b = a; else if (e >= b[0]) a = b; else for (let i = 0; i < tab.length - 1; i++) if (e >= tab[i][0] && e <= tab[i + 1][0]) { a = tab[i]; b = tab[i + 1]; break; }
+  const k = a === b ? 0 : (e - a[0]) / (b[0] - a[0]);
+  for (let i = 1; i <= 4; i++) o[i - 1] = a[i] + (b[i] - a[i]) * k;
+  for (let j = 0; j < 3; j++) { o[4 + j] = a[5][j] + (b[5][j] - a[5][j]) * k; o[7 + j] = a[6][j] + (b[6][j] - a[6][j]) * k; o[10 + j] = a[7][j] + (b[7][j] - a[7][j]) * k; }
+  return o;
+}
+const _tdtr = new Array(13), _tdtr2 = new Array(13), _tdsv = new THREE.Vector3(), _tdmv = new THREE.Vector3(), _tdkv = new THREE.Vector3(), _tdml = new THREE.Vector3();
+const _tdsstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function skyRaw(R) {                                                          // the sky at the clock time, before any cross-fade and before weather dims it
+  const hr = todHour(), H = (hr - 12) / 24 * Math.PI * 2, phase = todPhase(), Hm = H - Math.PI * 2 * phase;
+  skyCelest(H, SKY_DEC, _tdsv); skyCelest(Hm, MOON_DEC, _tdmv);
+  const e = Math.asin(Math.max(-1, Math.min(1, _tdsv.y))) * 57.29578, am = hr < 12, me = _tdmv.y;
+  const A = todRows(TOD_AM, e, _tdtr), B = todRows(TOD_PM, e, _tdtr2), r = am ? A : B;
+  const ill = (1 - Math.cos(Math.PI * 2 * phase)) / 2, dark = 1 - _tdsstep(-6, 2, e), moonUp = _tdsstep(-0.06, 0.14, me);
+  const sunI = r[0], moonI = 0.95 * (0.45 + 0.55 * ill) * (0.15 + 0.85 * moonUp) * dark;
+  _tdml.copy(_tdmv); _tdml.y = Math.max(_tdml.y, 0.3); _tdml.normalize();               // the moon never lights from under the ground
+  _tdkv.copy(_tdsv); _tdkv.y = Math.max(_tdkv.y, 0.04); _tdkv.normalize().multiplyScalar(sunI).addScaledVector(_tdml, moonI);
+  const keyI = sunI + moonI; _tdkv.multiplyScalar(1 / Math.max(1e-4, keyI)).normalize();
+  R[SKF.dx] = _tdkv.x; R[SKF.dy] = _tdkv.y; R[SKF.dz] = _tdkv.z; R[SKF.keyI] = keyI;
+  const w = sunI / Math.max(1e-4, keyI);                                      // colour of the key light: sun colour while the sun lights, moon blue once it does not
+  R[SKF.kr] = r[10] * w + 0.66 * (1 - w); R[SKF.kg] = r[11] * w + 0.74 * (1 - w); R[SKF.kb] = r[12] * w + 1.0 * (1 - w);
+  R[SKF.hemi] = r[1]; R[SKF.exp] = r[2]; R[SKF.env] = r[3];
+  R[SKF.tr] = r[4]; R[SKF.tg] = r[5]; R[SKF.tb] = r[6]; R[SKF.fr] = r[7]; R[SKF.fg] = r[8]; R[SKF.fb] = r[9];
+  R[SKF.sr] = r[10]; R[SKF.sg] = r[11]; R[SKF.sb] = r[12];
+  R[SKF.sx] = _tdsv.x; R[SKF.sy] = _tdsv.y; R[SKF.sz] = _tdsv.z; R[SKF.mx] = _tdmv.x; R[SKF.my] = _tdmv.y; R[SKF.mz] = _tdmv.z;
+  R[SKF.stars] = 1 - _tdsstep(-12, -3, e);
+  R[SKF.sunVis] = _tdsstep(-3, 2, e); R[SKF.moonVis] = 0.28 + 0.72 * (1 - _tdsstep(-6, 4, e)); R[SKF.moonGlow] = ill;
+  const ang = Math.acos(Math.max(-1, Math.min(1, _tdsv.x * Math.cos(SKY_BAKED_EL) * Math.cos(sky0.az) + _tdsv.y * Math.sin(SKY_BAKED_EL) + _tdsv.z * Math.cos(SKY_BAKED_EL) * Math.sin(sky0.az))));
+  R[SKF.keep] = 1 - _tdsstep(0.25, 0.6, ang);                                   // the baked sunset glow shows only when the sun is near it
+  tod.e = e; tod.am = am; tod.moonEl = me * 57.29578; tod.phase = phase; tod.ill = ill; tod.label = todLabel(e, am);
+  return R;
+}
+const SKY_BAKED_EL = THREE.MathUtils.degToRad(7);
+function todJump(opts) {                                                      // a preset or a restored time: blend from what is on screen. The slider and the clock itself never blend.
+  if (opts && opts.fade && tod.have) { todSnap.set(todOut); tod.xf = 0; tod.xfDur = REDUCE_MOTION ? 3.6 : 1.6; } else tod.xf = 1;
+  tod.force = true;
+}
+function todSetHour(hour, o) { o = o || {}; tod.t = Math.floor(tod.t / 24) * 24 + hour; if (o.moon) tod.phase0 = 0.5 - tod.t / 24 / 29.53; todJump(o); }
+function todSetMode(preset) {
+  tod.preset = preset;
+  if (preset === 'off') { tod.run = false; tod.paused = false; } else { tod.run = true; tod.paused = false; if (preset !== 'custom') tod.mul = TOD_SPEEDS[preset]; }
+  tod.force = true;
+}
+function todPause(v) { if (!tod.run) return; tod.paused = v === undefined ? !tod.paused : !!v; tod.force = true; }
+function todSave() { return { t: +tod.t.toFixed(4), mul: tod.mul, run: tod.run, paused: tod.paused, preset: tod.preset, p0: tod.phase0 }; }
+function todLoad(o) { if (!o) return; tod.t = +o.t || 0; tod.mul = Math.max(0.5, Math.min(1000, +o.mul || 60)); tod.run = !!o.run; tod.paused = !!o.paused; tod.preset = o.preset || (tod.run ? 'custom' : 'off'); tod.phase0 = +o.p0 || 0; todJump(); }
+const wx = { rain: 0, fog: 0, dirMode: 'auto', base: Math.PI, rainAmt: 0, imp: { rain: false, fog: false } };   // imp: the player has imposed rain or fog; otherwise the climate model decides
+Object.defineProperty(wx, 'sky', {                                            // the old five-word sky: reading gives the nearest word for the clock, writing sets the clock to that preset
+  get() { return tod.label; },
+  set(v) { if (SKY_HOUR[v] !== undefined) todSetHour(SKY_HOUR[v], { fade: true, moon: v === 'night' }); }, enumerable: true,
+});
+const skyEvent = (v) => { if (tod.run && !tod.paused) return; wx.sky = v; };   // weather events darken or clear the sky only while the clock is not running
+function todSolar() { const e = tod.e; return e <= -12 ? -5 : e <= -1 ? -5 + 4 * (e + 12) / 11 : e <= 3 ? -1 : e <= 19 ? -1 + 4 * (e - 3) / 16 : e <= 45 ? 3 + 3 * (e - 19) / 26 : 6; }   // land warms and cools faster than the sea: the temperature link
+wx.sky = 'golden'; tod.xf = 1;
 const FOG0 = FOG.clone();
 const cA = new THREE.Color(), cB = new THREE.Color();
 function applyFog() {
@@ -8355,30 +8462,63 @@ function applyFog() {
   if (mode === 'god') { const dist = Math.max(70, camera.position.distanceTo(god.tgt)); d = Math.min(d, (extreme ? 2.2 : 0.6) / dist); }   // from above, ordinary haze never hides what you are looking at; a real storm or a flooded atmosphere can
   scene.fog.density = d;
 }
-function stepWeather(dt) {
-  const T = SKIES[wx.sky], C = wx.cur, k = 1 - Math.exp(-dt * 1.2);
-  for (const key of ['el', 'az', 'sunI', 'hemiI', 'exp', 'envI']) C[key] += (T[key] - C[key]) * k;
-  C.sunC = (C.sunC || new THREE.Color(T.sun)).lerp(cA.set(T.sun), k);
-  C.tintV = (C.tintV || new THREE.Color(...T.tint)).lerp(cB.setRGB(...T.tint), k);
-  C.fogV = (C.fogV || new THREE.Color(...T.fog)).lerp(cB.setRGB(...T.fog), k);
-  wx.rainAmt += ([0, 0.5, 1][wx.rain] - wx.rainAmt) * k;
-  const el = THREE.MathUtils.degToRad(C.el), az = sky0.az + C.az;
-  sunDir.set(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)).normalize();
-  const dim = 1 - 0.45 * wx.rainAmt;
-  sunLight.intensity = C.sunI * dim; sunLight.color.copy(C.sunC);
-  hemi.intensity = C.hemiI * (1 + 0.3 * wx.rainAmt);
-  renderer.toneMappingExposure = C.exp;
-  skyMat.uniforms.uTint.value.copy(C.tintV).multiplyScalar(dim);
-  waterU.uSunCol.value.copy(C.sunC).multiplyScalar(dim);
-  grassU.uSunCol.value.copy(C.sunC).multiplyScalar(0.9 * dim);
-  scene.fog.color.copy(FOG0).multiply(C.fogV).multiplyScalar(dim);
-  applyFog();
-  rain.material.uniforms.uAmt.value = wx.rainAmt;
-  const envI = C.envI * dim;
+/* stars: a fixed catalogue in the sky's own frame, turned by the hour; the moon and sun are drawn in the sky shader */
+const starPts = (() => {
+  const N = ED.phone ? 900 : 2200, pos = new Float32Array(N * 3), mag = new Float32Array(N), col = new Float32Array(N * 3); let s = 12345; const rr = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (let i = 0; i < N; i++) {
+    const z = rr() * 2 - 1, a = rr() * Math.PI * 2, q = Math.sqrt(1 - z * z); pos.set([1400 * q * Math.cos(a), 1400 * q * Math.sin(a), 1400 * z], i * 3);
+    const m = Math.pow(rr(), 3.2); mag[i] = 0.35 + m * 0.65; const c = rr(); col.set(c < 0.2 ? [0.75, 0.82, 1.0] : c > 0.85 ? [1.0, 0.86, 0.7] : [1, 1, 1], i * 3);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aMag', new THREE.BufferAttribute(mag, 1)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 3));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { uA: { value: 0 }, uPx: { value: 1 } }, transparent: false, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, fog: false,
+    vertexShader: `attribute float aMag; attribute vec3 aCol; uniform float uPx; varying float vM; varying vec3 vC; void main(){ vM = aMag; vC = aCol; vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position = p.xyww; gl_PointSize = (1.2 + 2.2 * aMag * aMag) * uPx; }`,
+    fragmentShader: `uniform float uA; varying float vM; varying vec3 vC; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.05, d) * uA * (0.35 + 0.65 * vM); if (a < 0.004) discard; gl_FragColor = vec4(vC * a, 1.0); }`,
+  });
+  const p = new THREE.Points(g, m); p.frustumCulled = false; p.renderOrder = -0.5; p.matrixAutoUpdate = false; p.visible = false; scene.add(p); return p;
+})();
+function skyApplyStars() {                                                   // rotation part, 10 Hz; the position part follows the camera every frame
+  const g = SKYG, H0 = (todHour() - 12) / 24 * Math.PI * 2 + (tod.t / 24) * (Math.PI * 2 / 365.25), c = Math.cos(-H0), s = Math.sin(-H0), M = tod.starM.elements;
+  // columns: celestial X, Y, Z turned about Z by -H0, then into game axes
+  const rx = [c, s, 0], ry = [-s, c, 0];
+  for (let k = 0; k < 3; k++) { M[k] = rx[0] * g.bx[k] + rx[1] * g.by[k]; M[4 + k] = ry[0] * g.bx[k] + ry[1] * g.by[k]; M[8 + k] = g.bz[k]; }
+  M[3] = M[7] = M[11] = 0; M[15] = 1;
+}
+function skyUpdate(d) {
+  const k = 1 - Math.exp(-d * 1.2); wx.rainAmt += ([0, 0.5, 1][wx.rain] - wx.rainAmt) * k;
+  skyRaw(todRaw);
+  let o = todRaw;
+  if (tod.xf < 1) { tod.xf = Math.min(1, tod.xf + d / tod.xfDur); const s = tod.xf * tod.xf * (3 - 2 * tod.xf); for (let i = 0; i < SKF.n; i++) todOut[i] = todSnap[i] + (todRaw[i] - todSnap[i]) * s; o = todOut; }
+  else todOut.set(todRaw);
+  tod.have = true;
+  const dim = 1 - 0.45 * wx.rainAmt, F = SKF;
+  sunDir.set(o[F.dx], o[F.dy], o[F.dz]).normalize();
+  const keyI = o[F.keyI] * dim, fade = _tdsstep(-0.02, 0.1, sunDir.y);          // no light from under the horizon
+  sunLight.intensity = keyI * fade; sunLight.color.setRGB(o[F.kr], o[F.kg], o[F.kb]);
+  hemi.intensity = o[F.hemi] * (1 + 0.3 * wx.rainAmt);
+  if (Math.abs(renderer.toneMappingExposure - o[F.exp]) > 0.0005) renderer.toneMappingExposure = o[F.exp];
+  const su = skyMat.uniforms; su.uTint.value.setRGB(o[F.tr], o[F.tg], o[F.tb]).multiplyScalar(dim);
+  su.uSun.value.set(o[F.sx], o[F.sy], o[F.sz]).normalize(); su.uMoon.value.set(o[F.mx], o[F.my], o[F.mz]).normalize();
+  su.uSunCol.value.setRGB(o[F.sr], o[F.sg], o[F.sb]); su.uSunVis.value = o[F.sunVis] * (1 - 0.8 * wx.rainAmt);
+  su.uMoonVis.value = o[F.moonVis] * (1 - 0.85 * wx.rainAmt); su.uMoonA.value = todPhase() * Math.PI * 2; su.uMoonGlow.value = o[F.moonGlow]; su.uKeep.value = o[F.keep];
+  const starA = o[F.stars] * (1 - Math.min(1, wx.rainAmt * 1.4)) * (1 - 0.3 * wx.fog); starPts.visible = starA > 0.01; starPts.material.uniforms.uA.value = starA; starPts.material.uniforms.uPx.value = renderer.getPixelRatio(); if (starPts.visible) skyApplyStars();
+  const lk = Math.min(1, keyI * fade / 2.4), wc = 0.55 + 0.45 * lk;           // water and grass catch the key light (sun or moon) at a strength that follows it
+  cA.setRGB(o[F.kr], o[F.kg], o[F.kb]);
+  waterU.uSunCol.value.copy(cA).multiplyScalar(dim * wc);
+  grassU.uSunCol.value.copy(cA).multiplyScalar(0.9 * dim * wc);
+  scene.fog.color.copy(FOG0).multiply(cB.setRGB(o[F.fr], o[F.fg], o[F.fb])).multiplyScalar(dim);
+  rain.material.uniforms.uAmt.value = wx.rainAmt; todUIUpdate();
+  const envI = o[F.env] * dim;
   if (Math.abs(envI - (wx.lastEnv ?? -1)) > 0.015) {          // three r160 has no scene-wide environment intensity, so set it on the materials
     wx.lastEnv = envI;
-    scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if ('envMapIntensity' in m) m.envMapIntensity = envI; });
+    scene.traverse(o2 => { const ms = o2.material ? (Array.isArray(o2.material) ? o2.material : [o2.material]) : []; for (const m of ms) if ('envMapIntensity' in m) m.envMapIntensity = envI; });
   }
+}
+function stepWeather(dt) {
+  if (tod.run && !tod.paused) tod.t += dt * tod.mul / 3600;                  // the clock, every frame
+  tod.acc += dt;
+  if (tod.acc >= 0.1 || tod.force) { const d = tod.acc; tod.acc = 0; tod.force = false; skyUpdate(d); }
+  applyFog();
 }
 /* rain: streaks in a box that follows the camera, blown by the same wind as everything else */
 const rain = (() => {
@@ -8738,6 +8878,14 @@ function syncCat() { const c = PLACE_CATS.find(q => q.id === placeCat) || PLACE_
   b.addEventListener('click', () => setTool(t)); tabs.appendChild(b);
 });
 let traySig = ''; let skySub = 'weather';
+const todUI = { clock: null };
+const todClockText = (h) => String(Math.floor(h + 1e-9)).padStart(2, '0') + ':' + String(Math.floor((h % 1) * 60 + 1e-6)).padStart(2, '0');
+function todUIUpdate() { const c = todUI.clock; if (!c || !c.isConnected) return; c.firstChild.textContent = todClock(); c.lastChild.textContent = todMoonName() + ', ' + todSpeedText(); }
+function todRangeChip(label, min, max, step, get, fmt, set, id) {          // a chip that holds a slider; moving it never rebuilds the tray, so the drag is not interrupted
+  const c = document.createElement('label'); c.className = 'chip mini todRange'; const t = document.createElement('span'); t.className = 'nm'; const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = get(); i.id = id; i.setAttribute('aria-label', label);
+  const show = () => { t.textContent = label + ': ' + fmt(+i.value); }; show();
+  i.addEventListener('input', () => { set(+i.value); show(); todUIUpdate(); }); i.addEventListener('pointerdown', e => e.stopPropagation()); c.append(t, i); return c;
+}
 function renderTray(force = true) {
   const T0 = mode === 'helm' ? 'build' : tool;
   const sig = T0 + '|' + (T0 === 'select' ? boats.map(b => b.id + (sel.includes(b) ? '*' : '') + (b.status || '') + (b.hpMax ? Math.round(100 * b.hp / b.hpMax) : '')).join(',') + '|' + sel.length + boxMode + fireMode + routeMode + routeLoop + multiTap + people.length : Math.random());
@@ -8803,6 +8951,12 @@ function renderTray(force = true) {
     Object.keys(WIND_FROM).forEach(k => tray.append(chip(k, '', null, wx.dirMode === 'set' && wx.dirKey === k, () => { setWindFrom(k); wx.dirKey = k; renderTray(); }, 'chip mini')));
     tray.append(sep('Time of day'));
     [['dawn', 'Dawn'], ['day', 'Day'], ['golden', 'Golden'], ['dusk', 'Dusk'], ['night', 'Night']].forEach(([k, n]) => tray.append(chip(n, '', null, wx.sky === k, () => { wx.sky = k; renderTray(); }, 'chip mini')));
+    tray.append(sep('Time passes'));
+    for (const [k, n] of [['off', 'Off'], ['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast'], ['real', 'Real time']]) tray.append(chip(n, k === 'off' ? 'fixed' : k === 'real' ? '24 h a day' : Math.round(1440 / TOD_SPEEDS[k]) + ' min a day', null, tod.preset === k || (k === 'off' && !tod.run), () => { todSetMode(k); renderTray(); }, 'chip mini'));
+    tray.append(chip(tod.paused ? 'Resume' : 'Pause', tod.run ? 'the clock' : 'needs a speed', null, tod.paused, () => { if (tod.run) { todPause(); renderTray(); } else toast('Pick a speed first. Time is fixed now.'); }, 'chip mini'));
+    { const c = document.createElement('div'); c.className = 'chip mini todClock'; c.setAttribute('role', 'status'); c.innerHTML = '<span class="nm"></span><span class="dn"></span>'; todUI.clock = c; tray.append(c); todUIUpdate(); }
+    tray.append(todRangeChip('Hour', 0, 23.99, 0.05, () => todHour(), v => todClockText(v), v => { todSetHour(v); }, 'tod-hour'));
+    tray.append(todRangeChip('Speed', 0, 100, 1, () => Math.round(Math.log(Math.max(1, tod.mul)) / Math.log(720) * 100), v => { const m = Math.round(Math.exp(v / 100 * Math.log(720))); return m + 'x, ' + (m > 0 ? +(1440 / m).toFixed(1) : 0) + ' min a day'; }, v => { tod.mul = Math.max(1, Math.round(Math.exp(v / 100 * Math.log(720)))); tod.preset = 'custom'; if (!tod.run) { tod.run = true; tod.paused = false; } tod.force = true; }, 'tod-speed'));
     tray.append(sep('Rain'));
     tray.append(chip('Auto', 'from the air', null, !wx.imp.rain, () => { wx.imp.rain = false; wx.rain = clim.rainLvl; renderTray(); toast('Rain now follows the air and the clouds'); }, 'chip mini'));
     ['Dry', 'Showers', 'Downpour'].forEach((n, i) => tray.append(chip(n, '', null, wx.imp.rain && wx.rain === i, () => { wx.imp.rain = true; wx.rain = i; clim.rainLvl = i; renderTray(); }, 'chip mini')));
@@ -9187,13 +9341,13 @@ function frameStep(now) {
   updateRings(t); if (SA) { try { SA.frame(dt); } catch (e) { if (!SA.err) { SA.err = String(e && e.stack || e); console.error('situational awareness error', e); } } }
   if (mode === 'god' && tool === 'build') { /* updateBuildGhost owns the ring */ } else if (mode === 'god' && tool === 'land' && hoverPt) { brushRing.visible = true; brushRing.position.set(hoverPt.x, Math.max(groundAt(hoverPt.x, hoverPt.z), 0) + 0.3, hoverPt.z); brushRing.scale.setScalar(land.R[land.size] * CELL); } else brushRing.visible = false;
   // shared uniforms: time, sea state, wind (the grass, trees and ripples all read the same wind as the sails)
-  terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt; syncWaveU(); terrainU.uCaus.value = Math.max(0, Math.min(1, sunDir.y * 2.4)) * (1 - 0.75 * wx.rainAmt) * (1 - 0.6 * Math.min(1, sea.amp * 1.2));
+  terrainU.uTime.value = t; terrainU.uAmp.value = sea.amp + 0.2 * wx.rainAmt; syncWaveU(); terrainU.uCaus.value = Math.max(0, Math.min(1, sunDir.y * 2.4)) * Math.min(1, sunLight.intensity / 1.5) * (1 - 0.75 * wx.rainAmt) * (1 - 0.6 * Math.min(1, sea.amp * 1.2));
   windU.uWind.value.set(wind.v.x, wind.v.z).normalize(); windU.uWindStr.value = clamp(wind.ms / 9, 0.15, 1.6) * (1 + 0.4 * wx.rainAmt); windU.uBlow.value += (clamp(wind.ms / 14, 0, 1) - windU.uBlow.value) * 0.05;
   grassU.uCam.value.set(focus.x, focus.z);
   grassU.uPatch.value = mode === 'god' ? clamp(god.dist * 0.7, 60, 140) : 60;
   water.position.set(Math.round(camera.position.x / 2) * 2, surge.level, Math.round(camera.position.z / 2) * 2); farWater.position.set(camera.position.x, surge.level - 0.06, camera.position.z);
   if (mode === 'god') water.position.set(Math.round(focus.x / 2) * 2, surge.level, Math.round(focus.z / 2) * 2);
-  skyDome.position.copy(camera.position);
+  skyDome.position.copy(camera.position); if (starPts.visible) { const M = tod.starM.elements; M[12] = camera.position.x; M[13] = camera.position.y; M[14] = camera.position.z; starPts.matrix.copy(tod.starM); starPts.matrixWorldNeedsUpdate = true; }
   const shadowR = mode === 'god' ? clamp(god.dist * 0.75, 48, 200) : 48;
   Object.assign(sunLight.shadow.camera, { left: -shadowR, right: shadowR, top: shadowR, bottom: -shadowR, far: 200 + shadowR * 2 }); sunLight.shadow.camera.updateProjectionMatrix();
   sunLight.position.copy(focus).addScaledVector(sunDir, 120 + shadowR); sunLight.target.position.copy(focus);
@@ -9242,7 +9396,7 @@ function frameStep(now) {
       else if (fb.sp.kind === 'motor') { $('pos').textContent = 'Under power'; $('sheet').textContent = Math.round(fb.throttle * 100) + '%' + (fb.throttle < 0 ? ' astern' : ''); }
       else { $('pos').textContent = pointOfSail(twa) + (Math.abs(fb.aoa || 0) < 0.12 && twa > 38 ? ', luffing' : ''); $('sheet').textContent = (fb.auto ? 'Auto ' : '') + Math.round(Math.abs(fb.beta) * 180 / Math.PI) + '°'; }
     } else if (selPerson && mode === 'god' && sel.length === 1) { $('sog').textContent = ''; $('pos').textContent = personStatus1(selPerson); $('sheet').textContent = selPerson.height.toFixed(2) + ' m'; $('sheetLbl').textContent = 'Height'; updatePersonPanel(selPerson); }
-    else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = ({ dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]) + ' ' + Math.round(clim.mean) + ' C' + (wx.rainAmt > 0.3 ? ' ' + precipName() : ''); $('sheetLbl').textContent = 'Sky'; }
+    else { $('sog').textContent = ''; $('pos').textContent = 'Tap a boat'; $('sheet').textContent = todClock() + ' ' + ({ dawn: 'Dawn', day: 'Day', golden: 'Golden hour', dusk: 'Dusk', night: 'Night' }[wx.sky]) + ' ' + Math.round(clim.mean) + ' C' + (wx.rainAmt > 0.3 ? ' ' + precipName() : ''); $('sheetLbl').textContent = 'Sky'; }
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
@@ -9299,6 +9453,8 @@ const KEYMAP = [
   ['over', '1 to 4', 'Tools: Select, Place, Land, Sky'],
   ['over', 'Esc', 'Stand down fire control, leave the helm, deselect, or open this menu'],
   ['over', 'T', 'Command: fire, support, squad and points', 'h'],
+  ['over', ';', 'Pause or resume the clock (Sky tool, Time passes). Time passes: Off, Slow, Normal (a full day in 24 minutes), Fast, Real time, or your own speed; the sky, sun, moon, stars and lights follow the clock'],
+  ['fp', ';', 'Pause or resume the clock when Time passes is on'],
   ['over', 'L', 'Tactical map: the whole battlefield with a grid, range rings, fire data and adjust fire. Drag to pan, wheel or pinch to zoom, tap to mark a target', 'h'],
   ['over', 'Symbols', 'More, then Symbols: from far away, friends show as a blue rectangle and hostile units as a red diamond, each with a small picture inside (crossed lines infantry, oval armour, dot gun, wings aircraft, waves boat). A letter marks each point. Squads show as one mark with the squad name when you zoom in. Many marks merge into one with a count'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
@@ -9426,7 +9582,7 @@ function snapshotWorld() {
     bed: BED.slice(), sn: snowData.slice(), mat: matData.slice(), met: MET.slice(), seeds: seeds.map(o => ({ x: o.x, z: o.z, sp: o.sp, g: o.g })), mats: { vents: lavaVents.map(o => ({ x: o.x, z: o.z })), src: sandSrc.map(o => ({ x: o.x, z: o.z, kind: o.kind })), fur: furnaces.map(o => ({ x: o.x, z: o.z })), rods: rods.map(o => ({ x: o.x, z: o.z })) },
     clim: { nose: clim.nose, cw: CW.slice(), T: clim.T, ct: CT.slice(), ch: CH.slice(), cc: CC.slice(), src: heatSrc.map(h => ({ x: h.x, z: h.z, k: h.k })) }, devs: devices.map(d => ({ x: d.x, z: d.z, t: d.t, p: d.p, h: d.h, r: d.r })), sites: sites.map(q => ({ kind: q.kind, x: q.x, z: q.z, stage: q.stage, done: q.done })), ocean: ocean.lvl, oceanRef: ocean.ref,
     lv: lavaOn ? LV.slice() : null, lt: lavaOn ? LT.slice() : null, ash: ashData.slice(), wd: WD.slice(), springs: springs.map(s => ({ x: s.x, z: s.z, rate: s.rate })),
-    wx: { imp: { ...wx.imp }, sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
+    wx: { imp: { ...wx.imp }, tod: todSave(), sky: wx.sky, rain: wx.rain, fog: wx.fog, dirMode: wx.dirMode, dirKey: wx.dirKey, wind: wind.level },
   };
 }
 let saving = false, loading = false, noAutosave = false;
@@ -9454,7 +9610,7 @@ async function loadWorld(slot) {
     HGT.set(d.hgt); if (d.bed) BED.set(d.bed); else for (let q = 0; q < BED.length; q++) BED[q] = Math.min(HGT0[q], HGT[q]);
     for (let q = 0; q < SIf.length; q++) { SIf[q] = HGT[q] < -0.05 ? snowData[q * 4 + 2] / 170 : 0; SM[q] = HGT[q] >= -0.05 ? snowData[q * 4 + 2] / 255 : 0; } soilWet = true; iceAny = true;
     land.undo = []; land.dirty = true; land.x0 = land.z0 = -EXT; land.x1 = land.z1 = EXT; commitLand(true);
-    const W = d.wx || {}; wx.sky = W.sky || wx.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wx.imp = { rain: !!(W.imp && W.imp.rain), fog: !!(W.imp && W.imp.fog) }; wind.level = W.wind ?? wind.level;
+    const W = d.wx || {}; if (W.tod) todLoad(W.tod); else if (W.sky) wx.sky = W.sky; wx.rain = W.rain ?? wx.rain; wx.fog = W.fog ?? wx.fog; wx.imp = { rain: !!(W.imp && W.imp.rain), fog: !!(W.imp && W.imp.fog) }; wind.level = W.wind ?? wind.level;
     if (W.dirMode === 'set' && W.dirKey) { setWindFrom(W.dirKey); wx.dirKey = W.dirKey; } else setWindFrom('auto');
     const nb = [];
     for (const b of d.boats) { if (!SPECS[b.key]) continue; const bt = makeBoat(b.key, null, null, b.x, b.z, b.yaw); bt.hp = b.hp ?? bt.hp; bt.flood = b.flood || 0; bt.anchor = bt.body.position.clone(); bt.status = 'Anchored'; nb.push(bt); }
@@ -9579,7 +9735,7 @@ function scnBoat(key, x, z, yaw, crew) { const bt = makeBoat(key, null, null, x,
 const SCENARIOS = [
   { id: 'storm', name: 'Storm rescue', note: 'Five hikers are stranded on a beach in a gale. Ferry them to the pier.',
     setup(s) {
-      wx.sky = 'dusk'; wx.rain = 2; wx.fog = 1; wx.imp.rain = wx.imp.fog = true; wind.level = 3;
+      skyEvent('dusk'); wx.rain = 2; wx.fog = 1; wx.imp.rain = wx.imp.fog = true; wind.level = 3;
       const f = nearFleet(), spot = findSpot(f.x, f.z, 30, 100, shoreSpot); if (!spot) { toast('No beach found. Try again'); scn = null; return; }
       s.people = []; for (let i = 0; i < 5 && people.length < MAX_PEOPLE; i++) { const x = spot.x + (i % 3) * 1.6 - 1.6, z = spot.z + Math.floor(i / 3) * 1.6; const p = makePerson(i * 3 + 1, x, z); p.y = standY(x, z); p.role = 'Hiker'; s.people.push(p); }
       god.tgt.set(spot.x, 0, spot.z); god.follow = null; god.dist = 90; setTool('select');
@@ -9754,12 +9910,12 @@ function placeWater(item, p) {
 const dis = { tornados: [], bolts: [], quake: 0, meteors: [], flashes: 0, surgeT: null, hurricane: 0, light: 0, lightNext: 2 };
 const aimPt = () => reticlePt() || { x: god.tgt.x, z: god.tgt.z };
 const kick = (body, ax, ay, az, dt, mass) => { const m = Math.min(1, 2500 / Math.max(1, body.mass)); body.velocity.x += ax * m * dt; body.velocity.y += ay * m * dt; body.velocity.z += az * m * dt; };
-function stormUp(rain, fog, level) { wx.sky = 'dusk'; wx.rain = rain; wx.fog = fog; wx.imp.rain = wx.imp.fog = true; wind.level = level; }
+function stormUp(rain, fog, level) { skyEvent('dusk'); wx.rain = rain; wx.fog = fog; wx.imp.rain = wx.imp.fog = true; wind.level = level; }
 function calm() {
   dis.tornados.forEach(tn => scene.remove(tn.group)); dis.tornados.length = 0; dis.hurricane = 0; dis.light = 0; dis.tsunami = null; dis.quake = 0;
   dis.deluge = 0; clim.T = 18; CC.fill(0); clim.rainLvl = 0;
   for (const v of volcanoes) if (v.state !== 'dormant') { v.state = 'dormant'; v.t = 0; v.p = Math.max(v.p, 0.0); }
-  wx.sky = 'golden'; wx.rain = 0; wx.fog = 0; wx.imp.rain = wx.imp.fog = false; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
+  skyEvent('golden'); wx.rain = 0; wx.fog = 0; wx.imp.rain = wx.imp.fog = false; wind.level = 1; setWindFrom('auto'); toast('The weather clears');
 }
 function startTornado(p) {
   const g = new THREE.Group(), segs = [];
@@ -9784,7 +9940,7 @@ function startQuake() {
   for (let n = 0; n < 4; n++) { const a = aimPt(), x = a.x + rnd(-50, 50), z = a.z + rnd(-50, 50), R = rnd(8, 14), dep = rnd(1.5, 3); for (let i = -R; i <= R; i++) for (let j = -R; j <= R; j++) { const d = Math.hypot(i, j); if (d > R) continue; const gx = Math.round(W2G(x)) + j, gz = Math.round(W2G(z)) + i; if (gx < 2 || gz < 2 || gx > TN - 3 || gz > TN - 3) continue; const k = gz * TN + gx; HGT[k] = clamp(HGT[k] - dep * (1 - (d / R) ** 2) ** 2, -9.2, HMAX); } land.x0 = -TH; land.x1 = TH; land.z0 = -TH; land.z1 = TH; }
   land.dirty = true; commitLand(true); toast('Earthquake');
 }
-function startTsunami() { Snd.fx('wx_tsunami_rumble', undefined, undefined, { gain: 1 }); dis.tsunami = { t: 0 }; wx.sky = 'dusk'; wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
+function startTsunami() { Snd.fx('wx_tsunami_rumble', undefined, undefined, { gain: 1 }); dis.tsunami = { t: 0 }; skyEvent('dusk'); wx.fog = 1; wx.imp.fog = true; toast('The sea is pulling back from the shore'); }
 function startHurricane() { dis.hurricane = 150; stormUp(2, 1, 4); toast('Hurricane. Storm surge is coming.'); }
 function startMeteor(p) { Snd.fx('wx_meteor_whistle', p.x, p.z, { gain: 1, far: 3 }); setTimeout(() => Snd.fx('wx_meteor_impact', p.x, p.z, { gain: 1.2, far: 4, gap: 0 }), 2600); dis.meteors.push({ x: p.x, z: p.z, t: 0, mesh: null }); toast('Something is falling'); }
 function impactMeteor(m) {
@@ -10067,7 +10223,7 @@ function stepClimate(dt) {
     const c = i * CN + j, x = G2W(j * 4 + 2), z = G2W(i * 4 + 2), h = CHG[c];
     const l = j > 0 ? CT[c - 1] : CT[c], r = j < CN - 1 ? CT[c + 1] : CT[c], u = i > 0 ? CT[c - CN] : CT[c], d = i < CN - 1 ? CT[c + CN] : CT[c];
     let T = CT[c] + 0.15 * ((l + r + u + d) / 4 - CT[c]);                                     // spreads a little to its neighbours
-    T += ((clim.T + SOLAR[wx.sky] * (h < 0 ? 0.3 : 1) - 0.15 * Math.max(h, 0)) - T) * (h < 0 ? k1sea : k1) + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
+    T += ((clim.T + todSolar() * (h < 0 ? 0.3 : 1) - 0.15 * Math.max(h, 0)) - T) * (h < 0 ? k1sea : k1) + CHT[c] * dt;                         // drifts to the global air temperature, warmer or cooler by sources
     T = Math.max(-60, Math.min(160, T)); CT2[c] = T;
     CW[c] += ((clim.T - 2 + clim.nose - 0.15 * Math.max(h, 0)) - CW[c]) * kW + CHT[c] * dt * 0.5; wSum += CW[c];
     // evaporation from open water, faster when hot
@@ -12066,7 +12222,7 @@ function updateBomber(dt, t) {
 $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); });
 
 function qaTick(dt) { world.step(1 / 60, dt, 5); armedLayer(dt); updateBattle(dt); updatePeople(dt, simT); }      // test hook: one fixed simulation step without the renderer (the frame loop is paused with window.__qaHold)
-window.__sc = { qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKIES, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
+window.__sc = { snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -12086,6 +12242,10 @@ function renderSetup() {
   { const g = grp('Map', onMap ? 'Picking a different map builds a new world.' : 'Pick a map. This builds a new world.'); const c = document.createElement('div'); c.className = 'cards';
     for (const k of BATTLE_KEYS) { if (ED.phone && k !== 'port' && MAP.t !== k) continue; const [n, d, sw] = MAP_INFO[k], b = document.createElement('button'); b.type = 'button'; b.className = 'card2'; b.setAttribute('aria-pressed', String(MAP.t === k)); b.innerHTML = '<i class="msw"></i><b></b><span></span>'; b.firstChild.style.background = sw; b.querySelector('b').textContent = n; b.querySelector('span').textContent = d; b.addEventListener('click', () => { if (MAP.t === k) return; try { sessionStorage.setItem('sc-setup', '1'); } catch (e) { } startMap(k, k); }); c.append(b); } g.append(c); }
   { const g = grp('Sides and enemy'); say1(g, 'You fight for, or command, this side.'); chips(g, [['blue', 'Port'], ['red', redN]], side, v => { SETUP.side = v; }); say1(g, 'Port is always the blue side. The red side is:', true); chips(g, [['Raiders', 'Raiders'], ['Invaders', 'Invaders']], redN, v => { BATTLE.redKind = v; }); }
+  { const g = grp('Time of day', 'The sky follows the clock. Time passes: Normal is a full day in 24 real minutes.'); chips(g, [['dawn', 'Dawn'], ['day', 'Day'], ['golden', 'Golden'], ['dusk', 'Dusk'], ['night', 'Night']], wx.sky, v => { wx.sky = v; });
+    chips(g, [['off', 'Time: fixed'], ['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']], tod.run ? tod.preset : 'off', v => { todSetMode(v); });
+    { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = 0; i.max = 23.75; i.step = 0.25; i.value = Math.floor(todHour() * 4) / 4; i.setAttribute('aria-label', 'Start time'); l.textContent = 'Start time: ' + todClockText(+i.value);
+      i.addEventListener('input', () => { todSetHour(+i.value); l.textContent = 'Start time: ' + todClockText(+i.value); }); w.append(l, i); g.append(w); } }
   { const g = grp('Army'); const rg = (label, min, max, step, val, fn, dis) => { const w = document.createElement('div'); w.className = 'sRange'; const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = val; i.disabled = !!dis; l.textContent = label + ': ' + val; i.addEventListener('input', () => { fn(+i.value); l.textContent = label + ': ' + i.value; }); w.append(l, i); g.append(w); return { i, l }; };
     let tx = null; rg('Soldiers per side', 3, ED.phone ? 14 : isTouch ? 10 : 70, 1, BATTLE.size, v => { BATTLE.size = v; if (BATTLE.tixAuto && tx) { tx.i.value = startTickets(); tx.l.textContent = 'Tickets per side: ' + startTickets(); } });
     say1(g, 'Tickets run down as soldiers fall. The side that runs out loses.', true); chips(g, [['auto', 'Tickets: auto'], ['hand', 'Tickets: by hand']], BATTLE.tixAuto ? 'auto' : 'hand', v => { BATTLE.tixAuto = v === 'auto'; if (!BATTLE.tixAuto) BATTLE.tix = startTickets(); });

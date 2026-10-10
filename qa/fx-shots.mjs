@@ -70,7 +70,7 @@ try {
   // 5 night: horizon flashes and tracers
   if (want('horizon')) {
     await SCALE(0.01); await go(SEA[0], SEA[1], 0, 0.03, 3);
-    await b.ev("(()=>{__sc.wx.sky='night'; Object.assign(__sc.wx.cur, __sc.SKIES.night); return 1})()"); await sleep(3000);
+    await b.ev("(()=>{__sc.wx.sky='night'; return 1})()"); await sleep(3000);
     // the same flash the battle makes on the horizon (see hzUpdate): a big one and a small one, placed in front so they are in view
     const hz = (dx, dist, big) => b.ev(`(()=>{const sc=__sc,cp=sc.camera.position,a=sc.fp.yaw+${dx},x=cp.x+Math.sin(a)*${dist},z=cp.z+Math.cos(a)*${dist},gy=Math.max(sc.heightAt(x,z),0)+3; sc.fxG.emit(x,gy,z,0,0,0,${big?0.5:0.22},${dist}*${big?0.08:0.045},0.5,[1,0.72,0.38,0.85]); return 1})()`);
     await hz(-0.35, 520, true); await hz(0.3, 700, false); await hz(0.05, 420, false); await shot('horizon_a', 0, 0.1);

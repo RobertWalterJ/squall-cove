@@ -754,6 +754,20 @@
    "phone": {
     "gesture": "Automatic in every battle, the same behaviour; your own Stance button already exists and the squad follows it"
    }
+  },
+  {
+   "id": "time-passes",
+   "what": "Time passes: the clock runs and the sky, sun, moon, stars and lights follow it (Off, Slow, Normal = a full day in 24 minutes, Fast, Real time, custom speed, start hour, pause and resume, a plain text clock such as 18:40). Also in the battle setup",
+   "covers": [
+    "over|;",
+    "fp|;"
+   ],
+   "desktop": {
+    "gesture": "Sky tool, Time passes chips and sliders; the semicolon key pauses and resumes the clock; Menu, Battle setup has the same choices"
+   },
+   "phone": {
+    "gesture": "Sky tool, Time passes chips, the Pause chip and sliders; Menu, Battle setup has the same choices"
+   }
   }
  ],
  "ignoreKeys": {},
