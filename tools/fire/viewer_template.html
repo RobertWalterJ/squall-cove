@@ -8,40 +8,92 @@
   :root { color-scheme: dark; --bg:#14161a; --panel:#1e2127; --line:#3a3f48; --ink:#f0f2f5; --mut:#b5bcc8; --acc:#ff9a3c; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui, Segoe UI, Arial, sans-serif; }
-  header { padding:14px 16px 6px; }
+  header { padding:12px 16px 4px; }
   h1 { margin:0 0 4px; font-size:24px; }
   p.note { margin:0; color:var(--mut); font-size:16px; }
-  .wrap { display:flex; flex-wrap:wrap; gap:16px; padding:12px 16px 24px; }
-  .controls { flex:1 1 320px; max-width:460px; display:grid; gap:12px; align-content:start; }
-  fieldset { border:1px solid var(--line); border-radius:8px; background:var(--panel); margin:0; padding:8px 12px 10px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:16px; padding:10px 16px 24px; }
+  .controls { flex:1 1 340px; max-width:480px; display:grid; gap:10px; align-content:start; }
+  fieldset { border:1px solid var(--line); border-radius:8px; background:var(--panel); margin:0; padding:6px 12px 10px; }
   legend { padding:0 6px; font-size:16px; color:var(--mut); }
   label { display:inline-flex; align-items:center; gap:8px; margin:3px 14px 3px 0; font-size:18px; min-height:32px; cursor:pointer; }
+  select { font:inherit; font-size:18px; background:#2b3039; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 8px; min-height:40px; max-width:100%; }
   input[type=radio], input[type=checkbox] { width:20px; height:20px; accent-color:var(--acc); }
   input[type=range] { width:100%; height:32px; accent-color:var(--acc); }
   .row { display:flex; justify-content:space-between; font-size:16px; color:var(--mut); }
-  button { font:inherit; font-size:18px; color:var(--ink); background:#2b3039; border:1px solid var(--line); border-radius:8px; padding:8px 16px; cursor:pointer; min-height:44px; }
+  button { font:inherit; font-size:18px; color:var(--ink); background:#2b3039; border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; min-height:44px; margin:2px 6px 2px 0; }
   button:hover { background:#353b46; }
+  button.on { border-color:var(--acc); background:#3a2f22; }
   :focus-visible { outline:3px solid #6fb7ff; outline-offset:2px; }
-  .stage { flex:3 1 560px; min-width:300px; }
+  .stage { flex:3 1 600px; min-width:300px; }
   canvas { width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#000; }
-  #info { margin-top:8px; font-size:16px; color:var(--mut); }
+  #info { margin-top:8px; font-size:16px; color:var(--mut); min-height:48px; }
   #err { color:#ffb3a8; font-size:16px; }
+  .tab { display:none; } .tab.show { display:grid; gap:10px; }
+  .state { font-size:18px; margin:4px 0 6px; }
 </style>
 </head>
 <body>
 <header>
   <h1>Squall Cove Fire Viewer</h1>
-  <p class="note">Plays the baked fire flipbooks from <code>assets/fire</code>. Everything is built into this page; it works by double-click.</p>
+  <p class="note">Plays the baked fire flipbooks. Everything is built into this page, so it works by double-click. Nothing here counts down or times you.</p>
 </header>
 <div class="wrap">
   <div class="controls">
-    <fieldset id="fsPreset"><legend>Fire</legend></fieldset>
-    <fieldset id="fsView"><legend>Layers</legend>
-      <label><input type="radio" name="view" value="comb" checked> Flame and smoke</label>
-      <label><input type="radio" name="view" value="flame"> Flame only</label>
-      <label><input type="radio" name="view" value="smoke"> Smoke only</label>
-      <label><input type="radio" name="view" value="heat"> Heat map</label>
+    <fieldset id="fsMode"><legend>What to show</legend>
+      <label><input type="radio" name="mode" value="single" checked> One fire</label>
+      <label><input type="radio" name="mode" value="life"> Lifecycle</label>
+      <label><input type="radio" name="mode" value="front"> Spreading front</label>
+      <label><input type="radio" name="mode" value="boom"> Explosion</label>
     </fieldset>
+
+    <div id="tabSingle" class="tab show">
+      <fieldset><legend>Fire</legend>
+        <select id="selType" aria-label="Fire type"></select>
+        <div><label for="selVar">Variant</label> <select id="selVar" aria-label="Variant"><option value="a">A</option><option value="b">B</option><option value="c">C</option></select></div>
+      </fieldset>
+      <fieldset id="fsView"><legend>Layers</legend>
+        <label><input type="radio" name="view" value="comb" checked> Flame and smoke</label>
+        <label><input type="radio" name="view" value="flame"> Flame only</label>
+        <label><input type="radio" name="view" value="smoke"> Smoke only</label>
+        <label><input type="radio" name="view" value="heat"> Heat map</label>
+      </fieldset>
+    </div>
+
+    <div id="tabLife" class="tab">
+      <fieldset><legend>Lifecycle of the fire chosen in "One fire"</legend>
+        <div class="state" id="stateLine" aria-live="polite"></div>
+        <button id="bIgnite" type="button">Ignite</button>
+        <button id="bGrow" type="button">Grow</button>
+        <button id="bBurn" type="button">Burn (developed)</button>
+        <button id="bDecay" type="button">Die down</button>
+        <button id="bWater" type="button">Put out with water</button>
+        <button id="bPlay" type="button">Play through: ignite, grow, burn, die down</button>
+        <button id="bReset" type="button">Reset</button>
+        <div class="row"><label for="fuel">Fuel load</label><span id="fuelV"></span></div>
+        <input id="fuel" type="range" min="0.4" max="1.8" step="0.05" value="1">
+      </fieldset>
+    </div>
+
+    <div id="tabFront" class="tab">
+      <fieldset><legend>Grass or brush fire front</legend>
+        <div class="row"><label for="fspeed">Front speed</label><span id="fspeedV"></span></div>
+        <input id="fspeed" type="range" min="0.1" max="2.5" step="0.05" value="0.8">
+        <div class="row"><label for="ffuel">Fuel load (flame height)</label><span id="ffuelV"></span></div>
+        <input id="ffuel" type="range" min="0.5" max="1.6" step="0.05" value="1">
+        <label><input id="fspots" type="checkbox" checked> Spot fires jump ahead</label>
+        <div><button id="fRestart" type="button">Restart the front</button> <button id="fPause" type="button">Pause the front</button></div>
+      </fieldset>
+    </div>
+
+    <div id="tabBoom" class="tab">
+      <fieldset><legend>Explosion with flaming debris</legend>
+        <select id="selBoom" aria-label="Fireball type"></select>
+        <div class="row"><label for="debris">Flaming debris pieces</label><span id="debrisV"></span></div>
+        <input id="debris" type="range" min="0" max="40" step="1" value="18">
+        <div><button id="bBoom" type="button">Explode</button> <button id="bBoomClear" type="button">Clear</button></div>
+      </fieldset>
+    </div>
+
     <fieldset id="fsLook"><legend>Sensor look</legend>
       <label><input type="radio" name="look" value="normal" checked> Normal eye</label>
       <label><input type="radio" name="look" value="thermal"> Thermal (white-hot)</label>
@@ -57,7 +109,7 @@
       <input id="size" type="range" min="0.4" max="3" step="0.05" value="1">
       <div class="row"><label for="speed">Playback speed</label><span id="speedV"></span></div>
       <input id="speed" type="range" min="0.1" max="2" step="0.05" value="1">
-      <label><input id="glow" type="checkbox" checked> Light glow (uses the baked light colour and flicker)</label>
+      <label><input id="glow" type="checkbox" checked> Light glow (baked light colour and flicker)</label>
       <div><button id="pause" type="button">Pause</button></div>
     </fieldset>
     <div id="err" role="status"></div>
@@ -69,149 +121,308 @@
 </div>
 <script>
 let ATLAS = /*ATLAS_JSON*/null;
-const DATA = /*ATLAS_DATA*/{};   // data URIs for the atlas PNGs (file:// pages cannot read pixels from files)
-const NAMES = ['campfire','gas','pool','vehicle','building'];
-const LABEL = {campfire:'Campfire or barrel', gas:'Gas flame', pool:'Fuel pool or oil fire', vehicle:'Vehicle fire', building:'Building or roof fire'};
+const DATA = /*ATLAS_DATA*/{};   // data URIs for the atlas images (file:// pages cannot read pixels from files)
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
-const state = { preset:null, size:1, speed:1, paused:false, t:0, last:0 };
-const cache = {};   // per preset: {flame:{light,dark}, smoke:img, heat:{raw,thermal}, info}
-let presets = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const state = { mode:'single', type:null, size:1, speed:1, paused:false, t:0, last:0 };
+const cache = {};
 
-function load(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('could not load ' + src.slice(0, 60))); i.src = src; }); }
+// ---------- loading ----------------------------------------------------------------------------
+function load(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('could not load an image')); i.src = src; }); }
 function canvasOf(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-function whiteHot(v) {            // 0..1 -> rgb
+function whiteHot(v) {
   const s = [[0,[4,4,14]],[0.18,[40,10,90]],[0.38,[150,20,70]],[0.58,[235,70,20]],[0.78,[255,190,40]],[0.92,[255,245,170]],[1,[255,255,255]]];
   for (let i = 1; i < s.length; i++) if (v <= s[i][0]) { const a = s[i-1], b = s[i], f = (v - a[0]) / (b[0] - a[0]); return a[1].map((x, k) => x + (b[1][k] - x) * f); }
   return [255,255,255];
 }
+const HEATLUT = []; for (let i = 0; i < 256; i++) HEATLUT.push(whiteHot(Math.pow(i / 255, 1.25)));
+
+function heatCanvas(img) {
+  const w = img.width, h = img.height, g = canvasOf(w, h), c = g.getContext('2d');
+  c.drawImage(img, 0, 0);
+  const id = c.getImageData(0, 0, w, h), out = c.createImageData(w, h);
+  for (let i = 0; i < id.data.length; i += 4) { const v = id.data[i], col = HEATLUT[v]; out.data[i] = col[0]; out.data[i+1] = col[1]; out.data[i+2] = col[2]; out.data[i+3] = v < 6 ? 0 : Math.min(255, v * 3); }
+  const o = canvasOf(w, h); o.getContext('2d').putImageData(out, 0, 0); return o;
+}
 async function prep(name) {
   if (cache[name]) return cache[name];
-  const info = ATLAS.presets[name], d = DATA[name] || {};
-  const url = k => d[k] || ('../assets/fire/' + info[k].file);
-  const [fi, si, hi] = await Promise.all([load(url('flame')), load(url('smoke')), load(url('heat'))]);
-  const out = { info };
-  // flame: stored premultiplied. Draw as: dark = black*alpha (source-over), then light = rgb (lighter).
-  const fl = canvasOf(fi.width, fi.height), fd = canvasOf(fi.width, fi.height);
-  const c1 = fl.getContext('2d'), c2 = fd.getContext('2d');
-  c1.drawImage(fi, 0, 0);
-  let id; try { id = c1.getImageData(0, 0, fl.width, fl.height); } catch (e) { id = null; }
-  if (id) {
-    const p = id.data;
-    // getImageData returns the file's own values (the premultiplied rgb and its alpha), so use them directly
-    const q = p;
-    const lightD = new ImageData(new Uint8ClampedArray(p.length), fl.width, fl.height);
-    const darkD = new ImageData(new Uint8ClampedArray(p.length), fl.width, fl.height);
-    for (let i = 0; i < q.length; i += 4) {
-      lightD.data[i] = q[i]; lightD.data[i+1] = q[i+1]; lightD.data[i+2] = q[i+2]; lightD.data[i+3] = 255;
-      darkD.data[i+3] = q[i+3];
-    }
-    c1.putImageData(lightD, 0, 0); c2.putImageData(darkD, 0, 0);
-    out.flame = { light: fl, dark: fd };
-  } else { out.flame = { light: fi, dark: null }; }   // falls back to plain additive
-  out.smoke = si;
-  // heat: grey 0..255 -> thermal palette canvas
-  const hc = canvasOf(hi.width, hi.height), th = canvasOf(hi.width, hi.height);
-  hc.getContext('2d').drawImage(hi, 0, 0);
-  try {
-    const hd = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height), tc = th.getContext('2d').createImageData(hc.width, hc.height);
-    const lut = []; for (let i = 0; i < 256; i++) lut.push(whiteHot(Math.pow(i / 255, 1.25)));
-    for (let i = 0; i < hd.data.length; i += 4) { const v = hd.data[i], c = lut[v]; tc.data[i] = c[0]; tc.data[i+1] = c[1]; tc.data[i+2] = c[2]; tc.data[i+3] = v < 6 ? 0 : Math.min(255, v * 3); }
-    th.getContext('2d').putImageData(tc, 0, 0);
-    out.heat = th;
-  } catch (e) { out.heat = hi; $('err').textContent = 'Heat colouring needs the built-in images; showing plain grey.'; }
-  cache[name] = out; return out;
+  const info = ATLAS.presets[name], d = DATA[name] || {}, L = info.layers;
+  const url = k => d[k] || ('../assets/fire/' + L[k].file);
+  const o = { name, info };
+  if (L.flame) o.flame = await load(url('flame'));      // straight alpha: normal drawImage blending is correct
+  o.smoke = await load(url('smoke'));
+  o.heat = heatCanvas(await load(url('heat')));
+  cache[name] = o; return o;
 }
+const pc = {};
+async function prepParticles() {
+  if (pc.ok || !ATLAS.particles) return pc;
+  const P = ATLAS.particles, d = DATA._particles || {};
+  pc.strip = await load(d.strip || ('../assets/fire/' + P.burnt_strip.file));
+  pc.ok = true; return pc;
+}
+const clipOf = (P, name) => P.info.clips.find(c => c.name === name);
+const clipsOf = (P, stage) => P.info.clips.filter(c => c.stage === stage);
+const dur = (clip) => { const c = clip.flame || clip.smoke; return c.count / c.fps; };
 
-function sel(name) { const el = document.querySelector('input[name=' + name + ']:checked'); return el ? el.value : null; }
-function drawFrame(img, info, f, x, y, mpp_px, alphaMul) {   // bottom-centre anchored; mpp_px = canvas px per metre
-  const cols = ATLAS.presets[state.preset].grid[0], fw = info.frame_px[0], fh = info.frame_px[1];
-  const r = Math.floor(f / cols), c = f % cols;
-  const w = fw * info.m_per_px * mpp_px, h = fh * info.m_per_px * mpp_px;
-  ctx.drawImage(img, c * fw, r * fh, fw, fh, x - w / 2, y - h, w, h);
+// ---------- drawing a layer frame --------------------------------------------------------------
+function layerFrame(clip, layer, t, speed) {
+  const c = clip[layer]; if (!c) return null;
+  let i = Math.floor(t * c.fps * speed);
+  if (clip.loop) i = ((i % c.count) + c.count) % c.count; else i = clamp(i, 0, c.count - 1);
+  return c.first + i;
 }
-function background(kind, look) {
-  const W = cv.width, H = cv.height, gy = H - 70;
-  let g;
-  if (look === 'thermal') { g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#05050f'); g.addColorStop(1, '#14142a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); return gy; }
-  if (kind === 'night') { g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#04060c'); g.addColorStop(1, '#10151f'); }
-  else if (kind === 'day') { g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#9aa7b4'); g.addColorStop(1, '#b8bfc5'); }
-  else { g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1b2346'); g.addColorStop(0.55, '#8a4a63'); g.addColorStop(1, '#f0955a'); }
+function drawLayer(P, layer, idx, x, y, pxm, o = {}) {
+  const L = P.info.layers[layer]; if (!L || idx == null) return;
+  const fw = L.frame_px[0], fh = L.frame_px[1], r = Math.floor(idx / L.cols), c = idx % L.cols;
+  const k = pxm * (o.size || 1) * L.m_per_px, w = fw * k, h = fh * k, an = L.anchor;
+  ctx.save(); ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot); if (o.stretch && o.stretch !== 1) ctx.scale(o.stretch, 1);
+  ctx.globalAlpha = o.alpha == null ? 1 : o.alpha;
+  const dst = [-an[0] * w, -an[1] * h, w, h];
+  if (layer === 'flame') ctx.drawImage(P.flame, c * fw, r * fh, fw, fh, ...dst);
+  else if (layer === 'smoke') ctx.drawImage(P.smoke, c * fw, r * fh, fw, fh, ...dst);
+  else ctx.drawImage(P.heat, c * fw, r * fh, fw, fh, ...dst);
+  ctx.restore();
+}
+function sel(name) { const el = document.querySelector('input[name=' + name + ']:checked'); return el ? el.value : null; }
+function drawFire(P, clip, t, x, y, pxm, o = {}) {
+  const look = sel('look'), view = o.view || 'comb', sp = o.speed || state.speed;
+  const f = layer => layerFrame(clip, layer, t, sp);
+  if (look === 'thermal' || view === 'heat') { drawLayer(P, 'heat', f('heat'), x, y, pxm, o); return; }
+  if (view === 'smoke' || view === 'comb') drawLayer(P, 'smoke', f('smoke'), x, y, pxm, o);
+  if ((view === 'flame' || view === 'comb') && P.info.layers.flame) drawLayer(P, 'flame', f('flame'), x, y, pxm, o);
+}
+function glowAt(P, clip, t, x, y, pxm, strength = 1) {
+  if (!$('glow').checked || sel('look') === 'thermal' || !P.info.layers.flame) return;
+  const Lt = P.info.light, c = clip.flame; if (!c) return;
+  const idx = Math.floor(t * c.fps * state.speed);
+  let e = 1;
+  const se = Lt.stage_energy && Lt.stage_energy[clip.name];
+  if (se && se.length) e = se[clamp(idx, 0, se.length - 1)]; else if (Lt.flicker.length) e = Lt.flicker[((idx % Lt.flicker.length) + Lt.flicker.length) % Lt.flicker.length];
+  const fh = P.info.layers.flame.size_m[1] * pxm;
+  const rad = Math.max(40, fh * 1.9 * clamp(e, 0.15, 1.6));
+  const col = Lt.color.map(v => Math.round(v * 255)), a = Math.min(0.75, 0.3 * clamp(e, 0, 1.5) * strength * Math.min(2, Math.sqrt(Lt.intensity_vs_campfire || 1)));
+  const gy = y - fh * 0.3, rg = ctx.createRadialGradient(x, gy, 3, x, gy, rad);
+  rg.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},${a})`); rg.addColorStop(0.5, `rgba(${col[0]},${Math.round(col[1]*0.7)},${Math.round(col[2]*0.5)},${a*0.35})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = rg; ctx.fillRect(x - rad, gy - rad, rad * 2, rad * 2); ctx.restore();
+}
+function background() {
+  const W = cv.width, H = cv.height, gy = H - 70, kind = sel('bg'), look = sel('look');
+  let g = ctx.createLinearGradient(0, 0, 0, H);
+  if (look === 'thermal') { g.addColorStop(0, '#05050f'); g.addColorStop(1, '#14142a'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); return gy; }
+  if (kind === 'night') { g.addColorStop(0, '#04060c'); g.addColorStop(1, '#10151f'); }
+  else if (kind === 'day') { g.addColorStop(0, '#9aa7b4'); g.addColorStop(1, '#b8bfc5'); }
+  else { g.addColorStop(0, '#1b2346'); g.addColorStop(0.55, '#8a4a63'); g.addColorStop(1, '#f0955a'); }
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = kind === 'day' ? '#6f7a62' : kind === 'dusk' ? '#2a2230' : '#0a0d10'; ctx.fillRect(0, gy, W, H - gy);
   return gy;
 }
-function render() {
-  if (!state.preset || !cache[state.preset]) return;
-  const P = cache[state.preset], info = P.info, N = info.frames;
-  const view = sel('view'), look = sel('look'), bg = sel('bg');
-  const f = Math.floor(state.t * info.fps) % N;
-  const gy = background(bg, look);
-  const mpp = (cv.height * 0.62 / Math.max(info.smoke.size_m[1], 1)) * state.size;   // canvas px per metre
-  const x = cv.width / 2;
-  ctx.save();
-  // glow
-  const L = info.light;
-  if ($('glow').checked && look !== 'thermal' && view !== 'smoke' && view !== 'heat') {
-    const fl = L.flicker[f % L.flicker.length], rad = Math.max(60, info.flame.size_m[1] * mpp * 2.2 * (0.9 + 0.1 * fl));
-    const c = L.color.map(v => Math.round(v * 255)), a = Math.min(0.8, 0.28 * fl * Math.min(2, Math.sqrt(L.intensity_vs_campfire || 1)));
-    const gx = x, gyy = gy - info.flame.size_m[1] * mpp * 0.3;
-    const rg = ctx.createRadialGradient(gx, gyy, 4, gx, gyy, rad);
-    rg.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); rg.addColorStop(0.5, `rgba(${c[0]},${Math.round(c[1]*0.7)},${Math.round(c[2]*0.5)},${a*0.35})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = rg; ctx.fillRect(0, 0, cv.width, cv.height); ctx.globalCompositeOperation = 'source-over';
-  }
-  // draw into target (nv uses an offscreen copy of the same layers)
-  if (look === 'thermal') {
-    ctx.globalCompositeOperation = 'source-over';
-    drawFrame(P.heat, info.heat, f, x, gy, mpp);
-  } else {
-    if (view === 'smoke' || view === 'comb') drawFrame(P.smoke, info.smoke, f, x, gy, mpp);
-    if (view === 'flame' || view === 'comb') {
-      if (P.flame.dark) { drawFrame(P.flame.dark, info.flame, f, x, gy, mpp); ctx.globalCompositeOperation = 'lighter'; drawFrame(P.flame.light, info.flame, f, x, gy, mpp); }
-      else { ctx.globalCompositeOperation = 'lighter'; drawFrame(P.flame.light, info.flame, f, x, gy, mpp); }
-      ctx.globalCompositeOperation = 'source-over';
-    }
-    if (view === 'heat') {
-      ctx.globalCompositeOperation = 'source-over';
-      drawFrame(P.heat, info.heat, f, x, gy, mpp);
-    }
-  }
-  ctx.restore();
-  if (look === 'nv') {                    // night vision: grey-scale gain, then green phosphor tint, plus a little grain
-    const img = canvasOf(cv.width, cv.height); img.getContext('2d').drawImage(cv, 0, 0);
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
-    try { ctx.filter = 'grayscale(1) brightness(1.9) contrast(1.25)'; } catch (e) {}
-    ctx.drawImage(img, 0, 0); ctx.filter = 'none';
-    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#4dff6e'; ctx.fillRect(0, 0, cv.width, cv.height);
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0,40,0,0.18)'; for (let yy = 0; yy < cv.height; yy += 4) ctx.fillRect(0, yy, cv.width, 1);
-  }
-  $('info').textContent = `${LABEL[state.preset]}: frame ${f + 1} of ${N}, baked at ${info.fps} frames per second. Flame sprite ${info.flame.size_m[0].toFixed(1)} by ${info.flame.size_m[1].toFixed(1)} metres, smoke sprite ${info.smoke.size_m[0].toFixed(1)} by ${info.smoke.size_m[1].toFixed(1)} metres.`;
+function nightVision() {
+  const img = canvasOf(cv.width, cv.height); img.getContext('2d').drawImage(cv, 0, 0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  try { ctx.filter = 'grayscale(1) brightness(1.9) contrast(1.25)'; } catch (e) {}
+  ctx.drawImage(img, 0, 0); ctx.filter = 'none';
+  ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#4dff6e'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(0,40,0,0.18)'; for (let yy = 0; yy < cv.height; yy += 4) ctx.fillRect(0, yy, cv.width, 1);
 }
+function pxmFor(P, base) {
+  const L = P.info.layers, hm = Math.max(L.smoke.size_m[1], L.flame ? L.flame.size_m[1] : 0);
+  return (cv.height * (base || 0.62) / Math.max(hm, 0.5)) * state.size;
+}
+function say(t) { ctx.fillStyle = '#fff'; ctx.font = '20px system-ui'; ctx.fillText(t, 24, 60); }
+
+// an explosion clip chain: fireball -> plume -> residue loop
+function drawBlast(P, v, t, x, y, pxm) {
+  const fb = clipOf(P, 'fireball_' + v), pl = clipOf(P, 'plume_' + v), rs = clipOf(P, 'residue_' + v);
+  const dF = dur(fb), dP = dur(pl);
+  glowAt(P, fb, Math.min(t, dF), x, y, pxm, t < dF ? 1.6 : 0.8);
+  if (t < dF) drawFire(P, fb, t, x, y, pxm, { speed: 1 });
+  else if (t < dF + dP) drawFire(P, pl, t - dF, x, y, pxm, { speed: 1 });
+  else drawFire(P, rs, t - dF - dP, x, y, pxm, { speed: 1 });
+  return dF + dP;
+}
+
+// ---------- one fire ---------------------------------------------------------------------------
+function singleScene() {
+  const P = cache[state.type]; if (!P) return;
+  const gy = background(), kind = P.info.kind, v = $('selVar').value, pxm = pxmFor(P), view = sel('view');
+  const x = kind === 'carried' ? cv.width * 0.3 : cv.width / 2;
+  if (kind === 'blast') { const vv = v === 'c' ? 'a' : v; const tot = drawBlast(P, vv, state.t % (clipOf(P, 'fireball_' + vv).flame.count / 24 + clipOf(P, 'plume_' + vv).flame.count / 8 + 3), x, gy, pxm); }
+  else if (kind === 'shot') { const c = P.info.clips.find(c => c.name.endsWith('_' + v)) || P.info.clips[0]; const t = state.t % (dur(c) + 0.7); glowAt(P, c, t, x, gy, pxm); drawFire(P, c, t, x, gy, pxm, { view }); }
+  else {
+    const clip = clipOf(P, 'loop_' + v) || P.info.clips[0];
+    if (kind === 'carried') { const y = gy - 140; glowAt(P, clip, state.t, x, y, pxm); drawFire(P, clip, state.t, x, y, pxm, { view }); }
+    else if (kind === 'tile') { const wpx = P.info.layers.smoke.size_m[0] * pxm; for (let k = -2; k <= 2; k++) drawFire(P, clip, state.t, cv.width / 2 + k * wpx, gy, pxm, { view }); }
+    else { glowAt(P, clip, state.t, x, gy, pxm); drawFire(P, clip, state.t, x, gy, pxm, { view }); }
+  }
+  const h = P.info.haze;
+  $('info').textContent = `${P.info.title}: ${P.info.size_note}. Domain ${P.info.domain_m.join(' x ')} m. Heat haze for the game: strength ${h.strength}, radius ${h.radius_m} m, height ${h.height_m} m, rise ${h.rise_speed_mps} m/s.`;
+}
+
+// ---------- lifecycle state machine -------------------------------------------------------------
+const LIFE = { st:'out', t0:0, v:0, auto:false, loops:0 };
+function lifeSet(st, auto) {
+  LIFE.st = st; LIFE.t0 = state.t; LIFE.loops = 0; if (auto != null) LIFE.auto = auto;
+  document.querySelectorAll('#tabLife button').forEach(b => b.classList.remove('on'));
+  const m = { ignite:'bIgnite', growth:'bGrow', burn:'bBurn', decay:'bDecay', extinguish:'bWater' }[st]; if (m) $(m).classList.add('on');
+}
+function lifeScene() {
+  const P = cache[state.type]; if (!P) return;
+  const gy = background(), x = cv.width / 2, fuel = +$('fuel').value, pxm = pxmFor(P) * Math.sqrt(fuel);
+  if (P.info.kind !== 'life') { say('This type has no lifecycle clips. Pick a lifecycle fire in "One fire" (for example Campfire).'); return; }
+  const lines = { out:'Out. Nothing is burning.', ignite:'Igniting: first flicker.', growth:'Growing: small to large.', burn:'Burning: fully developed loop, variant ' + 'ABC'[LIFE.v % 3] + '.', decay:'Dying down: flames collapse to thin smoke.', extinguish:'Water spray: flames knocked down, steam.' };
+  $('stateLine').textContent = 'State: ' + lines[LIFE.st];
+  if (LIFE.st !== 'out') {
+    const clip = LIFE.st === 'burn' ? clipsOf(P, 'loop')[LIFE.v % 3] : clipsOf(P, LIFE.st)[0];
+    const sp = 0.8 + 0.2 * fuel, t = (state.t - LIFE.t0) * sp;
+    glowAt(P, clip, t / state.speed * state.speed, x, gy, pxm, Math.min(1.3, fuel));
+    drawFire(P, clip, t, x, gy, pxm, { view: 'comb' });
+    if (t >= dur(clip) / state.speed) {
+      if (LIFE.st === 'ignite') lifeSet('growth');
+      else if (LIFE.st === 'growth') lifeSet('burn');
+      else if (LIFE.st === 'burn') { LIFE.v = (LIFE.v + 1 + (Math.random() < 0.5 ? 1 : 0)) % 3; LIFE.t0 = state.t; LIFE.loops++; if (LIFE.auto && LIFE.loops >= 3) lifeSet('decay'); }
+      else { lifeSet('out'); LIFE.auto = false; }
+    }
+  }
+  $('info').textContent = 'Fuel load scales the flame size and speed. When a loop ends a different variant starts, so repeats do not look the same. Each state is one baked clip; the buttons move between states.';
+}
+
+// ---------- spreading front --------------------------------------------------------------------
+const FRONT = { pos:0, paused:false, spots:[], next:0, ready:false };
+async function frontPrep() {
+  await Promise.all(['front_lead', 'front_body', 'front_trail', 'spot_fire'].map(prep)); await prepParticles();
+  const g = canvasOf(128, 64); g.getContext('2d').drawImage(pc.strip, 0, 0, 128, 64, 0, 0, 128, 64); FRONT.ground = g; FRONT.ready = true;
+}
+function frontScene(dt) {
+  background();
+  if (!FRONT.ready) { say('Loading the front tiles...'); return; }
+  const W = cv.width, H = cv.height, sp = +$('fspeed').value, fuel = +$('ffuel').value, day = sel('bg') === 'day';
+  if (dt > 0 && !FRONT.paused) FRONT.pos += dt * sp * state.speed;
+  const rows = 14, depth = 0.7, near = H - 30, far = 170, yOf = r => far + (near - far) * Math.pow(r / (rows - 1), 1.6), scOf = r => 0.35 + 0.65 * r / (rows - 1);
+  for (let r = 0; r < rows; r++) {
+    const y = yOf(r), bandH = (r < rows - 1 ? yOf(r + 1) - y : 30) + 4, rel = FRONT.pos - r * depth;
+    ctx.fillStyle = rel > 0.3 ? (day ? '#3b3733' : '#15130f') : (day ? '#7d8a52' : '#2a3320');
+    ctx.fillRect(0, y - bandH, W, bandH + 2);
+    if (rel > 1.2) { ctx.save(); ctx.globalAlpha = clamp((rel - 1.2) / 2, 0, 0.9); ctx.fillStyle = ctx.createPattern(FRONT.ground, 'repeat'); ctx.fillRect(0, y - bandH, W, bandH + 2); ctx.restore(); }
+  }
+  for (let r = 0; r < rows; r++) {                       // far rows first
+    const y = yOf(r), rel = FRONT.pos - r * depth;
+    let P = null, a = 1;
+    if (rel > 0 && rel < 1.1) P = cache.front_lead; else if (rel >= 1.1 && rel < 3.2) P = cache.front_body; else if (rel >= 3.2 && rel < 6.5) { P = cache.front_trail; a = clamp(1 - (rel - 5) / 1.5, 0, 1); }
+    if (rel > 0 && rel < 0.5) a = clamp(rel / 0.5, 0, 1);
+    if (!P || a <= 0) continue;
+    const tileW = P.info.layers.smoke.size_m[0], pxm = (W / 12) * scOf(r), tiles = Math.ceil(12 / tileW) + 1;
+    for (let i = 0; i < tiles; i++) {
+      const clip = clipOf(P, 'loop_' + 'abc'[(i + r) % 3]);
+      drawFire(P, clip, state.t + i * 0.37 + r * 0.21, (i + 0.5) * tileW * pxm + (W - tiles * tileW * pxm) / 2, y, pxm, { size: fuel, alpha: a, view: 'comb' });
+    }
+  }
+  if ($('fspots').checked && dt > 0 && !FRONT.paused) { FRONT.next -= dt * state.speed; if (FRONT.next <= 0) { FRONT.next = rnd(2.5, 5); const d = FRONT.pos + rnd(1.5, 4); if (d < (rows - 1) * depth) FRONT.spots.push({ x: rnd(0.08, 0.92), d, t0: state.t }); } }
+  const sf = cache.spot_fire;
+  FRONT.spots = FRONT.spots.filter(s => FRONT.pos < s.d + 1.0);
+  for (const s of FRONT.spots) {
+    const r = clamp(s.d / depth, 0, rows - 1), age = (state.t - s.t0) * state.speed;
+    const ign = clipOf(sf, 'ignite'), gro = clipOf(sf, 'growth'), lp = clipOf(sf, 'loop_a'), dI = dur(ign), dG = dur(gro);
+    const clip = age < dI ? ign : age < dI + dG ? gro : lp, t = age < dI ? age : age < dI + dG ? age - dI : age - dI - dG;
+    drawFire(sf, clip, t, s.x * W, yOf(r), (W / 12) * scOf(r) * 1.3, { speed: 1 });
+  }
+  $('info').textContent = 'Each 2 m wide tile repeats left to right without a seam. The leading edge is drawn at the front, body tiles behind it, then trailing tiles with smoke; the burnt ground strip fades in behind. Spot fires start with the ignite clip and grow with the growth clip.';
+}
+
+// ---------- explosion with debris --------------------------------------------------------------
+const BOOM = { t0:null, v:'a', parts:[], fires:[], clear() { this.t0 = null; this.parts = []; this.fires = []; } };
+async function boomPrep() { await Promise.all(['debris_slow', 'debris_med', 'debris_fast', 'spot_fire'].filter(n => ATLAS.presets[n]).map(prep)); }
+function startBoom() {
+  const name = $('selBoom').value; BOOM.clear(); BOOM.t0 = state.t; BOOM.v = Math.random() < 0.5 ? 'a' : 'b';
+  const n = +$('debris').value, scale = { blast_small:0.6, blast_medium:1, blast_large:1.6, blast_fuel:1.2, blast_ground:1 }[name] || 1;
+  for (let i = 0; i < n; i++) {
+    const dir = Math.random() < 0.5 ? -1 : 1, sp = rnd(8, 42) * scale, a = rnd(0.25, 1.35);
+    BOOM.parts.push({ x: rnd(-1, 1), y: 0.6, vx: Math.cos(a) * sp * dir, vy: Math.sin(a) * sp, age: 0, burning: Math.random() < 0.8, seed: Math.floor(rnd(0, 30)), landed: false });
+  }
+}
+function boomScene(dt) {
+  const gy = background(), P = cache[$('selBoom').value];
+  if (!P) return;
+  const x0 = cv.width / 2, pxm = pxmFor(P, 0.5);
+  if (BOOM.t0 == null) { say('Press "Explode".'); $('info').textContent = P.info.title + ': ' + P.info.size_note; return; }
+  drawBlast(P, BOOM.v, (state.t - BOOM.t0) * state.speed, x0, gy, pxm);
+  for (const p of BOOM.parts) {
+    if (p.landed) continue;
+    const s = dt * state.speed; p.age += s; p.vy -= 9.8 * s; p.x += p.vx * s; p.y += p.vy * s;
+    if (p.y <= 0) { p.landed = true; if (p.burning && cache.spot_fire) BOOM.fires.push({ x: p.x, t0: state.t }); continue; }
+    const sp = Math.hypot(p.vx, p.vy), cname = sp < 8 ? 'debris_slow' : sp < 20 ? 'debris_med' : 'debris_fast', D = cache[cname];
+    const px = x0 + p.x * pxm, py = gy - p.y * pxm;
+    if (p.burning && D) {
+      const clip = clipOf(D, 'loop_' + 'abc'[p.seed % 3]), design = { debris_slow: 4, debris_med: 12, debris_fast: 30 }[cname];
+      const rot = Math.atan2(p.vy, -p.vx);               // canvas angle of "against the velocity": the sprite's +x (tail) points there
+      const cool = clamp(1 - p.age / 7, 0.15, 1), stretch = clamp(sp / design, 0.6, 1.7);
+      drawFire(D, clip, p.age + p.seed, px, py, pxm * 0.5, { rot, stretch, alpha: cool, view: 'flame' });
+    } else { ctx.fillStyle = '#222'; ctx.fillRect(px - 2, py - 2, 4, 4); }
+  }
+  const sf = cache.spot_fire;
+  if (sf) for (const f of BOOM.fires) {
+    const age = (state.t - f.t0) * state.speed, ign = clipOf(sf, 'ignite'), gro = clipOf(sf, 'growth'), lp = clipOf(sf, 'loop_b'), dI = dur(ign), dG = dur(gro);
+    const clip = age < dI ? ign : age < dI + dG ? gro : lp, tt = age < dI ? age : age < dI + dG ? age - dI : age - dI - dG;
+    drawFire(sf, clip, tt, x0 + f.x * pxm, gy, pxm * 0.8, { speed: 1 });
+  }
+  $('info').textContent = 'Fireball, rising plume, then a low burning residue. Flaming pieces fly on arcs: the flame sprite points against the velocity, stretches with speed, uses the slow, medium or fast clip, and fades as it cools. Where a piece lands it lights a small fire (ignite, growth, loop).';
+}
+
+// ---------- main loop and UI -------------------------------------------------------------------
 function tick(now) {
   const dt = Math.min(0.1, (now - state.last) / 1000); state.last = now;
   if (!state.paused) state.t += dt * state.speed;
-  render(); requestAnimationFrame(tick);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.filter = 'none';
+  try {
+    if (state.mode === 'single') singleScene();
+    else if (state.mode === 'life') lifeScene();
+    else if (state.mode === 'front') frontScene(state.paused ? 0 : dt);
+    else boomScene(state.paused ? 0 : dt);
+    if (sel('look') === 'nv') nightVision();
+  } catch (e) { $('err').textContent = 'Problem drawing: ' + e.message; }
+  requestAnimationFrame(tick);
 }
+const GROUPS = [['Small flames', ['torch', 'flare', 'gas', 'gas_jet', 'campfire', 'barrel', 'debris']], ['Vegetation', ['grass', 'spot_fire', 'shrub', 'tree_trunk', 'tree_crown']],
+  ['Fuel and vehicles', ['pool', 'oil_slick', 'boat_deck', 'smoke_column', 'vehicle_engine', 'vehicle_small', 'vehicle']], ['Buildings', ['window', 'doorway', 'roof', 'building']],
+  ['Spreading front tiles', ['front_lead', 'front_body', 'front_trail']], ['Explosions', ['blast_small', 'blast_medium', 'blast_large', 'blast_fuel', 'blast_ground']],
+  ['Flames on moving objects', ['debris_slow', 'debris_med', 'debris_fast', 'trail_tile']], ['Short flames', ['lick', 'spatter_fan', 'splash_fire']]];
 function buildUI() {
-  presets = NAMES.filter(n => ATLAS.presets[n]);
-  const fs = $('fsPreset');
-  presets.forEach((n, i) => {
-    const l = document.createElement('label'); l.innerHTML = '<input type="radio" name="preset" value="' + n + '"' + (i === 0 ? ' checked' : '') + '> ' + LABEL[n]; fs.appendChild(l);
-  });
-  fs.addEventListener('change', async e => { if (e.target.name === 'preset') { await prep(e.target.value); state.preset = e.target.value; state.t = 0; } });
-  const sync = () => { state.size = +$('size').value; state.speed = +$('speed').value; $('sizeV').textContent = state.size.toFixed(2) + 'x'; $('speedV').textContent = state.speed.toFixed(2) + 'x'; };
-  $('size').oninput = sync; $('speed').oninput = sync; sync();
+  const have = n => ATLAS.presets[n], s1 = $('selType'), s2 = $('selBoom');
+  for (const [g, list] of GROUPS) {
+    const og = document.createElement('optgroup'); og.label = g;
+    for (const n of list) if (have(n)) { const o = document.createElement('option'); o.value = n; o.textContent = ATLAS.presets[n].title; og.appendChild(o); }
+    if (og.children.length) s1.appendChild(og);
+  }
+  for (const n of ['blast_small', 'blast_medium', 'blast_large', 'blast_fuel', 'blast_ground']) if (have(n)) { const o = document.createElement('option'); o.value = n; o.textContent = ATLAS.presets[n].title + ' (' + ATLAS.presets[n].size_note + ')'; s2.appendChild(o); }
+  const sync = () => { state.size = +$('size').value; state.speed = +$('speed').value; $('sizeV').textContent = state.size.toFixed(2) + 'x'; $('speedV').textContent = state.speed.toFixed(2) + 'x';
+    $('fuelV').textContent = (+$('fuel').value).toFixed(2); $('fspeedV').textContent = (+$('fspeed').value).toFixed(2) + ' m/s'; $('ffuelV').textContent = (+$('ffuel').value).toFixed(2); $('debrisV').textContent = $('debris').value; };
+  ['size', 'speed', 'fuel', 'fspeed', 'ffuel', 'debris'].forEach(i => $(i).oninput = sync); sync();
+  s1.onchange = async e => { try { await prep(e.target.value); state.type = e.target.value; state.t = 0; lifeSet('out'); } catch (er) { $('err').textContent = er.message; } };
   $('pause').onclick = () => { state.paused = !state.paused; $('pause').textContent = state.paused ? 'Play' : 'Pause'; };
+  document.querySelectorAll('input[name=mode]').forEach(r => r.onchange = async e => {
+    state.mode = e.target.value;
+    ['Single', 'Life', 'Front', 'Boom'].forEach(k => $('tab' + k).classList.toggle('show', state.mode === k.toLowerCase()));
+    try { if (state.mode === 'front') await frontPrep(); if (state.mode === 'boom') { await prep(s2.value); await boomPrep(); } if (state.mode === 'life') await prep(state.type); } catch (er) { $('err').textContent = er.message; }
+  });
+  $('bIgnite').onclick = () => lifeSet('ignite', false); $('bGrow').onclick = () => lifeSet('growth', false); $('bBurn').onclick = () => lifeSet('burn', false);
+  $('bDecay').onclick = () => lifeSet('decay', false); $('bWater').onclick = () => lifeSet('extinguish', false); $('bReset').onclick = () => lifeSet('out', false);
+  $('bPlay').onclick = () => lifeSet('ignite', true);
+  $('fRestart').onclick = () => { FRONT.pos = 0; FRONT.spots = []; };
+  $('fPause').onclick = () => { FRONT.paused = !FRONT.paused; $('fPause').textContent = FRONT.paused ? 'Resume the front' : 'Pause the front'; };
+  s2.onchange = async e => { await prep(e.target.value); BOOM.clear(); };
+  $('bBoom').onclick = async () => { await prep(s2.value); await boomPrep(); startBoom(); }; $('bBoomClear').onclick = () => BOOM.clear();
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { state.paused = true; $('pause').textContent = 'Play'; }
 }
 async function start() {
-  let atlas = ATLAS;
-  if (!atlas) { try { atlas = await (await fetch('../assets/fire/fire_atlas.json')).json(); } catch (e) { $('err').textContent = 'The atlas list is missing: run tools/fire/build_viewer.py to rebuild this page.'; return; } }
-  ATLAS = atlas; buildUI();
-  try { await prep(presets[0]); state.preset = presets[0]; } catch (e) { $('err').textContent = e.message; return; }
+  if (!ATLAS) { try { ATLAS = await (await fetch('../assets/fire/fire_atlas.json')).json(); } catch (e) { $('err').textContent = 'The atlas list is missing: run tools/fire/build_viewer.py to rebuild this page.'; return; } }
+  buildUI();
+  const first = ATLAS.presets.campfire ? 'campfire' : Object.keys(ATLAS.presets)[0];
+  $('selType').value = first;
+  try { await prep(first); state.type = first; } catch (e) { $('err').textContent = e.message; return; }
   requestAnimationFrame(t => { state.last = t; tick(t); });
-  presets.slice(1).forEach(n => prep(n).catch(() => {}));   // warm the rest in the background
 }
 start();
 </script>

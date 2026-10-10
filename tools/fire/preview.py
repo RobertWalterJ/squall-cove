@@ -1,8 +1,12 @@
 """
-preview.py - compose docs/fire_preview_sheet.png (+ docs/fire_preview.gif) from the baked atlases.
+preview.py - compose preview sheets from the baked atlases in assets/fire.
 
-    python tools/fire/preview.py                       # reads assets/fire, writes docs/
-    python tools/fire/preview.py --dir _fire_tmp --out _fire_tmp/sheet.png --presets campfire
+    python tools/fire/preview.py                                  # docs/fire_preview_sheet.png (overview, one row per type)
+    python tools/fire/preview.py --detail campfire,pool --out docs/fire_preview_detail_a.png   (two rows per type, larger)
+    python tools/fire/preview.py --dir _fire_tmp --types campfire --out _fire_tmp/sheet.png
+
+Overview row cells: dark background x4, daylight grey x4, heat map x1. The cells follow the type's own clips
+(life: loop, ignite, growth, decay, extinguish; blast: fireball, plume, residue; tile/carried: loops; shot: the one-shots).
 """
 import argparse, json, os
 import numpy as np
@@ -10,49 +14,99 @@ from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-CW, CH = 128, 192          # canvas = the full sim domain at flame resolution (px)
-DARK = (0.012, 0.015, 0.02)
-GREY = (0.40, 0.44, 0.48)  # linear value of a daylight-ish sky grey (about sRGB 0.67)
-ORDER = ["campfire", "gas", "pool", "vehicle", "building"]
+DARK, GREY = 0.012, 0.40
 
 
 def dec(x):
-    return np.power(x, 2.2)
+    return np.power(np.clip(x, 0, 1), 2.2)
 
 
 def enc(x):
     return np.power(np.clip(x, 0, 1), 1 / 2.2)
 
 
-def load_atlas(path, info, mode):
-    im = Image.open(path)
-    if im.mode == "P":
-        im = im.convert("RGBA")
-    a = np.asarray(im).astype(np.float32) / 255.0
-    if a.ndim == 2:
-        a = a[..., None]
-    cols, rows = info["grid"]
-    fw, fh = info["frame_px"]
-    out = []
-    for i in range(info["frames"]):
-        r, c = divmod(i, cols)
-        out.append(a[r * fh:(r + 1) * fh, c * fw:(c + 1) * fw])
-    return out
+class Atlas:
+    def __init__(self, d, name, info):
+        self.d, self.name, self.info = d, name, info
+        self.img = {}
+
+    def layer(self, lay):
+        if lay not in self.img:
+            L = self.info["layers"][lay]
+            im = Image.open(os.path.join(self.d, L["file"]))
+            im = im.convert("RGBA" if lay != "heat" else "L")
+            self.img[lay] = (np.asarray(im).astype(np.float32) / 255.0, L)
+        return self.img[lay]
+
+    def frame(self, lay, idx):
+        a, L = self.layer(lay)
+        fw, fh = L["frame_px"]
+        r, c = divmod(idx, L["cols"])
+        return a[r * fh:(r + 1) * fh, c * fw:(c + 1) * fw]
 
 
-def to_canvas(img, m_ratio):
-    """paste a bottom-centre anchored sprite (H,W,C) onto the domain canvas after scaling by m_ratio"""
-    h, w, c = img.shape
-    if abs(m_ratio - 1) > 1e-3:
-        chans = [np.asarray(Image.fromarray(img[..., k]).resize((max(1, int(round(w * m_ratio))), max(1, int(round(h * m_ratio)))), Image.BILINEAR)) for k in range(c)]
-        img = np.stack(chans, -1)
-        h, w, c = img.shape
-    cv = np.zeros((CH, CW, c), np.float32)
-    x0 = CW // 2 - w // 2
-    xs0, xs1 = max(0, x0), min(CW, x0 + w)
-    ys0 = max(0, CH - h)
-    cv[ys0:CH, xs0:xs1] = img[h - (CH - ys0):, xs0 - x0:xs1 - x0]
-    return cv
+def clip_frame(at, clip, lay, frac):
+    c = clip.get(lay)
+    if c is None:
+        return None
+    i = int(round(np.clip(frac, 0, 1) * (c["count"] - 1)))
+    return at.frame(lay, c["first"] + i)
+
+
+def resize(img, s):
+    h, w = img.shape[:2]
+    nh, nw = max(1, int(round(h * s))), max(1, int(round(w * s)))
+    if img.ndim == 2:
+        return np.asarray(Image.fromarray(img).resize((nw, nh), Image.BILINEAR))
+    return np.stack([np.asarray(Image.fromarray(img[..., k]).resize((nw, nh), Image.BILINEAR)) for k in range(img.shape[2])], -1)
+
+
+def place(canvas, sprite, anchor, gx, gy, s):
+    sp = resize(sprite, s)
+    h, w = sp.shape[:2]
+    x0 = int(round(gx - anchor[0] * w))
+    y0 = int(round(gy - anchor[1] * h))
+    H, W = canvas.shape[:2]
+    cx0, cy0, cx1, cy1 = max(0, x0), max(0, y0), min(W, x0 + w), min(H, y0 + h)
+    if cx1 <= cx0 or cy1 <= cy0:
+        return None
+    return (slice(cy0, cy1), slice(cx0, cx1)), sp[cy0 - y0:cy1 - y0, cx0 - x0:cx1 - x0]
+
+
+def cell_geom(info, hpx):
+    L = info["layers"]
+    sizes = [L[k]["size_m"] for k in ("flame", "smoke") if k in L]
+    hm = max(s[1] for s in sizes)
+    wm = max(s[0] for s in sizes)
+    pxm = hpx / hm
+    return pxm, int(np.ceil(wm * pxm)) + 8, hpx + 4
+
+
+def ground(info, cw, ch):
+    carried = info["kind"] == "carried"
+    return (cw * (0.18 if carried else 0.5), ch * (0.55 if carried else 0.985))
+
+
+def compose(at, clip, frac, bg, pxm, cw, ch, with_flame=True, with_smoke=True):
+    info = at.info
+    L = info["layers"]
+    canvas = np.ones((ch, cw, 3), np.float32) * bg
+    gx, gy = ground(info, cw, ch)
+    if with_smoke and "smoke" in clip:
+        f = clip_frame(at, clip, "smoke", frac)
+        pl = place(canvas, f, L["smoke"]["anchor"], gx, gy, L["smoke"]["m_per_px"] * pxm)
+        if pl:
+            sl, sp = pl
+            a = sp[..., 3:4]
+            canvas[sl] = dec(sp[..., :3]) * a + canvas[sl] * (1 - a)
+    if with_flame and "flame" in clip and "flame" in L:
+        f = clip_frame(at, clip, "flame", frac)
+        pl = place(canvas, f, L["flame"]["anchor"], gx, gy, L["flame"]["m_per_px"] * pxm)
+        if pl:
+            sl, sp = pl
+            a = sp[..., 3:4]          # straight alpha, linear
+            canvas[sl] = dec(sp[..., :3]) * a + canvas[sl] * (1 - a)
+    return enc(canvas)
 
 
 def inferno(v):
@@ -63,81 +117,86 @@ def inferno(v):
     return stops[i] * (1 - f) + stops[i + 1] * f
 
 
-def frames_for(d, name, picks):
-    atl = json.load(open(os.path.join(d, "fire_atlas.json")))["presets"][name]
-    fl = load_atlas(os.path.join(d, atl["flame"]["file"]), dict(atl["flame"], grid=atl["grid"], frames=atl["frames"]), "rgba")
-    sm = load_atlas(os.path.join(d, atl["smoke"]["file"]), dict(atl["smoke"], grid=atl["grid"], frames=atl["frames"]), "la")
-    ht = load_atlas(os.path.join(d, atl["heat"]["file"]), dict(atl["heat"], grid=atl["grid"], frames=atl["frames"]), "l")
-    mf = atl["flame"]["m_per_px"]
-    out = []
-    for i in picks(atl["frames"]):
-        f = to_canvas(fl[i], 1.0)
-        s = to_canvas(sm[i], atl["smoke"]["m_per_px"] / mf)
-        h = to_canvas(ht[i], atl["heat"]["m_per_px"] / mf)
-        out.append((f, s, h))
-    return out
+def heat_cell(at, clip, frac, pxm, cw, ch):
+    info = at.info
+    L = info["layers"]["heat"]
+    f = clip_frame(at, clip, "heat", frac)
+    rgb = inferno(f)
+    rgba = np.concatenate([rgb, np.ones(f.shape + (1,), np.float32)], -1)
+    canvas = np.zeros((ch, cw, 3), np.float32) + np.array([0, 0, 0.02], np.float32)
+    gx, gy = ground(info, cw, ch)
+    pl = place(canvas, rgba, L["anchor"], gx, gy, L["m_per_px"] * pxm)
+    if pl:
+        sl, sp = pl
+        canvas[sl] = sp[..., :3]
+    return canvas
 
 
-def composite(f, s, bg):
-    base = np.ones((CH, CW, 3), np.float32) * np.array(bg, np.float32)
-    sa = s[..., 1:2]
-    base = dec(s[..., 0:1]) * sa + base * (1 - sa)
-    fa = dec(f[..., 3:4])
-    return enc(dec(f[..., :3]) + base * (1 - fa))
+def specs(info):
+    clips = {c["name"]: c for c in info["clips"]}
+    k = info["kind"]
+
+    def pick(*pairs):
+        return [(clips[n], f) for n, f in pairs if n in clips]
+    if k == "life":
+        return pick(("loop_a", 0.0), ("loop_a", 0.5), ("ignite", 0.9), ("growth", 0.5), ("loop_b", 0.25), ("loop_c", 0.6), ("decay", 0.35), ("extinguish", 0.5))
+    if k in ("tile", "carried"):
+        return pick(("loop_a", 0.0), ("loop_a", 0.5), ("loop_b", 0.25), ("loop_b", 0.75), ("loop_c", 0.0), ("loop_c", 0.5))
+    if k == "blast":
+        return pick(("fireball_a", 0.05), ("fireball_a", 0.25), ("fireball_a", 0.6), ("fireball_a", 1.0), ("plume_a", 0.4), ("plume_a", 1.0), ("residue_a", 0.5), ("fireball_b", 0.5))
+    return [(c, f) for c in info["clips"] for f in (0.3, 0.7)]
 
 
-def render_row(items, kind, bg=None):
-    tiles = []
-    for f, s, h in items:
-        if kind == "comp":
-            t = composite(f, s, bg)
-        elif kind == "smoke":
-            t = composite(np.zeros_like(f), s, GREY)
-        else:
-            t = inferno(np.power(h[..., 0], 1.0))
-        tiles.append(t)
-    return np.concatenate(tiles, axis=1)
+def type_rows(at, hpx, detail=False):
+    info = at.info
+    sp = specs(info)
+    pxm, cw, ch = cell_geom(info, hpx)
+    cells_dark = [compose(at, c, f, DARK, pxm, cw, ch) for c, f in sp]
+    cells_grey = [compose(at, c, f, GREY, pxm, cw, ch) for c, f in sp]
+    heat = heat_cell(at, sp[min(1, len(sp) - 1)][0], 0.5, pxm, cw, ch)
+    if detail:
+        smk = [compose(at, c, f, GREY, pxm, cw, ch, with_flame=False) for c, f in sp[:4]]
+        r3 = np.concatenate(smk + [heat], 1)
+        r3 = np.pad(r3, ((0, 0), (0, cells_dark[0].shape[1] * len(cells_dark) - r3.shape[1]), (0, 0)), constant_values=0.02)
+        return [np.concatenate(cells_dark, 1), np.concatenate(cells_grey, 1), r3]
+    n = min(4, len(sp))
+    return [np.concatenate(cells_dark[:n] + cells_grey[:n] + [heat], 1)]
 
 
-def sheet(d, out, presets, gif=None):
-    picks = lambda n: [int(round(k * (n - 1) / 5)) for k in range(6)] if n > 6 else list(range(min(6, n)))
-    blocks = []
-    for nm in presets:
-        items = frames_for(d, nm, picks)
-        rows = [render_row(items, "comp", DARK), render_row(items, "comp", GREY), render_row(items, "smoke"), render_row(items, "heat")]
-        blk = np.concatenate(rows, axis=0)
-        img = Image.fromarray((np.clip(blk, 0, 1) * 255).astype(np.uint8))
-        canvas = Image.new("RGB", (img.width, img.height + 20), (24, 24, 28))
-        canvas.paste(img, (0, 20))
-        ImageDraw.Draw(canvas).text((6, 4), f"{nm}  |  rows: flame+smoke on dark, on daylight grey, smoke only, heat", fill=(235, 235, 235))
-        blocks.append(canvas)
-    w, h = blocks[0].size
-    ncol = 2 if len(blocks) > 1 else 1
-    nrow = (len(blocks) + ncol - 1) // ncol
-    sh = Image.new("RGB", (ncol * (w + 10) + 10, nrow * (h + 10) + 10), (24, 24, 28))
-    for i, b in enumerate(blocks):
-        r, c = divmod(i, ncol)
-        sh.paste(b, (10 + c * (w + 10), 10 + r * (h + 10)))
-    sh.save(out, optimize=True)
-    print("sheet", out, sh.size)
-    if gif:
-        allf = {nm: frames_for(d, nm, lambda n: list(range(n))) for nm in presets}
-        n = min(len(v) for v in allf.values())
-        ims = []
-        for i in range(0, n, 1):
-            top = np.concatenate([composite(allf[nm][i][0], allf[nm][i][1], DARK) for nm in presets], axis=1)
-            bot = np.concatenate([composite(allf[nm][i][0], allf[nm][i][1], GREY) for nm in presets], axis=1)
-            im = Image.fromarray((np.clip(np.concatenate([top, bot], 0), 0, 1) * 255).astype(np.uint8))
-            ims.append(im.resize((int(im.width * 0.8), int(im.height * 0.8)), Image.LANCZOS))
-        ims[0].save(gif, save_all=True, append_images=ims[1:], duration=int(1000 / 24), loop=0, optimize=True)
-        print("gif", gif, os.path.getsize(gif) // 1024, "KB")
-
-
-if __name__ == "__main__":
+def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=os.path.join(ROOT, "assets", "fire"))
     ap.add_argument("--out", default=os.path.join(ROOT, "docs", "fire_preview_sheet.png"))
-    ap.add_argument("--gif", default=None)
-    ap.add_argument("--presets", nargs="*", default=ORDER)
+    ap.add_argument("--types", default=None, help="comma list (default: every baked type)")
+    ap.add_argument("--detail", default=None, help="comma list: three-row detail sheet with bigger cells")
+    ap.add_argument("--hpx", type=int, default=0)
     a = ap.parse_args()
-    sheet(a.dir, a.out, a.presets, a.gif)
+    data = json.load(open(os.path.join(a.dir, "fire_atlas.json")))["presets"]
+    names = (a.detail or a.types or ",".join(data)).split(",")
+    names = [n for n in names if n in data]
+    detail = bool(a.detail)
+    hpx = a.hpx or (200 if detail else 104)
+    blocks = []
+    for n in names:
+        rows = type_rows(Atlas(a.dir, n, data[n]), hpx, detail)
+        img = Image.fromarray((np.clip(np.concatenate(rows, 0), 0, 1) * 255).astype(np.uint8))
+        lab = Image.new("RGB", (img.width, img.height + 16), (24, 24, 28))
+        lab.paste(img, (0, 16))
+        d = data[n]
+        ImageDraw.Draw(lab).text((4, 2), f"{n}: {d['title']} | {d['size_note']} | domain {d['domain_m'][0]} x {d['domain_m'][1]} x {d['domain_m'][2]} m", fill=(235, 235, 235))
+        blocks.append(lab)
+    cwid = max(b.width for b in blocks)
+    rh = max(b.height for b in blocks)
+    ncol = 2 if len(blocks) > 1 else 1
+    nrow = (len(blocks) + ncol - 1) // ncol
+    sh = Image.new("RGB", (ncol * (cwid + 8) + 8, nrow * (rh + 4) + 8), (24, 24, 28))
+    for i, b in enumerate(blocks):
+        r, c = (i % nrow, i // nrow) if not detail else (i // ncol, i % ncol)
+        sh.paste(b, (8 + c * (cwid + 8), 8 + r * (rh + 4)))
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    sh.save(a.out, optimize=True)
+    print("sheet", a.out, sh.size)
+
+
+if __name__ == "__main__":
+    main()

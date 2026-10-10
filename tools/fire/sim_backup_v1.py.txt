@@ -37,7 +37,6 @@ from scipy import ndimage as ndi
 import scipy.fft as sfft
 from concurrent.futures import ThreadPoolExecutor
 _POOL = ThreadPoolExecutor(4)
-PAD = 3
 
 GRID = (32, 32, 48)  # nx, ny, nz  (z is up). Coarse on purpose: see MODEL-NOTES-FIRE-BAKED.md
 DT = 1.0 / 48.0
@@ -107,26 +106,13 @@ def smoothstep(a, b, x):
 
 
 class Sim:
-    def __init__(self, preset, seed=0, grid=None, water=None, supply=None):
+    def __init__(self, preset, seed=0, grid=GRID, water=None):
         self.name = preset
         self.p = dict(PRESETS[preset])
-        grid = tuple(grid or self.p.get("grid", GRID))
         self.nx, self.ny, self.nz = self.grid = grid
-        self.px = bool(self.p.get("periodic"))                       # periodic in x (tileable fronts)
-        self.fmode = ("wrap", "nearest", "nearest") if self.px else "nearest"
         self.rng = np.random.default_rng(seed + 1000 * (list(PRESETS).index(preset) + 1))
         self.dx = self.p["dx"]
-        self.U = float(self.p.get("wind", 0.0))   # uniform wind along +x (m/s): a flame carried by a fast object, seen from the object
-        self.water = water    # callable t -> 0..1, or None
-        self.supply = supply  # callable t -> 0..1 multiplying every vent's fuel supply (lifecycle), or None
-        # per-seed jitter of the vent layout so variants differ
-        jr = np.random.default_rng(seed * 7919 + 13)
-        self.vents = []
-        for v in self.p["vents"]:
-            j = 0.0 if seed == 0 else 1.0
-            vx, vy, rx, ry, z0, amp, fl = v[:7]
-            self.vents.append((vx + j * jr.uniform(-0.12, 0.12) * rx, vy + j * jr.uniform(-0.12, 0.12) * ry, rx, ry, z0,
-                               amp * (1 + j * jr.uniform(-0.12, 0.12)), fl) + tuple(v[7:]))
+        self.water = water  # callable t -> 0..1, or None
         self.t = 0.0
         sh = grid
         z = lambda: np.zeros(sh, np.float32)
@@ -138,19 +124,11 @@ class Sim:
         self.idx = np.indices(sh).astype(np.float32)
         self._init_masks()
         self._init_spectral()
-        self.zs = int(min(grid[2], max(v[4] for v in self.vents) / self.dx + 6))
+        self.zs = int(min(grid[2], max(v[4] for v in self.p["vents"]) / self.dx + 6))
         self.vent_masks = [m[:, :, :self.zs].copy() for m in self.vent_masks]
         self.noise = [np.zeros((grid[0], grid[1], self.zs), np.float32) for _ in range(3)]
-        # occasional fuel flare-ups (each throws off a puff of soot); times are random but fixed per seed
-        self.puffs = []
-        pe = self.p.get("puff_every", 0.0)
-        if pe > 0:
-            tt = 0.0
-            while tt < 80.0:
-                tt += self.rng.exponential(pe) + 0.4
-                self.puffs.append((tt, float(self.rng.uniform(0.6, 1.2))))
-        self.vent_phase = self.rng.uniform(0, 6.283, (len(self.vents), 4))
-        self.vent_freq = self.rng.uniform(0.8, 3.2, (len(self.vents), 4))
+        self.vent_phase = self.rng.uniform(0, 6.283, (len(self.p["vents"]), 4))
+        self.vent_freq = self.rng.uniform(0.8, 3.2, (len(self.p["vents"]), 4))
 
     # ---- setup ---------------------------------------------------------------
     def _init_masks(self):
@@ -159,21 +137,10 @@ class Sim:
         X, Y, Zc = np.meshgrid((np.arange(nx) - nx / 2 + 0.5) * dx, (np.arange(ny) - ny / 2 + 0.5) * dx,
                                (np.arange(nz) + 0.5) * dx, indexing="ij")
         self.vent_masks = []
-        L = nx * dx
-        for v in self.vents:
-            vx, vy, rx, ry, z0, amp, fl = v[:7]
-            if len(v) > 7 and v[7] == "line":
-                # a line vent along x, periodic: uneven strength along the line (licks and gaps)
-                pat = np.zeros_like(X)
-                for k, ph in zip((1, 2, 3, 5), self.rng.uniform(0, 6.283, 4)):
-                    pat += np.cos(2 * np.pi * k * (X + L / 2) / L + ph) / k ** 0.6
-                pat = 0.62 + 0.38 * pat / (np.abs(pat).max() + 1e-6)
-                d = np.abs(Y - vy) / ry
-                m = np.clip(1.4 - d, 0, 1) ** 1.5 * np.exp(-(((Zc - z0) / (1.6 * dx)) ** 2)) * pat
-            else:
-                d = np.sqrt(((X - vx) / rx) ** 2 + ((Y - vy) / ry) ** 2)
-                # soft-edged disc, a thin layer at height z0 (thickness 2 cells)
-                m = np.clip(1.4 - d, 0, 1) ** 1.5 * np.exp(-(((Zc - z0) / (1.6 * dx)) ** 2))
+        for (vx, vy, rx, ry, z0, amp, fl) in self.p["vents"]:
+            d = np.sqrt(((X - vx) / rx) ** 2 + ((Y - vy) / ry) ** 2)
+            # soft-edged disc, a thin layer at height z0 (thickness 2 cells)
+            m = np.clip(1.4 - d, 0, 1) ** 1.5 * np.exp(-(((Zc - z0) / (1.6 * dx)) ** 2))
             self.vent_masks.append(m.astype(np.float32))
         # sponge profiles (0 inside, 1 at the open boundary)
         ix, iy, iz = np.arange(nx), np.arange(ny), np.arange(nz)
@@ -182,12 +149,9 @@ class Sim:
         wt = max(6, int(round(16 * nz / 96)))
         sx, sy = side(ix, nx, wd)[:, None, None], side(iy, ny, wd)[None, :, None]
         top = np.clip((iz - (nz - wt)) / float(wt), 0, 1)[None, None, :]
-        if self.px:
-            sx = sx * 0
         self.sponge = np.maximum(np.maximum(sx, sy), top).astype(np.float32) ** 1.5
         self.solid = (np.arange(nz) < 2)[None, None, :] * np.ones((nx, ny, 1), bool)
         self.Zc = Zc.astype(np.float32)
-        self.X, self.Y = X.astype(np.float32), Y.astype(np.float32)
 
     def _init_spectral(self):
         nx, ny, nz = self.grid
@@ -205,31 +169,18 @@ class Sim:
     # ---- numerics -----------------------------------------------------------------
     def _adv_coords(self, dt):
         s = dt / self.dx
-        vel = np.stack([self.u + self.U, self.v, self.w])
+        vel = np.stack([self.u, self.v, self.w])
         hi = np.array(self.grid, np.float32).reshape(3, 1, 1, 1) - 1.0
-        back = self.idx - s * vel
-        fwd = self.idx + s * vel
-        if self.px:      # periodic in x: wrap, and index into the x-padded field
-            for c in (back, fwd):
-                c[0] = np.mod(c[0], self.nx) + PAD
-                c[1:] = np.clip(c[1:], 0.0, hi[1:])
-            return back, fwd
-        back = np.clip(back, 0.0, hi)   # in-range coordinates take scipy's fast path
-        fwd = np.clip(fwd, 0.0, hi)
+        back = np.clip(self.idx - s * vel, 0.0, hi)   # in-range coordinates take scipy's fast path
+        fwd = np.clip(self.idx + s * vel, 0.0, hi)
         return back, fwd
 
-    def _grad(self, f):
-        if self.px:
-            return [0.5 * (np.roll(f, -1, 0) - np.roll(f, 1, 0)), np.gradient(f, axis=1), np.gradient(f, axis=2)]
-        return np.gradient(f)
-
-    def _samp(self, f, c):
+    @staticmethod
+    def _samp(f, c):
         # slab-parallel trilinear sampling (scipy releases the GIL); 4 threads on purpose
-        if self.px:
-            f = np.concatenate([f[-PAD:], f, f[:PAD]], 0)
-        nx = self.nx
+        nx = f.shape[0]
         cuts = np.linspace(0, nx, 5).astype(int)
-        out = np.empty((nx,) + f.shape[1:], np.float32)
+        out = np.empty(f.shape, np.float32)
 
         def job(i):
             a, b = cuts[i], cuts[i + 1]
@@ -263,15 +214,15 @@ class Sim:
         self.w = sfft.irfftn(wh, s=s, workers=4).astype(np.float32)
 
     def _vorticity_confinement(self, dt):
-        gu = self._grad(self.u)
-        gv = self._grad(self.v)
-        gw = self._grad(self.w)
+        gu = np.gradient(self.u)
+        gv = np.gradient(self.v)
+        gw = np.gradient(self.w)
         ox = gw[1] - gv[2]
         oy = gu[2] - gw[0]
         oz = gv[0] - gu[1]
         mag = np.sqrt(ox * ox + oy * oy + oz * oz)
-        mag = ndi.gaussian_filter(mag, 0.7, mode=self.fmode)
-        gm = self._grad(mag)
+        mag = ndi.gaussian_filter(mag, 0.7)
+        gm = np.gradient(mag)
         n = np.sqrt(gm[0] ** 2 + gm[1] ** 2 + gm[2] ** 2) + 1e-6
         nx_, ny_, nz_ = gm[0] / n, gm[1] / n, gm[2] / n
         fx = ny_ * oz - nz_ * oy
@@ -287,23 +238,19 @@ class Sim:
         # AR(1) smooth noise, three components, correlation time ~ 0.12 s
         a = np.exp(-dt / 0.12)
         for i in range(3):
-            fresh = ndi.gaussian_filter(self.rng.standard_normal(self.noise[0].shape).astype(np.float32), 1.6, mode=self.fmode)
+            fresh = ndi.gaussian_filter(self.rng.standard_normal(self.noise[0].shape).astype(np.float32), 1.6)
             fresh /= fresh.std() + 1e-6
             self.noise[i] = a * self.noise[i] + np.sqrt(1 - a * a) * fresh
 
     def _vent_flicker(self):
         out = []
-        for i, v in enumerate(self.vents):
-            amp, fl = v[5], v[6]
+        for i, (vx, vy, rx, ry, z0, amp, fl) in enumerate(self.p["vents"]):
             ph, fr = self.vent_phase[i], self.vent_freq[i]
             f = 0.0
             for j in range(4):
                 f += np.sin(self.t * fr[j] * (1.0 + 0.7 * j) + ph[j]) / (1.0 + j)
             f = f / 1.9
-            a_ = max(0.0, amp * (1.0 + 0.55 * fl * f))
-            if len(v) > 8 and v[8] > 0:                       # staggered start (spreading splash)
-                a_ *= float(smoothstep(v[8], v[8] + 0.3, self.t))
-            out.append(a_)
+            out.append(max(0.0, amp * (1.0 + 0.55 * fl * f)))
         return out
 
     # ---- one time step -----------------------------------------------------------
@@ -312,43 +259,14 @@ class Sim:
         wat = float(self.water(self.t)) if self.water else 0.0
         fl = self._vent_flicker()
         self._noise_step(dt)
-        pulse = 0.0
-        for te, am in self.puffs:
-            d = (self.t - te) / 0.18
-            if -3 < d < 3:
-                pulse += am * np.exp(-d * d)
-
-        b = p.get("blast")
-        if b and self.t < b["dur"]:
-            # scripted explosion: an expanding sphere of burning, soot-laden fuel plus a radial kick in its shell
-            u_ = min(1.0, self.t / b["tx"])
-            R = b["R0"] + (b["R1"] - b["R0"]) * np.sqrt(u_)
-            Rz = max(R * b.get("zs", 1.0), self.dx * 1.5)
-            d = np.sqrt((self.X / R) ** 2 + (self.Y / R) ** 2 + ((self.Zc - b["z"]) / Rz) ** 2)
-            m = (np.clip(1.25 - d, 0, 1) ** 1.5).astype(np.float32)
-            self.F += (b["F"] - self.F) * m * min(1.0, 12 * dt)
-            self.th = np.maximum(self.th, b["th"] * m)
-            self.S += b.get("S", 0.0) * m * min(1.0, 6 * dt)
-            self.A *= 1 - m * 0.9
-            if self.t < b["tx"]:
-                sp = (b["R1"] - b["R0"]) / (2 * np.sqrt(max(self.t, 0.03) * b["tx"]))
-                shell = np.exp(-(((d - 0.95) / 0.25) ** 2)).astype(np.float32) * min(1.0, 10 * dt) * sp * b.get("kick", 0.5)
-                rr = np.sqrt(self.X ** 2 + self.Y ** 2 + (self.Zc - b["z"]) ** 2) + 1e-3
-                self.u += shell * self.X / rr
-                self.v += shell * self.Y / rr
-                self.w += shell * (self.Zc - b["z"]) / rr
 
         # sources: fuel (and premix oxidiser), hot pilot, vent velocity and turbulence
         starve = 1.0 - 0.95 * smoothstep(0.35, 0.9, wat)  # water + fuel starvation
-        if self.supply:
-            starve *= float(self.supply(self.t))
         zs = slice(0, self.zs)
         F, O, A, th = self.F[:, :, zs], self.O[:, :, zs], self.A[:, :, zs], self.th[:, :, zs]
         U, V, W = self.u[:, :, zs], self.v[:, :, zs], self.w[:, :, zs]
         for m, a in zip(self.vent_masks, fl):
-            a = a * starve * (1.0 + 0.9 * pulse)
-            if pulse > 0.02 and p.get("puff_soot", 0) > 0:
-                self.S[:, :, zs] += p["puff_soot"] * 4.0 * pulse * dt * m * starve
+            a = a * starve
             rate = min(1.0, p["src_rate"] * dt)
             if a > 0.01:
                 F += (p["F_src"] * a - F) * m * rate
@@ -401,13 +319,12 @@ class Sim:
         d = p["diff"]
         for name in ("th", "F", "O", "S"):
             f = getattr(self, name)
-            setattr(self, name, (1 - d) * f + d * ndi.uniform_filter(f, 3, mode=self.fmode))
+            setattr(self, name, (1 - d) * f + d * ndi.uniform_filter(f, 3, mode="nearest"))
 
         # --- chemistry -----------------------------------------------------------
         F, O, th, S = self.F, self.O, self.th, self.S
         s = p["s"]
-        tig = p["t_ign"] + 0.45 * wat
-        ign = smoothstep(tig, tig + 0.12, th)
+        ign = smoothstep(p["t_ign"], p["t_ign"] + 0.12, th)
         lim = np.minimum(F, O / s)
         r = lim * (1.0 - np.exp(-p["k"] * dt)) * ign
         # lean / premixed fraction used for the blue chemiluminescence colour:
@@ -437,14 +354,15 @@ class Sim:
         # slow ambient cooling of warm gas by mixing (so hot plume decays smoothly)
         th *= 1.0 - p.get('mixc', 1.2) * dt
 
-        # water spray: heat sink + steam + fuel and soot washout over the lower part of the domain
+        # water spray: heat sink + steam + oxidiser dilution; mask = broad region over the flames
         if wat > 0:
-            region = np.sqrt(np.clip(1.0 - self.Zc / (0.85 * self.nz * self.dx), 0, 1))
-            ev = th * np.minimum(wat * 9.0 * region * dt, 0.6)
+            zz = self.Zc
+            region = np.exp(-(((zz - 3.0 * 0.0) - 0.45 * self.nz * self.dx) / (0.45 * self.nz * self.dx)) ** 2)
+            sink = wat * 6.0 * region * dt
+            ev = np.minimum(th * sink, 0.4 * th)
             th -= ev
-            self.P += ev * 1.4
-            F *= 1.0 - np.minimum(4.0 * wat * region * dt, 0.5)
-            S *= 1.0 - np.minimum(1.5 * wat * region * dt, 0.5)
+            self.P += ev * 1.6
+            S *= 1.0 - 0.8 * wat * region * dt
 
         # open boundaries: relax toward ambient (also removes smoke at the top)
         k = np.clip(self.sponge * 6.0 * dt, 0, 0.9)
@@ -462,18 +380,31 @@ class Sim:
         return {k: (v / accum["n"]).astype(np.float16) for k, v in accum.items() if k != "n"}
 
 
-def record(sim, nsteps):
-    """Advance nsteps and return the mean render fields over them (float16)."""
-    acc = {"th": 0, "S": 0, "R": 0, "Rb": 0, "P": 0, "n": 0}
-    for _ in range(nsteps):
+def run(preset, seed=0, frames=80, fps=24, warm=None, log=print, water=None, grid=GRID):
+    """Generator: yields one dict of float16 fields per output frame."""
+    sim = Sim(preset, seed, grid, water=water)
+    steps_per_frame = int(round(1.0 / (fps * DT)))
+    warm = sim.p["warm"] if warm is None else warm
+    nwarm = int(warm / DT)
+    import time
+    t0 = time.time()
+    for i in range(nwarm):
         sim.step()
-        acc["th"] = acc["th"] + sim.th
-        acc["S"] = acc["S"] + sim.S
-        acc["R"] = acc["R"] + sim.R
-        acc["Rb"] = acc["Rb"] + sim.Rb
-        acc["P"] = acc["P"] + sim.P
-        acc["n"] += 1
-    return sim.snapshot(acc)
+        if i % 40 == 0:
+            log(f"[{preset}] warm {i}/{nwarm}  {time.time() - t0:.0f}s  max theta {sim.th.max():.2f}")
+    for f in range(frames):
+        acc = {"th": 0, "S": 0, "R": 0, "Rb": 0, "P": 0, "n": 0}
+        for _ in range(steps_per_frame):
+            sim.step()
+            acc["th"] = acc["th"] + sim.th
+            acc["S"] = acc["S"] + sim.S
+            acc["R"] = acc["R"] + sim.R
+            acc["Rb"] = acc["Rb"] + sim.Rb
+            acc["P"] = acc["P"] + sim.P
+            acc["n"] += 1
+        if f % 8 == 0:
+            log(f"[{preset}] frame {f}/{frames}  {time.time() - t0:.0f}s")
+        yield sim.snapshot(acc), sim
 
 
 if __name__ == "__main__":
