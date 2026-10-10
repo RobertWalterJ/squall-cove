@@ -13437,25 +13437,28 @@ Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boat
   const lensProxy = (meshes, ind) => ({ meshes, set material(m) { const pk = L4.pk; const mm = m === LENSON ? pk.on : m === GENON ? pk.indOn : (ind ? pk.indOff : pk.off); for (const x of this.meshes) x.material = mm; }, get material() { return this.meshes[0] ? this.meshes[0].material : null; } });
 
   /* the pack's pieces are many small meshes; merge the static ones by material (and each lens group into one mesh) so a base costs a few draw calls, not a few hundred */
-  function mergeGeos(geos) {
+  function mergeGeos(geos, colors) {
     let nv = 0, ni = 0; for (const g of geos) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
-    const pos = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0;
-    for (const g of geos) { pos.set(g.attributes.position.array, vo * 3); const n = g.attributes.position.count; if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.array[i] + vo; io += g.index.count; } else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; } vo += n; }
-    const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setIndex(new THREE.BufferAttribute(idx, 1)); out.computeBoundingSphere(); return out;
+    const pos = new Float32Array(nv * 3), idx = new Uint32Array(ni), col = colors ? new Float32Array(nv * 3) : null; let vo = 0, io = 0, gi = 0;
+    for (const g of geos) { pos.set(g.attributes.position.array, vo * 3); const n = g.attributes.position.count; if (col) { const c = colors[gi++]; for (let i = 0; i < n; i++) { col[(vo + i) * 3] = c.r; col[(vo + i) * 3 + 1] = c.g; col[(vo + i) * 3 + 2] = c.b; } } if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.array[i] + vo; io += g.index.count; } else { for (let i = 0; i < n; i++) idx[io + i] = vo + i; io += n; } vo += n; }
+    const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); if (col) out.setAttribute('color', new THREE.BufferAttribute(col, 3)); out.setIndex(new THREE.BufferAttribute(idx, 1)); out.computeBoundingSphere(); return out;
   }
   const _m4 = new THREE.Matrix4(), _inv = new THREE.Matrix4();
-  function mergeMeshes(root, meshes, mat) {
-    _inv.copy(root.matrixWorld).invert(); const geos = [];
-    for (const o of meshes) { const g = o.geometry.clone(); g.applyMatrix4(_m4.multiplyMatrices(_inv, o.matrixWorld)); geos.push(g); }
-    const m = new THREE.Mesh(mergeGeos(geos), mat || meshes[0].material); m.castShadow = false; m.receiveShadow = false; m.matrixAutoUpdate = false; m.frustumCulled = true; for (const g of geos) g.dispose(); return m;
+  let PKMAT = null;
+  const pkMat = () => PKMAT || (PKMAT = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.55, metalness: 0.35 }));
+  /* meshes -> one mesh. byColour: the colours of their materials go into a vertex colour attribute and one shared material draws them all (the pack's materials are plain colours) */
+  function mergeMeshes(root, meshes, byColour) {
+    _inv.copy(root.matrixWorld).invert(); const geos = [], cols = [];
+    for (const o of meshes) { const g = o.geometry.clone(); g.applyMatrix4(_m4.multiplyMatrices(_inv, o.matrixWorld)); geos.push(g); if (byColour) cols.push(o.material && o.material.color ? o.material.color : { r: 0.5, g: 0.5, b: 0.5 }); }
+    const m = new THREE.Mesh(mergeGeos(geos, byColour ? cols : null), byColour ? pkMat() : meshes[0].material); m.castShadow = false; m.receiveShadow = false; m.matrixAutoUpdate = false; m.frustumCulled = true; for (const g of geos) g.dispose(); return m;
   }
   function mergeModel(g, lensSets) {
     g.updateMatrixWorld(true); const lensAll = new Set(); for (const set of lensSets) for (const m of set) lensAll.add(m);
-    const byMat = new Map(); g.traverse(o => { if (o.isMesh && !lensAll.has(o) && o.geometry && o.material) { const k = o.material.uuid; if (!byMat.has(k)) byMat.set(k, []); byMat.get(k).push(o); } });
-    const out = []; for (const arr of byMat.values()) out.push(mergeMeshes(g, arr));
-    const lensOut = lensSets.map(set => set.length ? [mergeMeshes(g, set)] : []);
-    for (const arr of byMat.values()) for (const o of arr) o.parent && o.parent.remove(o); for (const set of lensSets) for (const o of set) o.parent && o.parent.remove(o);
-    for (const m of out) g.add(m); for (const arr of lensOut) for (const m of arr) g.add(m);
+    const stat = []; g.traverse(o => { if (o.isMesh && !lensAll.has(o) && o.geometry && o.material) stat.push(o); });
+    const out = stat.length ? mergeMeshes(g, stat, true) : null;
+    const lensOut = lensSets.map(set => set.length ? [mergeMeshes(g, set, false)] : []);
+    for (const o of stat) o.parent && o.parent.remove(o); for (const set of lensSets) for (const o of set) o.parent && o.parent.remove(o);
+    if (out) g.add(out); for (const arr of lensOut) for (const m of arr) g.add(m);
     return lensOut;
   }
   F.fixModel = (kind, p) => {

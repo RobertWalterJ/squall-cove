@@ -53,9 +53,9 @@ try {
   }
   // 6 a lit base at night with light cones in the air (fog level 1 so the cones show)
   if (want('lit_base')) {
-    await fireClear(); await J(`${PRE} sc.wx.fog = 1; sc.wx.imp.fog = true; return 1`); await setTime(22.6); await sleep(4000);
-    await b.ev("window.__qaHold = false; 1"); await sleep(16000); await b.ev("window.__qaHold = true; 1");
-    const tw = await J(`${PRE} let best = null; for (const f of sc.LIGHT.fix) { if (f.kind !== 'tower' || !(f.on > 0.5)) continue; let n = 0; for (const o of sc.LIGHT.fix) if (o !== f && o.on > 0.5 && Math.hypot(o.x - f.x, o.z - f.z) < 40) n++; if (!best || n > best.n) best = { n, f }; } if (!best) return JSON.stringify(null); const f = best.f; return JSON.stringify({ x: f.x, y: f.y, z: f.z, b: f.beam, n: best.n, gy: Math.max(sc.heightAt(f.x, f.z), 0), st: F.L.stats })`);
+    await fireClear(); await J(`${PRE} sc.wx.fog = 1; sc.wx.imp.fog = true; for (const p of sc.BATTLE.points) if (!p.owner) p.owner = 'blue'; return 1`); await setTime(22.6); await sleep(4000);
+    await b.ev("window.__qaHold = false; 1"); await sleep(45000); await b.ev("window.__qaHold = true; 1");
+    const tw = await J(`${PRE} let best = null; for (const f of sc.LIGHT.fix) { if (f.kind !== 'tower' || !(f.on > 0.3)) continue; let n = 0; for (const o of sc.LIGHT.fix) if (o !== f && o.on > 0.3 && Math.hypot(o.x - f.x, o.z - f.z) < 40) n++; if (!best || n > best.n) best = { n, f }; } if (!best) return JSON.stringify(null); const f = best.f; return JSON.stringify({ x: f.x, y: f.y, z: f.z, b: f.beam, n: best.n, gy: Math.max(sc.heightAt(f.x, f.z), 0), st: F.L.stats })`);
     log('tower', JSON.stringify(tw));
     if (tw) { const a = Math.atan2(tw.b.dx, tw.b.dz) + 2.6; await cam(tw.x + Math.sin(a) * 30, tw.gy + 2.4, tw.z + Math.cos(a) * 30, tw.x + tw.b.dx * 14, tw.gy + 4, tw.z + tw.b.dz * 14); await shot('lit_base_night'); }
   }

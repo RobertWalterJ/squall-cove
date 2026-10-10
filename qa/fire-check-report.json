@@ -2,31 +2,39 @@
  "profile": "desktop",
  "perf": {
   "base": {
-   "mean": 4108.7,
-   "p95": 4195,
-   "min": 4047
+   "mean": 5781,
+   "p95": 6188.6,
+   "min": 5343
   },
   "fires": {
-   "mean": 3949.5,
-   "p95": 4231.4,
-   "min": 3684.9
+   "mean": 3282.8,
+   "p95": 3717.1,
+   "min": 3060.3
   },
   "n": 31,
-  "inst": 350,
-  "calls": 29,
-  "drawCalls": 471,
-  "tris": 2262086,
-  "texMB": 228.8,
-  "nTypes": 34,
+  "inst": 118,
+  "calls": 20,
+  "drawCalls": 487,
+  "tris": 2269890,
+  "texMB": 226.7,
+  "nTypes": 33,
   "cpu": {
    "without": {
-    "mean": 0.35,
+    "mean": 0.25,
     "p95": 0.6
    },
    "with30": {
-    "mean": 0.51,
+    "mean": 0.31,
     "p95": 0.9
    }
+  },
+  "breakdown": {
+   "total": 500,
+   "withoutFWsprites": 471,
+   "withoutFixtureModels": 487,
+   "fwSprites": 29,
+   "fixtureModels": 13,
+   "models": 61
   }
  },
  "notes": [],
@@ -41,17 +49,18 @@
  },
  "spread": {
   "front": true,
-  "advance": 4.605605745993064,
-  "along": 4.6056057459930635,
-  "speed": 0.7690050135348379,
-  "hw": 2.943016146539157,
+  "advance": 4.461002787777917,
+  "along": 4.461002787777915,
+  "speed": 0.7517851883274977,
+  "hw": 2.901752890000009,
   "cols": 4,
-  "alive": 4
+  "alive": 3
  },
  "sound": {
   "loops": [
    "fw:camp:7:-21:n",
-   "fw:vehicle:8:-20:n"
+   "fw:vehicle:8:-20:n",
+   "fw:grass:8:-21:n"
   ],
   "oneShot": {
    "played": true,
@@ -59,7 +68,8 @@
    "shots": {
     "ignite_soft": 2,
     "ignite_large": 5,
-    "pop": 14
+    "log_crack": 1,
+    "pop": 15
    }
   }
  },
@@ -80,6 +90,12 @@
   "cables": 41,
   "search": 3,
   "models": 54
+ },
+ "baseView": {
+  "fixturesNear": 12,
+  "total": 1548,
+  "fixtureModelCalls": 54,
+  "models": 61
  },
  "results": [
   {
@@ -234,12 +250,12 @@
    "pass": true,
    "extra": {
     "front": true,
-    "advance": 4.605605745993064,
-    "along": 4.6056057459930635,
-    "speed": 0.7690050135348379,
-    "hw": 2.943016146539157,
+    "advance": 4.461002787777917,
+    "along": 4.461002787777915,
+    "speed": 0.7517851883274977,
+    "hw": 2.901752890000009,
     "cols": 4,
-    "alive": 4
+    "alive": 3
    }
   },
   {
@@ -247,9 +263,9 @@
    "pass": true,
    "extra": {
     "tree": true,
-    "before": 2,
+    "before": 1,
     "after": 3,
-    "spots": 1,
+    "spots": 0,
     "patches": 6
    }
   },
@@ -261,12 +277,12 @@
     "last": {
      "kind": "fuel",
      "Rb": 11,
-     "x": 317.2370031446754,
-     "z": 39.983862124540885
+     "x": 149.86139376918416,
+     "z": -117.92702029143285
     },
-    "flaming": 44,
+    "flaming": 38,
     "deb": 60,
-    "parts": 96,
+    "parts": 72,
     "black": [
      "blast_fuel:fireball:true"
     ]
@@ -328,11 +344,13 @@
     "building": true,
     "ok": true,
     "id": "b-warehouse",
-    "windows": 6,
-    "doorway": 1,
-    "roof": 1,
+    "windows": 12,
+    "doorway": 2,
+    "roof": 2,
     "states": [
-     "burn"
+     "burn",
+     "grow",
+     "ignite"
     ]
    }
   },
@@ -353,14 +371,12 @@
    "pass": true,
    "extra": {
     "n0": 0,
-    "n2": 65,
-    "n3": 3,
+    "n2": 63,
+    "n3": 1,
     "bank": 1,
     "sea": 1,
     "types": [
-     "fog_ground",
-     "mist_dawn",
-     "fog_sea"
+     "fog_valley"
     ]
    }
   },
@@ -382,7 +398,7 @@
    "extra": {
     "q": "low",
     "res": "low",
-    "inst": 10,
+    "inst": 11,
     "vis": true
    }
   },
@@ -405,11 +421,13 @@
    "extra": {
     "keys": [
      "fw:camp:7:-21:n",
-     "fw:vehicle:8:-20:n"
+     "fw:vehicle:8:-20:n",
+     "fw:grass:8:-21:n"
     ],
     "lv": [
      0.197,
-     0.119
+     0.118,
+     0.126
     ],
     "loops": 3
    }
@@ -423,7 +441,8 @@
     "shots": {
      "ignite_soft": 2,
      "ignite_large": 5,
-     "pop": 14
+     "log_crack": 1,
+     "pop": 15
     }
    }
   },
@@ -480,24 +499,40 @@
     "st": {
      "models": 54,
      "cables": 41,
-     "cones": 6,
+     "cones": 0,
      "flares": 12,
-     "glows": 9,
-     "pools": 14,
+     "glows": 16,
+     "pools": 3,
      "wets": 0
+    },
+    "view": {
+     "fixturesNear": 12,
+     "total": 1548,
+     "fixtureModelCalls": 54,
+     "models": 61
     }
    }
   },
   {
-   "name": "strong-light effects draw at night: flares, pools and (desktop) cones or beam glow",
+   "name": "the pack models cost at most 150 draw calls in the busiest lit-base view",
+   "pass": true,
+   "extra": {
+    "fixturesNear": 12,
+    "total": 1548,
+    "fixtureModelCalls": 54,
+    "models": 61
+   }
+  },
+  {
+   "name": "strong-light effects draw at night: flares (and on desktop pools and cones or beam glow)",
    "pass": true,
    "extra": {
     "models": 54,
     "cables": 41,
-    "cones": 6,
+    "cones": 0,
     "flares": 12,
-    "glows": 9,
-    "pools": 14,
+    "glows": 16,
+    "pools": 3,
     "wets": 0
    }
   },
@@ -506,31 +541,39 @@
    "pass": true,
    "extra": {
     "base": {
-     "mean": 4108.7,
-     "p95": 4195,
-     "min": 4047
+     "mean": 5781,
+     "p95": 6188.6,
+     "min": 5343
     },
     "fires": {
-     "mean": 3949.5,
-     "p95": 4231.4,
-     "min": 3684.9
+     "mean": 3282.8,
+     "p95": 3717.1,
+     "min": 3060.3
     },
     "n": 31,
-    "inst": 350,
-    "calls": 29,
-    "drawCalls": 471,
-    "tris": 2262086,
-    "texMB": 228.8,
-    "nTypes": 34,
+    "inst": 118,
+    "calls": 20,
+    "drawCalls": 487,
+    "tris": 2269890,
+    "texMB": 226.7,
+    "nTypes": 33,
     "cpu": {
      "without": {
-      "mean": 0.35,
+      "mean": 0.25,
       "p95": 0.6
      },
      "with30": {
-      "mean": 0.51,
+      "mean": 0.31,
       "p95": 0.9
      }
+    },
+    "breakdown": {
+     "total": 500,
+     "withoutFWsprites": 471,
+     "withoutFixtureModels": 487,
+     "fwSprites": 29,
+     "fixtureModels": 13,
+     "models": 61
     }
    }
   },
@@ -538,17 +581,17 @@
    "name": "decoded atlas memory is about 8 MB per full-size type (checked on this scene)",
    "pass": true,
    "extra": {
-    "texMB": 228.8,
-    "types": 34
+    "texMB": 226.7,
+    "types": 33
    }
   },
   {
    "name": "textures are dropped when no fire of that type is left (lazy load, lazy unload)",
    "pass": true,
    "extra": {
-    "before": 228.8,
+    "before": 226.7,
     "after": 2.2,
-    "n0": 34,
+    "n0": 33,
     "n1": 0
    }
   },
@@ -558,6 +601,6 @@
    "extra": []
   }
  ],
- "pass": 36,
+ "pass": 37,
  "fail": 0
 }
