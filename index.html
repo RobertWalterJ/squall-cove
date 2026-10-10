@@ -1149,6 +1149,7 @@ body.touch[data-mode="fp"] #feedCol,body.ed-phone[data-mode="fp"] #phoneStack > 
     <button id="mSandbox" type="button">Sandbox settings<small>gentle mode, threats, sound</small></button><button id="bQual" type="button">Quality: High</button>
     <button id="mTheme" type="button">Colours: Dusk</button><button id="mEasy" type="button">Easy read: off</button>
     <button id="mDistort" type="button">Air distortion: On<small>Bends the air over big blasts and fires. Off saves battery.</small></button>
+    <button id="mFireQ" type="button">Fire quality: High<small>Realistic flames, smoke, steam and fog.</small></button>
     <button id="mHide" type="button">Hide buttons</button><button id="mCheats" type="button">Cheats<small>for fun and testing. The ` key opens it</small></button>
   </div>
   </div>
@@ -1366,7 +1367,7 @@ const Snd = (() => {
     A.matLP = c.createBiquadFilter(); A.matLP.type = 'lowpass'; A.matLP.frequency.value = 20000; A.matLP.Q.value = 0.5; A.matLP.connect(A.master);                // the mat bus (impacts) passes through a low-pass that closes to 2.5 kHz at the sensor station
     for (const b of BUS) { const g = c.createGain(); g.connect(b === 'mat' ? A.matLP : A.master); A.buses[b] = g; }
     A.applyVol();
-    A.initP = fetch('audio/manifest.json?v=99').then(r => r.ok ? r.json() : null).then(m => {
+    A.initP = fetch('audio/manifest.json?v=1010').then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return; A.man = m.assets; for (const id in A.man) { const stem = /_\d\d$/.test(id) ? id.slice(0, -3) : id; (A.fam[stem] = A.fam[stem] || []).push(id); if (stem !== id) (A.fam[id] = A.fam[id] || []).push(id); }
       A.ready = true; A.coreN = Object.keys(A.man).filter(id => A.man[id].group === 'core').length; A.coreP = A.group('core'); A.coreP.then(() => A.loadRest()); return A.coreP;
     }).catch(() => { });
@@ -3097,7 +3098,7 @@ function updateStructures(dt) {
     if (m.flam && !o.burn && o.T > m.burnT && !wet) o.burn = 14;
     if (o.burn > 0) {
       o.burn -= d4 * (wet || wx.rainAmt > 0.3 ? 5 : 1); o.T = Math.max(o.T, m.burnT + 40); const gy = p.y;
-      for (let q = 0; q < 3; q++) fxG.emit(p.x + rnd(-0.4, 0.4), gy + rnd(0.3, 1.1), p.z + rnd(-0.4, 0.4), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1), rnd(0.5, 0.9), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]); if (Math.random() < 0.5) puffSmoke(p.x, gy + 1, p.z, 1, true, 1);
+      if (!FW.drawn(o)) if (!FW.drawn(o)) if (!FW.drawn(o)) if (!FW.drawn(o)) for (let q = 0; q < 3; q++) fxG.emit(p.x + rnd(-0.4, 0.4), gy + rnd(0.3, 1.1), p.z + rnd(-0.4, 0.4), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1), rnd(0.5, 0.9), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]); if (!FW.drawn(o) && Math.random() < 0.5) puffSmoke(p.x, gy + 1, p.z, 1, true, 1);
       heatGT(p.x, p.z, 1.4, 330); igniteTreesNear(p.x, p.z, 2.5); for (const q of objects) if (q !== o && !q.gone && q.m.flam && !q.burn && Math.hypot(q.body.position.x - p.x, q.body.position.z - p.z) < 2.6 && Math.random() < 0.25 * d4 * 4) q.T += 120;
       o.body.mass = Math.max(1, o.body.mass * (1 - 0.06 * d4)); o.body.updateMassProperties(); const sc = 1 - 0.03 * d4; o.mesh.scale.multiplyScalar(sc > 0.5 ? sc : 0.5);
       if (o.burn <= 0) { ashAt(p.x, p.z, 2, 190); removeObj(o); o.gone = true; updateCount(); noteOnce('burnt', 'A wooden block burned away to ash.'); continue; }
@@ -4747,7 +4748,7 @@ function updateCombat(dt, t) {
     if (bt.flood >= 0.62 && !bt.sunk) checkSinking(bt);
     // effects
     const g = bt.group; g.updateMatrixWorld(true);
-    if (bt.fire > 0.05) {
+    if (bt.fire > 0.05 && !(bt._fwb && bt._fwb.some(q => q.vis))) {
       const n = Math.round(bt.fire * 90 * dt) + (Math.random() < bt.fire * 90 * dt % 1 ? 1 : 0);
       for (let i = 0; i < n; i++) {
         const lx = rnd(-0.28, 0.28) * bt.sp.L * (bt.sp.L > 30 ? 1 : 0.6), lz = rnd(-0.25, 0.25) * bt.sp.B, ly = deckLy(bt, lx, lz) + rnd(0, bt.ssH * 0.7), w = tv.set(lx, ly, lz).applyMatrix4(g.matrixWorld);
@@ -5919,8 +5920,8 @@ function fx2Update(dt) {
   const cp = fxPos();
   for (let i = LF.list.length - 1; i >= 0; i--) {
     const f = LF.list[i]; f.age += dt; if (f.age >= f.life) { LF.list.splice(i, 1); continue; } if (Math.hypot(f.x - cp.x, f.z - cp.z) > 450) continue;
-    DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);
-    const fade = Math.min(1, (f.life - f.age) / (f.life * 0.35)), up = Math.min(1, f.age / 1.2); f.acc += dt * FXK * fade * up * (6 + f.R);
+    if (!FW.lfSkip(f)) DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);
+    const fade = Math.min(1, (f.life - f.age) / (f.life * 0.35)), up = Math.min(1, f.age / 1.2); if (!FW.lfSkip(f)) f.acc += dt * FXK * fade * up * (6 + f.R);
     while (f.acc >= 1) { f.acc -= 1; const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * f.R * 0.28, px = f.x + Math.cos(a) * r, pz = f.z + Math.sin(a) * r, gh = Math.max(heightAt(px, pz), 0);
       if (Math.random() < 0.6) fxG.emit(px, gh + 0.2, pz, rnd(-0.3, 0.3), rnd(1.2, 2.8), rnd(-0.3, 0.3), rnd(0.5, 0.9), rnd(0.45, 0.9) * (0.6 + f.R * 0.05), -0.7, [1, rnd(0.45, 0.65), 0.15, 0.75], -1.5, 0.6);
       else fxS.emit(px, gh + 1.2, pz, rnd(-0.4, 0.4) + wind.v.x * 0.5, rnd(2.5, 4.5), rnd(-0.4, 0.4) + wind.v.z * 0.5, rnd(4, 7), rnd(0.9, 1.5) * (0.7 + f.R * 0.06), 4, [0.13, 0.13, 0.14, 0.4], -0.2, 0.15); }
@@ -6686,7 +6687,7 @@ function updateLife(dt) {
 function lifeClear() { for (const d of LIFE.decals) { scene.remove(d.m); d.m.material.dispose(); } LIFE.decals.length = 0; for (const w of LIFE.wrecks) { scene.remove(w.g); w.m.dispose(); } LIFE.wrecks.length = 0; LIFE.cl.length = 0; if (LIFE.cas) LIFE.cas.count = 0; }
 function blast(x, y, z, o) {                                        // one explosion: flash and smoke, a crater, a shockwave on people, cargo and boats, and trees knocked down
   const R = (o.R || 10) * (CHEAT.big ? 2 : 1), dmg = o.dmg || 100, wet = heightAt(x, z) < 0.3, gy = wet ? waveH(x, z, simT) : heightAt(x, z);
-  fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14);
+  const fwOK = FW.blast(x, gy, z, R, o, wet); /*FW-HOOK*/ if (!fwOK) { fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14); }
   blastFx(x, gy, z, R, wet); DIST.shock(x, gy, z, R, o.heavy); if (wet) splash(x, z, Math.min(6, R * 0.3), o.quiet); else { sparks(x, gy + 1, z, 24); impactFx('land', null, { x, y: gy, z }, 40, o.quiet); }
   if (!o.quiet) Snd.fx(R < 8 ? 'imp_blast_small' : R < 14 ? 'imp_blast_medium' : 'imp_blast_large', x, z, { gain: Math.min(1.5, 0.7 + R * 0.05), far: 4, y: gy }); if (!o.quiet && !wet && R >= 6) Snd.fx('imp_crater_thud', x, z, { gain: 0.7, far: 3, y: gy });
   const cx = camera.position.x, cz = camera.position.z, k = clamp(1 - Math.hypot(cx - x, cz - z) / (R * 12), 0, 1); dis.quake = Math.max(dis.quake, k * Math.min(2.5, R * 0.16));
@@ -6744,7 +6745,7 @@ function setMarkerRaw(pt) {                                        // a pole and
   if (markerMesh) { scene.remove(markerMesh); markerMesh = null; } if (!pt) { FIRE.marker = null; return; }
   const g = new THREE.Group(), m = new THREE.MeshBasicMaterial({ color: 0xff5a2a }); const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 36, 6), m); pole.position.y = 18; const ring = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.14, 6, 28), m); ring.rotation.x = Math.PI / 2; ring.position.y = 0.4; g.add(pole, ring); g.position.set(pt.x, Math.max(heightAt(pt.x, pt.z), 0), pt.z); scene.add(g); markerMesh = g; FIRE.marker = { x: pt.x, z: pt.z }; toast('Target marked.');
 }
-function burnArea(x, z, r) { HEATP.push({ x, z, r: r * 0.6, p: 18, t: 14 }); igniteTreesNear(x, z, r); try { heatGround(x, z, Math.max(8, r * 0.7), 2); } catch (e) { } for (let i = 0; i < 14; i++) setTimeout(() => { for (let k = 0; k < 6; k++) { const a = rnd(0, 6.283), d = rnd(0, r * 0.8), fx = x + Math.cos(a) * d, fz = z + Math.sin(a) * d, fy = Math.max(heightAt(fx, fz), 0); fxG.emit(fx, fy + 0.6, fz, rnd(-0.5, 0.5), rnd(1.5, 4), rnd(-0.5, 0.5), rnd(0.5, 1.1), rnd(1.6, 3), 0.8, [1, 0.55, 0.18, 0.9]); puffSmoke(fx, fy + 1, fz, 1, true, 1.6); } for (const q of people) if (q.state !== 'rag' && q.hp > 0 && !q.ride && Math.hypot(q.x - x, q.z - z) < r * 0.7 && BATTLE.on) hurt(q, 9, null, false); }, i * 900); }
+function burnArea(x, z, r) { const hp_ = { x, z, r: r * 0.6, p: 18, t: 14 }; HEATP.push(hp_); igniteTreesNear(x, z, r); try { heatGround(x, z, Math.max(8, r * 0.7), 2); } catch (e) { } for (let i = 0; i < 14; i++) setTimeout(() => { for (let k = 0; k < 6; k++) { const a = rnd(0, 6.283), d = rnd(0, r * 0.8), fx = x + Math.cos(a) * d, fz = z + Math.sin(a) * d, fy = Math.max(heightAt(fx, fz), 0); if (!(hp_._fws && hp_._fws.some(q => q.vis))) { if (!(hp_._fws && hp_._fws.some(q => q.vis))) { if (!(hp_._fws && hp_._fws.some(q => q.vis))) { if (!(hp_._fws && hp_._fws.some(q => q.vis))) { fxG.emit(fx, fy + 0.6, fz, rnd(-0.5, 0.5), rnd(1.5, 4), rnd(-0.5, 0.5), rnd(0.5, 1.1), rnd(1.6, 3), 0.8, [1, 0.55, 0.18, 0.9]); puffSmoke(fx, fy + 1, fz, 1, true, 1.6); } } } } } for (const q of people) if (q.state !== 'rag' && q.hp > 0 && !q.ride && Math.hypot(q.x - x, q.z - z) < r * 0.7 && BATTLE.on) hurt(q, 9, null, false); }, i * 900); }
 function fireOne(kind, pt, m, team) {                               // one weapon landing on one point; m scales the size of the blast
   const gy = heightAt(pt.x, pt.z);
   if (kind === 'lightning') { strikeAt(pt.x, pt.z); blast(pt.x, gy, pt.z, { R: 6 * m, dmg: 170 * m, owner: null }); }
@@ -6800,7 +6801,7 @@ function debInit() {
 function debrisBurst(x, y, z, n, power, mat, frag) {                    // chunks of the surface thrown out of an impact (frag = hot thin splinters of metal)
   if (Math.hypot(x - fxPos().x, z - fxPos().z) > 160) return; debInit(); const c = (SURF[mat] || SURF.dirt)[1];
   for (let i = 0; i < n; i++) { if (DEB.p.length >= DEB.N) DEB.p.shift(); const a = Math.random() * 6.283, e = 0.3 + Math.random() * 1.1, sp = power * (0.4 + Math.random() * 0.9);
-    DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, wd: frag === 'wood', rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
+    DEB.p.push({ fl: FW.dFl(frag), x, y, z, vx: Math.cos(a) * Math.cos(e) * sp, vy: Math.sin(e) * sp * 0.9 + 2, vz: Math.sin(a) * Math.cos(e) * sp, s: frag ? 0.05 + Math.random() * 0.07 : 0.07 + Math.random() * 0.2, frag: !!frag, wd: frag === 'wood', rx: Math.random() * 6, ry: Math.random() * 6, vr: (Math.random() - 0.5) * 14, life: 0.9 + Math.random() * 1.4, age: 0, r: c[0] * (0.7 + Math.random() * 0.5), g: c[1] * (0.7 + Math.random() * 0.5), b: c[2] * (0.7 + Math.random() * 0.5) }); }
 }
 function updateDebris(dt) {
   const L = DEB.p; if (!L.length || !DEB.m) { if (DEB.m && DEB.m.count) DEB.m.count = 0; return; } let k = 0;
@@ -7756,8 +7757,8 @@ function bvDestroy(v, byTeam, weapon, byQ) {
 function bvRemove(v) { if (v.body) world.removeBody(v.body); scene.remove(v.g); const i = BVL.indexOf(v); if (i >= 0) BVL.splice(i, 1); if (v.bay && v.bay.v === v) v.bay.v = null; }
 function bvWreckStep(v, dt) {
   v.wreckT += dt; const hi = v.y + v.sp.cy * 1.8;
-  if (v.wreckT < 55 && Math.random() < dt * 4) puffSmoke(v.x + rnd(-1, 1), hi, v.z + rnd(-1, 1), 1, true, 1.3);
-  if (v.wreckT < 22 && Math.random() < dt * 7) fxG.emit(v.x + rnd(-1.2, 1.2), hi - 0.4, v.z + rnd(-1.2, 1.2), rnd(-0.4, 0.4), rnd(1.5, 3), rnd(-0.4, 0.4), 0.45, 1.6, 1.2, [1, 0.6, 0.2, 0.9]);
+  if (!(v._fwf && v._fwf.vis) && v.wreckT < 55 && Math.random() < dt * 4) puffSmoke(v.x + rnd(-1, 1), hi, v.z + rnd(-1, 1), 1, true, 1.3);
+  if (!(v._fwf && v._fwf.vis) && v.wreckT < 22 && Math.random() < dt * 7) fxG.emit(v.x + rnd(-1.2, 1.2), hi - 0.4, v.z + rnd(-1.2, 1.2), rnd(-0.4, 0.4), rnd(1.5, 3), rnd(-0.4, 0.4), 0.45, 1.6, 1.2, [1, 0.6, 0.2, 0.9]);
   if (v.wreckT > 90) bvRemove(v);                                      // the burning wreck stands as cover for 90 s
 }
 
@@ -8258,7 +8259,7 @@ function bvUpdateVeh(v, dt, t) {
   if (v.ramp && (v.rampK !== (v.rampOpen ? 1 : 0))) { v.rampK += clamp((v.rampOpen ? 1 : 0) - v.rampK, -dt * 0.8, dt * 0.8); v.ramp.rotation.x = -v.rampK * 1.05; }
   if (v.sp.gun) { const gs = bvGunner(v); if (gs && gs.q) { if (fp.on && fp.p === gs.q && fp.veh === v) { const pt = bvAimPoint(); if (pt) bvGun(v, dt, gs.q, pt.x, pt.y, pt.z, fp.fireHeld); } else if (gs.q.bot && v.ai) bvAIGun(v, dt, gs.q); } bvGunTick(v, dt); }
   bvOcc(v, dt, t);
-  if (v.burn) { v.burn += dt; if (Math.random() < dt * 6) puffSmoke(v.x + rnd(-0.6, 0.6), v.y + v.sp.cy * 1.7, v.z + rnd(-0.6, 0.6), 1, true, 1); if (v.hp < v.hpMax * 0.12 && Math.random() < dt * 8) fxG.emit(v.x + rnd(-0.8, 0.8), v.y + v.sp.cy * 1.5, v.z + rnd(-0.8, 0.8), 0, 2, 0, 0.4, 1.2, 1.2, [1, 0.6, 0.2, 0.9]); damageVehicle(v, 2.4 * dt, null, 'Fire', null); }
+  if (v.burn) { v.burn += dt; if (!(v._fwe && v._fwe.vis) && Math.random() < dt * 6) puffSmoke(v.x + rnd(-0.6, 0.6), v.y + v.sp.cy * 1.7, v.z + rnd(-0.6, 0.6), 1, true, 1); if (!(v._fwe && v._fwe.vis) && v.hp < v.hpMax * 0.12 && Math.random() < dt * 8) fxG.emit(v.x + rnd(-0.8, 0.8), v.y + v.sp.cy * 1.5, v.z + rnd(-0.8, 0.8), 0, 2, 0, 0.4, 1.2, 1.2, [1, 0.6, 0.2, 0.9]); damageVehicle(v, 2.4 * dt, null, 'Fire', null); }
   void was;
 }
 function bvUpdate(dt) {
@@ -8282,7 +8283,7 @@ function bvSound(A, L) {
     const k = 'bv:' + v.id, d = Math.hypot(v.x - L.x, v.z - L.z), on = d < 170 && !v.dead && (v.drv || Math.abs(v.speed) > 0.3), fam = v.sp.eng, r = cl(Math.abs(v.speed) / (v.sp.vmax + 0.1), 0, 1), EG = on ? (v.drv ? 0.34 : 0.2) : 0, o = { x: v.x, z: v.z, rate: 0.95 + r * 0.25 };
     A.set(k + ':lo', 'veh_eng_' + fam + '_lo', cl(1 - r * 2, 0, 1) * EG, o); A.set(k + ':mid', 'veh_eng_' + fam + '_mid', cl(1 - Math.abs(r - 0.5) * 2.4, 0, 1) * EG, o); A.set(k + ':hi', 'veh_eng_' + fam + '_hi', cl(r * 2 - 0.8, 0, 1) * EG, o);
     A.set(k + ':trv', 'foley_turret_traverse_loop', v.sp.gun && d < 120 && !v.dead ? cl((v.trav || 0) * 0.5, 0, 0.55) : 0, { x: v.x, z: v.z });
-    A.set(k + ':fire', 'veh_fire_on_boat_loop', (v.burn || (v.dead && v.wreckT < 40)) && d < 140 ? 0.45 : 0, { x: v.x, z: v.z });
+    A.set(k + ':fire', 'veh_fire_on_boat_loop', (v.burn || (v.dead && v.wreckT < 40)) && d < 140 && !(v._fwe && v._fwe.vis) ? 0.45 : 0, { x: v.x, z: v.z });
   }
 }
 function bvSoundEnd(A) { for (const key in A.inst) if (key.startsWith('bv:')) { const id = +key.split(':')[1]; if (!BVL.some(v => v.id === id)) { const it = A.inst[key]; it.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.3); it.quiet = 99; } } }
@@ -9408,6 +9409,10 @@ function frameStep(now) {
     const cd = focus.clone().sub(camera.position); drawRose(bearing(cd.x, cd.z), bearing(wind.v.x, wind.v.z), head);
   }
   if (dis.shake > 0 && !REDUCE_MOTION) camera.position.add(shakeV.set(rnd(-1, 1) * dis.shake, rnd(-1, 1) * dis.shake * 0.6, rnd(-1, 1) * dis.shake));
+  FW.tick(dt); /*FW-HOOK*/
+  FW.tick(dt); /*FW-HOOK*/
+  FW.tick(dt); /*FW-HOOK*/
+  FW.tick(dt); /*FW-HOOK*/
   lightsTick(dt);
   DIST.tick(dt);
   if (STN && STN.on) stnRender(); else { renderer.render(scene, camera); DIST.main(); }
@@ -9468,6 +9473,7 @@ const KEYMAP = [
   ['over', 'Symbols', 'More, then Symbols: from far away, friends show as a blue rectangle and hostile units as a red diamond, each with a small picture inside (crossed lines infantry, oval armour, dot gun, wings aircraft, waves boat). A letter marks each point. Squads show as one mark with the squad name when you zoom in. Many marks merge into one with a count'],
   ['over', 'J, K', 'In a battle: jump in as a soldier, watch the next one', 'h'],
   ['over', 'P', 'Side pane: Place, Events, Live, Map, Battle, Play', 'h'],
+  ['over', 'Menu, Settings, Fire quality', 'Realistic baked fire: High draws flames, smoke, steam and fog from sprite sheets. Low is lighter (and the default on the phone). Off uses the old simple particle fire. Reduced motion lowers High to Low. Remembered (squall-cove-firequality)'],
   ['over', 'Menu, Settings, Air distortion', 'Bends the air over big blasts (a quick ripple that passes through the view) and over fires, lava and hot engines (a soft shimmer). On by default on desktop, off on the phone, off when your device asks for less motion, and it pauses itself if play gets slow. Also seen through the gunship sensor views'],
   ['over', '` (backtick)', 'Cheat prompt: a one-line box at the foot of the screen, here and in every other mode (first person, vehicles, the helm, the gunship station). Type a few letters, Tab completes, Enter runs, Esc closes. Type ? for every code, or panel for the full panel (also Menu, Settings)'],
   ['over', 'Enter, then /', 'Cheat prompt, the same as the backtick key'],
@@ -10189,7 +10195,7 @@ function updateLava(dt) {
       lavaTexT = 0.2; const x0 = Math.max(0, lbx.x0 - 2), x1 = Math.min(TN - 1, lbx.x1 + 2), z0 = Math.max(0, lbx.z0 - 2), z1 = Math.min(TN - 1, lbx.z1 + 2);
       for (let i = z0; i <= z1; i++) for (let j = x0; j <= x1; j++) { const k = i * TN + j, v = LV[k]; hotData[k * 4] = v > 0.003 ? Math.min(255, 70 + v * 300) : 0; hotData[k * 4 + 1] = v > 0.003 ? Math.min(255, LT[k] * 255) : 0; }
       hotTex.needsUpdate = true; syncLavaTex(x0, x1, z0, z1);
-      for (let n = 0; n < 4; n++) { const j = x0 + Math.floor(Math.random() * (x1 - x0 + 1)), i = z0 + Math.floor(Math.random() * (z1 - z0 + 1)), k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(G2W(j), HGT[k] + LV[k] + 0.3, G2W(i), rnd(-0.3, 0.3), rnd(0.5, 1.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(0.5, 1), 0.1, [1, rnd(0.3, 0.5), 0.1, 0.9]); }
+      for (let n = 0; n < 4; n++) { const j = x0 + Math.floor(Math.random() * (x1 - x0 + 1)), i = z0 + Math.floor(Math.random() * (z1 - z0 + 1)), k = i * TN + j; if (LV[k] > 0.05 && LT[k] > 0.35) FW.lavaCell(G2W(j), G2W(i), k); if (LV[k] > 0.05 && LT[k] > 0.35) FW.lavaCell(G2W(j), G2W(i), k); if (LV[k] > 0.05 && LT[k] > 0.35) FW.lavaCell(G2W(j), G2W(i), k); if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(G2W(j), HGT[k] + LV[k] + 0.3, G2W(i), rnd(-0.3, 0.3), rnd(0.5, 1.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(0.5, 1), 0.1, [1, rnd(0.3, 0.5), 0.1, 0.9]); }
     }
     lavaHaz -= dt;
     if (lavaHaz <= 0) {                                              // what lava touches: people fall, boats near the shore burn
@@ -11342,7 +11348,7 @@ function placeLavaThing(item, p) {
   g.position.set(p.x, Math.max(standY(p.x, p.z), 0), p.z); scene.add(g); lavaVents.push({ x: p.x, z: p.z, rate: 2.6, mesh: g, glow }); toast('Lava vent: it keeps pouring until you remove it.');
 }
 function updateLavaVents(dt) {
-  for (const v of lavaVents) { DIST.haze(DIST.idOf(v), v.x, Math.max(standY(v.x, v.z), 0) + 0.8, v.z, 0.9, 7, 6); if (Math.random() < dt * 14) { const y0 = Math.max(standY(v.x, v.z), 0) + 1.3; for (let b = 0; b < 2; b++) fxG.emit(v.x + rnd(-0.3, 0.3), y0, v.z + rnd(-0.3, 0.3), rnd(-2.2, 2.2), rnd(6, 12), rnd(-2.2, 2.2), rnd(0.9, 1.5), rnd(0.35, 0.7), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.95], 9.8, 0.05); }
+  for (const v of lavaVents) { FW.lavaVent(v, dt); DIST.haze(DIST.idOf(v), v.x, Math.max(standY(v.x, v.z), 0) + 0.8, v.z, 0.9, 7, 6); if (Math.random() < dt * 14) { const y0 = Math.max(standY(v.x, v.z), 0) + 1.3; for (let b = 0; b < 2; b++) fxG.emit(v.x + rnd(-0.3, 0.3), y0, v.z + rnd(-0.3, 0.3), rnd(-2.2, 2.2), rnd(6, 12), rnd(-2.2, 2.2), rnd(0.9, 1.5), rnd(0.35, 0.7), 0.2, [1, rnd(0.35, 0.6), 0.07, 0.95], 9.8, 0.05); }
     const gx = Math.round(W2G(v.x)), gz = Math.round(W2G(v.z)); for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) addLava(gx + dj, gz + di, v.rate * dt / 9); v.glow.material.color.setRGB(1, 0.3 + 0.2 * Math.sin(simT * 5 + v.x), 0.05); }
 }
 function clearLavaVents() { for (const v of lavaVents) scene.remove(v.mesh); lavaVents.length = 0; }
@@ -11377,8 +11383,8 @@ function updateTreeFire(dt) {
   growProps(dt); updateSeeds(dt); updateDevices(dt); updatePerf(dt); updateHold(dt);
   for (let i = burning.length - 1; i >= 0; i--) {
     const t = burning[i]; t.burn -= dt * (wx.rainAmt > 0.3 ? 3 : 1); const gy = Math.max(heightAt(t.x, t.z), 0); DIST.haze(DIST.idOf(t), t.x, gy + 1.2, t.z, 0.35 + 0.4 * Math.min(1, t.burn / 6), 7, 4.5);
-    if (Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5), t.z + rnd(-0.6, 0.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1.1), rnd(0.7, 1.4), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]);
-    if (Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);
+    if (!FW.drawn(t) && Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5), t.z + rnd(-0.6, 0.6), rnd(-0.3, 0.3), rnd(1, 2.2), rnd(-0.3, 0.3), rnd(0.5, 1.1), rnd(0.7, 1.4), 0.2, [1, rnd(0.4, 0.7), 0.1, 0.9]);
+    if (!FW.drawn(t) && Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);
     t.spread = (t.spread || 0) - dt;
     if (t.spread <= 0) {                                                                         // fire runs downwind and through dry ground, and stalls on wet soil
       t.spread = 1; heatGT(t.x, t.z, 1.6, 330); const reach = 6.5 + Math.min(8, wind.ms * 0.6), wl = Math.hypot(wind.v.x, wind.v.z) || 1;
@@ -11590,7 +11596,7 @@ function vehWork(v, dt) {
   const k = v.key; v.work += dt;
   if (v.target && v.target.gone) v.target = null;
   if (k === 'ambulance' && v.target && v.arrived !== undefined) { const q = v.target; if (people.includes(q) && Math.hypot(q.x - v.x, q.z - v.z) < 5) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 4) { q.cold = Math.min(q.cold || 0, 0.2); q.heat = Math.min(q.heat || 0, 0.2); q.frozen = false; if (q.state === 'rag' && standY(q.x, q.z) > 0.2) standUp(q); q.claimedBy = null; agentStat.helped++; npcEv('ambulanceSave'); noteOnce('amb', 'The ambulance treated someone and got them back on their feet.'); v.target = null; v.hold = false; v.holdT = 0; v.path = null; } } else v.hold = false; }
-  if (k === 'firetruck' && v.target) { const t = v.target; if (t.burn > 0 && Math.hypot(t.x - v.x, t.z - v.z) < 15) { v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt; if (Math.random() < dt * 12) fxG.emit(v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, (t.x - v.x) * 0.5, 4, (t.z - v.z) * 0.5, 0.8, 0.5, 0.4, [0.7, 0.85, 1, 0.8], 9, 0.5); if (v.sprayT > 1.2) { v.sprayT = 0; for (const b of burning.slice()) if (Math.hypot(b.x - t.x, b.z - t.z) < 9) { extinguishTree(b); npcEv('truckFire'); } } } else { v.hold = false; v.spraying = false; } }
+  if (k === 'firetruck' && v.target) { const t = v.target; if (t.burn > 0 && Math.hypot(t.x - v.x, t.z - v.z) < 15) { v.hold = true; v.spraying = true; v.sprayT = (v.sprayT || 0) + dt; if (Math.random() < dt * 12) fxG.emit(v.x + Math.cos(v.yaw) * 3, v.y + 3, v.z + Math.sin(v.yaw) * 3, (t.x - v.x) * 0.5, 4, (t.z - v.z) * 0.5, 0.8, 0.5, 0.4, [0.7, 0.85, 1, 0.8], 9, 0.5); if (v.sprayT > 1.2) { v.sprayT = 0; FW.water(t.x, t.z, 9, 2.5); for (const b of burning.slice()) if (Math.hypot(b.x - t.x, b.z - t.z) < 9) { extinguishTree(b); npcEv('truckFire'); } } } else { v.hold = false; v.spraying = false; } }
   if (k === 'forklift' || k === 'cargotruck') {
     const o = v.target; if (o && !o.gone && objects.includes(o) && !v.load.some(l => l.o === o) && Math.hypot(o.body.position.x - v.x, o.body.position.z - v.z) < 4.2) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 2.2) { v.load.push({ c: o.c, contraband: !!o.contraband, o }); o.salv = true; removeObj(o); updateCount(); v.target = null; v.hold = false; v.holdT = 0; v.path = null; npcEv('vehLoad'); } } else if (!o) v.hold = false;
     if (v.load.length && v.deliver && Math.hypot(v.deliver.x - v.x, v.deliver.z - v.z) < 6) { v.hold = true; v.holdT = (v.holdT || 0) + dt; if (v.holdT > 1.6) { for (const l of v.load) { const x = v.deliver.x + rnd(-2.5, 2.5), z = v.deliver.z + rnd(-2.5, 2.5); if (v.deliver.site && BLOCKS.has(l.c.id)) { spawn(l.c, x, standY(x, z) + 1, z); const nb = objects[objects.length - 1]; if (placeBlock(v.deliver.site, nb)) npcEv('blockPlaced'); } else { spawn(l.c, x, standY(x, z) + 1.2, z); if (l.contraband) { objects[objects.length - 1].contraband = false; ECON.seized++; npcEv('drumsSeized'); } agentStat.crates++; const ys = vehHome(v); } } npcEv('vehDelivered', v.load.length); v.load = []; v.hold = false; v.holdT = 0; v.deliver = null; v.path = null; } }
@@ -12206,7 +12212,7 @@ function updateBomber(dt, t) {
       bwLife[i] = 0; bwPos[i * 3 + 1] = -9999;
       for (const tr of burning.slice()) if (Math.hypot(tr.x - x, tr.z - z) < 7) { extinguishTree(tr); puffSmoke(tr.x, Math.max(heightAt(tr.x, tr.z), 0) + 2, tr.z, 2, false, 1.6); }
       for (const bt of boats) { if (bt.sunk) continue; if (insideHull(bt, x, z, 1.2)) { bt.fire = Math.max(0, bt.fire - 0.03); bt.fireT = Math.max(0, bt.fireT - 0.5); bt.body.applyImpulse(new CANNON.Vec3(0, -bt.body.mass * 0.01, 0), new CANNON.Vec3(x - bt.body.position.x, 0.5, z - bt.body.position.z)); } }
-      if (Math.random() < 0.15) { const wet = heightAt(x, z) < 0; if (wet) splash(x, z, 0.8); else puffSmoke(x, y + 0.5, z, 1, false, 0.9); }
+      FW.water(x, z, 8, 1.4, y); if (Math.random() < 0.15) { const wet = heightAt(x, z) < 0; if (wet) splash(x, z, 0.8); else puffSmoke(x, y + 0.5, z, 1, false, 0.9); }
     }
   }
   bwGeo.attributes.position.needsUpdate = true;
@@ -12237,6 +12243,887 @@ $('mBomber').addEventListener('click', () => { closeMenu(); callBomber(true); })
 
 function qaTick(dt) { world.step(1 / 60, dt, 5); armedLayer(dt); updateBattle(dt); updatePeople(dt, simT); }      // test hook: one fixed simulation step without the renderer (the frame loop is paused with window.__qaHold)
 window.__sc = { senseEnemy, torchHurtK, lightFixAim, HEATP, lightsTick, lightWant, lightsSelect, lightAt, fixDamage, fixPowered, torchToggle, chemThrow, flareHandStart, vehLightsOn, lampLevel, beamTexture, BTRY, snapshotWorld, loadWorld, tod, todSetMode, todSetHour, todSave, todLoad, todClock, todPause, todRaw, todOut, SKF, skyUpdate, stepWeather, wx, sunDir, sunLight, hemi, starPts, skyMat, todMoonName, todSolar, qaTick, botFire, removePerson, spawnBot, PR_T, medicNear, coverKindOf, COV_H, stanceUpdate, stanceTargetOf, botStance, botThink, findCover, chooseStance, coverList, coverStep, eyeOf, stOf, personSpheres, placeBody, armedPose, updatePeople, legDims, crawlStride, lerpS, ss, STANCE_SPD, STANCE_HIT, COVQ, nmPush, nmCount, groundNormal, DIST, BVL, clearBattlefield, clearUndo, clearDialog, clearCensus, gunshipFromOverview, CLR, SENSOR, BV, BVSPEC, BVH, damageVehicle, bvNavPath, bvMake, bvEnter, bvLeaveKey, bvLayAll, bvSpawnBay, bvHeliMake, ensureBVeh, bvCast, empShot, world, POINT_TYPES, STRUCT, BKIT, holdN, layBattleKit, bTry, assignCrew, batteryFire, mortarShoot, counterAttack, dropCrate, airRaid, weatherStart, weatherEnd, battleSkin, isBattleMap, BM, BATTLE_MAPS, FOOT, PUTS, PAVED, layMapScenario, mapPut, footBlocked, LOOSE, squadOf, TAB, setMarker, blast, fireAt, callStrike, callArty, fpThrowNade, FIRE, NADES, BOMBS, toggleTablet, crater, HGT, layAA, damageAir, AAS, MIS, fpFireAA, LOADOUTS, deployMenu, exitFP2: exitFP, gunneryFire, heavyBlast, MANQ, callAir, paraWave, boatWave, AIR, ensureAir, ensureWeapons, BATTLE, battleStart, playBattle, WPN, hurt, fpFireGun, fpReload, squadOrder, trees, CELL, findFootPath, lineBlocked, vehGo, findPath, LM, NPC, THREE, removeVehicle, LEDGER, ledgerTake, addSand, setSide, renderSide, enterFP, exitFP, fpSetTool, fpPrimary, fp, ECON, setFootOrder, makePerson, god, place, BUILD, dropCtl: (h, z) => { dropH = h; dropSize = z; }, rip, objects, makeVehicle, ensureVehicles, standY, heightAt, VSPEC, EVENTS, ARRIVALS, VEHS, people, boats, SK, knockOut, skirmishThink, sideCrew, wx, igniteTree, topple, VEHS, VSPEC, makeVehicle, findPath, updateVehicles, vehDispatch, ensureVehicles, Snd, WS, swell, advanceWaves, shoal, simTime: () => simT, removeObj, get pierInfo() { return pierInfo; }, openReport, lifeTick, siteTick, nextSlot, spawnSalvage, spawnDevelopers, placeFaction, floatingCargo, ECON, FACTIONS, rel, spawnSmuggler, spawnCourier, unmask, observe, cgCheck, landingSpot, frame, LM, lmRow, lmStep, lmLookouts, lmBest, NPC, buildSlot, freeBlocks, quarrySpot, placeBlock, think, sites, sunLight, hemi, renderer, scene, camera, dressPerson, ROLE_KIT, THREE, makePerson, MATB, frags, fracture, updateStructures, rip, ripple, ripH, stepRipples, ashData, spawn, objects, sea, stepClimate, CT, CH, CC, CN, world, SPECS, FM, floaters, applyBuoyancy, waveH, wind, RHO_W, G, props, seeds, addSeed, seedSuit, updateSeeds, stepSand, stepGround, heatGT, GT, SM, capAt, kindAt, MATP, addSand, BED, matData, addSite, sites, plantTree, updateFleet, openFleet, isHostile, factionOf, placePeople, CARGO, updateAgents, think, computePOIs, agentStat, openPeople, applyHold, shock, MET, toast, openLog, perf, hld, dumpGrains, spawnGrain, updateGrains, grainMesh, addLava, lavaMesh, updateLava, syncLavaTex, addDevice, openInspector, devices, ocean, DPS, DH, applyFog, MAP, genTerrain, updateThreats, spawnThreat, farLand, startMap, crewOn, updateTreeFire, hideTree, updateCombat, GT, heatGT, stepGround, updatePlants, igniteTree, trees, burning, HGT, BED, SM, tried, updateFP, ensureFleet, makeBoat, D, ensureAircraft, buildHeli, buildBomber, bomber, callBomber, updateBomber, fireCentre, lavaVents, placeLavaThing, placeEarth, igniteTreesNear, meteorAftermath, burning, heli, callHeli, updateHeli, ensureSkipper, updateAbandon, updateRescue, rescueAboard, crewed, updateFirefighting, updateDamageControl, ffSpray, ffLife, isFireboat, camReset, camFlyTo, camHold, curPitch, setMapMode, updateMapOverlay, updateBoatIce, CHG, TU, TV, AU, AV, CUP, windAt, computeWinds, setWindView, tWin, CW, ptypeFrac, precipName, snowfall, snowData, stepIce, stepEnv, prefs, disastersSheet, sandboxSheet, gateDisaster, effectsCount, restoreWorld, worldUndo, matData, MH, addSand, stepSand, stepHeat, heatGround, fulguriteAt, placeMaterial, sandSrc, rods, furnaces, glassCount: () => { let n = 0; for (let k = 0; k < TN * TN; k++) if (matData[k * 4]) n++; return n; }, clim, CT, CH, CC, heatSrc, stepClimate, addSource, setAirTemp, airTempAt, LV, LT, addLava, stepLava, startDeluge, lavaState: () => ({ on: lavaOn, bbox: lbx }), volcanoes, startVolcano, updateVolcanoes, stepLake, surge, dis, WD, springs, addSpring, placeWater, startTornado, startLightning, startQuake, startTsunami, startHurricane, startMeteor, strikeAt, calm, lakeDepth, startScenario, SCENARIOS, addWaypoint, updateRoutes, saveWorld, loadWorld, snapshotWorld, openMenu, land, landUndo, landReset, getHover: () => hoverPt, fpHelm, fpOverboard, fpJumpOrGetUp, fpResumeFromHelm, sel, setSel, orderBoard, orderLand, orderPickup, commandWalk, findBerth, dockBoat, dropCarry, enterFP, exitFP, fp, orderFire, ceaseFire, damageBoat, shots, fxS, fxG, boatCrew, freeSpot, deckClamp, crewCount, spawnPlayer, fpUse, reach, selectInRect, selectAllVisible, tapAt, updateSunkObjects, checkSinking, D, people, makePerson, placePeople, topple, standUp, walkTo, selectPerson, standY, panScreen, SKY_HOUR, trees, world, boats, objects, spawn, CARGO, camS, god, nextBoat, wind, wx, land, brush, commitLand, place, BUILD, orderTo, selectBoat, toggleMode, setTool, get mode() { return mode; }, get simT() { return simT; }, heightAt, setQuality, renderer, scene, camera, CMD, cmdReady, killFeedAdd, hitMarker, endScreen, planBattle, joinSquad, botify, makeBotOf, startTickets, livingCount, peopleCap, propGrid, losFull, hotSpot, KEYMAP, LIFE, scorchAt, ejectCasing, addTracer, muzzleFlash, impactFx, blastFx, surfaceAt, tracers, LF, MZF, SHK, HZ, SUPP, clearTracers, FXK, lifeWreck, landingZone, airSpawn, AIRSPEC, gunshipUp, aimGuns, findGuns, stubJet, armsFor, AC, updateAir, updateTracers, setFire };
+/*FW-REGION-START*/
+/*FW-START part1a: baked sprite renderer (fire, later steam / mist / fog share it)*/
+/* ================================================================ FW: realistic baked fire (v9.9.12-fw)
+   Source: tools/fw/*.js (injected by tools/fw/inject.py). Atlas format: MODEL-NOTES-FIRE-BAKED.md. Everything here is one self-contained block:
+   the sprite renderer (instanced camera-facing quads, a few draw calls), the lazy atlas loader, the fire lifecycle machine, the owner sync that
+   replaces the old particle fires, spread, lights, haze, sound, explosions, flaming debris, steam, mist, fog.
+   The old particle code stays as the Fire quality "Off" fallback and while an atlas is still loading (FW.drawn(owner) says whether FW draws that thing). */
+const FW = (() => {
+  const F = { v: 'fw-1', afters: [], q: 'high', ready: false, failed: false, fires: [], types: {}, stats: {}, on: true };
+  const PH = ED.phone;
+  /* ---- quality: High / Low / Off. Desktop default High, phone default Low. Reduced motion lowers one step. */
+  const QKEY = 'squall-cove-firequality';
+  const QORD = ['off', 'low', 'high'];
+  function readQ() { let q = PH ? 'low' : 'high'; try { const v = localStorage.getItem(QKEY); if (QORD.includes(v)) q = v; } catch (e) { } return q; }
+  F.pref = readQ();
+  F.eff = () => { let i = QORD.indexOf(F.pref); if ((REDUCE_MOTION || F.govLow) && i > 1) i = 1; return QORD[i]; };
+  F.setPref = (q) => { if (!QORD.includes(q)) return; F.pref = q; try { localStorage.setItem(QKEY, q); } catch (e) { } F.govLow = false; F.applyQ(); };
+  F.CAP = { high: PH ? { fires: 14, inst: 160, front: 3 } : { fires: 40, inst: 420, front: 8 }, low: PH ? { fires: 8, inst: 80, front: 2 } : { fires: 18, inst: 200, front: 4 } };
+  F.cap = () => F.CAP[F.q] || F.CAP.low;
+  F.applyQ = () => { F.q = F.eff(); if (F.q === 'off') for (const f of F.fires.slice()) F.kill(f, true); };
+
+  /* ---- the sprite renderer ---- */
+  const R = { combos: {}, tex: {}, loadN: 0, drawn: 0, inst: 0, dropped: 0 };
+  F.R = R;
+  const STRIDE = 20;
+  const VS = [
+    'attribute vec4 aP; attribute vec4 aS; attribute vec4 aF; attribute vec4 aT; attribute vec4 aL;',
+    'uniform vec2 uAnchor; varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
+    'void main(){',
+    '  vec2 loc = position.xy - uAnchor; vec2 q = vec2(loc.x * aP.w * aL.z, loc.y) * aS.xy;',
+    '  vec3 toCam = cameraPosition - aP.xyz; float dist = length(toCam); vec3 right; vec3 up = vec3(0.0, 1.0, 0.0); float fade = 1.0; float mq = aS.z;',
+    '  if (mq < 0.5) { vec3 h = vec3(toCam.x, 0.0, toCam.z); float hl = length(h); h = hl > 1e-4 ? h / hl : vec3(0.0, 0.0, 1.0); right = vec3(h.z, 0.0, -h.x); }',
+    '  else if (mq < 1.5) { vec3 f = toCam / max(dist, 1e-4); right = normalize(cross(up, f) + vec3(1e-5, 0.0, 0.0)); vec3 u2 = cross(f, right); float c = cos(aS.w), s = sin(aS.w); q = vec2(c * q.x - s * q.y, s * q.x + c * q.y); up = u2; }',
+    '  else if (mq < 2.5) { right = vec3(cos(aS.w), 0.0, -sin(aS.w)); vec3 n = vec3(sin(aS.w), 0.0, cos(aS.w)); vec3 hh = vec3(toCam.x, 0.0, toCam.z); float d2 = max(length(hh), 1e-4); fade = smoothstep(0.05, 0.8, abs(dot(n, hh / d2))); }',
+    '  else { right = vec3(cos(aS.w), 0.0, -sin(aS.w)); up = vec3(sin(aS.w), 0.0, cos(aS.w)); }',
+    '  vec3 wp = aP.xyz + right * q.x + up * q.y;',
+    '  float t = clamp(loc.y / max(1.0 - uAnchor.y, 0.001), 0.0, 1.0); wp.x += aL.x * t * t; wp.z += aL.y * t * t;',
+    '  float sz = max(aS.x, aS.y); float nr = 0.25 * sz + 0.6; fade *= smoothstep(nr * 0.5, nr, dist);',
+    '  vUv = position.xy; vF = aF; vT = aT; vFade = fade; vH = t;',
+    '  gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);',
+    '}'].join('\n');
+  const FS = [
+    'precision highp float; uniform sampler2D tAtlas; uniform vec2 uGrid; uniform vec2 uInset; uniform float uSensor; uniform float uMode; uniform vec3 uLit; uniform float uCool; uniform float uEdge;',
+    'varying vec2 vUv; varying vec4 vF; varying vec4 vT; varying float vFade; varying float vH;',
+    'vec4 frame(float fi, vec2 uv){ float c = mod(fi, uGrid.x); float r = floor(fi / uGrid.x); vec2 u = clamp(uv, uInset, 1.0 - uInset); return texture2D(tAtlas, vec2((c + u.x) / uGrid.x, (r + 1.0 - u.y) / uGrid.y)); }',
+    'vec3 hotRamp(float v){ vec3 a = vec3(0.016, 0.016, 0.055); vec3 b = vec3(0.157, 0.04, 0.35); vec3 c = vec3(0.59, 0.08, 0.27); vec3 d = vec3(0.92, 0.27, 0.08); vec3 e = vec3(1.0, 0.75, 0.16); vec3 f = vec3(1.0, 0.96, 0.67);',
+    '  return v < 0.18 ? mix(a, b, v / 0.18) : v < 0.38 ? mix(b, c, (v - 0.18) / 0.2) : v < 0.58 ? mix(c, d, (v - 0.38) / 0.2) : v < 0.78 ? mix(d, e, (v - 0.58) / 0.2) : mix(e, f, clamp((v - 0.78) / 0.14, 0.0, 1.0)); }',
+    'void main(){',
+    '  vec4 a = frame(vF.x, vUv); vec4 o = vec4(a.rgb * a.a, a.a);',
+    '  if (vF.z > 0.002) { vec4 b = frame(vF.y, vUv); o = mix(o, vec4(b.rgb * b.a, b.a), vF.z); }',
+    '  float g = vF.w * vFade; if (uEdge > 0.0) g *= smoothstep(0.0, uEdge, vUv.x) * smoothstep(0.0, uEdge, 1.0 - vUv.x); vec3 rgb = o.rgb * vT.rgb; float al = o.a;',
+    '  if (uMode < 0.5) {',                                                                              // flame
+    '    if (uSensor > 1.5) { float l = dot(o.rgb, vec3(0.3, 0.59, 0.11)); rgb = mix(vec3(l), vec3(1.0), 0.45) * al * 4.5; }',
+    '    al *= (1.0 - vT.a);',
+    '  } else if (uMode < 1.5) {',                                                                       // smoke: lit by the sun/sky, and a warm underlight near the base from the baked colour
+    '    rgb = o.rgb * vT.rgb; if (uSensor > 1.5) { float l = dot(o.rgb, vec3(0.3, 0.59, 0.11)); rgb = vec3(l) * 1.6; }',
+    '    al *= (1.0 - vT.a);',
+    '  } else if (uMode < 2.5) {',                                                                       // heat map (thermal): the game keys hot things in magenta
+    '    float v = a.r; al = clamp(v * 3.0, 0.0, 1.0); if (v < 0.02) al = 0.0; rgb = vec3(1.0, 0.0, 1.0) * al * (0.35 + 0.65 * v);',
+    '  } else {',                                                                                        // grey mist / steam / fog: lit by uLit, cool and faint in thermal, a bright veil in night vision
+    '    rgb = o.rgb * vT.rgb * uLit; if (uSensor > 1.5) { float l = dot(rgb, vec3(0.3, 0.59, 0.11)); rgb = vec3(l) * 1.9; al *= 0.9; } if (uSensor > 0.5 && uSensor < 1.5) { rgb = vec3(0.1) * al; al *= uCool; }',
+    '  }',
+    '  float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;',                // a little dither hides 8-bit banding in soft gradients
+    '  vec4 outc = vec4(rgb * g, al * g); if (outc.a > 0.002) { outc.a += n * (1.6 / 255.0); outc.rgb += n * (1.3 / 255.0) * outc.a; } if (outc.a < 0.003 && uMode < 2.5) discard;',
+    '  gl_FragColor = outc;',
+    '}'].join('\n');
+  const QUAD = new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]), QIDX = [0, 1, 2, 0, 2, 3];
+  /* a combo = one atlas texture + one instanced mesh = one draw call. def: { key, tex, cols, rows, fw, fh (frame px), anchor [x from left, y from top], mode 0 flame 1 smoke 2 heat 3 mist, order, rule }
+     rule: 'vis' (hidden in Thermal), 'heat' (only in Thermal), 'any' (always; mist/fog fade themselves) */
+  function mkCombo(def, cap) {
+    const geo = new THREE.InstancedBufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(QUAD, 3)); geo.setIndex(QIDX);
+    const buf = new Float32Array(cap * STRIDE), ib = new THREE.InstancedInterleavedBuffer(buf, STRIDE, 1); ib.setUsage(THREE.DynamicDrawUsage);
+    ['aP', 'aS', 'aF', 'aT', 'aL'].forEach((nm, i) => geo.setAttribute(nm, new THREE.InterleavedBufferAttribute(ib, 4, i * 4)));
+    geo.instanceCount = 0;
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { tAtlas: { value: def.tex }, uAnchor: { value: new THREE.Vector2(def.anchor[0], 1 - def.anchor[1]) }, uGrid: { value: new THREE.Vector2(def.cols, def.rows) }, uInset: { value: new THREE.Vector2(0.6 / def.fw, 0.6 / def.fh) }, uSensor: SENSOR, uMode: { value: def.mode }, uLit: { value: new THREE.Vector3(1, 1, 1) }, uCool: { value: 0.1 }, uEdge: { value: def.edge || 0 } },
+      vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, fog: false, toneMapped: false,
+      blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+    });
+    const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.renderOrder = def.order; mesh.matrixAutoUpdate = false;
+    const c = { def, cap, buf, ib, geo, mat, mesh, n: 0, last: 0 };
+    mesh.onBeforeRender = () => { const s = SENSOR.value; geo.instanceCount = def.rule === 'heat' ? (s === 1 ? c.n : 0) : def.rule === 'vis' ? (s === 1 ? 0 : c.n) : c.n; };
+    scene.add(mesh); return c;
+  }
+  R.combo = (def, cap) => { let c = R.combos[def.key]; if (!c) c = R.combos[def.key] = mkCombo(def, cap || F.cap().inst); return c; };
+  R.begin = () => { for (const k in R.combos) R.combos[k].n = 0; R.drawn = 0; };
+  R.end = () => { let inst = 0, calls = 0; for (const k in R.combos) { const c = R.combos[k]; c.geo.instanceCount = c.n; c.ib.needsUpdate = c.n > 0 || c.lastN > 0; c.lastN = c.n; c.mesh.visible = c.n > 0; if (c.n > 0) { calls++; inst += c.n; } } R.inst = inst; R.calls = calls; };
+  /* push one instance. q: 0 cylindrical billboard, 1 spherical with rotation rot, 2 fixed yaw (crossed quads), 3 flat on the ground (yaw rot) */
+  R.push = (c, x, y, z, w, h, fa, fb, mix, alpha, flip, q, rot, stretch, r, g, b, add, lx, lz) => {
+    if (c.n >= c.cap) { R.dropped++; return; } const o = c.n++ * STRIDE, B = c.buf;
+    B[o] = x; B[o + 1] = y; B[o + 2] = z; B[o + 3] = flip; B[o + 4] = w; B[o + 5] = h; B[o + 6] = q; B[o + 7] = rot; B[o + 8] = fa; B[o + 9] = fb; B[o + 10] = mix; B[o + 11] = alpha;
+    B[o + 12] = r; B[o + 13] = g; B[o + 14] = b; B[o + 15] = add; B[o + 16] = lx; B[o + 17] = lz; B[o + 18] = stretch; B[o + 19] = 0;
+  };
+  /* ---- textures: fetched on demand, decoded with straight alpha (no premultiply: lossy WebP bleeds colour into the clear pixels), no mipmaps (they would mix neighbouring frames) */
+  R.loadTex = (url) => {
+    let t = R.tex[url]; if (t) { t.last = performance.now(); return t.p; } t = R.tex[url] = { url, last: performance.now(), tex: null, bytes: 0 };
+    t.p = fetch(url).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); }).then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(bm => {
+      const tx = new THREE.Texture(bm); tx.flipY = false; tx.premultiplyAlpha = false; tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter; tx.wrapS = tx.wrapT = THREE.ClampToEdgeWrapping; tx.colorSpace = THREE.NoColorSpace; tx.needsUpdate = true;
+      t.tex = tx; t.bytes = bm.width * bm.height * 4; R.loadN++; return tx;
+    }).catch(e => { delete R.tex[url]; throw e; });
+    return t.p;
+  };
+  R.dropTex = (url) => { const t = R.tex[url]; if (!t) return; delete R.tex[url]; try { if (t.tex) { if (t.tex.image && t.tex.image.close) t.tex.image.close(); t.tex.dispose(); } } catch (e) { } };
+  R.texBytes = () => { let n = 0; for (const k in R.tex) n += R.tex[k].bytes || 0; return n; };
+  R.json = {};
+  R.loadJson = (url) => R.json[url] || (R.json[url] = fetch(url).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }));
+  F.ensureAtlas = () => {
+    if (F.atlasP) return F.atlasP;
+    F.atlasP = R.loadJson('assets/fire/fire_atlas.json?v=fw1').then(j => { F.atlas = j; F.ready = true; return j; }).catch(e => { F.failed = true; F.err = String(e); return null; });
+    return F.atlasP;
+  };
+  return F;
+})();
+/*FW-END part1a*/
+/*FW-START part1b: fire types, lifecycle machine, drawing, lights, haze*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone;
+  const S0 = 1e-6;
+  /* ---- types: loaded lazily, one at a time, on the first fire that needs them ---- */
+  const resWant = () => (PH || F.q === 'low') ? 'low' : 'full';
+  const LAYERS = ['flame', 'smoke', 'heat'];
+  const ORDER = { smoke: 6.2, flame: 6.3, heat: 6.4 };
+  F.need = (name) => {
+    const now = performance.now(); let T = F.types[name]; const res = resWant();
+    if (T && T.state === 'ready' && T.res === res) { T.last = now; return T; }
+    if (T && (T.state === 'loading' || T.state === 'bad')) return null;
+    if (!F.atlas) { F.ensureAtlas(); return null; }
+    const info = F.atlas.presets[name]; if (!info) { F.types[name] = { name, state: 'bad' }; return null; }
+    if (T && T.state === 'ready') F.unload(name);
+    T = F.types[name] = { name, info, state: 'loading', res, last: now, urls: [] };
+    const jobs = LAYERS.filter(k => info.layers[k]).map(k => {
+      const L = info.layers[k], use = (res === 'low' && L.low) ? L.low : L, url = 'assets/fire/' + use.file; T.urls.push(url);
+      return R.loadTex(url).then(tex => ({ k, L, use, tex }));
+    });
+    Promise.all(jobs).then(got => {
+      T.layers = {};
+      for (const g of got) {
+        const key = 'fire:' + name + ':' + g.k + ':' + res, fwid = g.use.frame_px[0], fhid = g.use.frame_px[1];
+        const combo = R.combo({ key, tex: g.tex, cols: g.use.cols, rows: g.use.rows, fw: fwid, fh: fhid, anchor: g.L.anchor, mode: g.k === 'flame' ? 0 : g.k === 'smoke' ? 1 : 2, order: ORDER[g.k], rule: g.k === 'heat' ? 'heat' : 'vis', edge: info.kind === 'tile' ? 0.24 : 0 });
+        T.layers[g.k] = { combo, size: g.L.size_m, anchor: g.L.anchor };
+      }
+      const cl = info.clips, by = (st) => cl.filter(c => c.stage === st);
+      T.clips = { ignite: by('ignite')[0], growth: by('growth')[0], decay: by('decay')[0], extinguish: by('extinguish')[0], loop: by('loop'), fireball: by('fireball'), plume: by('plume'), residue: by('residue'), shot: by('shot') };
+      T.kind = info.kind; T.state = 'ready'; T.last = performance.now(); F.stats.typesLoaded = (F.stats.typesLoaded || 0) + 1;
+    }).catch(e => { T.state = 'bad'; T.err = String(e); });
+    return null;
+  };
+  F.unload = (name) => {
+    const T = F.types[name]; if (!T) return; for (const u of T.urls || []) R.dropTex(u);
+    for (const k of LAYERS) { const key = 'fire:' + name + ':' + k + ':' + T.res, c = R.combos[key]; if (c) { c.n = 0; c.mesh.visible = false; scene.remove(c.mesh); c.geo.dispose(); c.mat.dispose(); delete R.combos[key]; } }
+    delete F.types[name];
+  };
+  F.sweepTypes = () => {                                              // drop a type's textures when nothing of that type has burned for a while
+    const now = performance.now(); const live = new Set(F.fires.map(f => f.name)); for (const nm in F.types) { const T = F.types[nm]; if (T.state === 'ready' && !live.has(nm) && now - T.last > (PH ? 25000 : 90000)) F.unload(nm); }
+  };
+
+  /* ---- a fire ---- */
+  let idN = 1;
+  const KIND_FLAME_ADD = 0.55;
+  const BIG = new Set(['pool', 'vehicle', 'building', 'tree_crown', 'oil_slick', 'boat_deck', 'roof', 'vehicle_small']);
+  const BLACK = new Set(['pool', 'vehicle', 'oil_slick', 'boat_deck', 'vehicle_small', 'vehicle_engine', 'barrel', 'blast_fuel']);   // heavy black smoke: also get a drifting soot column when big enough
+  F.isBlack = (n) => BLACK.has(n);
+  /* spawn: type name, world position (base of the flame), options */
+  F.spawn = (name, x, y, z, o) => {
+    o = o || {}; if (F.q === 'off') return null; const cap = F.cap();
+    if (F.fires.length >= cap.fires * 2 + 20) { let w = null; for (const f of F.fires) if (!w || f.pri < w.pri) w = f; if (w && w.pri < (o.pri || 1)) F.kill(w, true); else return null; }
+    const f = { id: idN++, name, x, y, z, F: o.F || 1, sc: o.sc || 1, own: o.own || null, dur: o.dur === undefined ? Infinity : o.dur, state: o.state || 'ignite', st: 0, vi: (Math.random() * 3) | 0, flip: Math.random() < 0.5 ? -1 : 1, ph: Math.random() * 3, hit: 0, age: 0, pri: o.pri || 1, yaw: o.yaw !== undefined ? o.yaw : Math.random() * 6.283, quads: o.quads, fade: 1, vis: false, follow: o.follow || null, dead: false, mode: o.mode || null, drift: o.drift, aux: o.aux || null, black: o.black, noLight: !!o.noLight, noSmoke: !!o.noSmoke, ext: false, lean: 0, px: 0, e: 1, sndKey: null };
+    if (o.age0) { f.state = o.state || 'grow'; f.st = o.age0; }
+    f.start = o.start || null;
+    if (f.own && f.own.ref && !f.own.multi) f.own.ref._fw = f;
+    F.fires.push(f); F.need(name); F.stats.spawned = (F.stats.spawned || 0) + 1; return f;
+  };
+  F.kill = (f, now) => {
+    if (f.dead) return; if (!now && f.state !== 'out') { f.state = 'out'; f.st = 0; }
+    f.dead = true; if (f.own && f.own.ref && !f.own.multi && f.own.ref._fw === f) f.own.ref._fw = null; if (f.onDone) { try { f.onDone(f); } catch (e) { } }
+    const i = F.fires.indexOf(f); if (i >= 0) F.fires.splice(i, 1); F.stats.ended = (F.stats.ended || 0) + 1;
+  };
+  F.extinguish = (f) => {
+    if (!f || f.dead || f.state === 'extinguish' || f.state === 'out') return false;
+    const T = F.types[f.name]; f.ext = true; f.state = 'extinguish'; f.st = 0; F.stats.extinguished = (F.stats.extinguished || 0) + 1;
+    if (T && T.clips && !T.clips.extinguish) { f.state = 'out'; }
+    if (F.onExtinguish) F.onExtinguish(f); return true;
+  };
+  F.drawn = (o) => !!(o && o._fw && o._fw.vis && F.q !== 'off');
+  F.drawnFor = (o) => o && o._fw;                                      // exists (even if still loading)
+  const clipDur = (c) => c ? c.duration_s : 0;
+  const lenOf = (f, T) => { const c = T.clips; return { ig: clipDur(c.ignite), gr: clipDur(c.growth), de: clipDur(c.decay), ex: clipDur(c.extinguish) }; };
+  /* advance one fire's state machine. Returns nothing; sets f.clip (the clip being played) and f.clipT (seconds into it) */
+  function step(f, dt, T) {
+    const C = T.clips; f.age += dt; f.st += dt;
+    if (f.follow) f.follow(f);
+    if (f.state === 'ignite') { if (!C.ignite) { f.state = C.growth ? 'grow' : 'burn'; f.st = 0; } else if (f.st >= C.ignite.duration_s) { f.st -= C.ignite.duration_s; f.state = C.growth ? 'grow' : 'burn'; if (f.state === 'burn') f.st = Math.random() * 1; } }
+    if (f.state === 'grow') { if (!C.growth) { f.state = 'burn'; f.st = 0; } else if (f.st >= C.growth.duration_s) { f.st -= C.growth.duration_s; f.state = 'burn'; } }
+    if (f.state === 'burn') {
+      if (Number.isFinite(f.dur)) f.dur -= dt;
+      const L = C.loop[f.vi] || C.loop[0], ld = L ? L.duration_s / Math.max(0.5, 0.8 + 0.2 * f.F) : 1;
+      if (f.st >= ld) { f.st -= ld; if (C.loop.length > 1) f.vi = (f.vi + 1 + ((Math.random() * (C.loop.length - 1)) | 0)) % C.loop.length; f.flip = Math.random() < 0.5 ? -1 : 1; }
+      const dl = C.decay ? C.decay.duration_s : 0;
+      if (f.dur <= dl && !f.own) { if (C.decay) { f.state = 'decay'; f.st = 0; } else { f.state = 'out'; f.st = 0; } }
+      else if (f.own && f.own.endIn && f.own.endIn(f) <= dl) { if (C.decay) { f.state = 'decay'; f.st = 0; } else { f.state = 'out'; f.st = 0; } }
+    }
+    if (f.state === 'decay') { if (!C.decay || f.st >= C.decay.duration_s) { f.state = 'out'; f.st = 0; } }
+    if (f.state === 'extinguish') { if (f.st >= clipDur(C.extinguish) + 0.3) { f.state = 'out'; f.st = 0; } }
+    if (f.state === 'fireball') { const L = C.fireball[f.vi % C.fireball.length]; if (f.st >= L.duration_s) { f.state = 'plume'; f.st = 0; } }
+    if (f.state === 'plume') { const L = C.plume[f.vi % C.plume.length]; if (f.st >= L.duration_s) { f.state = 'residue'; f.st = 0; } }
+    if (f.state === 'residue') { if (Number.isFinite(f.dur)) f.dur -= dt; const L = C.residue[f.vi % C.residue.length]; if (f.st >= L.duration_s) f.st -= L.duration_s; if (f.dur <= 0) { f.state = 'out'; f.st = 0; f.fadeOut = 2.0; } }
+    if (f.state === 'shot') { const L = C.shot[f.vi % C.shot.length]; if (f.st >= L.duration_s) { f.state = 'out'; f.st = 0; } }
+    if (f.state === 'out') { f.fadeOut = (f.fadeOut === undefined ? 0 : f.fadeOut); f.fade = f.fadeOut > 0 ? Math.max(0, 1 - f.st / f.fadeOut) : 0; if (f.fade <= 0.01) { F.kill(f, true); return false; } }
+    return true;
+  }
+  const clipFor = (f, T) => {
+    const C = T.clips;
+    switch (f.state) {
+      case 'ignite': return C.ignite; case 'grow': return C.growth; case 'burn': return C.loop[f.vi] || C.loop[0];
+      case 'decay': return C.decay; case 'extinguish': return C.extinguish;
+      case 'fireball': return C.fireball[f.vi % C.fireball.length]; case 'plume': return C.plume[f.vi % C.plume.length];
+      case 'residue': case 'out': return f.lastClip || (C.residue[f.vi % (C.residue.length || 1)] || C.loop[f.vi] || C.loop[0]);
+      case 'shot': return C.shot[f.vi % C.shot.length];
+    } return C.loop[0];
+  };
+  const _fr = [0, 0, 0];
+  function frameOf(c, t, loop, blend) {
+    let x = t * c.fps; if (loop) x = ((x % c.count) + c.count) % c.count; else x = Math.min(Math.max(x, 0), c.count - 1);
+    const i = Math.floor(x), fr = x - i; let j = i + 1; if (j >= c.count) j = loop ? 0 : c.count - 1;
+    _fr[0] = c.first + i; _fr[1] = c.first + j; _fr[2] = (blend || c.fps < 16) ? fr : 0; return _fr;
+  }
+  F.frameOf = frameOf;
+  const isLoopState = (s) => s === 'burn' || s === 'residue' || s === 'out';
+  /* ---- per-frame: update, sort, draw ---- */
+  const amb = { r: 1, g: 1, b: 1, day: 1 };
+  F.amb = amb;
+  function updateAmb() {
+    const e = tod.e, d = Math.max(0, Math.min(1, (e + 4) / 16)), dk = 1 - d;
+    amb.day = d; const wet = Math.min(1, wx.rainAmt * 0.6 + wx.fog * 0.1);
+    amb.r = (0.13 + 0.87 * d) * (1 - 0.1 * wet) + 0.02 * dk; amb.g = (0.15 + 0.85 * d) * (1 - 0.08 * wet); amb.b = (0.20 + 0.80 * d) * (1 - 0.05 * wet);
+  }
+  const _cam = new THREE.Vector3();
+  let Kpx = 800;
+  /* push the layers of one clip frame as instances. o: { q (quad mode 0..3), rot, stretch, add, noSmoke, cross (2 crossed flame quads with yaw), yaw, loop, blend, lean (0..1 plume lean), warm, tint [r,g,b] for smoke } */
+  F.pushClip = (T, clip, t, x, y, z, S, sx, sy, alpha, flip, o) => {
+    const wl = F.wind, lk = Math.min(1, F.windMs * 0.09) * (o.lean === undefined ? 1 : o.lean), loop = !!o.loop, blend = !!o.blend, fire = o.fire;
+    for (let li = 0; li < 3; li++) {
+      const lay = li === 0 ? 'smoke' : li === 1 ? 'flame' : 'heat', LY = T.layers[lay], c = clip[lay]; if (!LY || !c) continue; if (lay === 'smoke' && o.noSmoke) continue;
+      const fr = frameOf(c, t, loop, blend), w = LY.size[0] * S * sx, h = LY.size[1] * S * sy;
+      const add = lay === 'flame' ? (o.add !== undefined ? o.add : KIND_FLAME_ADD) : 0; let r = 1, g = 1, b = 1;
+      if (lay === 'smoke') { r = amb.r; g = amb.g; b = amb.b; if (o.warm) r += o.warm * 0.2; }
+      const lx = wl.x * lk * h * (lay === 'smoke' ? 0.55 : 0.18), lz = wl.z * lk * h * (lay === 'smoke' ? 0.55 : 0.18);
+      if (lay === 'flame' && o.cross) {
+        const fa = fr[0], fb = fr[1], fm = fr[2];
+        R.push(LY.combo, x, y, z, w, h, fa, fb, fm, alpha, flip, 2, o.yaw, o.stretch || 1, r, g, b, add, lx, lz);
+        const fr2 = frameOf(c, t + 0.37, loop, true); R.push(LY.combo, x, y, z, w, h, fr2[0], fr2[1], fr2[2], alpha * 0.85, -flip, 2, o.yaw + 1.5708, o.stretch || 1, r, g, b, add, lx, lz);
+      } else R.push(LY.combo, x, y, z, w, h, fr[0], fr[1], fr[2], alpha, flip, o.q || 0, o.rot || 0, o.stretch || 1, r, g, b, add, lx, lz);
+      if (fire && lay === 'flame') { fire.fi = fr[0] - c.first; fire.fc = c.count; }
+    }
+  };
+  const _o = { q: 0, rot: 0, stretch: 1, loop: false, blend: false, cross: false, yaw: 0, noSmoke: false, fire: null, warm: 0 };
+  function drawFire(f, T, rank, animated) {
+    const clip = clipFor(f, T); if (!clip) return; if (f.state !== 'out') f.lastClip = clip;
+    const S = f.sc * Math.sqrt(f.F), loopish = isLoopState(f.state), spd = (f.state === 'burn' ? 0.8 + 0.2 * f.F : 1);
+    const t = animated ? f.st * spd : f.ph, al = f.fade * (f.alphaK === undefined ? 1 : f.alphaK);
+    _o.q = 0; _o.rot = 0; _o.stretch = 1; _o.loop = loopish && f.state !== 'out' ? true : false; _o.blend = F.q === 'high'; _o.cross = (f.quads || 1) > 1 && F.q === 'high' && animated; _o.yaw = f.yaw;
+    _o.noSmoke = !!f.noSmoke || (!animated && f.px < 10); _o.fire = f; _o.warm = f.warm || 0; _o.add = f.add; _o.lean = f.lean === undefined || f.lean === 0 ? 1 : f.lean;
+    F.pushClip(T, clip, t, f.x, f.y, f.z, S, f.sx || 1, f.sy || 1, al, f.flip, _o);
+    if (f.black && !f.noSmoke && F.q === 'high' && f.px > 40 && (f.F > 0.7)) F.soot && F.soot(f, al);
+  }
+  F.wind = { x: 0, z: 0 }; F.windMs = 0;
+  const _v = new THREE.Vector3();
+  let emaDt = 0.016, slowT = 0, lastSweep = 0;
+  /* lights / haze scratch */
+  F.energy = (f, T) => {
+    const L = T.info.light; if (!L) return 1; const st = f.state; let arr = null, i = f.fi || 0; const cn = f.lastClip && f.lastClip.name;
+    if (st === 'burn' || (st === 'residue' && !(L.stage_energy && L.stage_energy[cn]))) arr = L.flicker; else if (L.stage_energy) arr = L.stage_energy[cn] || L.stage_energy[st === 'grow' ? 'growth' : st];
+    if (!arr || !arr.length) return st === 'out' ? 0 : 1; const clip = clipFor(f, T); const c = clip && clip.flame; const cnt = c ? c.count : arr.length;
+    const fr = c ? Math.min(cnt - 1, Math.floor(f.st * c.fps)) : 0; const j = Math.min(arr.length - 1, Math.floor(fr * arr.length / cnt));
+    let e = arr[j]; if (st === 'burn' || st === 'residue') e = e; return e;
+  };
+  F.frame = (dt) => {
+    dt = Math.min(dt, 0.1);
+    F.q = F.eff();
+    if (F.q === 'off') { if (F.fires.length) for (const f of F.fires.slice()) F.kill(f, true); R.begin(); R.end(); return; }
+    // wind (m/s): the game's wind vector
+    F.wind.x = wind.v.x; F.wind.z = wind.v.z; F.windMs = Math.hypot(wind.v.x, wind.v.z);
+    updateAmb();
+    // the smoothness governor: slow frames step the quality down, the old particles take over for a while after that
+    if (GOV.perf !== 'best') { emaDt += (dt - emaDt) * 0.06; if (emaDt > 0.05 && F.fires.length > 4) { slowT += dt; if (slowT > 4) { slowT = 0; if (F.q === 'high') { F.govLow = true; F.q = F.eff(); } else if (!F.legacyUntil) { F.legacyUntil = performance.now() + 25000; } } } else slowT = Math.max(0, slowT - dt); }
+    if (F.legacyUntil && performance.now() > F.legacyUntil) { F.legacyUntil = 0; emaDt = 0.016; }
+    R.begin();
+    const cam = camera.position; Kpx = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    const cap = F.cap(); const fq = fxPos();
+    const alive = [];
+    for (const f of F.fires.slice()) {
+      const T = F.types[f.name]; if (!T || T.state !== 'ready') { if (!T || T.state === 'bad') { F.need(f.name); if (T && T.state === 'bad') { F.kill(f, true); } } f.vis = false; f.age += dt; if (f.own && f.own.sync) f.own.sync(f); continue; }
+      T.last = performance.now();
+      if (f.own && f.own.sync) f.own.sync(f);
+      if (f.dead) continue;
+      if (!step(f, dt, T)) continue;
+      const dx = f.x - cam.x, dy = f.y - cam.y, dz = f.z - cam.z, d = Math.hypot(dx, dy, dz); f._d = d;
+      const ls = T.layers.flame || T.layers.smoke; const hh = ls ? ls.size[1] * f.sc * Math.sqrt(f.F) : 1; f.px = hh * Kpx / Math.max(d, 1);
+      f._T = T; alive.push(f);
+    }
+    alive.sort((a, b) => b._d - a._d);                                  // far to near
+    // who is fully animated: the biggest on screen first
+    const rank = alive.slice().sort((a, b) => b.px - a.px); let nAnim = 0; for (const f of rank) { f._anim = (nAnim < cap.fires && f.px >= 14) ? (nAnim++, true) : false; }
+    for (const f of alive) {
+      if (f.px < 2.5 || F.legacyUntil) { f.vis = false; continue; }                          // too small to matter: culled
+      const ang = Math.atan2(f.x - cam.x, f.z - cam.z); if (Math.abs(((ang - cameraYaw() + 9.4248) % 6.2832) - 3.1416) > 2.2 && f._d > 12 && f.px < 60) { f.vis = true; continue; }   // far outside the view: kept alive, not drawn
+      f.vis = true; drawFire(f, f._T, 0, f._anim);
+    }
+    F.sweepNow = (F.sweepNow || 0) + dt; if (F.sweepNow > 5) { F.sweepNow = 0; F.sweepTypes(); }
+    for (const fn of F.afters) fn(dt, alive);
+    R.end();
+    F.alive = alive;
+    F.stats.n = F.fires.length; F.stats.anim = nAnim;
+  };
+  const _fw = new THREE.Vector3();
+  function cameraYaw() { camera.getWorldDirection(_fw); return Math.atan2(_fw.x, _fw.z); }
+  /* ---- lights: warm flickering point lights through the game's light budget ---- */
+  F.lights = (dt) => {
+    if (F.q === 'off' || F.legacyUntil) return 0; const dk = LIGHT.dark; if (dk < 0.05) return 0;
+    const fc = lightFocus(); const mx = PH ? 4 : 10; let n = 0; const list = [];
+    for (const f of F.alive || []) { if (f.noLight || !f.vis || f.fade < 0.05) continue; const T = f._T; const L = T.info.light; if (!L) continue; const dx = f.x - fc.x, dz = f.z - fc.z; const d2 = dx * dx + dz * dz; const rng = Math.min(F.q === 'high' ? 90 : 60, Math.max(7, L.range_m * 1.5)); if (d2 > 160 * 160) continue; f._ls = f.F * Math.pow(Math.max(0.3, L.intensity_vs_campfire || 1), 0.6) / (d2 + 400); list.push(f); }
+    list.sort((a, b) => b._ls - a._ls);
+    for (const f of list) {
+      if (n >= mx) break; const T = f._T, L = T.info.light, e = Math.max(0, F.energy(f, T)); f.e = e; const rng = Math.max(7, Math.min(T.kind === 'blast' ? 110 : 60, L.range_m * 1.5));
+      const col = L.color || [1, 0.5, 0.1], I = Math.min(900, 260 * Math.pow(Math.max(0.3, L.intensity_vs_campfire || 1), 0.6) * Math.pow(f.F, 0.8) * (0.25 + 0.75 * Math.min(1.5, e))) * f.fade;
+      const cy = f.y + Math.min(6, (T.layers.flame ? T.layers.flame.size[1] : 2) * f.sc * 0.35);
+      lightWant('fw' + f.id, 'point', f.x, cy, f.z, col[0], col[1] * (0.85 + 0.15 * Math.min(1, e)), col[2], I, rng, 1.3, { glow: 0, pool: Math.min(rng * 0.25, 9), fl: Math.min(1.3, e), k: dk * f.fade }); n++;
+    }
+    return n;
+  };
+  /* ---- heat haze: every fire type's own descriptor feeds the DIST engine ---- */
+  F.hazeSources = 0;
+  F.haze = () => {
+    if (!DIST.live) return; let n = 0; const list = F.alive || [];
+    for (const f of list) {
+      if (!f.vis || n >= 28) continue; const T = f._T, H = T.info.haze; if (!H) continue; const e = Math.min(1.2, Math.max(0.15, f.e || 1)); const S = f.sc * Math.sqrt(f.F);
+      const k = Math.min(1, H.strength * Math.min(1, 0.4 + 0.6 * Math.min(1, f.F)) * (T.kind === 'blast' ? (f.state === 'fireball' ? 1 : f.state === 'plume' ? 0.7 : 0.4) : Math.min(1, e)) * f.fade);
+      if (k < 0.04) continue; DIST.haze(DIST.idOf(f), f.x, f.y + 0.4 + ((simT * H.rise_speed_mps) % 1.2), f.z, k, Math.max(0.8, H.height_m * S), Math.max(0.3, H.radius_m * S)); n++;
+    }
+    F.hazeSources = n;
+  };
+})();
+/*FW-END part1b*/
+/*FW-START part1c: owners (trees, patches, vehicles, boats, objects), per-frame tick*/
+(() => {
+  const F = FW, PH = ED.phone;
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  /* ---- trees: every tree in the game's `burning` list gets a crown (or trunk, or shrub) fire that follows that tree's burn counter ---- */
+  function treeFire(t) {
+    const kind = t.kind, gy = gnd(t.x, t.z);
+    const name = kind === 'shrub' ? 'shrub' : kind === 'palm' ? 'tree_trunk' : 'tree_crown';
+    const sc = kind === 'shrub' ? 0.7 + 0.4 * t.sc : kind === 'palm' ? 1.0 + 0.25 * t.sc : 0.52 + 0.3 * t.sc;
+    const f = F.spawn(name, t.x, gy + 0.05, t.z, { sc, F: 1, pri: 2, dur: Infinity, quads: (name === 'tree_crown') ? 2 : 1, state: (t.burn > 11 ? 'ignite' : 'ignite'),
+      own: { kind: 'tree', ref: t, endIn: () => t.burn, sync: (f) => { if (f.state === 'burn' || f.state === 'ignite' || f.state === 'grow') { if (t.dead || t.burn <= 0) { if (t.dead) { f.state = 'decay'; f.st = 0; if (!F.types[f.name] || !F.types[f.name].clips || !F.types[f.name].clips.decay) f.state = 'out'; } else F.extinguish(f); } } } } });
+    return f;
+  }
+  /* ---- hot patches (incendiary bombs, fire missions): a few fuel and grass fires over the area, for as long as the patch lasts ---- */
+  function patchFire(h) {
+    const n = Math.max(1, Math.min(PH ? 3 : 6, Math.round(h.r / 2.2))), fires = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * h.r * 0.85, x = h.x + Math.cos(a) * d, z = h.z + Math.sin(a) * d, fuel = i === 0;
+      const f = F.spawn(fuel ? 'oil_slick' : (Math.random() < 0.5 ? 'grass' : 'debris'), x, gnd(x, z) + 0.05, z, { sc: fuel ? Math.max(0.6, h.r / 4) : 1.1, F: 1, pri: 1.5, dur: Math.max(4, h.t), quads: fuel ? 2 : 1,
+        own: { kind: 'patch', ref: h, multi: true, sync: (f) => { if (!HEATP.includes(h) && f.state === 'burn') { f.state = 'decay'; f.st = 0; } } } });
+      if (f) fires.push(f);
+    }
+    h._fws = fires;
+  }
+  /* ---- vehicles: engine fire first, then the whole vehicle; wrecks burn on ---- */
+  const SMALLV = new Set(['jeep', 'technical', 'quad_atv', 'ambulance']);
+  function vehFire(v, engine) {
+    const small = /jeep|technical|quad|ambulance/i.test((v.sp && v.sp.name) || '') || (v.sp && v.sp.hp <= 200 && !v.sp.tracked);
+    const name = engine ? 'vehicle_engine' : (small ? 'vehicle_small' : 'vehicle');
+    const sc = engine ? 1 : (small ? 1.0 : 1.0);
+    const follow = (f) => { f.x = v.x; f.z = v.z; f.y = v.y + (engine ? 0.9 : 0.15); };
+    const f = F.spawn(name, v.x, v.y + (engine ? 0.9 : 0.15), v.z, { sc, F: 1, pri: 2.5, quads: (engine || small) ? 1 : 2, follow,
+      own: { kind: 'veh', ref: v, multi: true, endIn: () => v.dead ? 50 - (v.wreckT || 0) : 1e9,
+        sync: (f) => { if (!BVL.includes(v)) { F.kill(f, true); return; } if (!v.burn && !v.dead && (f.state === 'burn' || f.state === 'grow' || f.state === 'ignite')) F.extinguish(f); else if (engine && v.dead && f.state === 'burn') { f.state = 'decay'; f.st = 0; } } } });
+    if (f) { f.black = true; }
+    return f;
+  }
+  function vehSync() {
+    for (const v of BVL) {
+      if (v.heli && !v.dead && !v.burn) continue; const burning = (v.burn > 0) || (v.dead && v.wreck && (v.wreckT || 0) < 48);
+      if (!burning) { if (v._fwe && v._fwe.state === 'burn') F.extinguish(v._fwe); continue; }
+      if (!v._fwe || v._fwe.dead) { if (!v._fwe || !v._fwx) { v._fwe = vehFire(v, true); v._fwx = true; } }
+      if ((v.burn > 4 || v.dead) && (!v._fwf || v._fwf.dead) && !v._fwNo) { v._fwf = vehFire(v, false); }
+    }
+  }
+  /* ---- boats: deck fires scaled by how badly the boat burns; they die when the crew put it out ---- */
+  function boatSync() {
+    for (const bt of boats) {
+      const want = bt.fire > 0.05 && !(bt.sunk && bt.sinkT > 5);
+      if (want) {
+        const L = bt.sp.L || 12, nf = Math.max(1, Math.min(PH ? 2 : 4, Math.ceil(bt.fire * L / 14))); bt._fwb = bt._fwb || [];
+        bt._fwb = bt._fwb.filter(f => !f.dead);
+        while (bt._fwb.length < nf) {
+          const k = bt._fwb.length, lx = (k - (nf - 1) / 2) * Math.min(L * 0.3, 7), lz = rnd(-0.2, 0.2) * (bt.sp.B || 4), ly = deckLy(bt, lx, lz) + 0.2;
+          const f = F.spawn('boat_deck', 0, 0, 0, { sc: Math.max(0.5, Math.min(1.5, L / 22)), F: 0.6 + bt.fire, pri: 2.5, quads: 2, dur: Infinity, follow: (f) => { const w = worldOfDeck(bt, lx, ly, lz, tv); f.x = w.x; f.y = w.y; f.z = w.z; f.F = 0.55 + Math.min(1, bt.fire) * 0.9; },
+            own: { kind: 'boat', ref: bt, multi: true, endIn: () => 1e9, sync: (f) => { if (!(bt.fire > 0.05) && f.state === 'burn') F.extinguish(f); else if (bt.sunk && bt.sinkT > 4 && f.state === 'burn') { f.state = 'decay'; f.st = 0; } } } });
+          if (!f) break; f.black = true; bt._fwb.push(f);
+        }
+      }
+    }
+  }
+  const tv = new THREE.Vector3();
+  /* ---- burning objects (wood) ---- */
+  let objT = 0;
+  function objSync(dt) {
+    objT -= dt; if (objT > 0) return; objT = 0.25;
+    for (const o of objects) {
+      if (o.gone || !(o.burn > 0) || o._fw) continue; if (o._fwTried && simT - o._fwTried < 1) continue; o._fwTried = simT;
+      const p = o.body.position, big = Math.max(0.3, Math.min(2.2, Math.cbrt(o.vol || 0.2) * 1.6));
+      F.spawn(big > 1.2 ? 'debris' : 'campfire', p.x, p.y, p.z, { sc: big > 1.2 ? big : big * 1.4, F: 1, pri: 1.2, follow: (f) => { const b = o.body.position; f.x = b.x; f.y = b.y - 0.1; f.z = b.z; }, quads: 1,
+        own: { kind: 'obj', ref: o, endIn: () => o.burn, sync: (f) => { if (o.gone || !(o.burn > 0)) { if (f.state === 'burn' || f.state === 'grow' || f.state === 'ignite') { f.state = 'decay'; f.st = 0; } } } } });
+    }
+  }
+  F.sync = (dt) => {
+    for (const t of burning) if (!t._fw && !t.dead && t.burn > 0) treeFire(t);
+    for (const h of HEATP) if (!h._fws && !h.fw) patchFire(h);
+    vehSync(); boatSync(); objSync(dt);
+    if (F.syncMore) F.syncMore(dt);
+  };
+  F.tick = (dt) => {
+    if (!F.on) return; F.q = F.eff();
+    if (F.q !== 'off') { if (!F.ready) F.ensureAtlas(); if (F.ready) { if (F.pre) F.pre(dt); F.sync(dt); } }
+    F.frame(dt);
+    if (F.q !== 'off' && !F.legacyUntil) F.haze();
+  };
+  /* the old particle fires step aside only for what FW is really drawing (F.drawn), so a slow atlas load or Fire quality Off keeps the old look */
+  F.legacy = () => F.q === 'off' || !!F.legacyUntil || !F.ready;
+})();
+/*FW-END part1c*/
+/*FW-START part1x: test hooks*/
+window.__sc.FW = FW;
+/*FW-END part1x*/
+/*FW-START part1y: qa handles*/
+Object.assign(window.__sc, { igniteTree, igniteTreesNear, burning, objects, boats, props, lavaVents, fxS, fxG, puffSmoke, heightAt, camera, scene, renderer, extinguishTree, windAt, wind });
+/*FW-END part1y*/
+/*FW-START part1d: ground fires (spot fires, spreading fronts), buildings, spread rules*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone, G = F.G = { fronts: [], spots: [], bld: [], bldT: 0, stats: { fronts: 0, spots: 0, builds: 0 } };
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  const smAt = (x, z) => { try { const k = Math.round(W2G(z)) * TN + Math.round(W2G(x)); return Math.min(1, SM[k] || 0); } catch (e) { return 0; } };
+  const flam = (x, z) => { const h = heightAt(x, z); if (h < 0.5) return 0; const s = surfaceAt(x, z); return s === 'grass' ? 1 : s === 'dirt' ? 0.45 : 0; };
+  F.flam = flam;
+  const dry = (x, z) => 1 - 0.85 * smAt(x, z);
+  const CAPF = () => F.cap().front;
+  /* ---- spot fires: a small fire on flammable ground. It grows, and in dry ground with some wind it turns into a spreading front ---- */
+  F.igniteGround = (x, z, o) => {
+    o = o || {}; if (F.q === 'off' || !F.ready) return null; const fl = flam(x, z); if (!fl && !o.force) return null; if (wx.rainAmt > 0.55 && !o.force) return null;
+    for (const s of G.spots) if (!s.fire.dead && Math.hypot(s.x - x, s.z - z) < 2.0) return s.fire;
+    for (const fr of G.fronts) { const lx = x - fr.x0 - fr.ux * fr.d, lz = z - fr.z0 - fr.uz * fr.d, lon = lx * fr.ux + lz * fr.uz, lat = lx * fr.nx + lz * fr.nz; if (lon < 1 && lon > -9 && Math.abs(lat) < fr.hw + 1.5) return null; }
+    if (G.spots.length >= CAPF() * 3) return null;
+    const fire = F.spawn('spot_fire', x, gnd(x, z) + 0.05, z, { sc: o.sc || 1.5, F: 1, pri: 1.2, dur: o.dur || rnd(14, 22), own: { kind: 'spot', multi: true, endIn: () => 1e9 } });
+    if (!fire) return null; G.stats.spots++; G.spots.push({ x, z, fire, t: 0, convert: o.convert !== false, ahead: !!o.ahead, dry: dry(x, z) * fl }); return fire;
+  };
+  /* ---- fronts ---- */
+  const COLW = 1.5;
+  function makeFront(x, z, o) {
+    if (G.fronts.length >= CAPF()) return null;
+    let ux = F.wind.x, uz = F.wind.z; const ms = Math.hypot(ux, uz); if (ms < 0.5) { const a = Math.random() * 6.283; ux = Math.cos(a); uz = Math.sin(a); } else { ux /= ms; uz /= ms; }
+    const fr = { x0: x, z0: z, ux, uz, nx: -uz, nz: ux, d: 0, age: 0, hw: 0.9, cols: [], dry: o.dry === undefined ? 1 : o.dry, spotT: rnd(2, 4), burnT: 0, lickT: 0, hpT: 0, ashT: 0, speed: 0.2, calm: ms < 0.5, maxHW: PH ? 5 : 10, lastAlive: 0 };
+    fr.fuelBase = (28 + Math.random() * 40) * (0.6 + 0.4 * fr.dry);
+    for (const lat of [-0.75, 0.75]) fr.cols.push(newCol(fr, lat));
+    G.fronts.push(fr); G.stats.fronts++; F.need('front_lead'); F.need('front_body'); F.need('front_trail'); F.need('lick'); F.needStrip();
+    return fr;
+  }
+  const newCol = (fr, lat) => ({ lat, fuel: fr.fuelBase * (0.7 + Math.random() * 0.6), dead: false, td: 0, ph: Math.random() * 3, vi: (Math.random() * 3) | 0, lx: 0, lz: 0, ly: 0, a: 1 });
+  F.makeFront = makeFront;
+  /* a front's spread speed in m/s: wind, dry ground, slope; rain slows it */
+  function frontSpeed(fr) {
+    const px = fr.x0 + fr.ux * fr.d, pz = fr.z0 + fr.uz * fr.d, h0 = heightAt(px, pz), h1 = heightAt(px + fr.ux * 4, pz + fr.uz * 4), sl = (h1 - h0) / 4;
+    let v = 0.1 + 0.17 * F.windMs; v *= 0.5 + 0.5 * dry(px, pz); v *= Math.max(0.5, Math.min(2, 1 + 2.5 * sl)); if (wx.rainAmt > 0.3) v *= 0.25; if (fr.calm) v = Math.min(v, 0.22);
+    return Math.max(0.08, Math.min(2.5, v));
+  }
+  /* strip decal texture (burnt ground with breathing embers) */
+  F.needStrip = () => {
+    if (G.strip || G.stripP) return; G.stripP = R.loadTex('assets/fire/fire_burnt_strip.webp').then(tex => { G.strip = R.combo({ key: 'fire:strip', tex, cols: 4, rows: 4, fw: 128, fh: 64, anchor: [0.5, 0.5], mode: 0, order: 5.6, rule: 'vis' }); }).catch(() => { });
+  };
+  const tileT = (name) => { const T = F.need(name); return T && T.state === 'ready' ? T : null; };
+  const _od = { q: 0, rot: 0, stretch: 1, loop: true, blend: false, cross: false, yaw: 0, noSmoke: false, fire: null, add: 0.5 };
+  const hardFire = () => G.fronts.length + G.spots.length;
+  F.syncMore = (dt) => {
+    for (let i = G.spots.length - 1; i >= 0; i--) {                              // spot fires: merge into a passing front, or grow into one
+      const s = G.spots[i], f = s.fire; s.t += dt; if (f.dead) { G.spots.splice(i, 1); continue; }
+      let merged = false; for (const fr of G.fronts) { const lx = s.x - fr.x0 - fr.ux * fr.d, lz = s.z - fr.z0 - fr.uz * fr.d, lon = lx * fr.ux + lz * fr.uz, lat = lx * fr.nx + lz * fr.nz; if (lon < 1.2 && lon > -6 && Math.abs(lat) < fr.hw + 1) merged = true; }
+      if (merged && f.state === 'burn') { f.state = 'decay'; f.st = 0; continue; }
+      if (s.convert && s.t > 5 && f.state === 'burn' && s.dry > 0.2 && G.fronts.length < CAPF() && (F.windMs > 1.2 || Math.random() < dt * 0.05)) { s.convert = false; makeFront(s.x, s.z, { dry: s.dry }); }
+    }
+    for (let i = G.fronts.length - 1; i >= 0; i--) { const fr = G.fronts[i]; if (!stepFront(fr, dt)) { G.fronts.splice(i, 1); } }
+    // burning trees light the grass under them (downwind), and fires heat nearby buildings
+    if (F.q !== 'off') { G.treeT = (G.treeT || 0) - dt; if (G.treeT <= 0) { G.treeT = 0.7; treeToGround(); } }
+    G.bldT -= dt; if (G.bldT <= 0) { G.bldT = 1.0; buildingSpread(); }
+    for (let i = G.bld.length - 1; i >= 0; i--) { const b = G.bld[i]; b.t += dt; if (b.t > b.life + 6) G.bld.splice(i, 1); }
+  };
+  function treeToGround() {
+    for (const t of burning) {
+      if (t.dead || !t._fw || t._fw.state !== 'burn' || t._fwg) continue; if (t._fw.age < 3.5) continue; t._fwg = true;
+      if (Math.random() < 0.55 && F.windMs > 0.8) { const a = Math.atan2(F.wind.z, F.wind.x) + rnd(-0.6, 0.6), d = rnd(2, 4.5); F.igniteGround(t.x + Math.cos(a) * d, t.z + Math.sin(a) * d, { convert: true }); }
+    }
+  }
+  function stepFront(fr, dt) {
+    fr.age += dt; fr.speed = frontSpeed(fr); fr.d += fr.speed * dt; fr.hw = Math.min(fr.maxHW, fr.hw + dt * (0.12 + 0.28 * fr.speed));
+    while (fr.cols.length * COLW * 0.5 < fr.hw) { const k = fr.cols.length; fr.cols.push(newCol(fr, k % 2 ? 0.75 + COLW * (k >> 1) : -0.75 - COLW * (k >> 1))); }
+    let alive = 0; const trees = fr.cols;
+    for (const c of fr.cols) {
+      const px = fr.x0 + fr.ux * fr.d + fr.nx * c.lat, pz = fr.z0 + fr.uz * fr.d + fr.nz * c.lat; c.lx = px; c.lz = pz; c.ly = gnd(px, pz);
+      if (!c.dead) { c.fuel -= fr.speed * dt; if (c.fuel <= 0 || !flam(px, pz) || wx.rainAmt > 0.7 && Math.random() < dt * 0.4) { c.dead = true; c.td = fr.age; } else alive++; }
+      c.a = c.dead ? Math.max(0, 1 - (fr.age - c.td) / 4.5) : Math.min(1, fr.age / 1.2);
+    }
+    if (alive) fr.lastAlive = fr.age; if (!alive && fr.age - fr.lastAlive > 5) return false; if (fr.age > 400) return false;
+    // effects: heat on the ground (people and AI avoid it), flammables in the lead zone, trees, buildings
+    fr.burnT -= dt; if (fr.burnT <= 0) {
+      fr.burnT = 0.6; let k = 0;
+      for (const c of fr.cols) { if (c.dead) continue; if ((k++ & 1) === 0) { try { heatGT(c.lx, c.lz, 1.7, 330); } catch (e) { } } }
+      const lead = fr.d; const hw = fr.hw + 1.4;
+      for (const t of trees === 0 ? [] : window.__sc.trees) { if (t.dead || t.burn > 0) continue; const dx = t.x - fr.x0 - fr.ux * lead, dz = t.z - fr.z0 - fr.uz * lead; if (Math.abs(dx) > 14 || Math.abs(dz) > 14) continue; const lon = dx * fr.ux + dz * fr.uz, lat = dx * fr.nx + dz * fr.nz; if (Math.abs(lat) < hw && lon > -2 && lon < 2.4 && Math.random() < 0.55) igniteTree(t); }
+      for (const o of objects) { if (o.gone || !o.m || !o.m.flam || o.burn > 0) continue; const p = o.body.position, dx = p.x - fr.x0 - fr.ux * lead, dz = p.z - fr.z0 - fr.uz * lead; if (Math.abs(dx) > 12 || Math.abs(dz) > 12) continue; const lon = dx * fr.ux + dz * fr.uz, lat = dx * fr.nx + dz * fr.nz; if (Math.abs(lat) < hw && lon > -2 && lon < 3) o.T += 140; }
+      F.igniteNear(fr.x0 + fr.ux * lead, fr.z0 + fr.uz * lead, fr.hw + 2.5, 0.5);
+    }
+    fr.hpT -= dt; if (fr.hpT <= 0) { fr.hpT = 1.2; HEATP.push({ x: fr.x0 + fr.ux * (fr.d - 1), z: fr.z0 + fr.uz * (fr.d - 1), r: fr.hw + 1.2, p: 7, t: 1.4, fw: true }); }
+    fr.ashT -= dt; if (fr.ashT <= 0) { fr.ashT = 0.7; paintAsh(fr); }
+    fr.lickT -= dt; if (fr.lickT <= 0 && F.q === 'high') { fr.lickT = rnd(0.5, 1.8); const lat = rnd(-fr.hw, fr.hw), x = fr.x0 + fr.ux * (fr.d + 0.6) + fr.nx * lat, z = fr.z0 + fr.uz * (fr.d + 0.6) + fr.nz * lat; if (flam(x, z) && F.fires.length < F.cap().fires) { const l = F.spawn('lick', x, gnd(x, z) + 0.05, z, { state: 'shot', sc: rnd(0.9, 1.5), pri: 0.5, noLight: true, noSmoke: true }); if (l) l.fadeOut = 0; } }
+    fr.spotT -= dt; if (fr.spotT <= 0) { fr.spotT = F.windMs > 4 ? rnd(2, 5) : rnd(6, 14); if (F.windMs > 3 && alive) { const lat = rnd(-fr.hw, fr.hw), ahead = rnd(2.5, 2.5 + Math.min(8, F.windMs * 1.1)), x = fr.x0 + fr.ux * (fr.d + ahead) + fr.nx * lat, z = fr.z0 + fr.uz * (fr.d + ahead) + fr.nz * lat; F.igniteGround(x, z, { ahead: true, convert: false, dur: 12, sc: 1.2 }); } }
+    return true;
+  }
+  function paintAsh(fr) {
+    try { for (const c of fr.cols) { if (c.dead && fr.age - c.td > 4) continue; const x = fr.x0 + fr.ux * (fr.d - 3) + fr.nx * c.lat, z = fr.z0 + fr.uz * (fr.d - 3) + fr.nz * c.lat; const gx = Math.round(W2G(x)), gz = Math.round(W2G(z)); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const k = (gz + a) * TN + gx + b; if (k > 0 && k < TN * TN) ashData[k] = Math.max(ashData[k], 150); } } ashTex.needsUpdate = true; } catch (e) { }
+  }
+  /* ---- drawing the fronts: three rows of tiles per column (lead, body, trail) and a smouldering strip behind ---- */
+  F.afterDraw = (dt, alive) => {
+    if (!G.fronts.length) return; const L = tileT('front_lead'), B = tileT('front_body'), T = tileT('front_trail'); if (!L || !B || !T) return;
+    const cam = camera.position, high = F.q === 'high', Kp = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    G.drawn = 0;
+    for (const fr of G.fronts) {
+      const mx = fr.x0 + fr.ux * fr.d, mz = fr.z0 + fr.uz * fr.d, dc = Math.hypot(mx - cam.x, mz - cam.z); if (dc > 520 + fr.hw * 6) continue;
+      const fuelK = 0.9 + 0.35 * Math.min(1, fr.dry) + 0.3 * Math.min(1, F.windMs / 8), anim = dc < 160;
+      for (const c of fr.cols) {
+        const cd = Math.hypot(c.lx - cam.x, c.lz - cam.z); if (cd > 520) continue; const sc = fuelK * (0.9 + 0.2 * Math.sin(c.ph * 3 + fr.age * 0.7)), t = anim ? fr.age + c.ph : c.ph;
+        const rows = [[L, 0, 1.0], [B, 1.7, 1.0], [T, 4.4, 1.0]];
+        for (const [TT, off, kk] of rows) {
+          if (c.dead && TT === L) continue; if (c.dead && TT === B && fr.age - c.td > 2.5) continue;
+          if (fr.d - off < -0.8) continue; const x = c.lx - fr.ux * off, z = c.lz - fr.uz * off; const h = heightAt(x, z); if (h < 0.4) continue;
+          const a = c.a * kk * (TT === T ? (c.dead ? c.a : 1) : 1) * Math.min(1, Math.max(0, (fr.d - off + 0.8) / 1.2));
+          if (a < 0.02) continue; const clip = TT.clips.loop[(c.vi + (TT === L ? 0 : TT === B ? 1 : 2)) % TT.clips.loop.length];
+          _od.loop = true; _od.blend = high; _od.noSmoke = !high && TT !== T; _od.q = 0; _od.lean = 1; F.pushClip(TT, clip, t + (TT === B ? 0.31 : TT === T ? 0.62 : 0), x, h + 0.04, z, sc, 1, 1, a, (c.vi & 1) ? -1 : 1, _od); G.drawn++;
+        }
+        if (G.strip && !c.dead) { const off = 7.5, x = c.lx - fr.ux * off, z = c.lz - fr.uz * off; if (fr.d - off > -1 && heightAt(x, z) > 0.4) { const fi = ((fr.age * 6 + c.ph * 5) | 0) % 16, edge = Math.abs(c.lat) > fr.hw - 1.2 ? 0.45 : 1; R.push(G.strip, x, heightAt(x, z) + 0.06, z, 2.1, 1.1, fi, fi, 0, 0.5 * edge * c.a, 1, 3, Math.atan2(fr.nx, fr.nz) + 1.5708, 1, 1, 1, 1, 0, 0, 0); } }
+      }
+    }
+  };
+  /* ---- buildings: windows, a doorway and the roof catch fire and burn for a minute or two ---- */
+  const bldList = () => { const out = []; for (const p of props) { if (p.gone || !p.item || !p.mesh) continue; const id = p.item.id || ''; if (/^b-/.test(id) && p.item.box && !/tank|silo|tower/.test(id)) out.push(p); } return out; };
+  F.igniteBuilding = (p, o) => {
+    o = o || {}; if (F.q === 'off' || !F.ready || !p || p._fwBurn && simT - p._fwBurn < 150) return false; if (G.bld.length >= (PH ? 2 : 5)) return false;
+    p._fwBurn = simT; const [hx, hh, hz] = p.item.box, yaw = p.mesh.rotation.y, c = Math.cos(yaw), s = Math.sin(yaw), gy = gnd(p.x, p.z), big = Math.max(hx, hz);
+    const rec = { p, t: 0, life: 70 + Math.random() * 50 + big * 3, fires: [] }; G.bld.push(rec); G.stats.builds++;
+    const place = (lx, lz) => ({ x: p.x + lx * c + lz * s, z: p.z - lx * s + lz * c });
+    const nWin = Math.max(2, Math.min(PH ? 3 : 6, Math.round(big / 2.2)));
+    const mk = (name, lx, lz, y, sc, delay, dur, extra) => { const q = place(lx, lz); const f = F.spawn(name, q.x, y, q.z, Object.assign({ sc, F: 1, pri: 2, dur: dur, quads: name === 'roof' ? 2 : 1 }, extra || {})); if (f) { f.warm = 0.5; rec.fires.push(f); if (delay > 0) { f.alphaK = 0; f.hold = delay; } } return f; };
+    for (let i = 0; i < nWin; i++) { const side = Math.random() < 0.5 ? 1 : -1, alongX = Math.random() < 0.5; const lx = alongX ? rnd(-hx * 0.8, hx * 0.8) : side * (hx + 0.35), lz = alongX ? side * (hz + 0.35) : rnd(-hz * 0.8, hz * 0.8); mk('window', lx, lz, gy + Math.min(hh * 0.35, 1.2), 0.75 * Math.min(1.3, 0.6 + big / 10), i * 2.5, rec.life - i * 3); }
+    mk('doorway', 0, hz + 0.4, gy + 0.05, 0.8, 1.5, rec.life);
+    mk('roof', 0, 0, gy + hh * 0.85, Math.max(0.35, big * 2 / 12), 7 + Math.random() * 6, rec.life - 8);
+    rec.fires.forEach(f => { f.own = null; });
+    F.onBuilding && F.onBuilding(rec); return true;
+  };
+  /* delayed fires of a building start after their delay: handled in the per-frame pre step */
+  F.pre = (dt) => { for (const b of G.bld) for (const f of b.fires) if (f.hold > 0) { f.hold -= dt; if (f.hold <= 0) { f.alphaK = undefined; f.st = 0; f.state = 'ignite'; } else { f.alphaK = 0; f.st = 0; } } };
+  /* fires close to a building may set it alight: the front, burning vehicles, fuel pools, flaming debris, burning trees */
+  F.igniteNear = (x, z, r, p) => {
+    if (F.q === 'off') return false; G.bldC = G.bldC || { t: -9, l: [] }; if (simT - G.bldC.t > 4) { G.bldC.t = simT; G.bldC.l = bldList(); }
+    for (const b of G.bldC.l) { const [hx, , hz] = b.item.box; const d = Math.hypot(b.x - x, b.z - z) - Math.max(hx, hz); if (d < r && Math.random() < p) { if (F.igniteBuilding(b)) return true; } } return false;
+  };
+  function buildingSpread() {
+    for (const f of F.fires) { if (f.dead || f.state !== 'burn' || !f.vis) continue; if (f.name === 'vehicle' || f.name === 'pool' || f.name === 'oil_slick' || f.name === 'boat_deck') F.igniteNear(f.x, f.z, 4 + 2 * f.sc, 0.12 * f.F); else if (f.name === 'tree_crown' && f.age > 5) F.igniteNear(f.x, f.z, 3.5, 0.06); }
+  }
+  F.G.cap = CAPF;
+  F.afters.push((dt, alive) => F.afterDraw(dt, alive));
+})();
+/*FW-END part1d*/
+/*FW-START part1e: water, rain, soot column, lava, settings*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone;
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  /* ---- water on fire: how much a fire of each kind needs before it goes out (water-seconds; scaled by its fuel load) ---- */
+  const THR = { campfire: 1.5, torch: 1, flare: 2, gas: 99, gas_jet: 99, grass: 1.5, spot_fire: 1, debris: 2.5, barrel: 3, shrub: 3, tree_trunk: 5, tree_crown: 7, vehicle_engine: 3, vehicle_small: 5, vehicle: 8, boat_deck: 8, pool: 10, oil_slick: 12, window: 3, doorway: 3, roof: 12, building: 12, splash_fire: 2, blast_small: 6, blast_medium: 9, blast_large: 14, blast_fuel: 14, blast_ground: 9 };
+  const burningState = (f) => f.state === 'burn' || f.state === 'grow' || f.state === 'ignite' || f.state === 'residue' || f.state === 'plume';
+  F.water = (x, z, r, amt, y) => {
+    if (F.q === 'off') return 0; let n = 0;
+    for (const f of F.fires) {
+      if (f.dead || !burningState(f)) continue; const t = THR[f.name]; if (!t || t > 50) continue; const reach = r + Math.min(6, 0.5 * f.sc * (f.name === 'building' || f.name === 'roof' ? 4 : 1));
+      if (Math.hypot(f.x - x, f.z - z) > reach) continue; if (y !== undefined && y > f.y + 25) continue;
+      f.hit += amt; n++; F.stats.waterHits = (F.stats.waterHits || 0) + 1;
+      if (f.hit > t * Math.max(0.5, f.F) && f.state !== 'extinguish') F.extinguish(f);
+    }
+    return n;
+  };
+  F.onExtinguish = (f) => {                                                    // the fire is out: tell the thing that owned it, make steam and the hiss
+    const o = f.own; if (o && o.ref) {
+      const r = o.ref;
+      if (o.kind === 'tree') { if (r.burn > 0) extinguishTree(r); }
+      else if (o.kind === 'veh') { r.burn = 0; r._fwNo = true; if (r._fwf && r._fwf !== f && !r._fwf.dead) F.extinguish(r._fwf); }
+      else if (o.kind === 'boat') { if (r.fire > 0.05) { r.fire = 0; r.fireT = 0; } }
+      else if (o.kind === 'obj') { r.burn = 0; r.T = Math.min(r.T || 0, 80); }
+      else if (o.kind === 'patch') { r.t = Math.min(r.t, 0.5); }
+    }
+    if (F.afterExtinguish) F.afterExtinguish(f);
+  };
+  /* rain puts out small fires slowly */
+  let rainT = 0;
+  const RAINK = { campfire: 6, torch: 3, flare: 6, grass: 5, spot_fire: 3, debris: 8, barrel: 12, shrub: 10, splash_fire: 4 };
+  F.rainTick = (dt) => {
+    rainT -= dt; if (rainT > 0) return; rainT = 1; const ra = wx.rainAmt; if (ra < 0.55) return;
+    for (const f of F.fires) { if (f.dead || !burningState(f)) continue; const k = RAINK[f.name]; if (!k) continue; f.hit += ra * 0.5; if (f.hit > k && f.state !== 'extinguish') F.extinguish(f); }
+  };
+  const _pre0 = F.pre;
+  F.pre = (dt) => { if (_pre0) _pre0(dt); F.rainTick(dt); };
+  /* ---- heavy black smoke: a soot column that widens as it rises and leans downwind, in three stacked sprites ---- */
+  F.soot = (f, al) => {
+    const T = F.need('smoke_column'); if (!T || T.state !== 'ready') return; const LY = T.layers.smoke, clip = T.clips.loop[f.vi % T.clips.loop.length]; if (!LY || !clip.smoke) return;
+    const fr = F.frameOf(clip.smoke, f.st * 0.9 + f.ph, true, true), base = f.sc * Math.sqrt(f.F), wl = F.wind, lk = Math.min(1, F.windMs * 0.09), A = F.amb, big = Math.min(1, f.F);
+    for (let k = 0; k < 3; k++) {
+      const s = base * (0.9 + k * 0.95), hgt = LY.size[1] * base * (0.45 + k * 1.15), dx = wl.x * lk * hgt * 0.5, dz = wl.z * lk * hgt * 0.5;
+      R.push(LY.combo, f.x + dx, f.y + hgt, f.z + dz, LY.size[0] * s, LY.size[1] * s, fr[0], fr[1], fr[2], al * (0.55 - k * 0.12) * big, f.flip, 0, 0, 1, A.r * 0.55, A.g * 0.55, A.b * 0.55, 0, wl.x * lk * LY.size[1] * s * 0.5, wl.z * lk * LY.size[1] * s * 0.5);
+    }
+  };
+  /* ---- lava: ground fires where lava meets dry grass ---- */
+  let lavaN = 0;
+  F.lavaCell = (x, z, k) => {
+    if (F.q === 'off' || !F.ready) return; lavaN++; if (lavaN % 5) return;
+    for (let a = 0; a < 3; a++) { const ang = Math.random() * 6.283, d = 2.5 + Math.random() * 1.5, px = x + Math.cos(ang) * d, pz = z + Math.sin(ang) * d; if (F.flam(px, pz) > 0.5 && wx.rainAmt < 0.5) { F.igniteGround(px, pz, { convert: true }); break; } }
+    if (F.lavaWet) F.lavaWet(x, z);
+  };
+  const ventT = new WeakMap();
+  F.lavaVent = (v, dt) => {
+    if (F.q === 'off' || !F.ready) return; let t = (ventT.get(v) || 0) - dt; if (t <= 0) { t = rnd(3, 6); const a = Math.random() * 6.283, d = rnd(3, 7), px = v.x + Math.cos(a) * d, pz = v.z + Math.sin(a) * d; F.igniteGround(px, pz, { convert: true }); igniteTreesNear(px, pz, 2); if (F.lavaWet) F.lavaWet(v.x, v.z); } ventT.set(v, t);
+  };
+  /* ---- settings: Fire quality ---- */
+  const paintFire = () => {
+    const b = $('mFireQ'); if (!b) return; const lab = { high: 'High', low: 'Low', off: 'Off' }, eff = F.eff();
+    b.firstChild.nodeValue = 'Fire quality: ' + lab[F.pref]; b.setAttribute('aria-pressed', String(F.pref !== 'off'));
+    b.querySelector('small').textContent = F.pref === 'off' ? 'Off: the old simple fire is drawn.' : eff !== F.pref ? 'Low for now, because your device asks for less motion or play was slow.' : F.pref === 'low' ? 'Lighter flames and smoke. Saves battery.' : 'Realistic flames, smoke, steam and fog.';
+  };
+  F.paintFire = paintFire;
+  const btn = $('mFireQ');
+  if (btn) { btn.addEventListener('click', () => { const nx = { high: 'low', low: 'off', off: 'high' }[F.pref] || 'high'; F.setPref(nx); paintFire(); toast('Fire quality: ' + ({ high: 'High', low: 'Low', off: 'Off' })[nx]); }); paintFire(); }
+  F.applyQ(); 
+})();
+/*FW-END part1e*/
+/*FW-START part1f: fire sound (FIRE-SOUND-SPEC.md): loops by size and fuel, near/far crossfade, interior twin in the station, one-shots with voice limits*/
+(() => {
+  const F = FW, PH = ED.phone, S = F.snd = { loops: new Map(), keys: new Set(), duck: 1, duckT: 0, last: {}, acc: 0, tickT: 0, n: { loops: 0, shots: 0 }, played: {} };
+  const CLS = { campfire: 'camp', barrel: 'camp', torch: 'camp', flare: 'camp', spot_fire: 'camp', debris: 'camp', lick: null, gas: 'gas', gas_jet: 'gas', shrub: 'medium', tree_trunk: 'tree', tree_crown: 'tree', vehicle_engine: 'medium', window: 'medium', doorway: 'medium', splash_fire: 'medium', vehicle: 'vehicle', vehicle_small: 'vehicle', boat_deck: 'vehicle', pool: 'pool', oil_slick: 'pool', grass: 'grass', building: 'large', roof: 'large', blast_small: 'medium', blast_medium: 'large', blast_large: 'large', blast_fuel: 'pool', blast_ground: 'large', debris_slow: null, debris_med: null, debris_fast: null, front_lead: 'grass' };
+  const REF = { camp: 3, medium: 5, large: 12, vehicle: 6, pool: 9, grass: 8, tree: 6, gas: 2 };
+  const XF = { camp: [12, 40], medium: [20, 64], large: [45, 144], vehicle: [22, 72], pool: [32, 104], grass: [25, 80], tree: [22, 72] };
+  const NEARMAX = { camp: 40, medium: 64, large: 144, vehicle: 72, pool: 104, grass: 80, tree: 72, gas: 30 }, FARMAX = { camp: 40, medium: 75, large: 220, vehicle: 110, pool: 160, grass: 130, tree: 100 };
+  const WOOD = new Set(['building', 'roof', 'window', 'doorway', 'tree_trunk', 'tree_crown', 'shrub', 'debris', 'campfire']);
+  const SMALLN = new Set(['campfire', 'barrel', 'torch', 'flare', 'spot_fire', 'gas', 'gas_jet', 'grass', 'debris', 'shrub', 'vehicle_engine', 'window', 'doorway', 'lick', 'splash_fire', 'tree_trunk']);
+  const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const Lis = () => { const L = Snd.L; return L ? L : { x: camera.position.x, z: camera.position.z, rx: 1, rz: 0, y: camera.position.y }; };
+  const ready = () => Snd.ready && Snd.on && Snd.ctx && Snd.ctx.state === 'running';
+  /* ---- one-shots: stem families, minimum gap and a voice class cap ---- */
+  const SH = {
+    pop: ['fire_pop_ember', 0.11, 'fwpop', 3], spark: ['fire_spark', 0.09, 'fwspark', 3], log_crack: ['fire_log_crack', 0.35, 'fwcrack', 2], beam_creak: ['fire_beam_creak', 3.5, 'fwcreak', 1], glass: ['fire_glass', 0.7, 'fwglass', 2],
+    flare_small: ['fire_flare_small', 0.9, 'fwflare', 2], flare_medium: ['fire_flare_medium', 1.5, 'fwflare', 2], flare_large: ['fire_flare_large', 3, 'fwflareL', 1], ignite_soft: ['fire_ignite_soft', 0.6, 'fwign', 2], ignite_large: ['fire_ignite_large', 2.5, 'fwignL', 1],
+    tank_burst: ['fire_tank_burst', 1.5, 'fwtank', 2], lick: ['fire_lick', 0.45, 'fwlick', 3], collapse: ['fire_collapse', 6, 'fwcol', 1], clatter: ['fire_clatter', 0.9, 'fwclat', 2], water_short: ['fire_water_hiss_short', 0.25, 'fwhiss', 3], water_long: ['fire_water_hiss_long', 1.2, 'fwhissL', 2],
+    out_fade: ['fire_out_fade', 0.8, 'fwout', 2], sizzle: ['fire_sizzle', 1.2, 'fwsizz', 2],
+  };
+  const FARSTEM = { flare_large: 'fire_flare_large_far', tank_burst: 'fire_tank_burst_far', collapse: 'fire_collapse_far' };
+  const MAXD = { pop: 40, spark: 35, log_crack: 70, beam_creak: 80, glass: 90, flare_small: 60, flare_medium: 110, flare_large: 220, ignite_soft: 60, ignite_large: 220, tank_burst: 260, lick: 45, collapse: 300, clatter: 60, water_short: 80, water_long: 100, out_fade: 70, sizzle: 30 };
+  let capsSet = false;
+  F.sndEv = (kind, x, z, o) => {
+    if (!ready()) return null; o = o || {}; const d = SH[kind]; if (!d) return null;
+    if (!capsSet) { capsSet = true; for (const k in SH) { const e = SH[k]; if (Snd.caps && Snd.caps[e[2]] === undefined) Snd.caps[e[2]] = e[3]; } }
+    const L = Lis(), dist = Math.hypot(x - L.x, z - L.z); if (dist > (MAXD[kind] || 100) * (FARSTEM[kind] ? 2.6 : 1)) return null;
+    let stem = d[0]; if (FARSTEM[kind] && dist > 150) stem = FARSTEM[kind];
+    S.n.shots++; S.played[kind] = (S.played[kind] || 0) + 1;
+    return Snd.fx(stem, x, z, { gain: o.gain === undefined ? 1 : o.gain, gap: d[1], cls: d[2], y: o.y, delay: o.delay, q: true });
+  };
+  F.sndEvAt = (kind, f, o) => F.sndEv(kind, f.x, f.z, Object.assign({ y: f.y + 1 }, o));
+  /* ---- lifecycle events ---- */
+  const _spawn = F.spawn;
+  F.afterExtinguish = ((prev) => (f) => {
+    if (prev) prev(f); const big = ['building', 'roof', 'vehicle', 'pool', 'oil_slick', 'boat_deck', 'tree_crown', 'blast_large', 'blast_fuel', 'blast_medium'].includes(f.name);
+    if (f.hit > 0) F.sndEvAt(big ? 'water_long' : 'water_short', f, { gain: 0.9 });
+    F.sndEvAt('out_fade', f, { delay: 0.4, gain: big ? 1 : 0.8 }); F.sndEvAt('sizzle', f, { delay: 1.6, gain: 0.8 });
+  })(F.afterExtinguish);
+  F.onIgnite = (f) => {
+    if (/^tree/.test(f.name) || f.name === 'shrub' || f.name === 'lick' || /^debris_/.test(f.name)) return;
+    const big = ['pool', 'oil_slick', 'blast_fuel', 'vehicle', 'boat_deck', 'building', 'roof'].includes(f.name);
+    if (big) { F.sndEvAt('ignite_large', f, { gain: 0.9 }); S.duck = 0.45; S.duckT = 1.2; } else if (f.name !== 'spot_fire' || Math.random() < 0.5) F.sndEvAt('ignite_soft', f, { gain: 0.8 });
+  };
+  /* ---- loops: cluster the fires, pick the nearest few classes, crossfade near and far ---- */
+  const cl = new Map();
+  function clusters() {
+    cl.clear(); const L = Lis();
+    const add = (cls, x, z, str, n) => {
+      if (!cls) return; const cx = Math.round(x / 15), cz = Math.round(z / 15), key = cls + ':' + cx + ':' + cz; let c = cl.get(key);
+      if (!c) { c = { key, cls, x: 0, z: 0, w: 0, n: 0, str: 0 }; cl.set(key, c); } c.x += x * (str + 0.05); c.z += z * (str + 0.05); c.w += str + 0.05; c.n += n; c.str = Math.max(c.str, str);
+    };
+    for (const f of F.alive || []) {
+      if (f.dead || !(f.state === 'burn' || f.state === 'grow' || f.state === 'decay' || f.state === 'residue' || f.state === 'plume' || f.state === 'fireball' || f.state === 'ignite')) continue;
+      let cls = CLS[f.name]; if (!cls) continue; const T = f._T; const e = Math.max(0.2, Math.min(1.1, f.e || 1)); const ph = f.state === 'ignite' ? 0.25 : f.state === 'grow' ? 0.65 : f.state === 'decay' ? 0.5 : 1;
+      add(cls, f.x, f.z, Math.min(1, Math.sqrt(f.F)) * ph * (0.6 + 0.4 * e) * f.fade, 1);
+    }
+    if (F.G) for (const fr of F.G.fronts) { let n = 0; for (const c of fr.cols) if (!c.dead) n++; if (n) add('grass', fr.x0 + fr.ux * fr.d, fr.z0 + fr.uz * fr.d, Math.min(1, 0.4 + n * 0.12), Math.max(1, n >> 1)); }
+    for (const c of cl.values()) { c.x /= c.w; c.z /= c.w; c.d = Math.hypot(c.x - L.x, c.z - L.z); if (c.cls === 'medium' && c.n > 12) c.cls = 'large'; c.pr = c.str * (REF[c.cls] + 4) / (c.d + REF[c.cls]); }
+    return [...cl.values()].sort((a, b) => b.pr - a.pr);
+  }
+  F.soundTick = (dt) => {
+    S.tickT -= dt; S.duckT -= dt; if (S.duckT <= 0) S.duck += (1 - S.duck) * Math.min(1, dt * 1.5); if (S.tickT > 0) return; const step = 0.25; S.tickT = step;
+    if (!ready() || F.q === 'off') { if (S.keys.size) { for (const k of S.keys) Snd.set(k, 'fire_camp_loop', 0, {}); S.keys.clear(); } return; }
+    const L = Lis(), maxL = PH ? 3 : 6, list = clusters(), live = new Set(); let used = 0;
+    const station = Snd.stnOn;
+    for (const c of list) {
+      if (used >= maxL) break; const cls = c.cls, d = c.d; if (d > (FARMAX[cls] || NEARMAX[cls] || 60) * 1.02) continue; used++;
+      const boost = Math.min(2, Math.pow(10, Math.min(6, 3 * Math.log2(Math.max(1, c.n))) / 20)), g = Math.min(1, REF[cls] / Math.max(d, 0.5)), lv = c.str * boost * S.duck * 0.9, dx = c.x - L.x, dz = c.z - L.z, len = Math.hypot(dx, dz) || 1, pan = Math.max(-0.9, Math.min(0.9, (dx * L.rx + dz * L.rz) / len * Math.min(1, len / 10)));
+      const xf = XF[cls]; let nearL = 0, farL = 0;
+      if (xf) { const w = sm(0, 1, (Math.log(Math.max(d, 1)) - Math.log(xf[0])) / (Math.log(xf[1]) - Math.log(xf[0]))); nearL = Math.cos(w * Math.PI / 2) * g * lv; farL = Math.sin(w * Math.PI / 2) * g * lv; if (d > NEARMAX[cls]) nearL = 0; farL *= 1 - sm(0.85, 1, d / (FARMAX[cls] || 100)); }
+      else { nearL = g * lv * (1 - sm(0.85, 1, d / NEARMAX[cls])); }
+      const ns = station && (cls === 'medium' || cls === 'large') ? 'fire_' + cls + '_loop_int' : 'fire_' + cls + '_loop', fs = 'fire_' + cls + '_loop_far';
+      const cut = station ? 2400 : 20000;
+      if (nearL > 0.004) { Snd.set('fw:' + c.key + ':n', ns, nearL, { pan, tc: 0.3, cut }); live.add('fw:' + c.key + ':n'); }
+      if (xf && farL > 0.004) { Snd.set('fw:' + c.key + ':f', station ? 'fire_' + cls + '_loop_far' : fs, farL, { pan, tc: 0.3, cut }); live.add('fw:' + c.key + ':f'); }
+    }
+    for (const k of S.keys) if (!live.has(k)) Snd.set(k, 'fire_camp_loop', 0, { tc: 0.4 });
+    S.keys = live; S.n.loops = live.size;
+    // the faraway bed
+    let far = 0; for (const c of list) if (c.d > 60) far += c.str * c.n * Math.min(1, 150 / c.d) * 0.12; Snd.set('fw:distant', 'fire_distant_loop', Math.min(0.5, far) * S.duck, { tc: 0.8 });
+    // one-shots: pops and cracks from the nearest burning things, flare-ups, licks
+    S.acc += step; const burn = (F.alive || []).filter(f => !f.dead && f.state === 'burn' && f._d < 70).sort((a, b) => a._d - b._d).slice(0, 3);
+    let pops = 0;
+    for (const f of burn) {
+      const e = Math.max(0.3, Math.min(1.2, f.e || 1)), nm = f.name;
+      if (f._d < 40 && pops < 2 && Math.random() < (0.4 + 2.2 * e * Math.min(1, f.F)) * step * (SMALLN.has(nm) ? 0.6 : 1)) { F.sndEvAt('pop', f, { gain: 0.5 + 0.3 * Math.random() }); pops++; }
+      if (WOOD.has(nm) && Math.random() < (0.05 + 0.3 * e) * step) F.sndEvAt('log_crack', f, { gain: 0.8 });
+      if ((nm === 'building' || nm === 'roof') && Math.random() < step / 11) F.sndEvAt('beam_creak', f, { gain: 0.8 });
+      if (!SMALLN.has(nm) || nm === 'vehicle_engine') { if (Math.random() < 0.3 * step) F.sndEvAt('lick', f, { gain: 0.7 }); }
+      if ((nm === 'vehicle' || nm === 'pool' || nm === 'oil_slick' || nm === 'boat_deck') && Math.random() < 0.15 * step) F.sndEvAt('spark', f, { gain: 0.6 });
+      const T = f._T; const eNow = T ? F.energy(f, T) : 1; if (f._ePrev !== undefined && eNow > f._ePrev * 1.4 + 0.3 && f._ePrev > 0.15) { F.sndEvAt(f.F > 1.2 || nm === 'building' || nm === 'pool' ? 'flare_large' : f.F > 0.8 ? 'flare_medium' : 'flare_small', f, { gain: 0.8 }); } f._ePrev = eNow;
+    }
+  };
+  const _frame = F.frame;
+  F.frame = (dt) => { _frame(dt); try { F.soundTick(dt); } catch (e) { S.err = String(e); } };
+  const _spawn2 = F.spawn;
+  F.spawn = (name, x, y, z, o) => { const f = _spawn2(name, x, y, z, o); if (f && !(o && o.silent)) { try { F.onIgnite(f); } catch (e) { } } return f; };
+})();
+/*FW-END part1f*/
+/*FW-START part2: explosions, flaming debris, embers and sparks, fuel splashes and pools, water extinguishing*/
+(() => {
+  const F = FW, R = F.R, PH = ED.phone;
+  const gnd = (x, z) => Math.max(heightAt(x, z), 0);
+  const wet = (x, z) => heightAt(x, z) < 0.3;
+  /* ---- the particle sheets: embers, sparks, burning droplets, ash (dots) and ember streaks ---- */
+  const P = F.P = { dots: null, streaks: null, list: [], loading: false, cap: PH ? 40 : 140 };
+  F.needParticles = () => {
+    if (P.dots || P.loading || !F.atlas) return !!P.dots; P.loading = true; const A = F.atlas.particles;
+    Promise.all([R.loadTex('assets/fire/' + A.dots.file), R.loadTex('assets/fire/' + A.streaks.file)]).then(([td, ts]) => {
+      P.dots = R.combo({ key: 'fire:p_dots', tex: td, cols: A.dots.cols, rows: A.dots.rows, fw: A.dots.frame_px[0], fh: A.dots.frame_px[1], anchor: [0.5, 0.5], mode: 0, order: 7.1, rule: 'vis' });
+      P.streaks = R.combo({ key: 'fire:p_streaks', tex: ts, cols: A.streaks.cols, rows: A.streaks.rows, fw: A.streaks.frame_px[0], fh: A.streaks.frame_px[1], anchor: [0.109375, 0.5], mode: 0, order: 7.1, rule: 'vis' });
+      P.clips = {}; for (const c of A.dots.clips) P.clips[c.name] = c; for (const c of A.streaks.clips) P.clips[c.name] = c; P.ok = true;
+    }).catch(() => { P.loading = false; });
+    return false;
+  };
+  const clipP = (n) => P.clips && P.clips[n];
+  /* kind: 'ember' 'spark' 'droplet' 'streak'. v in m/s. */
+  F.particle = (kind, x, y, z, vx, vy, vz, o) => {
+    if (F.q === 'off') return; F.needParticles(); if (!P.ok) return; if (P.list.length >= P.cap) P.list.shift(); o = o || {};
+    const v = 'abcd'[(Math.random() * 4) | 0]; let name = kind === 'ember' ? 'ember_' + v : kind === 'spark' ? 'spark_' + v : kind === 'droplet' ? 'droplet_' + 'abc'[(Math.random() * 3) | 0] : 'ember_streak_' + (o.cls || 'med');
+    const c = clipP(name); if (!c) return; P.list.push({ kind, c, x, y, z, vx, vy, vz, age: 0, life: o.life || c.duration_s * (c.loop ? 1.6 : 1), size: o.size || (kind === 'ember' ? rnd(0.14, 0.3) : kind === 'spark' ? rnd(0.35, 0.7) : kind === 'droplet' ? rnd(0.2, 0.4) : 1.4), g: o.g === undefined ? (kind === 'ember' ? 2.5 : 9) : o.g, drag: o.drag === undefined ? 0.4 : o.drag, a: o.a === undefined ? 1 : o.a, wind: kind === 'ember' ? 0.6 : 0.1 });
+  };
+  const stepParticles = (dt) => {
+    if (!P.ok) return; const L = P.list, cam = camera.position, wl = F.wind;
+    camera.getWorldDirection(_cd); _cr.crossVectors(_cd, _up).normalize(); _cu.crossVectors(_cr, _cd).normalize();
+    for (let i = L.length - 1; i >= 0; i--) {
+      const p = L[i]; p.age += dt; if (p.age >= p.life) { L.splice(i, 1); continue; }
+      p.vy -= p.g * dt; const dg = Math.max(0, 1 - p.drag * dt); p.vx = p.vx * dg + (wl.x - p.vx) * p.wind * dt * 0.5; p.vz = p.vz * dg + (wl.z - p.vz) * p.wind * dt * 0.5; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+      const gy = gnd(p.x, p.z); if (p.y < gy + 0.05 && p.vy < 0) { if (p.kind === 'droplet' || p.kind === 'streak') { L.splice(i, 1); continue; } p.y = gy + 0.05; p.vy = 0; p.vx *= 0.3; p.vz *= 0.3; if (p.kind === 'spark') p.age = Math.max(p.age, p.life * 0.7); }
+      const d = Math.hypot(p.x - cam.x, p.z - cam.z); if (d > 260) continue;
+      const u = p.age / p.life, fi = Math.min(p.c.count - 1, Math.floor(u * p.c.count)), fa = p.c.first + fi, a = p.a * (p.kind === 'ember' ? Math.min(1, (1 - u) * 3) : 1);
+      let rot = 0, stretch = 1;
+      if (p.kind === 'streak' || p.kind === 'droplet') { const sp = Math.hypot(p.vx, p.vy, p.vz) + 1e-3; const vr = p.vx * _cr.x + p.vy * _cr.y + p.vz * _cr.z, vu = p.vx * _cu.x + p.vy * _cu.y + p.vz * _cu.z; rot = Math.atan2(-vu, -vr); if (p.kind === 'droplet') rot += 1.5708; stretch = Math.max(0.6, Math.min(1.8, sp / 15)); }
+      const cmb = p.kind === 'streak' ? P.streaks : P.dots, sz = p.size; const w = p.kind === 'streak' ? sz : sz, h = p.kind === 'streak' ? sz * 0.25 : sz;
+      R.push(cmb, p.x, p.y, p.z, w, h, fa, fa, 0, a, 1, 1, rot, stretch, 1, 1, 1, p.kind === 'ember' ? 0.2 : 0.7, 0, 0);
+    }
+  };
+  const _cd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+  /* ---- fireballs ---- */
+  const KINDS = { small: ['blast_small', 5], medium: ['blast_medium', 10], large: ['blast_large', 20], fuel: ['blast_fuel', 13], ground: ['blast_ground', 11] };
+  F.blastStats = { n: 0, last: null };
+  F.blast = (x, gy, z, Rb, o, onWater) => {
+    o = o || {}; if (F.q === 'off' || F.legacyUntil || !F.ready) { if (F.q !== 'off') F.ensureAtlas(); return false; }
+    if (Rb < 2.2) return false; const fuel = !!(o.fuel || /vehicle|fuel|tank/i.test(o.name || '') || o.heavy && o.skip && o.skip.sp && o.skip.sp.boom);
+    let kind = fuel ? 'fuel' : Rb >= 14 ? 'large' : Rb >= 8 ? (!o.air && Rb < 13 && !onWater ? 'ground' : 'medium') : 'small';
+    if (o.skip && o.skip.sp && o.skip.sp.boom) kind = 'fuel';
+    const [name, rb] = KINDS[kind], T = F.need(name); F.need('smoke_column'); F.needParticles();
+    if (!T) return false;                                           // still loading: the old particles play this one
+    const sc = Math.max(0.45, Math.min(1.6, Rb / rb)) * (onWater ? 0.85 : 1);
+    const f = F.spawn(name, x, gy + 0.05, z, { state: 'fireball', sc, F: 1, pri: 6, dur: (Rb >= 10 ? 26 : 14) * rnd(0.8, 1.2) * (fuel ? 1.6 : 1), quads: Rb >= 8 ? 2 : 1, noLight: false, silent: true });
+    if (!f) return false; f.mode = 'blast'; f.vi = (Math.random() * 2) | 0; f.black = fuel || kind === 'large'; F.blastStats.n++; F.blastStats.last = { kind, Rb, x, z };
+    // flaming debris: a fraction of the chunks thrown by this blast burn
+    F.dbFrac = fuel ? 0.7 : (o.name && /vehicle/i.test(o.name)) ? 0.6 : Rb >= 8 ? 0.2 : 0.12; F.dbT = simT;
+    // embers and sparks thrown out, a streak or two
+    const ne = Math.min(PH ? 8 : 24, Math.round(6 + Rb * 1.2));
+    for (let i = 0; i < ne; i++) { const a = Math.random() * 6.283, e = rnd(0.2, 1.1), sp = Rb * rnd(0.6, 1.5); F.particle(i % 3 ? 'ember' : 'spark', x, gy + 0.8, z, Math.cos(a) * Math.cos(e) * sp, Math.sin(e) * sp * 0.9 + 2, Math.sin(a) * Math.cos(e) * sp, { life: rnd(0.8, 2.2) }); }
+    for (let i = 0; i < (PH ? 2 : 6); i++) { const a = Math.random() * 6.283, e = rnd(0.4, 1.3), sp = Rb * rnd(1, 2); F.particle('streak', x, gy + 1, z, Math.cos(a) * Math.cos(e) * sp, Math.sin(e) * sp + 3, Math.sin(a) * Math.cos(e) * sp, { life: rnd(0.4, 0.9), cls: sp > 14 ? 'fast' : sp > 7 ? 'med' : 'slow', size: rnd(1.0, 1.8), g: 7 }); }
+    F.burnRadius(x, z, Rb, o, fuel);
+    if (fuel) { F.fuelSplash(x, z, Rb, PH ? 2 : 4); F.spill(x, z, { kind: 'fuel', r: Rb * 0.25, dur: rnd(35, 60) }); }
+    return true;
+  };
+  /* what a fireball sets alight: trees, wooden things, dry ground, buildings */
+  F.burnRadius = (x, z, Rb, o, fuel) => {
+    if (Rb < 5) return; igniteTreesNear(x, z, Rb * 0.9);
+    for (const ob of objects) { if (ob.gone || !ob.m || !ob.m.flam || ob.burn > 0) continue; const p = ob.body.position; if (Math.hypot(p.x - x, p.z - z) < Rb * 0.9) ob.T += 220; }
+    const n = Math.min(PH ? 2 : 5, Math.round(Rb / 3)); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * Rb * 0.9, px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d; if (Math.random() < 0.6) F.igniteGround(px, pz, { convert: true, sc: 1.1 }); }
+    if (Rb >= 6) F.igniteNear(x, z, Rb * 0.9, fuel ? 0.8 : Rb >= 10 ? 0.5 : 0.25);
+  };
+  /* ---- fuel: thrown splashes that become pool fires, and pools and oil slicks ---- */
+  F.fuelSplash = (x, z, Rb, n) => {
+    F.need('splash_fire'); F.need('spatter_fan');
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.283, d = Rb * rnd(0.3, 1.1), px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d, onW = wet(px, pz);
+      const f = F.spawn('splash_fire', px, onW ? Math.max(0.05, waveH(px, pz, simT)) + 0.05 : gnd(px, pz) + 0.05, pz, { sc: rnd(1.0, 1.6), F: rnd(0.9, 1.3), pri: 2, dur: rnd(18, 40), quads: 1, silent: i > 0 });
+      if (f) { f.black = true; f.warm = 1; if (onW) f.follow = (ff) => { ff.y = waveH(ff.x, ff.z, simT) + 0.05; }; }
+      if (i < 3) { const s = F.spawn('spatter_fan', x + Math.cos(a) * d * 0.4, gnd(x, z) + 0.3, z + Math.sin(a) * d * 0.4, { state: 'shot', sc: 1.6, pri: 1, noLight: true, noSmoke: true, silent: true }); if (s) s.fadeOut = 0; }
+    }
+  };
+  /* a fuel pool or oil slick on the ground or the sea: it burns with heavy black smoke and spreads to what is next to it */
+  F.spill = (x, z, o) => {
+    o = o || {}; if (F.q === 'off' || !F.ready) return null; const onW = wet(x, z), nm = onW || o.kind === 'oil' ? 'oil_slick' : 'pool'; const gy = onW ? Math.max(0.05, waveH(x, z, simT)) + 0.05 : gnd(x, z) + 0.05;
+    for (const f of F.fires) if ((f.name === 'pool' || f.name === 'oil_slick') && Math.hypot(f.x - x, f.z - z) < 2.5 && !f.dead) { f.dur = Math.max(f.dur, o.dur || 40); return f; }
+    const sc = Math.max(0.4, Math.min(1.6, (o.r || 2) / 2.2)), f = F.spawn(nm, x, gy, z, { sc, F: o.F || 1, pri: 3, dur: o.dur || rnd(40, 70), quads: 2, silent: o.silent });
+    if (f) { f.black = true; if (onW) f.follow = (ff) => { ff.y = waveH(ff.x, ff.z, simT) + 0.05; }; if (!onW) HEATP.push({ x, z, r: Math.max(2, sc * 2.4), p: 12, t: Math.min(30, o.dur || 40), fw: true }); }
+    return f;
+  };
+  /* ---- flaming debris: a flame on a fraction of the chunks in the game's own debris pool ---- */
+  F.flDeb = 0;
+  F.dFl = (frag) => { if (F.q === 'off' || !F.ready) return 0; const fr = (simT - (F.dbT || -9)) < 0.1 ? F.dbFrac : 0.012; if (Math.random() >= fr) return 0; return F.flDeb < (PH ? 14 : 44) ? 1 : 0; };
+  const CLIPS = ['slow', 'med', 'fast'], DESIGN = [4, 12, 30];
+  let dbNo = 0;
+  F.debrisStep = (dt) => {
+    if (typeof DEB === 'undefined' || !DEB.p || !DEB.p.length) { F.flDeb = 0; return; }
+    for (const n of ['debris_slow', 'debris_med', 'debris_fast']) F.need(n); const Ts = [F.types.debris_slow, F.types.debris_med, F.types.debris_fast]; if (!Ts[0] || Ts[0].state !== 'ready' || Ts[1].state !== 'ready' || Ts[2].state !== 'ready') return;
+    camera.getWorldDirection(_cd); _cr.crossVectors(_cd, _up).normalize(); _cu.crossVectors(_cr, _cd).normalize(); let nfl = 0; const cam = camera.position;
+    for (const d of DEB.p) {
+      if (!d.fl) continue; nfl++;
+      if (d.fl === 1) { d.fl = 2; d.flT = rnd(4, 8) * (PH ? 0.7 : 1); d.age0 = d.age; d.life = Math.max(d.life, d.age + d.flT + 0.5); d.cls = (Math.random() * 3) | 0; d.fph = Math.random() * 3; }
+      const u = (d.age - d.age0) / d.flT; if (u >= 1) { d.fl = 0; continue; }
+      const sp = Math.hypot(d.vx, d.vy, d.vz), ci = sp < 8 ? 0 : sp < 20 ? 1 : 2, T = Ts[ci], LY = T.layers.flame; if (!LY) continue; const clip = T.clips.loop[d.cls % T.clips.loop.length]; if (!clip || !clip.flame) continue;
+      const gnow = gnd(d.x, d.z) + d.s * 0.45, rest = d.y <= gnow + 0.02;
+      if (rest && !d._land && d.age > 0.12) { d._land = true; F.debrisLand(d); }
+      const dist = Math.hypot(d.x - cam.x, d.z - cam.z); if (dist > 200) continue;
+      let rot, stretch;
+      if (rest || sp < 1.2) { rot = 1.5708; stretch = 0.7; } else { const vr = d.vx * _cr.x + d.vy * _cr.y + d.vz * _cr.z, vu = d.vx * _cu.x + d.vy * _cu.y + d.vz * _cu.z; rot = Math.atan2(-vu, -vr); stretch = Math.max(0.6, Math.min(1.7, sp / DESIGN[ci])); }
+      const S = 0.45 + 2.6 * d.s, al = Math.min(1, (1 - u) * 2.2), fr = F.frameOf(clip.flame, (d.age + d.fph) * 1, true, F.q === 'high'); // the wind of its own motion bends the flame; slow ones lean up
+      R.push(LY.combo, d.x, d.y, d.z, LY.size[0] * S, LY.size[1] * S, fr[0], fr[1], fr[2], al, 1, 1, rot, stretch, 1, 1, 1, 0.55, 0, 0);
+      const sm = T.layers.smoke; if (sm && !PH && F.q === 'high' && dist < 90 && clip.smoke) { const f2 = F.frameOf(clip.smoke, (d.age + d.fph), true, true); R.push(sm.combo, d.x, d.y, d.z, sm.size[0] * S, sm.size[1] * S, f2[0], f2[1], f2[2], al * 0.7, 1, 1, rot, stretch, F.amb.r, F.amb.g, F.amb.b, 0, 0, 0); }
+      if (!rest && Math.random() < dt * 5) F.particle('ember', d.x, d.y, d.z, d.vx * 0.2 + rnd(-1, 1), rnd(0, 1.5), d.vz * 0.2 + rnd(-1, 1), { life: rnd(0.7, 1.4) });
+      if (!rest && sp > 8 && Math.random() < dt * 3 && F.q === 'high') F.particle('streak', d.x, d.y, d.z, d.vx * 0.9, d.vy * 0.9, d.vz * 0.9, { life: 0.3, cls: sp > 20 ? 'fast' : 'med', size: 1.2, g: 0 });
+    }
+    F.flDeb = nfl;
+  };
+  /* a burning chunk lands: it lights what it touches, makes a spot fire, or fizzles in water */
+  F.debrisLand = (d) => {
+    F.stats.debrisLand = (F.stats.debrisLand || 0) + 1;
+    if (wet(d.x, d.z)) { sparks(d.x, d.y + 0.1, d.z, 3); if (F.steamAt) F.steamAt('small', d.x, d.z, 0.6); F.sndEv && F.sndEv('sizzle', d.x, d.z, { gain: 0.6 }); return; }
+    igniteTreesNear(d.x, d.z, 2.2);
+    for (const q of objects) { if (q.gone || !q.m || !q.m.flam || q.burn > 0) continue; const p = q.body.position; if (Math.hypot(p.x - d.x, p.z - d.z) < 2) q.T += 120; }
+    F.igniteNear(d.x, d.z, 1.5, 0.3);
+    if (d.fuelish) F.fuelSplash(d.x, d.z, 1.5, 1); else if (Math.random() < 0.55) F.igniteGround(d.x, d.z, { convert: true, sc: 0.9 });
+    HEATP.push({ x: d.x, z: d.z, r: 1.3, p: 9, t: 3, fw: true });
+    if (d.s > 0.12) F.sndEv && F.sndEv('clatter', d.x, d.z, { gain: 0.7 });
+    for (let i = 0; i < 3; i++) F.particle('spark', d.x, d.y + 0.1, d.z, rnd(-2, 2), rnd(2, 5), rnd(-2, 2), { life: 0.4 });
+  };
+  F.lfSkip = (lf) => { for (const q of F.fires) if (q.mode === 'blast' && q.vis && Math.abs(q.x - lf.x) < 4 && Math.abs(q.z - lf.z) < 4) return true; return false; };
+  F.afters.push((dt) => { F.debrisStep(dt); stepParticles(dt); });
+  const _pre = F.pre; let preloaded = false;
+  F.pre = (dt) => { if (_pre) _pre(dt); if (!preloaded && typeof BATTLE !== 'undefined' && BATTLE.on) { preloaded = true; for (const n of PH ? ['blast_small', 'debris_med'] : ['blast_small', 'blast_medium', 'blast_ground', 'debris_slow', 'debris_med', 'debris_fast', 'smoke_column']) F.need(n); F.needParticles(); } };
+})();
+/*FW-END part2*/
+/*FW-REGION-END*/
 /* ================================================================ v10 UX layer: the battle setup sheet, the persistent Command button, the one-time hint, colours and easy read, the Menu tabs */
 const SETUP = { side: 'blue' };
 const MAP_INFO = { port: ['Port and mountains', 'A working harbour, a town, farms and hills.', 'linear-gradient(135deg,#2f6f8f 0 42%,#5d8a4f 42% 100%)'], urban: ['Urban port', 'A street grid, close alleys, a stadium and a working quay.', 'linear-gradient(135deg,#3a5566 0 35%,#6b6f73 35% 100%)'], desert: ['Desert and far port', 'Open dunes, wadis and an oasis, with a port at the end of one long road.', 'linear-gradient(135deg,#2f6f8f 0 22%,#d3b074 22% 100%)'], lemnos_myrina: ['Lemnos: Myrina', REALMAPS.lemnos_myrina.desc, 'center/cover url(assets/map_lemnos_myrina_thumb.jpg)'], lemnos_mudros: ['Lemnos: Moudros', REALMAPS.lemnos_mudros.desc, 'center/cover url(assets/map_lemnos_mudros_thumb.jpg)'], lemnos_airport: ['Lemnos: airport', REALMAPS.lemnos_airport.desc, 'center/cover url(assets/map_lemnos_airport_thumb.jpg)'] };
@@ -13487,10 +14374,10 @@ function vehLightsTick(dt) {
 /* ---- fires and fire on vehicles: flickering warm lights that use the same budget ---- */
 function fireLights(dt) {
   const fc = lightFocus(); const dk = LIGHT.dark; if (dk < 0.05) return;
-  let n = 0; const mx = ED.phone ? 4 : 10;
-  for (const t of burning) { if (n >= mx) break; const d = Math.hypot(t.x - fc.x, t.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 17 + t.x) * Math.sin(simT * 9.3 + t.z); lightWant('tf' + (t.id || ((t.x * 7 + t.z) | 0)), 'point', t.x, Math.max(heightAt(t.x, t.z), 0) + 2.5, t.z, 1, 0.55, 0.2, 360 * fl, 28, 1.2, { glow: 2.2, glowA: 0.5 * fl, fl, pool: 7, k: clamp(t.burn / 3, 0, 1) * dk }); n++; }
-  for (const h of HEATP) { if (n >= mx) break; const d = Math.hypot(h.x - fc.x, h.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 15 + h.x); lightWant('hp' + ((h.x * 3 + h.z) | 0), 'point', h.x, Math.max(heightAt(h.x, h.z), 0) + 1.6, h.z, 1, 0.5, 0.16, 300 * fl * Math.min(1, h.p / 12), 26, 1.2, { glow: 2.4, glowA: 0.5 * fl, fl, pool: Math.max(5, h.r), k: clamp(h.t / 2, 0, 1) * dk }); n++; }
-  for (const v of BVL) { if (!v.fire && !(v.burn > 0)) continue; if (n >= mx) break; const fl = 0.75 + 0.25 * Math.sin(simT * 19 + v.id); lightWant('vf' + v.id, 'point', v.x, v.y + 1.8, v.z, 1, 0.55, 0.18, 380 * fl, 30, 2, { glow: 2.6, glowA: 0.55 * fl, fl, k: dk }); n++; }
+  let n = FW.lights(dt) || 0; const mx = ED.phone ? 4 : 10; /*FW-HOOK*/
+  for (const t of burning) { if (n >= mx) break; if (FW.drawn(t)) continue; const d = Math.hypot(t.x - fc.x, t.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 17 + t.x) * Math.sin(simT * 9.3 + t.z); lightWant('tf' + (t.id || ((t.x * 7 + t.z) | 0)), 'point', t.x, Math.max(heightAt(t.x, t.z), 0) + 2.5, t.z, 1, 0.55, 0.2, 360 * fl, 28, 1.2, { glow: 2.2, glowA: 0.5 * fl, fl, pool: 7, k: clamp(t.burn / 3, 0, 1) * dk }); n++; }
+  for (const h of HEATP) { if (n >= mx) break; if (h._fws && h._fws.some(q => q.vis)) continue; const d = Math.hypot(h.x - fc.x, h.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 15 + h.x); lightWant('hp' + ((h.x * 3 + h.z) | 0), 'point', h.x, Math.max(heightAt(h.x, h.z), 0) + 1.6, h.z, 1, 0.5, 0.16, 300 * fl * Math.min(1, h.p / 12), 26, 1.2, { glow: 2.4, glowA: 0.5 * fl, fl, pool: Math.max(5, h.r), k: clamp(h.t / 2, 0, 1) * dk }); n++; }
+  for (const v of BVL) { if (!v.fire && !(v.burn > 0)) continue; if (n >= mx) break; if (v._fwe && v._fwe.vis) continue; if (v._fwe && v._fwe.vis) continue; if (v._fwe && v._fwe.vis) continue; if (v._fwe && v._fwe.vis) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 19 + v.id); lightWant('vf' + v.id, 'point', v.x, v.y + 1.8, v.z, 1, 0.55, 0.18, 380 * fl, 30, 2, { glow: 2.6, glowA: 0.55 * fl, fl, k: dk }); n++; }
   if (lavaOn && typeof lavaVents !== 'undefined') for (const lv of lavaVents) { if (n >= mx) break; const d = Math.hypot(lv.x - fc.x, lv.z - fc.z); if (d > 200) continue; const fl = 0.8 + 0.2 * Math.sin(simT * 6 + lv.x); lightWant('lv' + ((lv.x * 3 + lv.z) | 0), 'point', lv.x, Math.max(heightAt(lv.x, lv.z), 0) + 2, lv.z, 1, 0.45, 0.1, 520 * fl, 40, 1.4, { glow: 3.2, glowA: 0.5, fl, pool: 10, k: Math.max(dk, 0.35) }); n++; }
 }
 /* ---- thrown chemical lights and handheld flares ---- */

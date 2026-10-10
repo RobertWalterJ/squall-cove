@@ -1,0 +1,38 @@
+HOOKS = [
+ ('frame tick', "  lightsTick(dt);\n  DIST.tick(dt);", "  FW.tick(dt); /*FW-HOOK*/\n  lightsTick(dt);\n  DIST.tick(dt);"),
+ ('lights n', "  let n = 0; const mx = ED.phone ? 4 : 10;\n  for (const t of burning) { if (n >= mx) break;", "  let n = FW.lights(dt) || 0; const mx = ED.phone ? 4 : 10; /*FW-HOOK*/\n  for (const t of burning) { if (n >= mx) break; if (FW.drawn(t)) continue;"),
+ ('lights heatp', "for (const h of HEATP) { if (n >= mx) break; const d = Math.hypot(h.x - fc.x, h.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 15 + h.x);", "for (const h of HEATP) { if (n >= mx) break; if (h._fws && h._fws.some(q => q.vis)) continue; const d = Math.hypot(h.x - fc.x, h.z - fc.z); if (d > 140) continue; const fl = 0.75 + 0.25 * Math.sin(simT * 15 + h.x);"),
+ ('lights veh', "for (const v of BVL) { if (!v.fire && !(v.burn > 0)) continue; if (n >= mx) break;", "for (const v of BVL) { if (!v.fire && !(v.burn > 0)) continue; if (n >= mx) break; if (v._fwe && v._fwe.vis) continue;"),
+ ('tree flames', "if (Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5)", "if (!FW.drawn(t) && Math.random() < dt * 14) fxG.emit(t.x + rnd(-0.6, 0.6), gy + rnd(1, 3.5)"),
+ ('tree smoke', "if (Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);", "if (!FW.drawn(t) && Math.random() < dt * 6) puffSmoke(t.x, gy + 3, t.z, 1, true, 1);"),
+ ('obj flames', "for (let q = 0; q < 3; q++) fxG.emit(p.x + rnd(-0.4, 0.4), gy + rnd(0.3, 1.1), p.z + rnd(-0.4, 0.4),", "if (!FW.drawn(o)) for (let q = 0; q < 3; q++) fxG.emit(p.x + rnd(-0.4, 0.4), gy + rnd(0.3, 1.1), p.z + rnd(-0.4, 0.4),"),
+ ('obj smoke', "if (Math.random() < 0.5) puffSmoke(p.x, gy + 1, p.z, 1, true, 1);", "if (!FW.drawn(o) && Math.random() < 0.5) puffSmoke(p.x, gy + 1, p.z, 1, true, 1);"),
+ ('boat fire', "    if (bt.fire > 0.05) {\n      const n = Math.round(bt.fire * 90 * dt)", "    if (bt.fire > 0.05 && !(bt._fwb && bt._fwb.some(q => q.vis))) {\n      const n = Math.round(bt.fire * 90 * dt)"),
+ ('wreck smoke', "if (v.wreckT < 55 && Math.random() < dt * 4) puffSmoke(", "if (!(v._fwf && v._fwf.vis) && v.wreckT < 55 && Math.random() < dt * 4) puffSmoke("),
+ ('wreck flames', "if (v.wreckT < 22 && Math.random() < dt * 7) fxG.emit(", "if (!(v._fwf && v._fwf.vis) && v.wreckT < 22 && Math.random() < dt * 7) fxG.emit("),
+ ('veh burn smoke', "if (v.burn) { v.burn += dt; if (Math.random() < dt * 6) puffSmoke(v.x + rnd(-0.6, 0.6)", "if (v.burn) { v.burn += dt; if (!(v._fwe && v._fwe.vis) && Math.random() < dt * 6) puffSmoke(v.x + rnd(-0.6, 0.6)"),
+ ('veh burn flames', "if (v.hp < v.hpMax * 0.12 && Math.random() < dt * 8) fxG.emit(v.x + rnd(-0.8, 0.8)", "if (!(v._fwe && v._fwe.vis) && v.hp < v.hpMax * 0.12 && Math.random() < dt * 8) fxG.emit(v.x + rnd(-0.8, 0.8)"),
+ ('burnArea push', "function burnArea(x, z, r) { HEATP.push({ x, z, r: r * 0.6, p: 18, t: 14 });", "function burnArea(x, z, r) { const hp_ = { x, z, r: r * 0.6, p: 18, t: 14 }; HEATP.push(hp_);"),
+ ('burnArea flames', "fxG.emit(fx, fy + 0.6, fz, rnd(-0.5, 0.5), rnd(1.5, 4), rnd(-0.5, 0.5), rnd(0.5, 1.1), rnd(1.6, 3), 0.8, [1, 0.55, 0.18, 0.9]); puffSmoke(fx, fy + 1, fz, 1, true, 1.6);", "if (!(hp_._fws && hp_._fws.some(q => q.vis))) { fxG.emit(fx, fy + 0.6, fz, rnd(-0.5, 0.5), rnd(1.5, 4), rnd(-0.5, 0.5), rnd(0.5, 1.1), rnd(1.6, 3), 0.8, [1, 0.55, 0.18, 0.9]); puffSmoke(fx, fy + 1, fz, 1, true, 1.6); }"),
+]
+
+HOOKS += [
+ ('settings button', '<button id="mDistort" type="button">Air distortion: On<small>Bends the air over big blasts and fires. Off saves battery.</small></button>', '<button id="mDistort" type="button">Air distortion: On<small>Bends the air over big blasts and fires. Off saves battery.</small></button>\n    <button id="mFireQ" type="button">Fire quality: High<small>Realistic flames, smoke, steam and fog.</small></button>'),
+ ('keymap fire', "  ['over', 'Menu, Settings, Air distortion',", "  ['over', 'Menu, Settings, Fire quality', 'Realistic baked fire: High draws flames, smoke, steam and fog from sprite sheets. Low is lighter (and the default on the phone). Off uses the old simple particle fire. Reduced motion lowers High to Low. Remembered (squall-cove-firequality)'],\n  ['over', 'Menu, Settings, Air distortion',"),
+ ('lava cell', "if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(G2W(j), HGT[k] + LV[k] + 0.3,", "if (LV[k] > 0.05 && LT[k] > 0.35) FW.lavaCell(G2W(j), G2W(i), k); if (LV[k] > 0.05 && LT[k] > 0.35) fxG.emit(G2W(j), HGT[k] + LV[k] + 0.3,"),
+ ('lava vent', "for (const v of lavaVents) { DIST.haze(DIST.idOf(v), v.x, Math.max(standY(v.x, v.z), 0) + 0.8, v.z, 0.9, 7, 6);", "for (const v of lavaVents) { FW.lavaVent(v, dt); DIST.haze(DIST.idOf(v), v.x, Math.max(standY(v.x, v.z), 0) + 0.8, v.z, 0.9, 7, 6);"),
+ ('bomber water', "      if (Math.random() < 0.15) { const wet = heightAt(x, z) < 0; if (wet) splash(x, z, 0.8); else puffSmoke(x, y + 0.5, z, 1, false, 0.9); }", "      FW.water(x, z, 8, 1.4, y); if (Math.random() < 0.15) { const wet = heightAt(x, z) < 0; if (wet) splash(x, z, 0.8); else puffSmoke(x, y + 0.5, z, 1, false, 0.9); }"),
+ ('truck water', "if (v.sprayT > 1.2) { v.sprayT = 0; for (const b of burning.slice())", "if (v.sprayT > 1.2) { v.sprayT = 0; FW.water(t.x, t.z, 9, 2.5); for (const b of burning.slice())"),
+]
+
+HOOKS += [
+ ('manifest bump', "fetch('audio/manifest.json?v=99')", "fetch('audio/manifest.json?v=1010')"),
+ ('old veh fire loop', "(v.burn || (v.dead && v.wreckT < 40)) && d < 140 ? 0.45 : 0", "(v.burn || (v.dead && v.wreckT < 40)) && d < 140 && !(v._fwe && v._fwe.vis) ? 0.45 : 0"),
+]
+
+HOOKS += [
+ ('blast fireball', "  fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14);", "  const fwOK = FW.blast(x, gy, z, R, o, wet); /*FW-HOOK*/ if (!fwOK) { fxG.emit(x, gy + 1.5, z, 0, 3, 0, 0.35, R * 0.9, 1.6, [1, 0.8, 0.4, 1]); fxG.emit(x, gy + 3, z, 0, 5, 0, 0.5, R * 1.3, 1.2, [1, 0.55, 0.2, 0.8]); puffSmoke(x, gy + 1.5, z, Math.round(R * 0.9), true, R * 0.14); }"),
+ ('debris flame flag', "DEB.p.push({ x, y, z, vx: Math.cos(a) * Math.cos(e) * sp,", "DEB.p.push({ fl: FW.dFl(frag), x, y, z, vx: Math.cos(a) * Math.cos(e) * sp,"),
+ ('LF residue acc', "f.acc += dt * FXK * fade * up * (6 + f.R);", "if (!FW.lfSkip(f)) f.acc += dt * FXK * fade * up * (6 + f.R);"),
+ ('LF residue haze', "    DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);", "    if (!FW.lfSkip(f)) DIST.haze(DIST.idOf(f), f.x, f.y + 0.5, f.z, 0.7 * Math.min(1, (f.life - f.age) / (f.life * 0.35)), 4 + f.R * 0.4, 2.5 + f.R * 0.45);"),
+]
