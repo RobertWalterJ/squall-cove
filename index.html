@@ -353,7 +353,7 @@ body.ed-phone #stnPad i{width:44px;height:44px}
   $('#bEdT').textContent = PH ? 'Phone edition' : 'Desktop edition';
   $('#bEdSw').textContent = PH ? 'Switch to desktop edition' : 'Switch to phone edition';
   $('#bEdSw').addEventListener('click', function () { var n = PH ? 'desktop' : 'phone'; lss('squall-cove-edition', n); location.href = location.pathname + '?edition=' + n + '&menu=1'; });
-  $('#bVer').textContent = 'v9.9.17 ' + ED.id + ' edition';
+  $('#bVer').textContent = 'v9.9.18 ' + ED.id + ' edition';
   paint(); checkCache();
   if (window.__BOOTSKIP) { launch(null); }
 })();
@@ -9959,7 +9959,8 @@ const DIST = (() => {
 })();
 const PF = window.__pf = {}; const PFT = (n, f) => { const a = performance.now(); f(); PF[n] = (PF[n] || 0) + performance.now() - a; };
 let frameErrN = 0;
-function frame(now) { if (window.__qaHold) { last = now; requestAnimationFrame(frame); return; } if (ED.phone && govFrame(now)) { requestAnimationFrame(frame); return; } try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
+function frame(now) { try { if (renderer.getContext().isContextLost()) { last = now; requestAnimationFrame(frame); return; } } catch (e) { }   // graphics taken away: draw nothing (three reads a null program log and throws)
+  if (window.__qaHold) { last = now; requestAnimationFrame(frame); return; } if (ED.phone && govFrame(now)) { requestAnimationFrame(frame); return; } try { frameStep(now); } catch (e) { last = now; if (frameErrN++ < 8) console.error('frame error', e); requestAnimationFrame(frame); } }
 function frameStep(now) {
   const dt = clamp((now - last) / 1000, 0, 0.05) * (CHEAT.slow ? 0.3 : CHEAT.gfast ? 2 : 1); last = now;
   const bt = boats[activeIdx] || boats[0];

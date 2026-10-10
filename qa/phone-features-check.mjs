@@ -75,6 +75,9 @@ await run('features', `${base}index.html?map=port&nointro=1&gov=auto&edition=pho
   await b.ev("window.__lose.restoreContext();1"); await sleep(2500);
   const cardGone = await b.ev("document.getElementById('ctxCard').hidden"), fr1 = await b.ev('__sc.renderer.info.render.frame'); await sleep(1500); const fr2 = await b.ev('__sc.renderer.info.render.frame');
   check(cardGone && fr2 > fr1, 'the card goes away and drawing resumes after the context is restored', `after restore: card hidden=${cardGone}, frames ${fr1} -> ${fr2}`);
+  // ---- regression (v9.9.18): losing the graphics at different moments must never make the frame loop throw (three reads a null program log: "reading 'trim'")
+  for (let i = 0; i < 5; i++) { await b.ev("window.__lose.loseContext();1"); await sleep(250 + i * 130); await b.ev("window.__lose.restoreContext();1"); await sleep(900); }
+  check(!b.errs.some(e => /frame error/.test(e)), 'no frame error through load, a battle, first person, Settings and five lose/restore cycles', 'a frame error was logged: ' + b.errs.filter(e => /frame error/.test(e)).join(' | '));
   // ---- governor: the headless software renderer is slow, so auto must have stepped the resolution down by now
   await b.ev("(()=>{ let t=performance.now()+100000; for(let i=0;i<90;i++){ t+=30; __sc.govFrame(t); } return 1 })()"); const gv = await b.ev('({steps:__sc.GOV.steps, dpr:__sc.GOV.dpr, cap:__sc.GOV.cap, mode:__sc.GOV.perf})');
   check(gv.steps.length > 0 && gv.dpr < 1.5, `the governor stepped down on a slow renderer: ${gv.steps.join(', ')}`, 'the governor did not react to slow frames: ' + JSON.stringify(gv));
