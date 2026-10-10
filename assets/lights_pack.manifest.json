@@ -1,0 +1,2223 @@
+{
+ "pieces": {
+  "light_tower": {
+   "tris": 1762,
+   "empties": [
+    {
+     "node": "lightpt_light_tower_0",
+     "parent": "light_tower",
+     "pos": [
+      -0.62,
+      9.345,
+      -0.889
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "front"
+      }
+     }
+    },
+    {
+     "node": "lightpt_light_tower_1",
+     "parent": "light_tower",
+     "pos": [
+      0.0,
+      9.345,
+      -0.889
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "front"
+      }
+     }
+    },
+    {
+     "node": "lightpt_light_tower_2",
+     "parent": "light_tower",
+     "pos": [
+      0.62,
+      9.345,
+      -0.889
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "front"
+      }
+     }
+    },
+    {
+     "node": "lightpt_light_tower_3",
+     "parent": "light_tower",
+     "pos": [
+      -0.62,
+      9.345,
+      -1.711
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "back"
+      }
+     }
+    },
+    {
+     "node": "lightpt_light_tower_4",
+     "parent": "light_tower",
+     "pos": [
+      0.0,
+      9.345,
+      -1.711
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "back"
+      }
+     }
+    },
+    {
+     "node": "lightpt_light_tower_5",
+     "parent": "light_tower",
+     "pos": [
+      0.62,
+      9.345,
+      -1.711
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 370,
+       "cone_deg": 62,
+       "range": 58,
+       "group": "back"
+      }
+     }
+    },
+    {
+     "node": "cable_light_tower_genset",
+     "parent": "light_tower",
+     "pos": [
+      0.0,
+      1.2,
+      -1.1
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "generator control panel (rear), internal cable leaves here"
+     }
+    },
+    {
+     "node": "cable_light_tower_ext",
+     "parent": "light_tower",
+     "pos": [
+      0.83,
+      1.1,
+      0.3
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "external feed socket on the +X side of the enclosure"
+     }
+    },
+    {
+     "node": "cable_light_tower_head",
+     "parent": "light_tower",
+     "pos": [
+      0.0,
+      9.25,
+      -1.3
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cable gland on the lamp head junction box"
+     }
+    },
+    {
+     "node": "pivot_light_tower_mast_hinge",
+     "parent": "light_tower",
+     "pos": [
+      0.0,
+      1.85,
+      -1.3
+     ],
+     "extras": {
+      "kind": "pivot",
+      "note": "mast hinge axis (X). node pose is fixed in this file; the lowered pose is a separate root"
+     }
+    }
+   ]
+  },
+  "light_tower_lowered": {
+   "tris": 1530,
+   "empties": [
+    {
+     "node": "cable_light_tower_lowered_genset",
+     "parent": "light_tower_lowered",
+     "pos": [
+      0.0,
+      1.2,
+      -1.1
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "generator control panel (rear), internal cable leaves here"
+     }
+    },
+    {
+     "node": "cable_light_tower_lowered_ext",
+     "parent": "light_tower_lowered",
+     "pos": [
+      0.83,
+      1.1,
+      0.3
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "external feed socket on the +X side of the enclosure"
+     }
+    },
+    {
+     "node": "cable_light_tower_lowered_head",
+     "parent": "light_tower_lowered",
+     "pos": [
+      0.0,
+      1.85,
+      1.4
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cable gland on the lamp head junction box"
+     }
+    },
+    {
+     "node": "pivot_light_tower_lowered_mast_hinge",
+     "parent": "light_tower_lowered",
+     "pos": [
+      0.0,
+      1.85,
+      -1.3
+     ],
+     "extras": {
+      "kind": "pivot",
+      "note": "mast hinge axis (X). node pose is fixed in this file; the lowered pose is a separate root"
+     }
+    }
+   ]
+  },
+  "floodlight_pole_2": {
+   "tris": 818,
+   "empties": [
+    {
+     "node": "lightpt_floodlight_pole_2_0",
+     "parent": "floodlight_pole_2",
+     "pos": [
+      -0.7,
+      8.215,
+      0.319
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 700,
+       "cone_deg": 72,
+       "range": 44
+      }
+     }
+    },
+    {
+     "node": "lightpt_floodlight_pole_2_1",
+     "parent": "floodlight_pole_2",
+     "pos": [
+      0.7,
+      8.215,
+      0.319
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 700,
+       "cone_deg": 72,
+       "range": 44
+      }
+     }
+    },
+    {
+     "node": "cable_floodlight_pole_2_feed",
+     "parent": "floodlight_pole_2",
+     "pos": [
+      0.0,
+      0.2,
+      0.45
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "ground feed enters the pier on the +Z side"
+     }
+    }
+   ]
+  },
+  "floodlight_pole_4": {
+   "tris": 1154,
+   "empties": [
+    {
+     "node": "lightpt_floodlight_pole_4_0",
+     "parent": "floodlight_pole_4",
+     "pos": [
+      -1.172,
+      10.215,
+      0.317
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 560,
+       "cone_deg": 72,
+       "range": 52
+      }
+     }
+    },
+    {
+     "node": "lightpt_floodlight_pole_4_1",
+     "parent": "floodlight_pole_4",
+     "pos": [
+      -0.422,
+      10.215,
+      0.317
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 560,
+       "cone_deg": 72,
+       "range": 52
+      }
+     }
+    },
+    {
+     "node": "lightpt_floodlight_pole_4_2",
+     "parent": "floodlight_pole_4",
+     "pos": [
+      0.422,
+      10.215,
+      0.317
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 560,
+       "cone_deg": 72,
+       "range": 52
+      }
+     }
+    },
+    {
+     "node": "lightpt_floodlight_pole_4_3",
+     "parent": "floodlight_pole_4",
+     "pos": [
+      1.172,
+      10.215,
+      0.317
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 560,
+       "cone_deg": 72,
+       "range": 52
+      }
+     }
+    },
+    {
+     "node": "cable_floodlight_pole_4_feed",
+     "parent": "floodlight_pole_4",
+     "pos": [
+      0.0,
+      0.2,
+      0.45
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "ground feed enters the pier on the +Z side"
+     }
+    }
+   ]
+  },
+  "floodlight_wall": {
+   "tris": 296,
+   "empties": [
+    {
+     "node": "lightpt_floodlight_wall",
+     "parent": "floodlight_wall",
+     "pos": [
+      0.0,
+      -0.155,
+      0.71
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 560,
+       "cone_deg": 80,
+       "range": 36
+      }
+     }
+    },
+    {
+     "node": "cable_floodlight_wall",
+     "parent": "floodlight_wall",
+     "pos": [
+      0.0,
+      0.17,
+      0.02
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "conduit entry at the top of the wall plate"
+     }
+    }
+   ]
+  },
+  "floodlight_roof": {
+   "tris": 332,
+   "empties": [
+    {
+     "node": "lightpt_floodlight_roof",
+     "parent": "floodlight_roof",
+     "pos": [
+      0.0,
+      1.131,
+      0.295
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.93,
+        0.78
+       ],
+       "I": 620,
+       "cone_deg": 75,
+       "range": 40
+      }
+     }
+    },
+    {
+     "node": "cable_floodlight_roof",
+     "parent": "floodlight_roof",
+     "pos": [
+      0.0,
+      0.06,
+      -0.2
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cable enters at the base plate edge (-Z)"
+     }
+    }
+   ]
+  },
+  "lamp_cobra": {
+   "tris": 236,
+   "empties": [
+    {
+     "node": "lightpt_lamp_cobra",
+     "parent": "lamp_cobra",
+     "pos": [
+      1.66,
+      7.02,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.8,
+        0.5
+       ],
+       "I": 190,
+       "cone_deg": 110,
+       "range": 27
+      }
+     }
+    },
+    {
+     "node": "cable_lamp_cobra",
+     "parent": "lamp_cobra",
+     "pos": [
+      0.0,
+      0.35,
+      0.16
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "ground feed enters the service door of the base"
+     }
+    }
+   ]
+  },
+  "lamp_harbour": {
+   "tris": 448,
+   "empties": [
+    {
+     "node": "lightpt_lamp_harbour",
+     "parent": "lamp_harbour",
+     "pos": [
+      0.0,
+      3.78,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.52
+       ],
+       "I": 150,
+       "cone_deg": 160,
+       "range": 22
+      }
+     }
+    },
+    {
+     "node": "cable_lamp_harbour",
+     "parent": "lamp_harbour",
+     "pos": [
+      0.0,
+      0.3,
+      -0.2
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "ground feed enters the foot on the -Z side"
+     }
+    }
+   ]
+  },
+  "lamp_bollard": {
+   "tris": 196,
+   "empties": [
+    {
+     "node": "lightpt_lamp_bollard",
+     "parent": "lamp_bollard",
+     "pos": [
+      0.0,
+      0.62,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.8,
+        0.5
+       ],
+       "I": 60,
+       "cone_deg": 150,
+       "range": 9
+      }
+     }
+    },
+    {
+     "node": "cable_lamp_bollard",
+     "parent": "lamp_bollard",
+     "pos": [
+      0.0,
+      0.04,
+      -0.18
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "ground feed under the base plate edge"
+     }
+    }
+   ]
+  },
+  "string_lights_8m": {
+   "tris": 942,
+   "empties": [
+    {
+     "node": "lightpt_string_lights_8m_00",
+     "parent": "string_lights_8m",
+     "pos": [
+      -3.698,
+      2.42,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_01",
+     "parent": "string_lights_8m",
+     "pos": [
+      -3.089,
+      2.291,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_02",
+     "parent": "string_lights_8m",
+     "pos": [
+      -2.477,
+      2.185,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_03",
+     "parent": "string_lights_8m",
+     "pos": [
+      -1.861,
+      2.101,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_04",
+     "parent": "string_lights_8m",
+     "pos": [
+      -1.242,
+      2.041,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_05",
+     "parent": "string_lights_8m",
+     "pos": [
+      -0.622,
+      2.005,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_06",
+     "parent": "string_lights_8m",
+     "pos": [
+      0.0,
+      1.993,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_07",
+     "parent": "string_lights_8m",
+     "pos": [
+      0.622,
+      2.005,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_08",
+     "parent": "string_lights_8m",
+     "pos": [
+      1.242,
+      2.041,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_09",
+     "parent": "string_lights_8m",
+     "pos": [
+      1.861,
+      2.101,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_10",
+     "parent": "string_lights_8m",
+     "pos": [
+      2.477,
+      2.185,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_11",
+     "parent": "string_lights_8m",
+     "pos": [
+      3.089,
+      2.291,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_8m_12",
+     "parent": "string_lights_8m",
+     "pos": [
+      3.698,
+      2.42,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "cable_string_lights_8m_a",
+     "parent": "string_lights_8m",
+     "pos": [
+      -4.06,
+      2.6,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "attachment end A (x = -L/2)"
+     }
+    },
+    {
+     "node": "cable_string_lights_8m_b",
+     "parent": "string_lights_8m",
+     "pos": [
+      4.06,
+      2.6,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "attachment end B (x = +L/2)"
+     }
+    }
+   ]
+  },
+  "string_lights_span_8m": {
+   "tris": 782,
+   "empties": [
+    {
+     "node": "lightpt_string_lights_span_8m_00",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -3.698,
+      2.42,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_01",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -3.089,
+      2.291,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_02",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -2.477,
+      2.185,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_03",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -1.861,
+      2.101,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_04",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -1.242,
+      2.041,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_05",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -0.622,
+      2.005,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_06",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      0.0,
+      1.993,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_07",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      0.622,
+      2.005,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_08",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      1.242,
+      2.041,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_09",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      1.861,
+      2.101,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_10",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      2.477,
+      2.185,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_11",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      3.089,
+      2.291,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "lightpt_string_lights_span_8m_12",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      3.698,
+      2.42,
+      0.0
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.82,
+        0.5
+       ],
+       "I": 6,
+       "cone_deg": 160,
+       "range": 5
+      }
+     }
+    },
+    {
+     "node": "cable_string_lights_span_8m_a",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      -4.06,
+      2.6,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "attachment end A (x = -L/2)"
+     }
+    },
+    {
+     "node": "cable_string_lights_span_8m_b",
+     "parent": "string_lights_span_8m",
+     "pos": [
+      4.06,
+      2.6,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "attachment end B (x = +L/2)"
+     }
+    }
+   ]
+  },
+  "generator_small": {
+   "tris": 490,
+   "empties": [
+    {
+     "node": "cable_generator_small_out",
+     "parent": "generator_small",
+     "pos": [
+      -0.125,
+      0.3,
+      0.34
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "power socket pair on the front panel"
+     }
+    },
+    {
+     "node": "lightpt_generator_small_status",
+     "parent": "generator_small",
+     "pos": [
+      0.2,
+      0.35,
+      0.3
+     ],
+     "extras": {
+      "light": {
+       "type": "indicator",
+       "color": [
+        0.3,
+        1,
+        0.4
+       ],
+       "I": 0,
+       "range": 0,
+       "note": "status lamp (ind_off -> ind_on); no real light needed"
+      }
+     }
+    }
+   ]
+  },
+  "generator_medium": {
+   "tris": 788,
+   "empties": [
+    {
+     "node": "cable_generator_medium_out_0",
+     "parent": "generator_medium",
+     "pos": [
+      -0.02,
+      0.72,
+      0.5
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket 0"
+     }
+    },
+    {
+     "node": "cable_generator_medium_out_1",
+     "parent": "generator_medium",
+     "pos": [
+      0.13,
+      0.72,
+      0.5
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket 1"
+     }
+    },
+    {
+     "node": "cable_generator_medium_out_2",
+     "parent": "generator_medium",
+     "pos": [
+      0.28,
+      0.72,
+      0.5
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket 2"
+     }
+    },
+    {
+     "node": "cable_generator_medium_out_3",
+     "parent": "generator_medium",
+     "pos": [
+      0.43,
+      0.72,
+      0.5
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket 3"
+     }
+    },
+    {
+     "node": "lightpt_generator_medium_status",
+     "parent": "generator_medium",
+     "pos": [
+      0.3,
+      0.62,
+      0.47
+     ],
+     "extras": {
+      "light": {
+       "type": "indicator",
+       "color": [
+        0.3,
+        1,
+        0.4
+       ],
+       "I": 0,
+       "range": 0,
+       "note": "status lamp (ind_off -> ind_on)"
+      }
+     }
+    },
+    {
+     "node": "smoke_generator_medium_exhaust",
+     "parent": "generator_medium",
+     "pos": [
+      0.6,
+      2.03,
+      -0.16
+     ],
+     "extras": {
+      "kind": "fx",
+      "note": "puff / smoke emitter when damaged"
+     }
+    }
+   ]
+  },
+  "generator_large": {
+   "tris": 1200,
+   "empties": [
+    {
+     "node": "cable_generator_large_out_0",
+     "parent": "generator_large",
+     "pos": [
+      -0.3,
+      0.72,
+      0.75
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket (bottom row) 0"
+     }
+    },
+    {
+     "node": "cable_generator_large_out_1",
+     "parent": "generator_large",
+     "pos": [
+      -0.1,
+      0.72,
+      0.75
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket (bottom row) 1"
+     }
+    },
+    {
+     "node": "cable_generator_large_out_2",
+     "parent": "generator_large",
+     "pos": [
+      0.1,
+      0.72,
+      0.75
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket (bottom row) 2"
+     }
+    },
+    {
+     "node": "cable_generator_large_out_3",
+     "parent": "generator_large",
+     "pos": [
+      0.3,
+      0.72,
+      0.75
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket (bottom row) 3"
+     }
+    },
+    {
+     "node": "cable_generator_large_out_4",
+     "parent": "generator_large",
+     "pos": [
+      0.5,
+      0.72,
+      0.75
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "cam-lock socket (bottom row) 4"
+     }
+    },
+    {
+     "node": "lightpt_generator_large_status",
+     "parent": "generator_large",
+     "pos": [
+      0.6,
+      1.3,
+      0.7
+     ],
+     "extras": {
+      "light": {
+       "type": "indicator",
+       "color": [
+        0.3,
+        1,
+        0.4
+       ],
+       "I": 0,
+       "range": 0,
+       "note": "status lamp (ind_off -> ind_on)"
+      }
+     }
+    },
+    {
+     "node": "smoke_generator_large_exhaust",
+     "parent": "generator_large",
+     "pos": [
+      1.1,
+      3.01,
+      0.1
+     ],
+     "extras": {
+      "kind": "fx",
+      "note": "puff / smoke emitter when damaged"
+     }
+    }
+   ]
+  },
+  "cableseg_straight_4m": {
+   "tris": 120,
+   "empties": [
+    {
+     "node": "cable_straight_4m_a",
+     "parent": "cableseg_straight_4m",
+     "pos": [
+      0.0,
+      0.042,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "length": 4.0
+     }
+    },
+    {
+     "node": "cable_straight_4m_b",
+     "parent": "cableseg_straight_4m",
+     "pos": [
+      0.0,
+      0.042,
+      4.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "length": 4.0
+     }
+    }
+   ]
+  },
+  "cableseg_90": {
+   "tris": 216,
+   "empties": [
+    {
+     "node": "cable_90_a",
+     "parent": "cableseg_90",
+     "pos": [
+      0.0,
+      0.042,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end"
+     }
+    },
+    {
+     "node": "cable_90_b",
+     "parent": "cableseg_90",
+     "pos": [
+      1.34,
+      0.042,
+      1.34
+     ],
+     "extras": {
+      "kind": "cable_end"
+     }
+    }
+   ]
+  },
+  "cableseg_sag_6m": {
+   "tris": 300,
+   "empties": [
+    {
+     "node": "cable_sag_6m_a",
+     "parent": "cableseg_sag_6m",
+     "pos": [
+      0.0,
+      0.9,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "socket_height": 0.9
+     }
+    },
+    {
+     "node": "cable_sag_6m_b",
+     "parent": "cableseg_sag_6m",
+     "pos": [
+      0.0,
+      0.9,
+      6.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "socket_height": 0.9
+     }
+    }
+   ]
+  },
+  "cablereel": {
+   "tris": 436,
+   "empties": [
+    {
+     "node": "cable_reel_end",
+     "parent": "cablereel",
+     "pos": [
+      0.0,
+      0.042,
+      2.35
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "free end of the reel (plug)"
+     }
+    },
+    {
+     "node": "pivot_cablereel_hub",
+     "parent": "cablereel",
+     "pos": [
+      0.0,
+      0.5,
+      0.0
+     ],
+     "extras": {
+      "kind": "pivot",
+      "note": "reel spin axis (X)"
+     }
+    }
+   ]
+  },
+  "junction_box": {
+   "tris": 300,
+   "empties": [
+    {
+     "node": "cable_junction_box_out_0",
+     "parent": "junction_box",
+     "pos": [
+      -0.14,
+      0.22,
+      0.23
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "output socket 0"
+     }
+    },
+    {
+     "node": "cable_junction_box_out_1",
+     "parent": "junction_box",
+     "pos": [
+      0.0,
+      0.22,
+      0.23
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "output socket 1"
+     }
+    },
+    {
+     "node": "cable_junction_box_out_2",
+     "parent": "junction_box",
+     "pos": [
+      0.14,
+      0.22,
+      0.23
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "output socket 2"
+     }
+    },
+    {
+     "node": "cable_junction_box_in",
+     "parent": "junction_box",
+     "pos": [
+      0.0,
+      0.2,
+      -0.23
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "fixed input gland"
+     }
+    }
+   ]
+  },
+  "junction_box_dist": {
+   "tris": 540,
+   "empties": [
+    {
+     "node": "cable_junction_box_dist_out_0",
+     "parent": "junction_box_dist",
+     "pos": [
+      -0.3,
+      0.2,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "lower row socket 0"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_4",
+     "parent": "junction_box_dist",
+     "pos": [
+      -0.3,
+      0.38,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "upper row socket 4"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_1",
+     "parent": "junction_box_dist",
+     "pos": [
+      -0.1,
+      0.2,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "lower row socket 1"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_5",
+     "parent": "junction_box_dist",
+     "pos": [
+      -0.1,
+      0.38,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "upper row socket 5"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_2",
+     "parent": "junction_box_dist",
+     "pos": [
+      0.1,
+      0.2,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "lower row socket 2"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_6",
+     "parent": "junction_box_dist",
+     "pos": [
+      0.1,
+      0.38,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "upper row socket 6"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_3",
+     "parent": "junction_box_dist",
+     "pos": [
+      0.3,
+      0.2,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "lower row socket 3"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_out_7",
+     "parent": "junction_box_dist",
+     "pos": [
+      0.3,
+      0.38,
+      0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "upper row socket 7"
+     }
+    },
+    {
+     "node": "cable_junction_box_dist_in",
+     "parent": "junction_box_dist",
+     "pos": [
+      -0.2,
+      0.3,
+      -0.25
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "fixed input gland"
+     }
+    }
+   ]
+  },
+  "searchlight_ground": {
+   "tris": 946,
+   "empties": [
+    {
+     "node": "lightpt_searchlight_ground",
+     "parent": "searchlight_head",
+     "pos": [
+      0.0,
+      0.0,
+      0.8
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.96,
+        0.88
+       ],
+       "I": 2400,
+       "cone_deg": 14,
+       "range": 190
+      }
+     }
+    },
+    {
+     "node": "cable_searchlight_power",
+     "parent": "searchlight_ground",
+     "pos": [
+      1.15,
+      0.3,
+      0.0
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "power box socket pair (socket face looks -X toward the base)"
+     }
+    },
+    {
+     "node": "searchlight_yaw_axis",
+     "parent": "searchlight_ground",
+     "pos": [
+      0.0,
+      0.78,
+      0.0
+     ],
+     "extras": {
+      "kind": "pivot",
+      "note": "yoke yaw axis (Y); node searchlight_yoke carries it"
+     }
+    }
+   ]
+  },
+  "spotlight_tripod": {
+   "tris": 582,
+   "empties": [
+    {
+     "node": "lightpt_spotlight_tripod",
+     "parent": "spotlight_head",
+     "pos": [
+      0.0,
+      0.0,
+      0.27
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.96,
+        0.88
+       ],
+       "I": 800,
+       "cone_deg": 16,
+       "range": 90
+      }
+     }
+    },
+    {
+     "node": "cable_spotlight_tripod",
+     "parent": "spotlight_tripod",
+     "pos": [
+      0.0,
+      0.042,
+      -3.13
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "plug end of the supply cable (lying on the ground)"
+     }
+    }
+   ]
+  },
+  "vehicle_headlights": {
+   "tris": 288,
+   "empties": [
+    {
+     "node": "lightpt_vehicle_headlight_l",
+     "parent": "vehicle_headlights",
+     "pos": [
+      0.55,
+      0.0,
+      0.12
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.95,
+        0.82
+       ],
+       "I": 160,
+       "cone_deg": 40,
+       "range": 45,
+       "group": "headlights"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_headlight_r",
+     "parent": "vehicle_headlights",
+     "pos": [
+      -0.55,
+      0.0,
+      0.12
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        1,
+        0.95,
+        0.82
+       ],
+       "I": 160,
+       "cone_deg": 40,
+       "range": 45,
+       "group": "headlights"
+      }
+     }
+    },
+    {
+     "node": "cable_vehicle_headlights",
+     "parent": "vehicle_headlights",
+     "pos": [
+      0.0,
+      0.0,
+      -0.14
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "harness entry at the centre mount"
+     }
+    }
+   ]
+  },
+  "vehicle_taillights": {
+   "tris": 96,
+   "empties": [
+    {
+     "node": "lightpt_vehicle_tail_l",
+     "parent": "vehicle_taillights",
+     "pos": [
+      0.55,
+      0.018,
+      0.06
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.08,
+        0.05
+       ],
+       "I": 12,
+       "cone_deg": 100,
+       "range": 7,
+       "group": "tail"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_reverse_l",
+     "parent": "vehicle_taillights",
+     "pos": [
+      0.55,
+      -0.04,
+      0.06
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.97,
+        0.9
+       ],
+       "I": 20,
+       "cone_deg": 90,
+       "range": 9,
+       "group": "reverse"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_tail_r",
+     "parent": "vehicle_taillights",
+     "pos": [
+      -0.55,
+      0.018,
+      0.06
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.08,
+        0.05
+       ],
+       "I": 12,
+       "cone_deg": 100,
+       "range": 7,
+       "group": "tail"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_reverse_r",
+     "parent": "vehicle_taillights",
+     "pos": [
+      -0.55,
+      -0.04,
+      0.06
+     ],
+     "extras": {
+      "light": {
+       "type": "point",
+       "color": [
+        1,
+        0.97,
+        0.9
+       ],
+       "I": 20,
+       "cone_deg": 90,
+       "range": 9,
+       "group": "reverse"
+      }
+     }
+    },
+    {
+     "node": "cable_vehicle_taillights",
+     "parent": "vehicle_taillights",
+     "pos": [
+      0.0,
+      0.0,
+      -0.1
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "harness entry at the centre mount"
+     }
+    }
+   ]
+  },
+  "vehicle_lightbar": {
+   "tris": 168,
+   "empties": [
+    {
+     "node": "lightpt_vehicle_lightbar_0",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      -0.45,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_lightbar_1",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      -0.27,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_lightbar_2",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      -0.09,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_lightbar_3",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      0.09,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_lightbar_4",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      0.27,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "lightpt_vehicle_lightbar_5",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      0.45,
+      0.19,
+      0.082
+     ],
+     "extras": {
+      "light": {
+       "type": "spot",
+       "color": [
+        0.95,
+        0.97,
+        1
+       ],
+       "I": 120,
+       "cone_deg": 24,
+       "range": 55,
+       "group": "lightbar"
+      }
+     }
+    },
+    {
+     "node": "cable_vehicle_lightbar",
+     "parent": "vehicle_lightbar",
+     "pos": [
+      0.55,
+      0.05,
+      -0.3
+     ],
+     "extras": {
+      "kind": "cable_end",
+      "note": "pigtail end (12 V plug)"
+     }
+    }
+   ]
+  },
+  "lights_materials_ref": {
+   "tris": 84,
+   "empties": []
+  }
+ }
+}
