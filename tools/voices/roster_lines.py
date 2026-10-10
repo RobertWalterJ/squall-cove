@@ -72,6 +72,8 @@ SQUAD_ALL = (
     L("aircraft", "Aircraft inbound!", "Helicopter overhead!", "Aircraft, take cover!", hot=True) +
     L("fm_shot", "Shot, over") + L("fm_splash", "Splash")
 )
+# keys that exist in index.html VLINES (the others are new groups: commander, crew, aircrew, leader, misc enemy)
+VLINES_KEYS = set("contact taking_fire pinned moving covering reload low_ammo grenade medic_call medic_coming patched thanks man_down kill flag_secured losing_point defend ack_follow ack_hold ack_move ack_attack ack_defend ack_cover ack_fall ack_suppress ack_ping ack_holdfire ack_freefire ack_mount idle regroup mount dismount full bail climbing in_position retreat cannot_hold clear aircraft vehicle e_contact e_fire e_grenade e_down fm_start fm_shot fm_splash fm_destroyed fm_cease".split())
 SQUAD_KEYS_SKIP_FOR_VOICE_B = {"mount", "full", "climbing", "in_position", "ack_mount"}   # vehicle chatter: one squad voice is enough
 
 def pick(lines, per_key, skip=()):
@@ -154,28 +156,50 @@ def maxdur(text):
 # ----------------------------------------------------------------------------- generation
 SHARE_RADIO = {"michael", "lewis", "echo", "nicole", "daniel", "george", "adam"}   # radio = the same take through the radio chain (these voices shout into the radio)
 
+def letters(text): return len(re.sub(r"[^a-z]", "", text.lower()))
+
+def dur_ok(d, text):
+    """Plausible speaking time: at least 0.05 s per letter (faster means swallowed or truncated) and not babble."""
+    L = letters(text)
+    return max(0.14, 0.05 * L) <= d <= min(maxdur(text), 0.35 + 0.16 * L)
+
 def good(M, x, text):
-    d = len(x) / M.SR
-    return 0.14 <= d <= maxdur(text)
+    return dur_ok(len(x) / M.SR, text)
 
 def one_take(M, text, exag, cfg, seed, strict, label):
-    """Generate; retry (new seed) up to 3 times if the measured duration is implausible. Returns processed audio."""
+    """Generate; retry (new seed) up to 4 times if the measured duration is implausible. If none is plausible,
+    keep the attempt whose duration is closest to 0.075 s per letter (typical brisk speech)."""
     best = None
-    for i in range(3):
+    for i in range(4):
         raw = M.gen(text, exag, cfg, seed + i * 977)
         x = M.prep(raw, strict)
-        s = M.score(x)
         if good(M, x, text):
             return x
-        if best is None or s < best[0]: best = (s, x)
+        dev = abs(len(x) / M.SR - 0.075 * letters(text))
+        if best is None or dev < best[0]: best = (dev, x)
         print(f"   retry {label} dur={len(x)/M.SR:.2f}", flush=True)
     return best[1]
+
+def prune_implausible(out_root, meta):
+    """Drop (files + metadata) every line whose shout take is implausibly short or long, so run() regenerates it."""
+    bad = {(m["voice"], m["text"]) for m in meta if m["style"] == "shout" and m["take"] == 1 and not dur_ok(m["duration_s"], m["text"])}
+    keep = []
+    for m in meta:
+        if (m["voice"], m["text"]) in bad:
+            try: os.remove(os.path.join(out_root, m["file"]))
+            except OSError: pass
+        else: keep.append(m)
+    print(f"pruned {len(bad)} implausible lines for regeneration", flush=True)
+    return keep, sorted({v for v, _ in bad})
 
 def run(M, ids):
     out_root = M.VOICES_OUT
     os.makedirs(out_root, exist_ok=True)
     meta_path = os.path.join(out_root, "lines.json")
     meta = json.load(open(meta_path, encoding="utf8")) if os.path.exists(meta_path) else []
+    if os.environ.get("VOX_REDO"):
+        meta, affected = prune_implausible(out_root, meta)
+        ids = [i for i in (ids or list(VOICES)) if i in affected]
     done = {m["file"] for m in meta}
     ids = ids or list(VOICES)
 
@@ -189,7 +213,7 @@ def run(M, ids):
         fname = f"{vid}/{vid}__{slug}__{style}_t{ti}.ogg"
         n, pk = M.write_ogg(os.path.join(out_root, fname), x, 60)
         d, sr = sf.read(os.path.join(out_root, fname))
-        meta.append(dict(file=fname, text=text, role=role, voice=vid, style=style, take=ti, vlines_key=key,
+        meta.append(dict(file=fname, text=text, role=role, voice=vid, style=style, take=ti, vlines_key=(key if key in VLINES_KEYS else None), group=key,
                          duration_s=round(len(d) / sr, 2), kb=round(n / 1024, 1), peak_db=round(pk, 1)))
         done.add(fname)
         return n
